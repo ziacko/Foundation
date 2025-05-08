@@ -82,15 +82,12 @@ public:
 
 		manager->Initialize();
 
-		auto window = manager->AddWindow(setting);
-		if(window != nullptr)
-		{
-			windows.push_back(window);
-		}
+		window = manager->AddWindow(setting);
+		assert(window != nullptr);
 
 		shaderHandler = new shaderManager();
 		
-		InitImGUI(windows[0]);
+		InitImGUI(window);
 
 		glClearColor(0.25f, 0.25f, 0.25f, 1.0f);
 		
@@ -108,7 +105,7 @@ public:
 
 	virtual void Run()
 	{
-		while (!windows[0]->GetShouldClose())
+		while (!window->GetShouldClose())
 		{
 			Update();
 			Draw();
@@ -170,7 +167,7 @@ protected:
 	windowManager*							manager;
 
 	std::map<tWindow*, ImGuiContext*>		windowContextMap;
-	std::vector<tWindow*>					windows;
+	tWindow*								window;
 
 	shaderManager*							shaderHandler;
 	shaderLoader_t							shaderLoader;
@@ -239,21 +236,18 @@ protected:
 
 	virtual void Draw()
 	{
-		for (auto windowIter : windows)
-		{
-			manager->MakeCurrentContext(windowIter);
+
+			manager->MakeCurrentContext(window);
 
 			glBindVertexArray(defaultVertexBuffer->vertexArrayHandle);
 			glUseProgram(this->programGLID);
 
 			glDrawArrays(GL_TRIANGLES, 0, 6);
 
-			DrawGUI(windowIter);
+			DrawGUI(window);
 
-			manager->SwapDrawBuffers(windowIter);
+			manager->SwapDrawBuffers(window);
 			glClear(GL_COLOR_BUFFER_BIT);
-
-		}
 	}
 
 	virtual void BuildGUI(tWindow* window, ImGuiIO io)
@@ -426,9 +420,9 @@ protected:
 	virtual void InitializeUniforms()
 	{
 		defaultPayload.data = defaultUniformBuffer(this->sceneCamera);
-		glViewport(0, 0, windows[0]->GetWindowSettings().resolution.width, windows[0]->GetWindowSettings().resolution.height);
-		defaultPayload.data.resolution = glm::vec2(windows[0]->GetWindowSettings().resolution.width, windows[0]->GetWindowSettings().resolution.height);
-		defaultPayload.data.projection = glm::ortho(0.0f, (GLfloat)windows[0]->GetWindowSettings().resolution.width, (GLfloat)windows[0]->GetWindowSettings().resolution.height, 0.0f, 0.01f, 10.0f);
+		glViewport(0, 0, window->GetWindowSettings().resolution.width, window->GetWindowSettings().resolution.height);
+		defaultPayload.data.resolution = glm::vec2(window->GetWindowSettings().resolution.width, window->GetWindowSettings().resolution.height);
+		defaultPayload.data.projection = glm::ortho(0.0f, (GLfloat)window->GetWindowSettings().resolution.width, (GLfloat)window->GetWindowSettings().resolution.height, 0.0f, 0.01f, 10.0f);
 
 		SetupVertexBuffer();
 		SetupBuffer(gl_uniform_buffer, gl_dynamic_draw);
@@ -607,7 +601,7 @@ protected:
 		imGUIIBOHandle = 0;
 		imGUIFontTexture = 0;
 
-		ImGui::SetCurrentContext(windowContextMap[windows[0]]);
+		ImGui::SetCurrentContext(windowContextMap[window]);
 	}
 
 	virtual void HandleImGUIRender(tWindow* window)
