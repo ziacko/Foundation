@@ -1,0 +1,24 @@
+[
+    {
+        "name": "bindlessProgram",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "DefaultVertex",
+                "path": "bindless/Default.vert",
+                "type": "Vertex"
+            },
+            {
+                "name": "TexturedFragment",
+                "path": "bindless/Bindless.frag",
+                "type": "Fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "uv"
+        ]
+    }
+]

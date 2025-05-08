@@ -1,0 +1,32 @@
+[
+    {
+        "name": "texModelProgram",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "RayCastVertex",
+                "path": "../../resources/shaders/RayModel.vert",
+                "type": "Vertex"
+            },
+            {
+                "name": "RayCastGeom",
+                "path": "../../resources/shaders/raycast.geom",
+                "type": "Geometry"
+            },
+            {
+                "name": "ModelFragment",
+                "path": "../../resources/shaders/texturedModel.frag",
+                "type": "Fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "normal",
+            "tangent",
+            "biTangent",
+            "uv"
+        ]
+    }
+]

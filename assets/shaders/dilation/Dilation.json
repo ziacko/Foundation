@@ -1,0 +1,24 @@
+[
+    {
+        "name": "DilationProgram",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "DefaultVertex",
+                "path": "dilation/Default.vert",
+                "type": "Vertex"
+            },
+            {
+                "name": "DilationFragment",
+                "path": "dilation/Dilation.frag",
+                "type": "Fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "uV"
+        ]
+    }
+]

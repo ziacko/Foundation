@@ -1,0 +1,24 @@
+[
+    {
+        "name": "TextureSettingsProgram",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "SettingsVertex",
+                "path": "textureSettings/Settings.vert",
+                "type": "Vertex"
+            },
+            {
+                "name": "TexturedFragment",
+                "path": "textureSettings/Textured.frag",
+                "type": "Fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "UV"
+        ]
+    }
+]

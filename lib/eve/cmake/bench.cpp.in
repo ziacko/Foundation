@@ -1,0 +1,17 @@
+//==================================================================================================
+/**
+  EVE - Expressive Vector Engine
+  Copyright : EVE Project Contributors
+  SPDX-License-Identifier: BSL-1.0
+**/
+//==================================================================================================
+#include <cstdint>
+#include <cstddef>
+#include <eve/wide.hpp>
+
+using EVE_TYPE  = eve::wide<${target}, eve::fixed<64/sizeof(${target})> >;
+using EVE_VALUE = ${target};
+
+#include "generators.hpp"
+#include "experiment.hpp"
+#include "${header}.hpp"

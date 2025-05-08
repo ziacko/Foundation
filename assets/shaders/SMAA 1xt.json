@@ -1,0 +1,159 @@
+[
+    {
+        "name": "geometryProgram",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "jitterVertex",
+                "path": "../../resources/shaders/Jitter.vert",
+                "type": "Vertex"
+            },
+            {
+                "name": "TreeFragment",
+                "path": "../../resources/shaders/Velocity.frag",
+                "type": "Fragment"
+            }
+        ],
+        "vertex attributes": [
+            "positon",
+            "normal",
+            "tangent",
+            "biTangent",
+            "uv"
+        ]
+    },
+    {
+        "name": "EdgeDetectionProgram",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "DefaultVertex",
+                "path": "../../resources/shaders/EdgeDetection.vert",
+                "type": "Vertex"
+            },
+            {
+                "name": "EdgeDetection",
+                "path": "../../resources/shaders/SMAAEdgeDetection.frag",
+                "type": "Fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "uv"
+        ]
+    },
+    {
+        "name": "BlendingWeightProgram",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "DefaultVertex",
+                "path": "../../resources/shaders/BlendingWeight.vert",
+                "type": "Vertex"
+            },
+            {
+                "name": "BlendingWeight",
+                "path": "../../resources/shaders/BlendingWeight.frag",
+                "type": "Fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "uv"
+        ]
+    },
+    {
+        "name": "SMAAProgram",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "DefaultVertex",
+                "path": "../../resources/shaders/SMAA.vert",
+                "type": "Vertex"
+            },
+            {
+                "name": "TexturedFragment",
+                "path": "../../resources/shaders/SMAA.frag",
+                "type": "Fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "uv"
+        ]
+    },
+    {
+        "name": "ResolveProgram",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "DefaultVertex",
+                "path": "../../resources/shaders/Default.vert",
+                "type": "Vertex"
+            },
+            {
+                "name": "ResolveFragment",
+                "path": "../../resources/shaders/Smooth.frag",
+                "type": "Fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "uv"
+        ]
+    },
+    {
+        "name": "compareProgram",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "DefaultVertex",
+                "path": "../../resources/shaders/Default.vert",
+                "type": "Vertex"
+            },
+            {
+                "name": "TexturedFragment",
+                "path": "../../resources/shaders/Compare.frag",
+                "type": "Fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "uv"
+        ]
+    },
+    {
+        "name": "finalProgram",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "DefaultVertex",
+                "path": "../../resources/shaders/Default.vert",
+                "type": "Vertex"
+            },
+            {
+                "name": "TexturedFragment",
+                "path": "../../resources/shaders/Textured.frag",
+                "type": "Fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "uv"
+        ]
+    }
+]

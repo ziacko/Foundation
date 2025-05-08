@@ -1,0 +1,24 @@
+[
+    {
+        "name": "MipMappingProgram",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "DefaultVertex",
+                "path": "mipMapping/Default.vert",
+                "type": "Vertex"
+            },
+            {
+                "name": "TexturedFragment",
+                "path": "mipMapping/MipMapping.frag",
+                "type": "Fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "uV"
+        ]
+    }
+]

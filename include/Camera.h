@@ -1,0 +1,239 @@
+#ifndef CAMERA_H
+#define CAMERA_H
+
+class camera_t
+{
+public:
+
+	enum class projection_e
+	{
+		perspective,
+		orthographic,
+	};
+
+	glm::mat4			translation;
+	glm::mat4			projection;
+	glm::mat4			view;
+
+	glm::vec2			mousePosition;
+	glm::vec2			resolution;
+	float				speed;
+	float				fieldOfView;
+	const float			defaultOrthoNear = 0.01f;
+	const float			defaultOrthoFar = 100.0f;
+	const float			defaultPersNear = 15.0f;
+	const float			defaultPersFar = 1000.0f;
+	float				farPlane;
+	float				nearPlane;
+	projection_e		currentProjectionType;
+
+	float				xSensitivity;
+	float				ySensitivity;
+	float				zSensitivity;
+
+	float				yaw = 0.0f;
+	float				pitch = 0.0f;
+	float				roll = 0.0f;
+
+	glm::vec4			right;
+	glm::vec4			forward;
+	glm::vec4			up;
+
+	static const glm::vec4 globalRight;// = glm::vec3(1, 0, 0);
+	static const glm::vec4 globalForward;// = glm::vec3(0, 0, 1);
+	static const glm::vec4 globalUp;// = glm::vec3(0, 1, 0);
+
+	//glm::vec4 rotation;
+	glm::vec3 position;
+	glm::vec3 rotator; //roll, pitch, yaw
+	glm::quat rotation;
+
+	bool guiActive = false;
+
+	camera_t(glm::vec2 resolution = glm::vec2(1280, 720), float speed = 1.0f,
+		projection_e type = projection_e::orthographic, float nearPlane = 0.1f,
+		float farPlane = 1000.0f, float fieldOfView = 60.0f)
+	{
+		this->farPlane = farPlane;
+		this->nearPlane = nearPlane;
+		this->fieldOfView = fieldOfView;
+		this->speed = speed;
+		this->currentProjectionType = type;
+		this->translation = glm::mat4(1.0f);
+		this->resolution = resolution;
+		xSensitivity = 0.01f;
+		ySensitivity = 0.01f;
+		zSensitivity = 0.01f;
+
+		(this->currentProjectionType == projection_e::orthographic) ? this->projection = glm::ortho(0.0f, this->resolution.x, this->resolution.y,
+			0.0f, this->nearPlane, this->farPlane) :
+			this->projection = glm::perspective<float>(this->fieldOfView, this->resolution.x / this->resolution.y,
+				this->nearPlane, this->farPlane);
+
+		if (currentProjectionType == projection_e::orthographic)
+		{
+			this->view = glm::mat4(1);
+			this->view[3][2] = -5.0f;
+		}
+
+		else
+		{
+			this->view = glm::inverse(this->translation);
+		}
+
+		position = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+		rotation = glm::quat(glm::vec3(0.0f));
+		rotator = glm::vec3(0.0f);
+
+		up = globalUp;
+		right = globalRight;
+		forward = globalForward;
+	}
+
+	~camera_t() {}
+
+	void Update()
+	{
+		if (currentProjectionType == projection_e::perspective)
+		{
+			view = glm::eulerAngleXYZ(rotator.y, rotator.x, rotator.z);
+			view = glm::translate(view, -position);
+			rotation = glm::toQuat(view);
+		}
+		UpdateProjection();
+		UpdateDirections();
+	}
+
+	void UpdateProjection()
+	{
+		if (currentProjectionType == projection_e::perspective)
+		{
+			if (resolution.x > 0 && resolution.y > 0)
+			{
+				projection = glm::perspective<float>(glm::radians(fieldOfView), resolution.x / resolution.y,
+					nearPlane, farPlane);
+			}
+		}
+
+		else 
+		{
+			projection = glm::ortho<float>(0.0f, resolution.x, resolution.y, 0.0f, defaultOrthoNear, defaultOrthoFar);
+		}
+	}
+
+	glm::mat4 MakeProjection(projection_e projectionType)
+	{
+		glm::mat4 outProj = glm::mat4(1.0f);
+		if (projectionType == projection_e::perspective)
+		{
+			return glm::perspective<float>(glm::radians(fieldOfView), resolution.x / resolution.y,
+				nearPlane, farPlane);
+		}
+
+		else
+		{
+			return glm::ortho<float>(0.0f, resolution.x, resolution.y, 0.0, defaultOrthoNear, defaultOrthoFar);
+		}
+	}
+
+	glm::mat4 MakeView(projection_e projectionType)
+	{
+		glm::mat4 outView = glm::mat4(1.0f);
+		if (projectionType == projection_e::perspective)
+		{
+			outView = glm::eulerAngleXYZ(rotator.y, rotator.x, rotator.z);
+			outView = glm::translate(outView, -position);
+		}
+
+		else
+		{
+			this->view = glm::mat4(1);
+			this->view[3][2] = -5.0f;
+		}
+
+		return outView;
+	}
+
+	void ChangeProjection(projection_e newProjection)
+	{
+		currentProjectionType = newProjection;
+
+		if (currentProjectionType == projection_e::perspective)
+		{
+			if (resolution.x > 0 && resolution.y > 0)
+			{
+				projection = glm::perspective<float>(glm::radians(fieldOfView), resolution.x / resolution.y,
+					nearPlane, farPlane);
+				view = glm::eulerAngleXYZ(rotator.y, rotator.x, rotator.z);
+				view = glm::translate(view, -position);
+				rotation = glm::toQuat(view);
+			}
+		}
+
+		else
+		{
+			projection = glm::ortho<float>(0.0f, resolution.x, resolution.y, 0.0, defaultOrthoNear, defaultOrthoFar);
+			this->view = glm::mat4(1);
+			this->view[3][2] = -5.0f;
+			this->translation = glm::mat4(1.0f);
+		}
+	}
+
+	void UpdateDirections()
+	{
+		right = glm::conjugate(rotation) * globalRight;
+		forward = glm::conjugate(rotation) * globalForward;
+		up = glm::conjugate(rotation) * globalUp;
+	}
+
+	void Pitch(float pitchRadians)
+	{
+		rotator += glm::vec3(globalUp) * pitchRadians;
+	}
+
+	void Yaw(float yawRadians)
+	{
+		rotator += glm::vec3(globalRight) * yawRadians;
+	}
+
+	void Roll(float rollRadians)
+	{
+		rotator += glm::vec3(globalForward) * rollRadians;
+	}
+
+	glm::vec3 GetForward()
+	{
+		return glm::conjugate(rotation) * glm::vec3(0.0f, 0.0f, -1.0f);
+	}
+
+	glm::vec3 GetRight()
+	{
+		return glm::conjugate(rotation) * glm::vec3(1.0f, 0.0f, 0.0f);
+	}
+
+	glm::vec3 GetUp()
+	{
+		return glm::conjugate(rotation) * glm::vec3(0.0f, 1.0f, 0.0f);
+	}
+
+	void MoveForward(float movement, float deltaTime)
+	{
+		position += (GetForward() * movement) * (1 - deltaTime);
+	}
+
+	void MoveRight(float movement, float deltaTime)
+	{
+		position += (GetRight() * movement) * (1 - deltaTime);
+	}
+
+	void MoveUp(float movement, float deltaTime)
+	{
+		position += (GetUp() * movement) * (1 - deltaTime);
+	}
+};
+
+const glm::vec4 camera_t::globalRight = glm::vec4(1, 0, 0, 1);
+const glm::vec4 camera_t::globalForward = glm::vec4(0, 0, -1, 1);
+const glm::vec4 camera_t::globalUp = glm::vec4(0, 1, 0, 1);
+
+#endif

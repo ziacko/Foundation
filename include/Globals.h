@@ -1,0 +1,46 @@
+#pragma once
+#define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#define GLM_ENABLE_EXPERIMENTAL
+#define QOI_IMPLEMENTATION
+#include <iostream>
+#include <string>
+#include <cstdlib>
+#include <map>
+#include <numeric>
+#include <algorithm>
+#include <cstddef>
+#include <chrono>
+#include <thread>
+#include <array>
+#include <list>
+#include <filesystem>
+#include <TinyExtender.h>
+using namespace TinyExtender;
+#include <TinyShaders.h>
+using namespace TinyShaders;
+#include <TinyWindow.h>
+#include <TinyClock.h>
+#include <glm/fwd.hpp>
+#include <glm/glm.hpp>
+#include <glm/matrix.hpp>
+#include <glm/vec4.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/constants.hpp>
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtx/quaternion.hpp>
+#include <glm/gtx/euler_angles.hpp>
+#include <imgui.h>
+#include <yyjson.h>
+#include <absl/container/inlined_vector.h>
+#include <absl/container/fixed_array.h>
+#include <absl/strings/string_view.h>
+using namespace TinyWindow;
+using namespace std::placeholders;
+#include "Camera.h"
+#include "DefaultUniformBuffer.h"
+#include "GPUQuery.h"
+#include "Utilities.h"
+#include "VertexBuffer.h"
+#include "shaderLoader_t.h"

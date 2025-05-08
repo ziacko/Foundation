@@ -1,0 +1,51 @@
+#version 450
+
+layout (location = 0) in vec4 position;
+layout (location = 1) in vec4 normal;
+layout (location = 2) in vec4 tangent;
+layout (location = 3) in vec4 biTangent;
+layout (location = 4) in ivec4 boneIndex;
+layout (location = 5) in vec4 weight;
+layout (location = 6) in vec2 uv;
+
+out defaultBlock
+{
+	vec4 		position;
+	vec4 		normal;
+	vec2		uv;
+} outBlock;
+
+layout(std140, binding = 0) uniform defaultSettings
+{
+	mat4		projection;
+	mat4		view;
+	mat4		translation;
+	vec2		resolution;
+	vec2		mousePosition;
+	float		deltaTime;
+	float		totalTime;
+	float 		framesPerSecond;
+	uint 		totalFrames;
+};
+
+layout(binding = 0) buffer boneSettings
+{
+    mat4 Bones[];
+};
+
+void main()
+{
+	//move from world space to screen space
+	mat4 mvp = projection * view * translation;
+	vec4 pos = Bones[boneIndex.x] * position * weight.x;
+	pos += Bones[boneIndex.y] * position * weight.y;
+	pos += Bones[boneIndex.z] * position * weight.z;
+	pos += Bones[boneIndex.w] * position * weight.w;
+
+	gl_Position = mvp * pos;// Bones[boneIndex] * position * weight;
+
+	outBlock.uv = uv;
+	outBlock.normal = normal;
+	
+	// = outBlock.position;
+}

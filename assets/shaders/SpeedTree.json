@@ -1,0 +1,27 @@
+[
+    {
+        "name": "treeProgram",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "modelVertex",
+                "path": "../../resources/shaders/Model.vert",
+                "type": "Vertex"
+            },
+            {
+                "name": "TreeFragment",
+                "path": "../../resources/shaders/SpeedTree.frag",
+                "type": "Fragment"
+            }
+        ],
+        "vertex attributes": [
+            "positon",
+            "normal",
+            "tangent",
+            "biTangent",
+            "uv"
+        ]
+    }
+]

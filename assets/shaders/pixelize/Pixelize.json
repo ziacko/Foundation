@@ -1,0 +1,24 @@
+[
+    {
+        "name": "PixelizeProgram",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "DefaultVertex",
+                "path": "pixelize/Default.vert",
+                "type": "Vertex"
+            },
+            {
+                "name": "PixelizeFragment",
+                "path": "pixelize/Pixelize.frag",
+                "type": "Fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "uV"
+        ]
+    }
+]

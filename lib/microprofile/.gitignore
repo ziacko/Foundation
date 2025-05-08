@@ -1,0 +1,17 @@
+*.class
+.settings/
+.checkstyle
+target/
+.project
+build/
+.classpath
+.factorypath
+/*.log
+.idea
+*.iml
+*.iwl
+*.ipr
+.java-version
+.DS_store
+# Ignore a release.conf for perform_release/* script usage
+release.conf

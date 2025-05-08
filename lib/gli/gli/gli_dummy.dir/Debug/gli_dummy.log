@@ -1,0 +1,4 @@
+﻿  Building Custom Rule D:/projects/Portfolio/dependencies/gli/gli/CMakeLists.txt
+  CMake does not need to re-run because D:/projects/Portfolio/dependencies/gli/gli/CMakeFiles/generate.stamp is up-to-date.
+  dummy.cpp
+  gli_dummy.vcxproj -> D:\projects\Portfolio\dependencies\gli\gli\Debug\gli_dummy.exe

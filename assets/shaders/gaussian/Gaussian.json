@@ -1,0 +1,24 @@
+[
+    {
+        "name": "GaussianProgram",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "DefaultVertex",
+                "path": "gaussian/Default.vert",
+                "type": "Vertex"
+            },
+            {
+                "name": "GaussianFragment",
+                "path": "gaussian/Gaussian.frag",
+                "type": "Fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "uV"
+        ]
+    }
+]

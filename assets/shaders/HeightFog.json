@@ -1,0 +1,62 @@
+[
+    {
+        "name": "displacementProgram",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "ModelVertex",
+                "path": "../../resources/shaders/Model.vert",
+                "type": "Vertex"
+            },
+            {
+                "name": "DispTessCont",
+                "path": "../../resources/shaders/Displacement.tesc",
+                "type": "Tessellation_Control"
+            },
+            {
+                "name": "DispTessEval",
+                "path": "../../resources/shaders/Displacement.tese",
+                "type": "Tessellation_Evaluation"
+            },
+            {
+                "name": "ModelFragment",
+                "path": "../../resources/shaders/Displacement.frag",
+                "type": "Fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "normal",
+            "tangent",
+            "biTangent",
+            "uv"
+        ]
+    },
+    {
+        "name": "HeightfogProgram",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "ModelVertex",
+                "path": "../../resources/shaders/Default.vert",
+                "type": "Vertex"
+            },
+            {
+                "name": "ModelFragment",
+                "path": "../../resources/shaders/HeightFog.frag",
+                "type": "Fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "normal",
+            "tangent",
+            "biTangent",
+            "uv"
+        ]
+    }
+]

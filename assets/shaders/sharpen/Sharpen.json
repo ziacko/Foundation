@@ -1,0 +1,24 @@
+[
+    {
+        "name": "SharpenProgram",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "DefaultVertex",
+                "path": "sharpen/Default.vert",
+                "type": "Vertex"
+            },
+            {
+                "name": "SharpenFragment",
+                "path": "sharpen/Sharpen.frag",
+                "type": "Fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "uV"
+        ]
+    }
+]

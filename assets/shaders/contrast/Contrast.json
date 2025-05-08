@@ -1,0 +1,24 @@
+[
+    {
+        "name": "ContrastProgram",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "DefaultVertex",
+                "path": "contrast/Default.vert",
+                "type": "Vertex"
+            },
+            {
+                "name": "ContrastFragment",
+                "path": "contrast/Contrast.frag",
+                "type": "Fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "UV"
+        ]
+    }
+]

@@ -1,0 +1,24 @@
+[
+    {
+        "name": "RadialBlurringProgram",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "DefaultVertex",
+                "path": "radialBlur/Default.vert",
+                "type": "Vertex"
+            },
+            {
+                "name": "RadialBlurFragment",
+                "path": "radialBlur/RadialBlur.frag",
+                "type": "Fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "UV"
+        ]
+    }
+]

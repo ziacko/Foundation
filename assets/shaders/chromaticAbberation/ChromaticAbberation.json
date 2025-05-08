@@ -1,0 +1,24 @@
+[
+    {
+        "name": "DefaultProgram",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "DefaultVertex",
+                "path": "chromaticAbberation/Default.vert",
+                "type": "Vertex"
+            },
+            {
+                "name": "ChromaticFragment",
+                "path": "chromaticAbberation/Chromatic.frag",
+                "type": "Fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "UV"
+        ]
+    }
+]

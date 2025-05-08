@@ -1,0 +1,126 @@
+{
+    "programs": [
+      {
+        "name": "Sobel",
+        "vertex attributes": [
+          {
+            "name": "position",
+            "type": "vec3"
+          },
+          {
+            "name": "uv",
+            "type": "vec2"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "outColor",
+            "type": "vec4"
+          }
+        ],
+        "shaders": [
+          {
+            "name": "Default3D",
+            "type": "Vertex", 
+            "path": "shaders/Default.vert"
+          },
+          {
+            "name": "Sobel",
+            "type": "Fragment",
+            "path": "shaders/Sobel.frag"
+          }
+        ]
+      },
+      {
+        "name": "laplacian",
+        "vertex attributes":[
+            {
+                "name": "position",
+                "type": "vec3"
+            },
+            {
+                "name": "uv",
+                "type": "vec2"
+            }
+        ],
+        "outputs":[
+            {
+                "name": "outColor",
+                "type": "vec4"
+            }
+        ],
+        "shaders":[
+            {
+                "name": "Default3D",
+				"type": "Vertex",
+				"path": "shaders/Default.vert"
+            },
+			{
+				"name": "laplacian",
+				"type": "Fragment",
+				"path": "shaders/Laplacian.frag"
+			}
+        ]
+      },
+	  {
+		"name": "Prewitt",
+		"vertex attributes":[
+			{
+				"name": "position",
+				"type": "vec3"
+			},
+			{
+				"name": "uv",
+				"type": "vec2"
+			}
+		],
+		"outputs":[
+			{
+				"name": "outColor"
+			}
+		],
+		"shaders":[
+			{
+                "name": "Default3D",
+				"type": "Vertex",
+				"path": "shaders/Default.vert"
+            },
+			{
+				"name": "laplacian",
+				"type": "Fragment",
+				"path": "shaders/Prewitt.frag"
+			}
+		]
+	  },
+	  {
+		"name": "FreiChen",
+		"vertex attributes":[
+			{
+				"name": "position",
+				"type": "vec3"
+			},
+			{
+				"name": "uv",
+				"type": "vec2"
+			}
+		],
+		"outputs":[
+			{
+				"name": "outColor"
+			}
+		],
+		"shaders":[
+			{
+                "name": "Default3D",
+				"type": "Vertex",
+				"path": "shaders/Default.vert"
+            },
+			{
+				"name": "FreiChen",
+				"type": "Fragment",
+				"path": "shaders/FreiChen.frag"
+			}
+		]
+	  }
+    ]
+  }
