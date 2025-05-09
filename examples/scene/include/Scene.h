@@ -4,6 +4,7 @@
 //#include <utility>
 
 #include "Globals.h"
+#include "imgui_internal.h"
 #include <GL/glext.h>
 
 using frameRates_t = enum {UNCAPPED = 0, THIRTY = 30, SIXTY = 60, NINETY = 90, ONETWENTY = 120, ONEFOURTYFOUR = 144};
@@ -96,6 +97,9 @@ public:
 
 	virtual ~scene()
 	{
+		ImGUIInvalidateDeviceObject(); // Missing cleanup for ImGui context
+		ImGui::DestroyContext(); // Should destroy the context
+		windowContextMap.clear(); // Clear the map
 		delete this->sceneCamera;		this->sceneCamera = nullptr;
 		delete manager;					manager = nullptr;
 		delete shaderHandler;			shaderHandler = nullptr;
@@ -236,22 +240,32 @@ protected:
 
 	virtual void Draw()
 	{
+		PreDraw();
 
-			manager->MakeCurrentContext(window);
+		glBindVertexArray(defaultVertexBuffer->vertexArrayHandle);
+		glUseProgram(this->programGLID);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
 
-			glBindVertexArray(defaultVertexBuffer->vertexArrayHandle);
-			glUseProgram(this->programGLID);
+		PostDraw();
+	}
 
-			glDrawArrays(GL_TRIANGLES, 0, 6);
+	virtual void PreDraw()
+	{
+		manager->MakeCurrentContext(window);
+	}
 
-			DrawGUI(window);
+	virtual void PostDraw()
+	{
+		DrawGUI(window);
 
-			manager->SwapDrawBuffers(window);
-			glClear(GL_COLOR_BUFFER_BIT);
+		manager->SwapDrawBuffers(window);
+		glClear(GL_COLOR_BUFFER_BIT);
 	}
 
 	virtual void BuildGUI(tWindow* window, ImGuiIO io)
 	{
+		ImGui::SetCurrentContext(windowContextMap[window]);
+
 		ImGui::Text("FPS %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, 1.0f / sceneClock->GetDeltaTime());
 		ImGui::Text("Total running time %.5f", sceneClock->GetTotalTime());
 		ImGui::Text("Mouse coordinates: \t X: %.0f \t Y: %.0f", io.MousePos.x, io.MousePos.y);
@@ -265,9 +279,9 @@ protected:
 			manager->ToggleFullscreen(window, &manager->GetMonitors()[0], 0);
 		}
 
-		//if (ImGui::InputInt("Swap Interval", &interval, 1))
+		if (ImGui::InputInt("Swap Interval", &interval, 1))
 		{
-			//manager->SetWindowSwapInterval(window, interval);
+			manager->SetWindowSwapInterval(window, interval);
 		}
 
 		static int frameRatePick = 0;
@@ -561,10 +575,16 @@ protected:
 	{
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
-		windowContextMap.insert(std::make_pair(window, ImGui::GetCurrentContext()));
-
+		
+		if (windowContextMap.find(window) != windowContextMap.end()) {
+			ImGui::DestroyContext(windowContextMap[window]);
+		}
+		windowContextMap[window] = ImGui::GetCurrentContext();
+		
 		ImGuiIO& io = ImGui::GetIO();
-
+		io.BackendRendererName = "imgui_impl_opengl3";
+		io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;
+		
 		io.AddKeyEvent(ImGuiKey_Tab, TinyWindow::tab);
 		io.AddKeyEvent(ImGuiKey_LeftArrow, TinyWindow::arrowLeft);
 		io.AddKeyEvent(ImGuiKey_RightArrow, TinyWindow::arrowRight);
@@ -648,7 +668,8 @@ protected:
 		glActiveTexture(gl_texture0);
 
 		glm::vec2 resolution = glm::vec2(window->GetWindowSettings().resolution.x, window->GetWindowSettings().resolution.y);
-		glViewport(0, 0, resolution.x, resolution.y);
+		glViewport(0, 0, (GLsizei)(io.DisplaySize.x * io.DisplayFramebufferScale.x),
+                 (GLsizei)(io.DisplaySize.y * io.DisplayFramebufferScale.y));
 
 		glm::mat4 proj = glm::ortho(-(resolution.x / 2), resolution.x / 2, resolution.y / 2, -(resolution.y / 2), -1.0f, 10.f);
 		const float orthoProjection[4][4] =

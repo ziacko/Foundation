@@ -3,6 +3,8 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #define GLM_ENABLE_EXPERIMENTAL
 #define QOI_IMPLEMENTATION
+#define IMGUI_IMPL_OPENGL_USE_VERTEX_ARRAY
+#define IMGUI_IMPL_OPENGL_USE_BUFFER_BINDING
 #include <iostream>
 #include <string>
 #include <cstdlib>

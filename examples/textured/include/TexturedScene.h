@@ -41,22 +41,17 @@ public:
 
 	virtual void Draw() override
 	{
-		for (auto windowIter : windows)
-		{
-			manager->MakeCurrentContext(windowIter);
+		PreDraw();
 
-			glBindVertexArray(defaultVertexBuffer->vertexArrayHandle);
-			glUseProgram(this->programGLID);
-			defaultTexture->SetActive(0);
+		glViewport(0, 0, window->GetWindowSettings().resolution.width, window->GetWindowSettings().resolution.height);
+		glBindVertexArray(defaultVertexBuffer->vertexArrayHandle);
+		glUseProgram(this->programGLID);
+		defaultTexture->SetActive(0);
 
-			glDrawArrays(GL_TRIANGLES, 0, 6);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
 
-			DrawGUI(windowIter);
+		PostDraw();
 
-			manager->SwapDrawBuffers(windowIter);
-			glClear(GL_COLOR_BUFFER_BIT);
-
-		}
 	}
 
 	virtual void SetupCallbacks() override
