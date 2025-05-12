@@ -105,8 +105,8 @@ protected:
 
 		glDrawArraysInstanced(GL_TRIANGLES, 0, 6, bubble.data.gridDimensions * bubble.data.gridDimensions);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		texturedScene::DrawGUI(windows[0]);
-		manager->SwapDrawBuffers(windows[0]);
+		texturedScene::DrawGUI(window);
+		manager->SwapDrawBuffers(window);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 };

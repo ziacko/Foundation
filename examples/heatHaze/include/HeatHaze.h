@@ -106,7 +106,7 @@ public:
 		perlinDesc.format = gl_rg;
 		perlinDesc.internalFormat = gl_rg16f;
 		perlinDesc.internalFormat = gl_rg16f;
-		perlinDesc.dimensions = glm::ivec3(windows[0]->GetWindowSettings().resolution.width, windows[0]->GetWindowSettings().resolution.height, 1);
+		perlinDesc.dimensions = glm::ivec3(window->GetWindowSettings().resolution.width, window->GetWindowSettings().resolution.height, 1);
 
 		perlinBuffer->AddAttachment(new frameBuffer::attachment_t("perlin", perlinDesc));
 
@@ -248,8 +248,13 @@ protected:
 		PerlinPass();
 		HeatHazePass();
 
-		texturedScene::DrawGUI(windows[0]);
-		manager->SwapDrawBuffers(windows[0]);
+		PostDraw();
+	}
+
+	virtual void PostDraw() override
+	{
+		texturedScene::DrawGUI(window);
+		manager->SwapDrawBuffers(window);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 

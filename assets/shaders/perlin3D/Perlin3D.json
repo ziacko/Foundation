@@ -1,4 +1,17 @@
 [
+        {
+        "name": "Perlin3DProgram",
+        "outputs": [],
+        "shaders": [
+            {
+                "name": "ComputePerlin",
+                "path": "perlin3D/Perlin3D.comp",
+                "type": "Compute"
+            }
+        ],
+        "vertex attributes": []
+    },
+
     {
         "name": "finalProgram",
         "outputs": [
@@ -20,17 +33,5 @@
             "position",
             "uv"
         ]
-    },
-    {
-        "name": "Perlin3DProgram",
-        "outputs": [],
-        "shaders": [
-            {
-                "name": "ComputePerlin",
-                "path": "perlin3D/Perlin3D.comp",
-                "type": "Compute"
-            }
-        ],
-        "vertex attributes": []
     }
 ]

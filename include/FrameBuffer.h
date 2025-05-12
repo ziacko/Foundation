@@ -92,7 +92,7 @@ public:
 			case gl_texture_2d_array:
 			case gl_texture_3d:
 			{
-				//glTexImage3D(static_cast<GLenum>(this->FBODesc.target), this->FBODesc.currentMipmapLevel, this->FBODesc.internalFormat, this->FBODesc.dimensions.x, this->FBODesc.dimensions.y, this->FBODesc.dimensions.z, this->FBODesc.border, static_cast<GLenum>(this->FBODesc.format), static_cast<GLenum>(this->FBODesc.dataType), nullptr);
+				TinyExtender::glTexImage3D(this->FBODesc.target, this->FBODesc.currentMipmapLevel, this->FBODesc.internalFormat, this->FBODesc.dimensions.x, this->FBODesc.dimensions.y, this->FBODesc.dimensions.z, this->FBODesc.border, static_cast<GLenum>(this->FBODesc.format), static_cast<GLenum>(this->FBODesc.dataType), nullptr);
 				break;
 			}
 			}

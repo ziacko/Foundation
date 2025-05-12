@@ -44,7 +44,8 @@ public:
 		//don't make this a rendertarget. just regular texture
 		perlinTex = new frameBuffer::attachment_t("perlin", perlinDesc);
 
-		perlinProgram = shaderPrograms[1].handle;
+		perlinProgram = shaderPrograms[0].handle;
+		this->programGLID = shaderPrograms[1].handle;
 
 		scene::InitializeUniforms();
 		perlin3D.Initialize(1);
@@ -112,9 +113,7 @@ protected:
 		PerlinCalc();
 		FinalPass();
 
-		DrawGUI(windows[0]);
-		manager->SwapDrawBuffers(windows[0]);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		PostDraw();
 	}
 };
 #endif

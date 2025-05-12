@@ -1,6 +1,7 @@
 if os.host() == "linux" then
     local cmake = require "cmake"
-    cmake.builddir = "cmake-build"
+    --cmake.builddir = "build/cmake"
+   -- location "build/cmake"
 end
 
 function scene_project(name, extra_files, extra_includes)

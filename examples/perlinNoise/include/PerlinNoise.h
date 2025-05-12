@@ -111,7 +111,7 @@ class perlinScene : public scene
 public:
 
 	perlinScene(const char* windowName = "Ziyad Barakat's Portfolio ( Perlin noise )",
-		camera_t* perlinCamera = new camera_t(), const GLchar* shaderConfigPath = "perlin/PerlinNoise.json")
+		camera_t* perlinCamera = new camera_t(), const GLchar* shaderConfigPath = SHADER_CONFIG_DIR)
 		: scene(windowName, perlinCamera, shaderConfigPath)
 	{
 		this->perlin.data = perlinSettings_t();
@@ -129,7 +129,7 @@ public:
 		perlinDesc.dataType = GL_FLOAT;
 		perlinDesc.format = GL_RGBA;
 		perlinDesc.internalFormat = gl_rgba16_snorm;
-		perlinDesc.dimensions = glm::ivec3(windows[0]->GetWindowSettings().resolution.width, windows[0]->GetWindowSettings().resolution.height, 1);
+		perlinDesc.dimensions = glm::ivec3(window->GetWindowSettings().resolution.width, window->GetWindowSettings().resolution.height, 1);
 
 		perlinBuffer->AddAttachment(new frameBuffer::attachment_t("perlin", perlinDesc));
 
@@ -217,7 +217,7 @@ protected:
 		perlinBuffer->attachments[0]->Draw();
 
 		glBindVertexArray(defaultVertexBuffer->vertexArrayHandle);
-		glViewport(0, 0, windows[0]->GetWindowSettings().resolution.width, windows[0]->GetWindowSettings().resolution.height);
+		glViewport(0, 0, window->GetWindowSettings().resolution.width, window->GetWindowSettings().resolution.height);
 
 		glUseProgram(this->programGLID);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -228,7 +228,7 @@ protected:
 		frameBuffer::Unbind();
 
 		glBindVertexArray(defaultVertexBuffer->vertexArrayHandle);
-		glViewport(0, 0, windows[0]->GetWindowSettings().resolution.width, windows[0]->GetWindowSettings().resolution.height);
+		glViewport(0, 0, window->GetWindowSettings().resolution.width, window->GetWindowSettings().resolution.height);
 
 		perlinBuffer->attachments[0]->SetActive(0);
 		glUseProgram(finalProgram);
@@ -243,9 +243,7 @@ protected:
 		//glUseProgram(this->programGLID);
 		//glDrawArrays(GL_TRIANGLES, 0, 6);
 
-		DrawGUI(windows[0]);
-		manager->SwapDrawBuffers(windows[0]);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		PostDraw();
 	}
 };
 #endif

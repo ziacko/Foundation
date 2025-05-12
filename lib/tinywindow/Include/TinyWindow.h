@@ -4039,9 +4039,6 @@ namespace TinyWindow
 				// when a request to configure the window is made
 				case ConfigureNotify:
 					{
-						// again, redundant
-						// glViewport(0, 0, inEvent.xconfigure.width, inEvent.xconfigure.height);
-
 						// check if window was resized
 						if ((unsigned int)inEvent.xconfigure.width != window->settings.resolution.width || (unsigned int)inEvent.xconfigure.height != window->settings.resolution.height)
 						{
@@ -4084,6 +4081,11 @@ namespace TinyWindow
 
 						if (properties && (format == 32))
 						{
+							XWindowAttributes attributes;
+							XGetWindowAttributes(window->currentDisplay, window->windowHandle, &attributes);
+							window->settings.resolution.width = attributes.width;
+							window->settings.resolution.height = attributes.height;
+						
 							// go through each property and match it to an existing Atomic state
 							for (unsigned int itemIndex = 0; itemIndex < numItems; itemIndex++)
 							{

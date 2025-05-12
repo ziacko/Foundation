@@ -7,7 +7,7 @@ class texturedScene : public scene
 {
 public:
 
-	texturedScene(texture* defaultTexture = new texture("assets/textures/earth_diffuse.tga"),
+	texturedScene(texture* defaultTexture = new texture("textures/earth_diffuse.tga"),
 		const char* windowName = "Ziyad Barakat's Portfolio (textured scene)",
 		camera_t* textureCamera = new camera_t(),
 		const char* shaderConfigPath = SHADER_CONFIG_DIR) :

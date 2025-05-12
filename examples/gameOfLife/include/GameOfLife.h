@@ -125,8 +125,8 @@ protected:
 		glUseProgram(this->programGLID);
 		glDrawArraysInstanced(GL_TRIANGLES, 0, 6, gol.data.dimensions * gol.data.dimensions);
 		
-		DrawGUI(windows[0]);
-		manager->SwapDrawBuffers(windows[0]);
+		DrawGUI(window);
+		manager->SwapDrawBuffers(window);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 
