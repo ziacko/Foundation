@@ -1,0 +1,27 @@
+[
+    {
+        "name": "texModelProgram",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "ModelVertex",
+                "path": "texturedScene3D/Model.vert",
+                "type": "Vertex"
+            },
+            {
+                "name": "ModelFragment",
+                "path": "texturedScene3D/texturedModel.frag",
+                "type": "Fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "normal",
+            "tangent",
+            "biTangent",
+            "uv"
+        ]
+    }
+]

@@ -1,0 +1,14 @@
+1
+GOLProgram
+2
+position
+uv
+1
+outColor
+2
+GOLVertex
+Vertex
+../../resources/shaders/DotProduct/DP.vert
+GOLFragment
+Fragment
+../../resources/shaders/DotProduct/DP.frag
