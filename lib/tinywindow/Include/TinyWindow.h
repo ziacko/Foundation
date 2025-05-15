@@ -3986,6 +3986,9 @@ namespace TinyWindow
 				// when the mouse/pointer device is moved
 				case MotionNotify:
 					{
+						//setup previous mouse posiitons
+						window->previousMousePosition = window->mousePosition;
+
 						// set the windows mouse position to match the event
 						window->mousePosition.x = inEvent.xmotion.x;
 						window->mousePosition.y = inEvent.xmotion.y;

@@ -178,10 +178,6 @@ private:
     //absl::InlinedVector< tShaderProgram, 16 > loadedPrograms;
     absl::InlinedVector< tShader, 16 > loadedShaders;
     const std::string acceptedExt = ".json";
-
-    //this brings up an interesting question, should we move the shaders folder into the project folder or into a shader folder?
-    //being self-contained into one folder would work better for carving off example but will make maintenance harder for backend code
-    const std::string workingDir = "../../resources/shaders/";
 };
 
 #endif //SHADERLOADER_H

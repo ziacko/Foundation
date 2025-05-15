@@ -143,9 +143,9 @@ class model_t
 {
 public:
 
-	model_t(const char* resourcePath = "../../resources/models/SoulSpear/SoulSpear.fbx", bool ignoreCollision = false, bool keepData = false)
+	model_t(const char* resourcePath = "models/SoulSpear/SoulSpear.fbx", bool ignoreCollision = false, bool keepData = false)
 	{
-		this->resourcePath = resourcePath;
+		this->resourcePath =  resourcePath;
 		position = glm::vec3(0.0f, -2.0f, -3.0f);
 		scale = glm::vec3(1.0f);
 		rotation = glm::vec3(0.0f);
@@ -184,11 +184,15 @@ public:
 		//opts.allow_missing_vertex_position = true;
 		ufbx_error error;
 
-		bool exists = std::filesystem::exists(resourcePath);
+		auto fullpath = ASSET_DIR + resourcePath;
+
+		bool exists = std::filesystem::exists(fullpath);
 		hasBones = false;
 		assert(exists);
 
-		dataScene = ufbx_load_file(resourcePath.c_str(), &opts, &error);
+
+
+		dataScene = ufbx_load_file(fullpath.c_str(), &opts, &error);
 		assert(dataScene != nullptr);
 		
 		m_GlobalInverseTransform = ConvertToGLM(dataScene->root_node->geometry_transform );

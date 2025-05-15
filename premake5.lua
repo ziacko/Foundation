@@ -22,7 +22,8 @@ function scene_project(name, extra_files, extra_includes)
             "examples/" .. name .. "/source/**.cpp",
             "include/Globals.h",
             "lib/imgui/*.cpp",
-            "lib/yyjson/src/yyjson.c"
+            "lib/yyjson/src/yyjson.c",
+            "lib/ufbx/ufbx.c",
         }
 
         --add extra files
@@ -54,6 +55,7 @@ function scene_project(name, extra_files, extra_includes)
             "lib/fast_obj/",
             "lib/Remotery/",
             "lib/yyjson/src/",
+            "lib/ufbx/"
         }
 
         if extra_files and #extra_files > 0 then
@@ -229,5 +231,9 @@ scene_project("sharpen", {
     "%{wks.location}/examples/textured/include/"
 })
 
+--scene_project("dotProduct", { "%{wks.location}/assets/shaders/dotProduct/DotProduct.json"}, {})
+
 --3d projects
 
+scene_project("scene3D", {"%{wks.location}/assets/shaders/scene3D/scene3D.json"}, {})
+scene_project("texturedScene3D", {"%{wks.location}/assets/shaders/texturedScene3D/texturedScene3D.json"}, {"%{wks.location}/examples/scene3D/include/"})
