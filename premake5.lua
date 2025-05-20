@@ -237,3 +237,11 @@ scene_project("sharpen", {
 
 scene_project("scene3D", {"%{wks.location}/assets/shaders/scene3D/scene3D.json"}, {})
 scene_project("texturedScene3D", {"%{wks.location}/assets/shaders/texturedScene3D/texturedScene3D.json"}, {"%{wks.location}/examples/scene3D/include/"})
+
+scene_project("depthPrePass", 
+{"%{wks.location}/assets/shaders/depthPrePass/DepthPrePass.json"}, 
+{"%{wks.location}/examples/scene3D/include/", "%{wks.location}/examples/texturedScene3D/include/"})
+
+scene_project("FXAA", 
+{"%{wks.location}/assets/shaders/FXAA/FXAA.json"}, 
+{"%{wks.location}/examples/scene3D/include/", "%{wks.location}/examples/texturedScene3D/include/"})
