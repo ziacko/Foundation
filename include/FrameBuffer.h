@@ -3,7 +3,7 @@
 
 struct FBODescriptor : public textureDescriptor
 {
-	enum class attachmentType_t
+	enum class attachmentType_e
 	{
 		color,
 		depth,
@@ -11,7 +11,7 @@ struct FBODescriptor : public textureDescriptor
 		depthAndStencil
 	};
 
-	FBODescriptor(GLuint sampleCount = 1, attachmentType_t attachmentType = attachmentType_t::color, textureDescriptor texDesc = textureDescriptor())
+	FBODescriptor(GLuint sampleCount = 1, attachmentType_e attachmentType = attachmentType_e::color, textureDescriptor texDesc = textureDescriptor())
 	{
 		this->sampleCount = sampleCount;
 		this->attachmentType = attachmentType;
@@ -45,7 +45,7 @@ struct FBODescriptor : public textureDescriptor
 	GLuint				sampleCount;
 	GLenum				attachmentFormat;
 	GLuint				attachmentHandle;
-	attachmentType_t	attachmentType;
+	attachmentType_e	attachmentType;
 };
 
 class frameBuffer
@@ -128,19 +128,19 @@ public:
 			{
 			case gl_depth_attachment:
 			{
-				SetReadMode(FBODescriptor::attachmentType_t::depth);
+				SetReadMode(FBODescriptor::attachmentType_e::depth);
 				break;
 			}
 			
 			case gl_stencil_attachment:
 			{
-				SetReadMode(FBODescriptor::attachmentType_t::stencil);
+				SetReadMode(FBODescriptor::attachmentType_e::stencil);
 				break;
 			}
 
 			case gl_depth_stencil_attachment:
 			{
-				SetReadMode(FBODescriptor::attachmentType_t::stencil);
+				SetReadMode(FBODescriptor::attachmentType_e::stencil);
 				break;
 			}
 
@@ -188,24 +188,24 @@ public:
 			}
 		}
 
-		void SetReadMode(FBODescriptor::attachmentType_t attachmentType)
+		void SetReadMode(FBODescriptor::attachmentType_e attachmentType)
 		{
 			BindTexture();
 			FBODesc.attachmentType = attachmentType;
 
 			switch (FBODesc.attachmentType)
 			{
-			case FBODescriptor::attachmentType_t::depth:
+			case FBODescriptor::attachmentType_e::depth:
 			{
 				glTexParameteri(FBODesc.target, gl_depth_texture_mode, GL_LUMINANCE);
 			}
 
-			case FBODescriptor::attachmentType_t::stencil:
+			case FBODescriptor::attachmentType_e::stencil:
 			{
 				glTexParameteri(FBODesc.target, gl_depth_stencil_texture_mode, GL_STENCIL_INDEX);
 			}
 
-			case FBODescriptor::attachmentType_t::depthAndStencil:
+			case FBODescriptor::attachmentType_e::depthAndStencil:
 			{
 				glTexParameteri(FBODesc.target, gl_depth_stencil_texture_mode, GL_STENCIL_INDEX);
 			}
@@ -219,9 +219,9 @@ public:
 			//if the current framebuffer is not this one then bind it
 			switch (FBODesc.attachmentType)
 			{
-			case FBODescriptor::attachmentType_t::stencil:
-			case FBODescriptor::attachmentType_t::depth:
-			case FBODescriptor::attachmentType_t::depthAndStencil:
+			case FBODescriptor::attachmentType_e::stencil:
+			case FBODescriptor::attachmentType_e::depth:
+			case FBODescriptor::attachmentType_e::depthAndStencil:
 			{
 				//if non-color, draw to GL_NONE
 				GLenum attachment = GL_NONE;
@@ -270,9 +270,9 @@ public:
 		{
 			switch (iter->FBODesc.attachmentType)
 			{
-			case FBODescriptor::attachmentType_t::stencil:
-			case FBODescriptor::attachmentType_t::depth:
-			case FBODescriptor::attachmentType_t::depthAndStencil:
+			case FBODescriptor::attachmentType_e::stencil:
+			case FBODescriptor::attachmentType_e::depth:
+			case FBODescriptor::attachmentType_e::depthAndStencil:
 				{
 					//if non-color, draw to GL_NONE
 					allImages.push_back(GL_NONE);
@@ -338,25 +338,25 @@ public:
 	{
 		switch (attachment->FBODesc.attachmentType)
 		{
-		case FBODescriptor::attachmentType_t::color:
+		case FBODescriptor::attachmentType_e::color:
 		{	
 			glClearBufferfv(GL_COLOR, attachment->attachmentHandle, clearColor);
 			break;
 		}
 
-		case FBODescriptor::attachmentType_t::depth:
+		case FBODescriptor::attachmentType_e::depth:
 		{
 			glClearBufferfv(GL_DEPTH, 0, clearColor);
 			break;
 		}
 
-		case FBODescriptor::attachmentType_t::stencil:
+		case FBODescriptor::attachmentType_e::stencil:
 		{
 			glClearBufferiv(GL_STENCIL, 0, (GLint*)&clearColor[0]);
 			break;
 		}
 
-		case FBODescriptor::attachmentType_t::depthAndStencil:
+		case FBODescriptor::attachmentType_e::depthAndStencil:
 		{
 			//glClearBufferfv(GL_STENCIL, attachment->attachmentHandle, clearColor);
 			glClearBufferfi(GL_DEPTH, attachment->attachmentHandle, clearColor[0], (GLint)clearColor[1]);
@@ -377,7 +377,7 @@ public:
 
 		switch (attachment->FBODesc.attachmentType)
 		{
-		case FBODescriptor::attachmentType_t::color:
+		case FBODescriptor::attachmentType_e::color:
 		{
 			attachment->attachmentHandle = colorAttachmentNum;
 			attachment->Initialize(gl_color_attachment0 + colorAttachmentNum);
@@ -385,21 +385,21 @@ public:
 			break;
 		}
 
-		case FBODescriptor::attachmentType_t::depth:
+		case FBODescriptor::attachmentType_e::depth:
 		{
 			attachment->attachmentHandle = gl_depth_attachment;
 			attachment->Initialize(gl_depth_attachment);
 			break;
 		}
 
-		case FBODescriptor::attachmentType_t::stencil:
+		case FBODescriptor::attachmentType_e::stencil:
 		{
 			attachment->attachmentHandle = gl_stencil_attachment;
 			attachment->Initialize(gl_stencil_attachment);
 			break;
 		}
 
-		case FBODescriptor::attachmentType_t::depthAndStencil:
+		case FBODescriptor::attachmentType_e::depthAndStencil:
 		{
 			attachment->attachmentHandle = gl_depth_stencil_attachment;
 			attachment->Initialize(gl_depth_stencil_attachment);

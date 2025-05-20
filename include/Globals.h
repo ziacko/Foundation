@@ -5,6 +5,7 @@
 #define QOI_IMPLEMENTATION
 #define IMGUI_IMPL_OPENGL_USE_VERTEX_ARRAY
 #define IMGUI_IMPL_OPENGL_USE_BUFFER_BINDING
+//C++ libs
 #include <iostream>
 #include <string>
 #include <cstdlib>
@@ -17,6 +18,7 @@
 #include <array>
 #include <list>
 #include <filesystem>
+//external libs
 #include <TinyExtender.h>
 using namespace TinyExtender;
 #include <TinyShaders.h>
@@ -41,9 +43,12 @@ using namespace TinyShaders;
 #include <ufbx.h>
 using namespace TinyWindow;
 using namespace std::placeholders;
+//internal libs
 #include "Camera.h"
 #include "DefaultUniformBuffer.h"
 #include "GPUQuery.h"
 #include "Utilities.h"
 #include "VertexBuffer.h"
 #include "shaderLoader_t.h"
+#include "Texture.h"
+#include "FrameBuffer.h"

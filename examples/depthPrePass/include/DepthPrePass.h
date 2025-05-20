@@ -9,9 +9,9 @@ public:
 
 	DepthPrePassScene(
 		const char* windowName = "Ziyad Barakat's portfolio (early depth test)",
-		camera* texModelCamera = new camera(glm::vec2(1280, 720), 5.0f, camera::projection_t::perspective, 0.1f, 2000.f),
-		const char* shaderConfigPath = "../../resources/shaders/DepthPrePass.txt",
-		model_t* model = new model_t("../../resources/models/fbx_foliage/broadleaf_field/Broadleaf_Desktop_Field.FBX"))
+		camera_t* texModelCamera = new camera_t(glm::vec2(1280, 720), 5.0f, camera_t::projection_e::perspective, 0.1f, 2000.f),
+		const char* shaderConfigPath = SHADER_CONFIG_DIR,
+		model_t* model = new model_t("models/fbx_foliage/broadleaf_field/Broadleaf_Desktop_Field.FBX"))
 		: scene3D(windowName, texModelCamera, shaderConfigPath, model)
 	{
 		glEnable(GL_BLEND);
@@ -37,18 +37,17 @@ public:
 		depthDesc.format = GL_DEPTH_COMPONENT;
 		depthDesc.mipmapLevels = 8;
 		depthDesc.internalFormat = gl_depth_component24;
-		depthDesc.attachmentType = FBODescriptor::attachmentType_t::depth;
-		depthDesc.dimensions = glm::ivec3(windows[0]->settings.resolution.width, windows[0]->settings.resolution.height, 1);
+		depthDesc.attachmentType = FBODescriptor::attachmentType_e::depth;
+		depthDesc.dimensions = glm::ivec3(window->GetWindowSettings().resolution.width, window->GetWindowSettings().resolution.height, 1);
 
 		geometryBuffer->AddAttachment(new frameBuffer::attachment_t("color"));
-
 		geometryBuffer->AddAttachment(new frameBuffer::attachment_t("depth", depthDesc));
 
 		frameBuffer::Unbind();
 
-		earlyDepthProgram = shaderPrograms[1]->handle;
-		compareProgram = shaderPrograms[2]->handle;
-		finalProgram = shaderPrograms[3]->handle;
+		earlyDepthProgram = shaderPrograms[1].handle;
+		compareProgram = shaderPrograms[2].handle;
+		finalProgram = shaderPrograms[3].handle;
 	}
 
 protected:
@@ -87,7 +86,7 @@ protected:
 		sceneCamera->UpdateProjection();
 		defaultPayload.data.projection = sceneCamera->projection;
 		defaultPayload.data.view = sceneCamera->view;
-		if (sceneCamera->currentProjectionType == camera::projection_t::perspective)
+		if (sceneCamera->currentProjectionType == camera_t::projection_e::perspective)
 		{
 			defaultPayload.data.translation = testModel->makeTransform();
 		}
@@ -107,7 +106,7 @@ protected:
 
 	void Draw() override
 	{
-		sceneCamera->ChangeProjection(camera::projection_t::perspective);
+		sceneCamera->ChangeProjection(camera_t::projection_e::perspective);
 		sceneCamera->Update();
 
 		UpdateDefaultBuffer();
@@ -116,14 +115,14 @@ protected:
 
 		GeometryPass(); //render current scene with jitter
 
-		sceneCamera->ChangeProjection(camera::projection_t::orthographic);
+		sceneCamera->ChangeProjection(camera_t::projection_e::orthographic);
 		UpdateDefaultBuffer();
 
 		FinalPass(geometryBuffer->attachments[0], geometryBuffer->attachments[1]);
 
-		DrawGUI(windows[0]);
+		DrawGUI(window);
 
-		windows[0]->SwapDrawBuffers();
+		manager->SwapDrawBuffers(window);
 		ClearBuffers();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
@@ -135,21 +134,21 @@ protected:
 		geometryBuffer->attachments[1]->Draw();
 
 		//we just need the first LOd so only do the first 3 meshes
-		for (size_t iter = 0; iter < 3; iter++)
+		for(auto iter : testModel->meshes)
 		{
-			if (testModel->meshes[iter].isCollision)
+			if (iter.isCollision)
 			{
 				continue;
 			}
-			if (testModel->meshes[iter].textures.size() > 0)
+			if (iter.textures.size() > 0)
 			{
-				testModel->meshes[iter].textures[0].SetActive(0);
+				iter.textures[0].SetActive(0);
 			}
 			//add the previous depth?
 
-			glBindVertexArray(testModel->meshes[0].vertexArrayHandle);
+			glBindVertexArray(iter.vertexArrayHandle);
 			glUseProgram(earlyDepthProgram);
-			glViewport(0, 0, windows[0]->settings.resolution.width, windows[0]->settings.resolution.height);
+			glViewport(0, 0, window->GetWindowSettings().resolution.width, window->GetWindowSettings().resolution.height);
 
 			if (wireframe)
 			{
@@ -157,10 +156,10 @@ protected:
 			}
 			//glDrawElements(GL_TRIANGLES, testModel->indices.size(), GL_UNSIGNED_INT, 0);
 			glDrawElementsBaseVertex(GL_TRIANGLES,
-				testModel->meshes[iter].numIndices,
+				iter.numIndices,
 				GL_UNSIGNED_INT,
-				(void*)(sizeof(unsigned int) * testModel->meshes[iter].indexOffset),
-				testModel->meshes[iter].vertexOffset);
+				(void*)(sizeof(unsigned int) * iter.indexOffset),
+				iter.vertexOffset);
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		}
 
@@ -182,22 +181,22 @@ protected:
 		glDrawBuffers(1, drawbuffers);
 
 		//we just need the first LOd so only do the first 3 meshes
-		for (size_t iter = 0; iter < 3; iter++)
+		for (auto iter : testModel->meshes)
 		{
-			if (testModel->meshes[iter].isCollision)
+			if (iter.isCollision)
 			{
 				continue;
 			}
 
-			if (testModel->meshes[iter].textures.size() > 0)
+			if (iter.textures.size() > 0)
 			{
-				testModel->meshes[iter].textures[0].SetActive(0);
+				iter.textures[0].SetActive(0);
 			}
-			//add the previous depth?
 
+			//add the previous depth?
 			glBindVertexArray(testModel->meshes[0].vertexArrayHandle);
 			glUseProgram(programGLID);
-			glViewport(0, 0, windows[0]->settings.resolution.width, windows[0]->settings.resolution.height);
+			glViewport(0, 0, window->GetWindowSettings().resolution.width, window->GetWindowSettings().resolution.height);
 
 			//glCullFace(GL_BACK);
 
@@ -206,10 +205,10 @@ protected:
 				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 			}
 			glDrawElementsBaseVertex(GL_TRIANGLES,
-				testModel->meshes[iter].numIndices,
+				iter.numIndices,
 				GL_UNSIGNED_INT,
-				(void*)(sizeof(unsigned int) * testModel->meshes[iter].indexOffset),
-				testModel->meshes[iter].vertexOffset);
+				(void*)(sizeof(unsigned int) * iter.indexOffset),
+				iter.vertexOffset);
 			//glDrawElements(GL_TRIANGLES, testModel->meshes[iter].indices.size(), GL_UNSIGNED_INT, 0);
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		}
@@ -223,7 +222,7 @@ protected:
 		tex1->SetActive(0);
 
 		glBindVertexArray(defaultVertexBuffer->vertexArrayHandle);
-		glViewport(0, 0, windows[0]->settings.resolution.width, windows[0]->settings.resolution.height);
+		glViewport(0, 0, window->GetWindowSettings().resolution.width, window->GetWindowSettings().resolution.height);
 		if (enableCompare)
 		{
 			tex2->SetActive(1);
@@ -240,7 +239,7 @@ protected:
 
 	void BuildGUI(tWindow* window, ImGuiIO io) override
 	{
-		scene3D::BuildGUI(windows[0], io);
+		scene3D::BuildGUI(window, io);
 
 		DrawBufferAttachments();
 	}
@@ -285,7 +284,7 @@ protected:
 		glClear(GL_DEPTH_BUFFER_BIT);
 		geometryBuffer->Unbind();
 
-		sceneCamera->ChangeProjection(camera::projection_t::perspective);
+		sceneCamera->ChangeProjection(camera_t::projection_e::perspective);
 	}
 
 	virtual void ResizeBuffers(glm::ivec2 resolution)
@@ -293,23 +292,24 @@ protected:
 		geometryBuffer->Resize(glm::ivec3(resolution, 1));
 	}
 
-	virtual void HandleWindowResize(tWindow* window, TinyWindow::vec2_t<unsigned int> dimensions) override
+	virtual void HandleWindowResize(const tWindow* window, TinyWindow::vec2_t<unsigned int> dimensions) override
 	{
 		defaultPayload.data.resolution = glm::ivec2(dimensions.width, dimensions.height);
 		ResizeBuffers(glm::ivec2(dimensions.x, dimensions.y));
 	}
 
-	virtual void HandleMaximize(tWindow* window) override
+	virtual void HandleMaximize(const tWindow* window) override
 	{
-		defaultPayload.data.resolution = glm::ivec2(window->settings.resolution.width, window->settings.resolution.height);
+		defaultPayload.data.resolution = glm::ivec2(window->GetWindowSettings().resolution.width, window->GetWindowSettings().resolution.height);
 		ResizeBuffers(defaultPayload.data.resolution);
 	}
 
 	virtual void InitializeUniforms() override
 	{
-		glViewport(0, 0, windows[0]->settings.resolution.width, windows[0]->settings.resolution.height);
+		auto resolution = window->GetWindowSettings().resolution;
+		glViewport(0, 0, resolution.width, resolution.height);
 
-		defaultPayload.data.resolution = glm::ivec2(windows[0]->settings.resolution.width, windows[0]->settings.resolution.height);
+		defaultPayload.data.resolution = glm::ivec2(resolution.width, resolution.height);
 		defaultPayload.data.projection = sceneCamera->projection;
 		defaultPayload.data.translation = sceneCamera->translation;
 		defaultPayload.data.view = sceneCamera->view;

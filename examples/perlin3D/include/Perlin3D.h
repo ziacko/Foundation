@@ -94,7 +94,7 @@ protected:
 		perlin.Update();
 	}
 
-	void PerlinCalc()
+	void PerlinCalc() const
 	{
 		perlinTex->BindAsImage(0);
 		glUseProgram(perlinProgram);
