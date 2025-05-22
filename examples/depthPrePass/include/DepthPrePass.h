@@ -45,9 +45,10 @@ public:
 
 		frameBuffer::Unbind();
 
-		earlyDepthProgram = shaderPrograms[1].handle;
-		compareProgram = shaderPrograms[2].handle;
-		finalProgram = shaderPrograms[3].handle;
+		programGLID = shaderProgramsMap["geometryProgram"].handle;
+		earlyDepthProgram = shaderProgramsMap["earlyDepthProgram"].handle;
+		compareProgram = shaderProgramsMap["compareProgram"].handle;
+		finalProgram = shaderProgramsMap["finalProgram"].handle;
 	}
 
 protected:

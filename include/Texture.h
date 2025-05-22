@@ -132,12 +132,12 @@ public:
 
 	void UnbindTexture() const
 	{
-		glBindTexture(texDesc.target, NULL);
+		glBindTexture(texDesc.target, 0);
 	}
 
 	static void UnbindTexture(GLenum target)
 	{
-		glBindTexture(target, NULL);
+		glBindTexture(target, 0);
 	}
 
 	void BindAsImage(GLuint texUnit, GLenum access = gl_write_only, bool layered = false, GLint layer = 0)

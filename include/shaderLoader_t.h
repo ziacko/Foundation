@@ -8,6 +8,8 @@
 
 //ok here we just need a basuc system to load sahders via JSON
 
+
+//do we even bother making this a class?
 class shaderLoader_t
 {
     //need to contain the shaders
@@ -18,11 +20,9 @@ class shaderLoader_t
 
     ~shaderLoader_t()
     {
-        //loadedPrograms.clear();
-        loadedShaders.clear();
     }
 
-    void LoadShaderProgramsFromConfigFile( const std::string& shaderConfigPath, bool saveBinary = false, std::vector< tShaderProgram>* outPrograms = nullptr )
+    void LoadShaderProgramsFromConfigFile( const std::string& shaderConfigPath, bool saveBinary = false, tsl::robin_map<std::string, tShaderProgram>* outPrograms = nullptr )
     {
         auto currentDir = std::filesystem::current_path();
         uint16_t numInputs = 0;
@@ -156,7 +156,6 @@ class shaderLoader_t
                                 if (localShader.isCompiled == true)
                                 {
                                     localProgram.shaders.push_back(localShader);
-                                    loadedShaders.push_back(localShader);
                                 }
                             }
                         }
@@ -165,19 +164,14 @@ class shaderLoader_t
 
                         if (localProgram.isCompiled)
                         {
-                            outPrograms->push_back(localProgram);
+                            //outPrograms->push_back(localProgram);
+                            outPrograms->insert({std::string(localProgram.name), localProgram});
                         }
                     }
                 }
             }
         }
     }
-
-private:
-
-    //absl::InlinedVector< tShaderProgram, 16 > loadedPrograms;
-    absl::InlinedVector< tShader, 16 > loadedShaders;
-    const std::string acceptedExt = ".json";
 };
 
 #endif //SHADERLOADER_H

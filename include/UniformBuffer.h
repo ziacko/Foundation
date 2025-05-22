@@ -13,19 +13,19 @@ public:
 	uniformBuffer_t()
 	{
 		dataSize = 0;
-		bufferHandle = NULL;
-		uniformHandle = NULL;
+		bufferHandle = 0;
+		uniformHandle = 0;
 		data = CreateBaseBuffer();
 		//BuildBuffer();
 	}
 
-	void Update(void* paramData, GLuint paramBufferHandle, GLintptr offset, GLuint bufferSize, GLenum target, GLenum usage)
+	static void Update(const void* paramData, const GLuint paramBufferHandle, const GLintptr offset, const GLuint bufferSize, const GLenum target, const GLenum usage)
 	{
 		glBindBuffer(target, paramBufferHandle);
 		glBufferSubData(target, offset, bufferSize, paramData);
 	}
 
-	void Setup(void* inData, GLuint& outBufferHandle, GLintptr offset, GLuint bufferSize, GLuint inUniformHandle, GLenum target, GLenum usage)
+	void Setup(void* inData, GLuint& outBufferHandle, const GLintptr offset, const GLuint bufferSize, const GLuint inUniformHandle, const GLenum target, const GLenum usage)
 	{
 		this->data = inData;
 		glGenBuffers(1, &outBufferHandle);
@@ -35,7 +35,7 @@ public:
 		glBindBufferBase(target, this->uniformHandle, this->bufferHandle);
 	}
 
-	void* CreateBaseBuffer()
+	void* CreateBaseBuffer() const
 	{
 		return (void*)malloc(sizeof(*this) - (sizeof(GLuint) * 2));
 	}
@@ -48,7 +48,7 @@ public:
 	void AppendBuffer(t object, void*& buffer)
 	{
 		memcpy(buffer, &object, sizeof(object));
-		buffer = (void*)(((char*)buffer) + sizeof(object));
+		buffer = static_cast<void*>(static_cast<char*>(buffer) + sizeof(object)); //i hate this eyesore
 		dataSize += sizeof(object);
 	}
 };

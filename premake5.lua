@@ -17,7 +17,6 @@ function scene_project(name, extra_files, extra_includes)
         -- common settings
         files {
             "examples/scene/include/**.h",
-            --"examples/scene/source/**.cpp",
             "examples/" .. name .. "/include/**.h",
             "examples/" .. name .. "/source/**.cpp",
             "include/Globals.h",
@@ -26,7 +25,7 @@ function scene_project(name, extra_files, extra_includes)
             "lib/ufbx/ufbx.c",
         }
 
-        --add extra files
+        -- Add extra files
         if extra_files then
             for _, file in ipairs(extra_files) do
                 files { file }
@@ -47,7 +46,8 @@ function scene_project(name, extra_files, extra_includes)
             "lib/gli/",
             "lib/stb/",
             "lib/imgui/",
-            "lib/abseil-cpp/",
+            "lib/robin-map/include/",
+            "lib/abseil-cpp/absl/",
             "lib/cereal/",
             "lib/eigen/",
             "lib/eve/",
@@ -65,7 +65,7 @@ function scene_project(name, extra_files, extra_includes)
             }
         end
 
-        --add extra files
+        -- Add extra includes
         if extra_includes then
             for _, file in ipairs(extra_includes) do
                 includedirs { file }
@@ -79,9 +79,10 @@ function scene_project(name, extra_files, extra_includes)
 
         filter { "system:linux" }
             toolset "clang"
-            links { "GL", "X11", "Xrandr", "Xinerama" }
+            links { "GL", "X11", "Xrandr", "Xinerama", "pthread" } -- Added pthread for Abseil
 
-            --add Cmake working directory
+
+            -- Add CMake working directory
             debugdir(_SCRIPT_DIR)
 end
 
@@ -108,6 +109,14 @@ workspace "Portfolio"
     system "Windows"
     filter {"platforms:Linux"}
     system "Linux"
+
+    filter "configurations:Debug"
+        defines { "ABSL_DEBUG_SYNCHRONIZATION_VIOLATION" }
+            
+    filter "configurations:Release"
+        defines { "ABSL_HARDENED" }
+            
+    filter {}  -- Reset filter
 
 --base scene project
 

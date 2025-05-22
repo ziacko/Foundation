@@ -40,6 +40,7 @@ using namespace TinyShaders;
 #include <absl/container/inlined_vector.h>
 #include <absl/container/fixed_array.h>
 #include <absl/strings/string_view.h>
+#include <tsl/robin_map.h>
 #include <ufbx.h>
 using namespace TinyWindow;
 using namespace std::placeholders;

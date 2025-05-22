@@ -133,10 +133,10 @@ public:
 		//assert(OpenGLDebugCallback);
 		
 		//glEnable(GL_DEPTH_TEST);
-		shaderLoader.LoadShaderProgramsFromConfigFile(shaderConfigPath, false, &shaderPrograms);
+		shaderLoader.LoadShaderProgramsFromConfigFile(shaderConfigPath, false, &shaderProgramsMap);
 		
 		//shaderHandler->LoadShaderProgramsFromConfigFile(shaderConfigPath, false, &shaderPrograms); //replace this with the JSON version of this
-		this->programGLID = shaderPrograms[0].handle;
+		this->programGLID = shaderProgramsMap["DefaultProgram"].handle; //need a better way to automate this
 
 		glUseProgram(this->programGLID);
 
@@ -176,7 +176,8 @@ protected:
 	shaderManager*							shaderHandler;
 	shaderLoader_t							shaderLoader;
 
-	std::vector<tShaderProgram>			shaderPrograms;
+	//std::vector<tShaderProgram>				shaderPrograms;
+	tsl::robin_map<std::string, tShaderProgram>	shaderProgramsMap;
 
 	tinyClock_t*							sceneClock;
 	vertexBuffer_t*							defaultVertexBuffer;
