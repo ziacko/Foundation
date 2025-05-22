@@ -35,6 +35,11 @@ public:
 		this->cellBuffer = cellShade;
 	}
 
+	void Initialize() override
+	{
+		texturedScene::Initialize();
+	}
+
 	~cellShadingScene(){};
 
 protected:

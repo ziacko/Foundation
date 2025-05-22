@@ -46,6 +46,11 @@ public:
 
 	~cheapBlurScene(){};
 
+	void Initialize() override
+	{
+		texturedScene::Initialize();
+	}
+
 protected:
 
 	bufferHandler_t<jitterSettings_t>		jitterSettings;
@@ -82,8 +87,8 @@ protected:
 		glAccum(GL_RETURN, accumReturn); //Drawing last frame, saved in buffer
 		glAccum(GL_MULT, accumMult); //make current frame in buffer dim
 
-		DrawGUI(windows[0]);
-		manager->SwapDrawBuffers(windows[0]);
+		DrawGUI(window);
+		manager->SwapDrawBuffers(window);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 

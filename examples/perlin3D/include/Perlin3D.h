@@ -1,6 +1,6 @@
 #ifndef PERLINNOISE3D_H
 #define PERLINNOISE3D_H
-#include "../../perlinNoise/include/PerlinNoise.h"
+#include <PerlinNoise.h>
 #include "FrameBuffer.h"
 
 struct perlinSettings3D_t
@@ -44,8 +44,8 @@ public:
 		//don't make this a rendertarget. just regular texture
 		perlinTex = new frameBuffer::attachment_t("perlin", perlinDesc);
 
-		perlinProgram = shaderPrograms[0].handle;
-		this->programGLID = shaderPrograms[1].handle;
+		perlinProgram = shaderProgramsMap["Perlin3D"].handle;
+		this->programGLID = shaderProgramsMap["final"].handle;
 
 		scene::InitializeUniforms();
 		perlin3D.Initialize(1);

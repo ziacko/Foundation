@@ -40,7 +40,8 @@ public:
 	virtual void Initialize() override
 	{
 		scene::Initialize();
-		computeProgram = shaderPrograms[1].handle;
+		programGLID = shaderProgramsMap["scene"].handle;
+		computeProgram = shaderProgramsMap[PROJECT_NAME].handle;
 		printf("%i \n", computeProgram);
 	}
 

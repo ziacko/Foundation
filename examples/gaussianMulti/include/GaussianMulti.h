@@ -48,16 +48,16 @@ public:
 	{
 		texturedScene::Initialize();
 		
-		verticalProgram = shaderPrograms[0].handle;
-		horizontalProgram = shaderPrograms[1].handle;
-		finalProgam = shaderPrograms[2].handle;
-		compareProgram = shaderPrograms[3].handle;
+		verticalProgram = shaderProgramsMap["gaussianVert"].handle;
+		horizontalProgram = shaderProgramsMap["GaussianHorz"].handle;
+		finalProgam = shaderProgramsMap["blend"].handle;
+		compareProgram = shaderProgramsMap["compare"].handle;
 		
 		gaussBuffer->Initialize();
 		gaussBuffer->Bind();
 
 		FBODescriptor gaussDesc;
-		auto localRes = windows[0]->GetWindowSettings().resolution;
+		auto localRes = window->GetWindowSettings().resolution;
 		gaussDesc.dimensions = glm::ivec3(localRes.width, localRes.height, 1);
 
 		//add 2 render textures, one for the first pass and one for the second?
@@ -80,7 +80,7 @@ public:
 
 		defaultTexture->SetActive(0);
 
-		glViewport(0, 0, windows[0]->GetWindowSettings().resolution.width, windows[0]->GetWindowSettings().resolution.height);
+		glViewport(0, 0, window->GetWindowSettings().resolution.width, window->GetWindowSettings().resolution.height);
 		glBindVertexArray(defaultVertexBuffer->vertexArrayHandle);
 		glUseProgram(verticalProgram);
 		
@@ -94,7 +94,7 @@ public:
 
 		defaultTexture->SetActive(0);
 
-		glViewport(0, 0, windows[0]->GetWindowSettings().resolution.width, windows[0]->GetWindowSettings().resolution.height);
+		glViewport(0, 0, window->GetWindowSettings().resolution.width, window->GetWindowSettings().resolution.height);
 		glBindVertexArray(defaultVertexBuffer->vertexArrayHandle);
 		glUseProgram(horizontalProgram);
 		
@@ -108,7 +108,7 @@ public:
 		compareBuffer->attachments[0]->Draw();
 
 		glBindVertexArray(defaultVertexBuffer->vertexArrayHandle);
-		glViewport(0, 0, windows[0]->GetWindowSettings().resolution.width, windows[0]->GetWindowSettings().resolution.height);
+		glViewport(0, 0, window->GetWindowSettings().resolution.width, window->GetWindowSettings().resolution.height);
 
 		gaussBuffer->attachments[0]->SetActive(0);
 		gaussBuffer->attachments[1]->SetActive(1);
@@ -124,7 +124,7 @@ public:
 		//draw directly to backbuffer
 		frameBuffer::Unbind();
 		glBindVertexArray(defaultVertexBuffer->vertexArrayHandle);
-		glViewport(0, 0, windows[0]->GetWindowSettings().resolution.width, windows[0]->GetWindowSettings().resolution.height);
+		glViewport(0, 0, window->GetWindowSettings().resolution.width, window->GetWindowSettings().resolution.height);
 
 		tex1->SetActive(0);
 		tex2->SetActive(1);
@@ -147,8 +147,8 @@ public:
 
 		FinalPass(defaultTexture, compareBuffer->attachments[0]);
 
-		DrawGUI(windows[0]);
-		manager->SwapDrawBuffers(windows[0]);
+		DrawGUI(window);
+		manager->SwapDrawBuffers(window);
 		ClearBuffers();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

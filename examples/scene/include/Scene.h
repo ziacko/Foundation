@@ -136,7 +136,7 @@ public:
 		shaderLoader.LoadShaderProgramsFromConfigFile(shaderConfigPath, false, &shaderProgramsMap);
 		
 		//shaderHandler->LoadShaderProgramsFromConfigFile(shaderConfigPath, false, &shaderPrograms); //replace this with the JSON version of this
-		this->programGLID = shaderProgramsMap["DefaultProgram"].handle; //need a better way to automate this
+		this->programGLID = shaderProgramsMap[PROJECT_NAME].handle; //need a better way to automate this
 
 		glUseProgram(this->programGLID);
 

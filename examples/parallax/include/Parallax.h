@@ -113,8 +113,8 @@ protected:
 		defaultTexture->GetUniformLocation(this->programGLID);
 		heightMap->GetUniformLocation(this->programGLID);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
-		DrawGUI(windows[0]);
-		manager->SwapDrawBuffers(windows[0]);
+		DrawGUI(window);
+		manager->SwapDrawBuffers(window);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 };

@@ -38,8 +38,10 @@ class shaderLoader_t
         printf("%s \n", workingDire.string().c_str());
 
         //add the two string together
+        auto fileName = std::string(PROJECT_NAME) + ".json";
         auto shaderPathPart = workingDire / "assets/shaders/";
-        auto fullPath = workingDire / shaderConfigPath;
+
+        auto fullPath = shaderPathPart / PROJECT_NAME / fileName.c_str();
 
         if (std::filesystem::exists(fullPath) && std::filesystem::is_regular_file(fullPath))
         {
@@ -146,7 +148,7 @@ class shaderLoader_t
                                 if (shaderType != nullptr && yyjson_is_str(shaderType))
                                 {
                                     std::string newPath = std::string( yyjson_get_str(shaderPath));
-                                    const std::string localPath = shaderPathPart.string().c_str() + newPath;
+                                    const std::string localPath = shaderPathPart / PROJECT_NAME / newPath;
                                     TinyShaders::shaderType_t localType;
                                     TinyShaders::StringToShaderType(std::string(yyjson_get_str(shaderType)), localType);
                                     //prepend the working directory to path

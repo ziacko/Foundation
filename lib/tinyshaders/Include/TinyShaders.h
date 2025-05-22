@@ -1351,37 +1351,37 @@ namespace TinyShaders
 	{
 		if( !typeString.empty() )
 		{
-			if ( typeString.compare("Vertex") == 0 )
+			if ( typeString.compare("vertex") == 0 )
 			{
 				shaderTypeOut = shaderType_t::vertex;
 				return error_t::success;
 			}
 
-			if ( typeString.compare("Fragment") == 0 )
+			if ( typeString.compare("fragment") == 0 )
 			{
 				shaderTypeOut = shaderType_t::fragment;
 				return error_t::success;
 			}
 
-			if ( typeString.compare("Geometry") == 0 )
+			if ( typeString.compare("geometry") == 0 )
 			{
 				shaderTypeOut = shaderType_t::geometry;
 				return error_t::success;
 			}
 
-			if ( typeString.compare("Tessellation_Control") == 0 )
+			if ( typeString.compare("tessellation_Control") == 0 )
 			{
 				shaderTypeOut = shaderType_t::tessControl;
 				return error_t::success;
 			}
 
-			if ( typeString.compare("Tessellation_Evaluation") == 0 )
+			if ( typeString.compare("tessellation_Evaluation") == 0 )
 			{
 				shaderTypeOut = shaderType_t::tessEval;
 				return error_t::success;
 			}
 
-			if (typeString.compare("Compute") == 0)
+			if (typeString.compare("compute") == 0)
 			{
 				shaderTypeOut = shaderType_t::compute;
 				return error_t::success;
@@ -1401,27 +1401,27 @@ namespace TinyShaders
 		{
 		case shaderType_t::vertex:
 			{
-				return "Vertex";
+				return "vertex";
 			}
 		case shaderType_t::fragment:
 			{
-				return "Fragment";
+				return "fragment";
 			}
 		case shaderType_t::geometry:
 			{
-				return "Geometry";
+				return "geometry";
 			}
 		case shaderType_t::tessControl:
 			{
-				return "Tessellation Control";
+				return "tessellation Control";
 			}
 		case shaderType_t::tessEval:
 			{
-				return "Tessellation Evaluation";
+				return "tessellation Evaluation";
 			}
 		case shaderType_t::compute:
 			{
-				return "Compute";
+				return "compute";
 			}
 		}
 		return nullptr;

@@ -112,7 +112,8 @@ public:
 
 		frameBuffer::Unbind();
 
-		heatHazeProgram = shaderPrograms[1].handle;
+		programGLID = shaderProgramsMap["perlin"].handle;
+		heatHazeProgram = shaderProgramsMap["heat"].handle;
 
 		scene::InitializeUniforms();
 		bubble.Initialize(2);

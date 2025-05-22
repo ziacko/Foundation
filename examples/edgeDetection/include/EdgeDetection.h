@@ -104,9 +104,10 @@ public:
 	{
 		texturedScene::Initialize();
 
-		laplacianProgramGLID = shaderPrograms[1].handle;
-		prewittProgramGLID = shaderPrograms[2].handle;
-		freiChenProgramGLID = shaderPrograms[3].handle;
+		programGLID = shaderProgramsMap["sobel"].handle;
+		laplacianProgramGLID = shaderProgramsMap["laplacian"].handle;
+		prewittProgramGLID = shaderProgramsMap["prewitt"].handle;
+		freiChenProgramGLID = shaderProgramsMap["freiChen"].handle;
 	}
 
 	void BuildGUI(tWindow* window, ImGuiIO io) override
@@ -233,7 +234,7 @@ public:
 
 	void Draw() override //gotta love C++ :)
 	{
-		manager->SwapDrawBuffers(windows[0]);
+		manager->SwapDrawBuffers(window);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glBindVertexArray(defaultVertexBuffer->vertexArrayHandle);
 		switch (currentEdgeDetection)
@@ -268,7 +269,7 @@ public:
 
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
-		DrawGUI(windows[0]);
+		DrawGUI(window);
 	}
 
 protected:

@@ -32,7 +32,13 @@ public:
 
 		this->bubble = bubbleSettings;
 		enableWireframe = true;
-		Initialize();
+		texturedScene::Initialize();
+	}
+
+	void Initialize() override
+	{
+		texturedScene::Initialize();
+		programGLID = shaderProgramsMap["bubbleProgram"].handle;
 	}
 
 	~bubbleScene( void ){}
@@ -76,6 +82,7 @@ protected:
 
 	void Draw()	override
 	{
+
 		defaultTexture->GetUniformLocation(programGLID);
 		glUseProgram(this->programGLID);
 		if (enableWireframe)

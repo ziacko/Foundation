@@ -4,7 +4,7 @@ if os.host() == "linux" then
    -- location "build/cmake"
 end
 
-function scene_project(name, extra_files, extra_includes)
+function scene_project(name, extra_includes)
     project(name)
         kind "ConsoleApp"
         language "C++"
@@ -14,6 +14,7 @@ function scene_project(name, extra_files, extra_includes)
         toolset "clang"
         debugdir "%{wks.location}/" -- Changed to use workspace location
         local extradir = "./examples/" .. name .. "/"
+        local shaderPath = "%{wks.location}/assets/shaders/" .. name .. "/" .. name .. ".json"
         -- common settings
         files {
             "examples/scene/include/**.h",
@@ -23,14 +24,8 @@ function scene_project(name, extra_files, extra_includes)
             "lib/imgui/*.cpp",
             "lib/yyjson/src/yyjson.c",
             "lib/ufbx/ufbx.c",
-        }
-
-        -- Add extra files
-        if extra_files then
-            for _, file in ipairs(extra_files) do
-                files { file }
-            end
-        end
+            shaderPath,
+        } 
 
         includedirs {
             "include/",
@@ -58,12 +53,13 @@ function scene_project(name, extra_files, extra_includes)
             "lib/ufbx/"
         }
 
-        if extra_files and #extra_files > 0 then
-            defines {
-                "SHADER_CONFIG_DIR=\"" .. extra_files[1] .. "\"",
-                "ASSET_DIR=\"" .. _SCRIPT_DIR .. "/assets/\"",
-            }
-        end
+       --if extra_files and #extra_files > 0 then
+        defines {
+            "SHADER_CONFIG_DIR=\"" .. name .. "\"",
+            "ASSET_DIR=\"" .. _SCRIPT_DIR .. "/assets/\"",
+            "PROJECT_NAME=\"" .. name .. "\"",
+        }
+        --end
 
         -- Add extra includes
         if extra_includes then
@@ -121,136 +117,38 @@ workspace "Portfolio"
 --base scene project
 
 --2d projects
-scene_project("scene", {"%{wks.location}/assets/shaders/scene/Default.json"}, {})
-scene_project("textured", {"%{wks.location}/assets/shaders/textured/Textured.json"}, {})
-scene_project("perlinNoise", {"%{wks.location}/assets/shaders/perlin/PerlinNoise.json"}, {})
-scene_project("bindless", {
-    "%{wks.location}/assets/shaders/bindless/Bindless.json"}, { 
-    "%{wks.location}/examples/textured/include/"
-})
-scene_project("bubble", { 
-    "%{wks.location}/assets/shaders/bubble/Bubble.json"}, { 
-    "%{wks.location}/examples/textured/include/"
-})
-
-scene_project("cellShading", { 
-    "%{wks.location}/assets/shaders/cellShading/CellShading.json"}, { 
-    "%{wks.location}/examples/textured/include/"
-})
-
-scene_project("cheapBlur", { 
-    "%{wks.location}/assets/shaders/cheapBlur/CheapBlur.json"}, { 
-    "%{wks.location}/examples/textured/include/"
-})
-
-scene_project("chromaticAbberation", { 
-    "%{wks.location}/assets/shaders/chromaticAbberation/ChromaticAbberation.json"}, { 
-    "%{wks.location}/examples/textured/include/"
-})
-
-scene_project("computeTest", { 
-    "%{wks.location}/assets/shaders/computeTest/ComputeTest.json"} )
-
-scene_project("contrast", { 
-    "%{wks.location}/assets/shaders/contrast/Contrast.json"}, { 
-    "%{wks.location}/examples/textured/include/"
-})
-
-scene_project("dilation", { 
-    "%{wks.location}/assets/shaders/dilation/Dilation.json"}, { 
-    "%{wks.location}/examples/textured/include/"
-})
-
-scene_project("edgeDetection", { 
-    "%{wks.location}/assets/shaders/edgeDetection/EdgeDetection.json"}, { 
-    "%{wks.location}/examples/textured/include/"
-})
-
-scene_project("erosion", { 
-    "%{wks.location}/assets/shaders/erosion/Erosion.json"}, { 
-    "%{wks.location}/examples/textured/include/"
-})
-
-scene_project("heatHaze", { 
-    "%{wks.location}/assets/shaders/heatHaze/HeatHaze.json"}, { 
-    "%{wks.location}/examples/textured/include/", "%{wks.location}/examples/bubble/include/"
-})
-
-scene_project("frost", { 
-    "%{wks.location}/assets/shaders/heatHaze/HeatHaze.json"}, { 
-    "%{wks.location}/examples/textured/include/", "%{wks.location}/examples/heatHaze/include/"
-})
-
-scene_project("gameOfLife", { 
-    "%{wks.location}/assets/shaders/gameOfLife/GameOfLife.json"}, {}) 
-
-scene_project("gamma", { 
-    "%{wks.location}/assets/shaders/gamma/Gamma.json"}, { 
-    "%{wks.location}/examples/textured/include/"
-})
-
-scene_project("gaussian", { 
-    "%{wks.location}/assets/shaders/gaussian/Gaussian.json"}, { 
-    "%{wks.location}/examples/textured/include/"
-})
-
-scene_project("gaussianMulti" , { 
-    "%{wks.location}/assets/shaders/gaussianMulti/GaussianMulti.json"}, { 
-    "%{wks.location}/examples/textured/include/"
-})
-
-scene_project("golCompute", { 
-    "%{wks.location}/assets/shaders/golCompute/GOLCompute.json"}, {"%{wks.location}/examples/gameOfLife/include/"}) 
-    
-scene_project("textureSettings", { 
-    "%{wks.location}/assets/shaders/textureSettings/TextureSettings.json"}, { 
-    "%{wks.location}/examples/textured/include/"
-})
-
-scene_project("mipMapping", { 
-    "%{wks.location}/assets/shaders/mipMapping/MipMapping.json"}, { 
-    "%{wks.location}/examples/textured/include/"
-})
-
-scene_project("parallax", { 
-    "%{wks.location}/assets/shaders/parallax/Parallax.json"}, { 
-    "%{wks.location}/examples/textured/include/"
-})
-
-scene_project("perlin3D", { 
-    "%{wks.location}/assets/shaders/perlin3D/Perlin3D.json"}, {})
-
-scene_project("pixelize", { 
-    "%{wks.location}/assets/shaders/pixelize/Pixelize.json"}, { 
-    "%{wks.location}/examples/textured/include/"
-})
-
-scene_project("radialBlur", { 
-    "%{wks.location}/assets/shaders/radialBlur/RadialBlur.json"}, { 
-    "%{wks.location}/examples/textured/include/"
-})
-
-scene_project("sepia", { 
-    "%{wks.location}/assets/shaders/sepia/Sepia.json"}, { 
-    "%{wks.location}/examples/textured/include/"
-})
-
-scene_project("sharpen", { 
-    "%{wks.location}/assets/shaders/sharpen/Sharpen.json"}, { 
-    "%{wks.location}/examples/textured/include/"
-})
-
---scene_project("dotProduct", { "%{wks.location}/assets/shaders/dotProduct/DotProduct.json"}, {})
+scene_project("scene")
+scene_project("textured")
+scene_project("perlin")
+--scene_project("bindless", {"%{wks.location}/examples/textured/include/"})
+scene_project("bubble", {"%{wks.location}/examples/textured/include/"})
+scene_project("cellShading", {"%{wks.location}/examples/textured/include/"})
+scene_project("cheapBlur", {"%{wks.location}/examples/textured/include/"})
+scene_project("chromaticAbberation", {"%{wks.location}/examples/textured/include/"})
+scene_project("computeTest")
+scene_project("contrast", {"%{wks.location}/examples/textured/include/"})
+scene_project("dilation", {"%{wks.location}/examples/textured/include/"})
+scene_project("edgeDetection", {"%{wks.location}/examples/textured/include/"})
+scene_project("erosion", {"%{wks.location}/examples/textured/include/"})
+scene_project("heatHaze", {"%{wks.location}/examples/textured/include/", "%{wks.location}/examples/bubble/include/"})
+--scene_project("frost", {"%{wks.location}/examples/textured/include/", "%{wks.location}/examples/heatHaze/include/"})
+scene_project("gameOfLife") 
+scene_project("gamma", {"%{wks.location}/examples/textured/include/"})
+scene_project("gaussian", {"%{wks.location}/examples/textured/include/"})
+scene_project("gaussianMulti" , {"%{wks.location}/examples/textured/include/"})
+scene_project("GOLCompute", {"%{wks.location}/examples/gameOfLife/include/"})
+scene_project("textureSettings", { "%{wks.location}/examples/textured/include/"})
+scene_project("mipMapping", { "%{wks.location}/examples/textured/include/"})
+scene_project("parallax", { "%{wks.location}/examples/textured/include/"})
+scene_project("perlin3D", {"%{wks.location}/examples/perlin/include/"})
+scene_project("pixelize", {"%{wks.location}/examples/textured/include/"})
+scene_project("radialBlur", {"%{wks.location}/examples/textured/include/"})
+scene_project("sepia",  {"%{wks.location}/examples/textured/include/"})
+scene_project("sharpen", {"%{wks.location}/examples/textured/include/"})
+--scene_project("dotProduct")
 
 --3d projects
-
-scene_project("scene3D", {"%{wks.location}/assets/shaders/scene3D/scene3D.json"}, {})
-scene_project("texturedScene3D", {"%{wks.location}/assets/shaders/texturedScene3D/texturedScene3D.json"}, {"%{wks.location}/examples/scene3D/include/"})
-
-scene_project("depthPrePass", 
-{"%{wks.location}/assets/shaders/depthPrePass/DepthPrePass.json"}, 
-{"%{wks.location}/examples/scene3D/include/", "%{wks.location}/examples/texturedScene3D/include/"})
-
-scene_project("FXAA", 
-{"%{wks.location}/assets/shaders/FXAA/FXAA.json"}, 
-{"%{wks.location}/examples/scene3D/include/", "%{wks.location}/examples/texturedScene3D/include/"})
+scene_project("scene3D")
+scene_project("texturedScene3D", {"%{wks.location}/examples/scene3D/include/"})
+scene_project("depthPrePass", {"%{wks.location}/examples/scene3D/include/", "%{wks.location}/examples/texturedScene3D/include/"})
+--scene_project("FXAA", {"%{wks.location}/examples/scene3D/include/", "%{wks.location}/examples/texturedScene3D/include/"})

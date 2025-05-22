@@ -1,5 +1,6 @@
-#ifndef EROSION_H
-#define EROSION_H
+#ifndef DEPTH_PRE_PASS_H
+#define DEPTH_PRE_PASS_H
+
 #include "Scene3D.h"
 #include "FrameBuffer.h"
 
@@ -11,7 +12,7 @@ public:
 		const char* windowName = "Ziyad Barakat's portfolio (early depth test)",
 		camera_t* texModelCamera = new camera_t(glm::vec2(1280, 720), 5.0f, camera_t::projection_e::perspective, 0.1f, 2000.f),
 		const char* shaderConfigPath = SHADER_CONFIG_DIR,
-		model_t* model = new model_t("models/fbx_foliage/broadleaf_field/Broadleaf_Desktop_Field.FBX"))
+		model_t* model = new model_t("models/SoulSpear/SoulSpear.fbx"))
 		: scene3D(windowName, texModelCamera, shaderConfigPath, model)
 	{
 		glEnable(GL_BLEND);
@@ -45,10 +46,10 @@ public:
 
 		frameBuffer::Unbind();
 
-		programGLID = shaderProgramsMap["geometryProgram"].handle;
-		earlyDepthProgram = shaderProgramsMap["earlyDepthProgram"].handle;
-		compareProgram = shaderProgramsMap["compareProgram"].handle;
-		finalProgram = shaderProgramsMap["finalProgram"].handle;
+		programGLID = shaderProgramsMap["geometry"].handle;
+		earlyDepthProgram = shaderProgramsMap["earlyDepth"].handle;
+		compareProgram = shaderProgramsMap["compare"].handle;
+		finalProgram = shaderProgramsMap["final"].handle;
 	}
 
 protected:

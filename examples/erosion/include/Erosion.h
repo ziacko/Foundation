@@ -39,7 +39,7 @@ protected:
 
 	void BuildGUI(tWindow* window, ImGuiIO io) override
 	{
-		texturedScene::BuildGUI(windows[0], io);
+		texturedScene::BuildGUI(window, io);
 		ImGui::SliderFloat("erosion strength X", &erosion.data.strengthX, 0.0f, 10.0f);
 		ImGui::SliderFloat("erosion strength Y", &erosion.data.strengthY, 0.0f, 10.0f);
 	}
