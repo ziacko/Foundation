@@ -1,6 +1,6 @@
 #ifndef PIXELIZE_H
 #define PIXELIZE_H
-#include <TexturedScene.h>
+#include <textured.h>
 
 struct pixelizeSettings_t
 {

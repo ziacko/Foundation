@@ -1,0 +1,24 @@
+[
+    {
+        "name": "bubbleProgram",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "bubbleVertex",
+                "path": "bubble.vert",
+                "type": "vertex"
+            },
+            {
+                "name": "TexturedFragment",
+                "path": "textured.frag",
+                "type": "fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "uv"
+        ]
+    }
+]

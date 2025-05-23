@@ -1,6 +1,6 @@
 #ifndef SCENE3D_H
 #define SCENE3D_H
-#include "Scene.h"
+#include "scene.h"
 #include "Model.h"
 //#include "Grid.h"
 #include "FrameBuffer.h"

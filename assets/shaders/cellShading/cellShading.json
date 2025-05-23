@@ -1,0 +1,24 @@
+[
+    {
+        "name": "cellShading",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "DefaultVertex",
+                "path": "default.vert",
+                "type": "vertex"
+            },
+            {
+                "name": "CellShaderFragment",
+                "path": "cellShading.frag",
+                "type": "fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "uV"
+        ]
+    }
+]

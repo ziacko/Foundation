@@ -1,6 +1,6 @@
 #ifndef TEXTURE_SETTINGS_H
 #define TEXTURE_SETTINGS_H
-#include <TexturedScene.h>
+#include <textured.h>
 
 typedef enum {LINEAR = 0, NEAREST, NEAREST_MIPMAP_NEAREST, NEAREST_MIPMAP_LINEAR, LINEAR_MIPMAP_NEAREST, LINEAR_MIPMAP_LINEAR} filterSettings_t;
 typedef enum { CLAMP_TO_EDGE = 0, MIRROR_CLAMP_TO_EDGE, CLAMP_TO_BORDER, REPEAT, MIRRORED_REPEAT } wrapSettings_t;

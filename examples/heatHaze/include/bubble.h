@@ -1,4 +1,4 @@
-#include "TexturedScene.h"
+#include "textured.h"
 //#include <DefaultUniformBuffer.h>
 
 struct bubbleSettings_t

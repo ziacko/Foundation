@@ -1,0 +1,24 @@
+[
+    {
+        "name": "DefaultProgram",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "DefaultVertex",
+                "path": "Default/Default.vert",
+                "type": "Vertex"
+            },
+            {
+                "name": "DefaultFragment",
+                "path": "Default/Default.frag",
+                "type": "Fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "UV"
+        ]
+    }
+]

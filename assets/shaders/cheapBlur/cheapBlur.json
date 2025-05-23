@@ -1,0 +1,24 @@
+[
+    {
+        "name": "cheapBlur",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "jittered",
+                "path": "jitterQuad.vert",
+                "type": "vertex"
+            },
+            {
+                "name": "textured",
+                "path": "dithering.frag",
+                "type": "fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "uV"
+        ]
+    }
+]

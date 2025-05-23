@@ -1,0 +1,37 @@
+[
+        {
+        "name": "Perlin3D",
+        "outputs": [],
+        "shaders": [
+            {
+                "name": "computePerlin",
+                "path": "perlin3D.comp",
+                "type": "compute"
+            }
+        ],
+        "vertex attributes": []
+    },
+
+    {
+        "name": "final",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "defaultVertex",
+                "path": "default.vert",
+                "type": "vertex"
+            },
+            {
+                "name": "texturedFragment",
+                "path": "drawImage.frag",
+                "type": "fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "uv"
+        ]
+    }
+]
