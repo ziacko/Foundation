@@ -11,79 +11,55 @@ using frameRates_t = enum {UNCAPPED = 0, THIRTY = 30, SIXTY = 60, NINETY = 90, O
 
 struct sceneDesciptor_t
 {
-	sceneDesciptor_t(std::string windowName = "Ziyad Barakat's Portfolio ( Example Scene )", std::string shaderConfigPath = "./shaders/Default.json",
-		unsigned int fontTexture = 0, bool isFrameRateLocked = false, unsigned int lockedFrameRate = 60, glm::vec4 clearColor = glm::vec4(0.25f, 0.25f, 0.25f, 1.0f), 
-		windowSetting_t* windowSetting = new windowSetting_t(), windowManager* manager = new windowManager(), camera_t* camera = new camera_t(), 
-		tinyClock_t* sceneClock = new tinyClock_t(), vertexBuffer_t* vBuffer = new vertexBuffer_t())
+	sceneDesciptor_t(std::string windowName = "Ziyad Barakat's Portfolio ( Example Scene )",
+		windowSetting_t windowSetting = windowSetting_t(),	std::string shaderConfigPath = SHADER_CONFIG_DIR,
+		const camera_t inCamera = camera_t(), bool isFrameRateLocked = false, const unsigned int lockedFrameRate = 60)
 	{
-		this->windowName = std::move(windowName);
-		this->camera = camera;
-		this->shaderConfigPath = std::move(shaderConfigPath);
-		this->vBuffer = vBuffer;
-		this->fontTexture = fontTexture;
+		this->windowName = windowName;
+		this->shaderConfigPath = shaderConfigPath;
 		this->isFrameRateLocked = isFrameRateLocked;
 		this->lockedFrameRate = lockedFrameRate;
-		this->manager = manager;
 		this->windowSetting = windowSetting;
-		this->clearColor = clearColor;
-		this->sceneClock = sceneClock;
-		this->clearColor = clearColor;
+		this->camera = inCamera;
+
+		this->windowSetting.name = windowName;
 	}
 
 	//window name
 	std::string windowName;
-	//scene camera (rename camera)
-	camera_t* camera;
 	//shader config path
 	std::string shaderConfigPath;
-	//default Vertex buffer
-	vertexBuffer_t* vBuffer;
-	//imguiFontTexture
-	unsigned int fontTexture;
 	//isFrameRateLocked
 	bool isFrameRateLocked;
 	//locked framerate
 	unsigned int lockedFrameRate;
-	//manager
-	windowManager* manager;
 	//windowSetting_t
-	windowSetting_t* windowSetting;
-	//clear color
-	glm::vec4 clearColor;
-	//sceneClock
-  	tinyClock_t* sceneClock;
+	windowSetting_t windowSetting;
+	//camera settings
+	camera_t camera;
 };
 
 class scene
 {
 public:
 
-	scene(const char* windowName = "Ziyad Barakat's Portfolio ( Example Scene )",
-		camera_t* bufferCamera = new camera_t(),
-		const char* shaderConfigPath = SHADER_CONFIG_DIR)
+	scene(sceneDesciptor_t& sceneDescriptor)
 	{
-		this->windowName = windowName;
-		this->sceneCamera = bufferCamera;
-		this->shaderConfigPath = shaderConfigPath;
-		defaultVertexBuffer = nullptr;
-		//defaultUniform = nullptr;
-		imGUIFontTexture = 0;
+		windowName = sceneDescriptor.windowName.c_str();
+		sceneCamera = sceneDescriptor.camera;
+		shaderConfigPath = sceneDescriptor.shaderConfigPath;
+		isFrameRateLocked = sceneDescriptor.isFrameRateLocked;
+		lockedFrameRate = sceneDescriptor.lockedFrameRate;
+		sceneDescriptor.windowSetting.userData = this;
 
-		isFrameRateLocked = false;
-		lockedFrameRate = 60;
+		imGUIFontTexture = 0;
+		defaultVertexBuffer = nullptr;
 
 		manager = new windowManager();
-		
-		windowSetting_t setting;
-		setting.name = windowName;
-		setting.userData = this;
-		setting.resolution = vec2_t<unsigned int>(1280, 720);
-		setting.SetProfile(profile_t::core);
-		//setting.enableSRGB = true;
 
 		manager->Initialize();
+		window = manager->AddWindow(sceneDescriptor.windowSetting);
 
-		window = manager->AddWindow(setting);
 		assert(window != nullptr);
 
 		shaderHandler = new shaderManager();
@@ -100,7 +76,6 @@ public:
 		ImGUIInvalidateDeviceObject(); // Missing cleanup for ImGui context
 		ImGui::DestroyContext(); // Should destroy the context
 		windowContextMap.clear(); // Clear the map
-		delete this->sceneCamera;		this->sceneCamera = nullptr;
 		delete manager;					manager = nullptr;
 		delete shaderHandler;			shaderHandler = nullptr;
 		delete sceneClock;				sceneClock = nullptr;
@@ -184,10 +159,10 @@ protected:
 
 	bufferHandler_t<defaultUniformBuffer>	defaultPayload;
 
-	camera_t*					sceneCamera;
-	const char*					windowName;
+	camera_t					sceneCamera;
+	std::string					windowName;
 	GLuint						programGLID;
-	const char*					shaderConfigPath;
+	std::string					shaderConfigPath;
 
 	ImGuiContext*				imGUIContext;
 	GLuint						imGUIFontTexture;
@@ -217,7 +192,7 @@ protected:
 	virtual void Update()
 	{
 		manager->PollForEvents();
-		sceneCamera->Update();
+		sceneCamera.Update();
 		if (lockedFrameRate > 0)
 		{
 			sceneClock->UpdateClockFixed(lockedFrameRate);
@@ -231,9 +206,9 @@ protected:
 		defaultPayload.data.deltaTime = (float)sceneClock->GetDeltaTime();
 		defaultPayload.data.totalTime = (float)sceneClock->GetTotalTime();
 		defaultPayload.data.framesPerSec = (float)(1.0 / sceneClock->GetDeltaTime());
-		defaultPayload.data.projection = sceneCamera->projection;
-		defaultPayload.data.view = sceneCamera->view;
-		defaultPayload.data.translation = sceneCamera->translation;
+		defaultPayload.data.projection = sceneCamera.projection;
+		defaultPayload.data.view = sceneCamera.view;
+		defaultPayload.data.translation = sceneCamera.translation;
 
 		defaultPayload.Update(gl_uniform_buffer, gl_dynamic_draw);
 		//UpdateBuffer(defaultUniform, defaultUniform->bufferHandle, sizeof(*defaultUniform), gl_uniform_buffer, gl_dynamic_draw);
@@ -305,7 +280,7 @@ protected:
 			}
 		}
 		
-		sceneCamera->resolution = glm::vec2(window->GetWindowSettings().resolution.width, window->GetWindowSettings().resolution.height);
+		sceneCamera.resolution = glm::vec2(window->GetWindowSettings().resolution.width, window->GetWindowSettings().resolution.height);
 		//create a separate window that displays all possible rendering resolutions
 		//DrawCameraStats();
 	}
@@ -315,20 +290,20 @@ protected:
 		//set up the view matrix
 		ImGui::Begin("camera", &isGUIActive);// , ImVec2(0, 0));
 
-		ImGui::Combo("projection type", (int*)&sceneCamera->currentProjectionType, "perspective\0orthographic");  // NOLINT(performance-no-int-to-ptr)
+		ImGui::Combo("projection type", (int*)&sceneCamera.currentProjectionType, "perspective\0orthographic");  // NOLINT(performance-no-int-to-ptr)
 
-		if (sceneCamera->currentProjectionType == camera_t::projection_e::orthographic)
+		if (sceneCamera.currentProjectionType == camera_t::projection_e::orthographic)
 		{
-			ImGui::DragFloat("near plane", &sceneCamera->nearPlane);
-			ImGui::DragFloat("far plane", &sceneCamera->farPlane);
-			ImGui::SliderFloat("Field of view", &sceneCamera->fieldOfView, 0, 90, "%.10f");
+			ImGui::DragFloat("near plane", &sceneCamera.nearPlane);
+			ImGui::DragFloat("far plane", &sceneCamera.farPlane);
+			ImGui::SliderFloat("Field of view", &sceneCamera.fieldOfView, 0, 90, "%.10f");
 		}
 
 		else
 		{
-			ImGui::InputFloat("camera speed", &sceneCamera->speed, 0.f);
-			ImGui::InputFloat("x sensitivity", &sceneCamera->xSensitivity, 0.f);
-			ImGui::InputFloat("y sensitivity", &sceneCamera->ySensitivity, 0.f);
+			ImGui::InputFloat("camera speed", &sceneCamera.speed, 0.f);
+			ImGui::InputFloat("x sensitivity", &sceneCamera.xSensitivity, 0.f);
+			ImGui::InputFloat("y sensitivity", &sceneCamera.ySensitivity, 0.f);
 		}
 
 		if (ImGui::TreeNode("view matrix"))
@@ -340,26 +315,26 @@ protected:
 				//ImGui::Text("blarg");
 				//ImGui::SameLine();
 				//ImGui::NextColumn();
-				ImGui::DragFloat4("##", (float*)&sceneCamera->view[0], 0.1f, -100.0f, 100.0f);
+				ImGui::DragFloat4("##", (float*)&sceneCamera.view[0], 0.1f, -100.0f, 100.0f);
 				//ImGui::Columns(1);
 				ImGui::TreePop();
 			}
 
 			if (ImGui::TreeNode("up"))
 			{
-				ImGui::DragFloat4("##", (float*)&sceneCamera->view[1], 0.1f, -100.0f, 100.0f);
+				ImGui::DragFloat4("##", (float*)&sceneCamera.view[1], 0.1f, -100.0f, 100.0f);
 				ImGui::TreePop();
 			}
 
 			if (ImGui::TreeNode("forward"))
 			{
-				ImGui::DragFloat4("##", (float*)&sceneCamera->view[2], 0.1f, -100.0f, 100.0f);
+				ImGui::DragFloat4("##", (float*)&sceneCamera.view[2], 0.1f, -100.0f, 100.0f);
 				ImGui::TreePop();
 			}
 
 			if (ImGui::TreeNode("position"))
 			{
-				ImGui::DragFloat4("##", (float*)&sceneCamera->view[3], 0.1f, -100.0f, 100.0f);
+				ImGui::DragFloat4("##", (float*)&sceneCamera.view[3], 0.1f, -100.0f, 100.0f);
 				ImGui::TreePop();
 			}
 			ImGui::TreePop();
@@ -374,7 +349,7 @@ protected:
 	virtual void BeginGUI(tWindow* window)
 	{
 		ImGUINewFrame(window);
-		ImGui::Begin(window->GetWindowSettings().name, &isGUIActive);// , beginSize);
+		ImGui::Begin(window->GetWindowSettings().name.c_str(), &isGUIActive);// , beginSize);
 
 	}
 

@@ -19,10 +19,7 @@ public:
 	glm::vec2			resolution;
 	float				speed;
 	float				fieldOfView;
-	const float			defaultOrthoNear = 0.01f;
-	const float			defaultOrthoFar = 100.0f;
-	const float			defaultPersNear = 15.0f;
-	const float			defaultPersFar = 1000.0f;
+
 	float				farPlane;
 	float				nearPlane;
 	projection_e		currentProjectionType;
@@ -39,10 +36,6 @@ public:
 	glm::vec4			forward;
 	glm::vec4			up;
 
-	static const glm::vec4 globalRight;// = glm::vec3(1, 0, 0);
-	static const glm::vec4 globalForward;// = glm::vec3(0, 0, 1);
-	static const glm::vec4 globalUp;// = glm::vec3(0, 1, 0);
-
 	//glm::vec4 rotation;
 	glm::vec3 position;
 	glm::vec3 rotator; //roll, pitch, yaw
@@ -50,9 +43,19 @@ public:
 
 	bool guiActive = false;
 
-	camera_t(glm::vec2 resolution = glm::vec2(1280, 720), float speed = 1.0f,
-		projection_e type = projection_e::orthographic, float nearPlane = 0.1f,
-		float farPlane = 1000.0f, float fieldOfView = 60.0f)
+	static const glm::vec4 globalRight;// = glm::vec3(1, 0, 0);
+	static const glm::vec4 globalForward;// = glm::vec3(0, 0, 1);
+	static const glm::vec4 globalUp;// = glm::vec3(0, 1, 0);
+	static const float		defaultOrthoNear;// = 0.01f;
+	static const float		defaultOrthoFar;// = 100.0f;
+	static const float		defaultPersNear;// = 15.0f;
+	static const float		defaultPersFar;//= 1000.0f;
+
+
+
+	explicit camera_t(glm::vec2 resolution = glm::vec2(1280, 720), float speed = 1.0f,
+	                  projection_e type = projection_e::orthographic, float nearPlane = 0.1f,
+	                  float farPlane = 1000.0f, float fieldOfView = 60.0f)
 	{
 		this->farPlane = farPlane;
 		this->nearPlane = nearPlane;
@@ -64,11 +67,13 @@ public:
 		xSensitivity = 0.01f;
 		ySensitivity = 0.01f;
 		zSensitivity = 0.01f;
+		mousePosition = glm::vec2(0.0f);
 
-		(this->currentProjectionType == projection_e::orthographic) ? this->projection = glm::ortho(0.0f, this->resolution.x, this->resolution.y,
-			0.0f, this->nearPlane, this->farPlane) :
-			this->projection = glm::perspective<float>(this->fieldOfView, this->resolution.x / this->resolution.y,
-				this->nearPlane, this->farPlane);
+		(this->currentProjectionType == projection_e::orthographic)
+			? this->projection = glm::ortho(0.0f, this->resolution.x, this->resolution.y,
+			                                0.0f, this->nearPlane, this->farPlane)
+			: this->projection = glm::perspective<float>(this->fieldOfView, this->resolution.x / this->resolution.y,
+			                                             this->nearPlane, this->farPlane);
 
 		if (currentProjectionType == projection_e::orthographic)
 		{
@@ -91,6 +96,31 @@ public:
 	}
 
 	~camera_t() {}
+
+	//copy constructor
+	camera_t(const camera_t& other)
+	{
+		this->position = other.position;
+		this->rotation = other.rotation;
+		this->rotator = other.rotator;
+		this->up = other.up;
+		this->right = other.right;
+		this->forward = other.forward;
+		this->fieldOfView = other.fieldOfView;
+		this->nearPlane = other.nearPlane;
+		this->farPlane = other.farPlane;
+		this->speed = other.speed;
+		this->currentProjectionType = other.currentProjectionType;
+		this->translation = other.translation;
+		this->resolution = other.resolution;
+		this->speed = other.speed;
+		this->projection = other.projection;
+		this->view = other.view;
+		this->mousePosition = other.mousePosition;
+		this->xSensitivity = other.xSensitivity;
+		this->ySensitivity = other.ySensitivity;
+		this->zSensitivity = other.zSensitivity;
+	}
 
 	void Update()
 	{
@@ -235,5 +265,10 @@ public:
 const glm::vec4 camera_t::globalRight = glm::vec4(1, 0, 0, 1);
 const glm::vec4 camera_t::globalForward = glm::vec4(0, 0, -1, 1);
 const glm::vec4 camera_t::globalUp = glm::vec4(0, 1, 0, 1);
+
+const float	camera_t::defaultOrthoNear = 0.01f;
+const float	camera_t::defaultOrthoFar = 100.0f;
+const float camera_t::defaultPersNear = 0.1f;
+const float camera_t::defaultPersFar = 1000.0f;
 
 #endif

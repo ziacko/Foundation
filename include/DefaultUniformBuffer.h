@@ -105,14 +105,14 @@ public:
 		totalFrames = 1;
 	}
 
-	defaultUniformBuffer(camera_t* defaultCamera)// : uniformBuffer_t()
+	defaultUniformBuffer(const camera_t& defaultCamera)// : uniformBuffer_t()
 	{
 		//uniformBuffer_t();
 		//BuildBuffer();
-		this->projection = defaultCamera->projection;
-		this->view = defaultCamera->view;
-		this->translation = defaultCamera->translation;
-		this->resolution = defaultCamera->resolution;
+		this->projection = defaultCamera.projection;
+		this->view = defaultCamera.view;
+		this->translation = defaultCamera.translation;
+		this->resolution = defaultCamera.resolution;
 		totalFrames = 1;
 	}
 

@@ -1,7 +1,8 @@
 #include <scene.h>
 int main()
 {
-	scene* exampleScene = new scene();
+	sceneDesciptor_t sceneDesc;
+	scene* exampleScene = new scene(sceneDesc);
 	exampleScene->Initialize();
 	exampleScene->Run();
 	return 0;

@@ -367,7 +367,8 @@ namespace TinyWindow
 	{
 		friend class windowManager;
 
-		explicit windowSetting_t(const char* name = nullptr, void* userData = nullptr, const vec2_t<unsigned int>& resolution = vec2_t<unsigned int>(defaultWindowWidth, defaultWindowHeight), const int& versionMajor = 4, const int& versionMinor = 5, const unsigned int& colorBits = 8, const unsigned int& depthBits = 24, const unsigned int& stencilBits = 8, const unsigned int& accumBits = 8, const state_t& currentState = state_t::normal, const profile_t& profile = profile_t::core)
+		//should i move this to a window descriptor system?
+		explicit windowSetting_t(const std::string& name = "window", void* userData = nullptr, const vec2_t<unsigned int>& resolution = vec2_t<unsigned int>(defaultWindowWidth, defaultWindowHeight), const int& versionMajor = 4, const int& versionMinor = 5, const unsigned int& colorBits = 8, const unsigned int& depthBits = 24, const unsigned int& stencilBits = 8, const unsigned int& accumBits = 8, const state_t& currentState = state_t::normal, const profile_t& profile = profile_t::core)
 		{
 			this->name		   = name;
 			this->resolution   = resolution;
@@ -399,7 +400,7 @@ namespace TinyWindow
 		}
 
 		void* userData;
-		const char* name; /**< Name of the window */
+		std::string name; /**< Name of the window */
 		bool enableSRGB;  /**< whether the window will support an sRGB colorspace backbuffer*/
 		state_t currentState;
 		/**< The current state of the window. these states include Normal, Minimized, Maximized and Full screen */
@@ -1037,7 +1038,7 @@ namespace TinyWindow
 		*/
 		tWindow* AddWindow(windowSetting_t windowSetting)
 		{
-			if (windowSetting.name != nullptr)
+			if (windowSetting.name.empty() == false)
 			{
 				std::unique_ptr<tWindow> newWindow(new tWindow(windowSetting));
 				windowList.push_back(std::move(newWindow));
@@ -1050,7 +1051,7 @@ namespace TinyWindow
 
 		tWindow* AddSharedWindow(tWindow* sourceWindow, windowSetting_t windowSetting)
 		{
-			if (windowSetting.name != nullptr)
+			if (windowSetting.name.empty() == false)
 			{
 				std::unique_ptr<tWindow> newWindow(new tWindow(windowSetting));
 				windowList.push_back(std::move(newWindow));
@@ -3778,7 +3779,7 @@ namespace TinyWindow
 			}
 
 			XMapWindow(window->currentDisplay, window->windowHandle);
-			XStoreName(window->currentDisplay, window->windowHandle, window->settings.name);
+			XStoreName(window->currentDisplay, window->windowHandle, window->settings.name.c_str());
 			XSetWMProtocols(window->currentDisplay, window->windowHandle, &window->AtomClose, true);
 
 			XWindowAttributes attributes;
