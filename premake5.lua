@@ -1,7 +1,6 @@
 if os.host() == "linux" then
     local cmake = require "cmake"
     --cmake.builddir = "build/cmake"
-   -- location "build/cmake"
 end
 
 dofile (_SCRIPT_DIR .. "/premakeExtras/templates.lua")
@@ -18,7 +17,7 @@ function scene_project(name, inheritances)
         toolset "clang"
         debugdir "%{wks.location}/" -- Changed to use workspace location
         local extradir = "./examples/" .. name .. "/"
-        local shaderPath = "%{wks.location}/assets/shaders/" .. name .. "/" .. name .. ".json"
+        local shaderPath = _SCRIPT_DIR .. "/assets/shaders/" .. name .. "/" .. name .. ".json"
 
         --use the last inheritance as the parent
         if inheritances and #inheritances > 0 then
@@ -100,6 +99,8 @@ function scene_project(name, inheritances)
             -- Add CMake working directory
             debugdir(_SCRIPT_DIR)
 end
+
+location "build/cmake"
 
 workspace "Portfolio"
     configurations { "Debug", "Release" }
