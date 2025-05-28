@@ -1,11 +1,13 @@
 if os.host() == "linux" then
     local cmake = require "cmake"
-    --cmake.builddir = "build/cmake"
+    cmake.workspace_directory = _SCRIPT_DIR
+    cmake.write_settings = {
+        CMAKE_CURRENT_SOURCE_DIR = _SCRIPT_DIR
+    }
 end
 
 dofile (_SCRIPT_DIR .. "/premakeExtras/templates.lua")
 dofile (_SCRIPT_DIR .. "/premakeExtras/helperFunctions.lua")
-
 
 function scene_project(name, inheritances)
     project(name)
@@ -15,7 +17,7 @@ function scene_project(name, inheritances)
         
         targetdir (_SCRIPT_DIR .. "/examples/" .. name .. "/bin/")
         toolset "clang"
-        debugdir "%{wks.location}/" -- Changed to use workspace location
+        debugdir(_SCRIPT_DIR) -- Changed to use workspace location
         local extradir = "./examples/" .. name .. "/"
         local shaderPath = _SCRIPT_DIR .. "/assets/shaders/" .. name .. "/" .. name .. ".json"
 
@@ -95,7 +97,6 @@ function scene_project(name, inheritances)
             toolset "clang"
             links { "GL", "X11", "Xrandr", "Xinerama", "pthread" } -- Added pthread for Abseil
 
-
             -- Add CMake working directory
             debugdir(_SCRIPT_DIR)
 end
@@ -165,7 +166,6 @@ scene_project("pixelize", {"textured"})
 scene_project("radialBlur", {"textured"})
 scene_project("sepia",  {"textured"})
 scene_project("sharpen", {"textured"})
-scene_project("blarg", {"textured"})
 
 --3d projects
 scene_project("scene3D")
