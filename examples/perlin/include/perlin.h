@@ -111,7 +111,7 @@ class perlinScene : public scene
 public:
 
 	perlinScene(const char* windowName = "Ziyad Barakat's Portfolio ( Perlin noise )",
-		camera_t* perlinCamera = new camera_t(), const GLchar* shaderConfigPath = SHADER_CONFIG_DIR)
+		camera_t perlinCamera = camera_t(), const GLchar* shaderConfigPath = SHADER_CONFIG_DIR)
 		: scene(windowName, perlinCamera, shaderConfigPath)
 	{
 		this->perlin.data = perlinSettings_t();
@@ -217,7 +217,7 @@ protected:
 		perlinBuffer->Bind();
 		perlinBuffer->attachments[0]->Draw();
 
-		glBindVertexArray(defaultVertexBuffer->vertexArrayHandle);
+		glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
 		glViewport(0, 0, window->GetWindowSettings().resolution.width, window->GetWindowSettings().resolution.height);
 
 		glUseProgram(this->programGLID);
@@ -228,7 +228,7 @@ protected:
 	{
 		frameBuffer::Unbind();
 
-		glBindVertexArray(defaultVertexBuffer->vertexArrayHandle);
+		glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
 		glViewport(0, 0, window->GetWindowSettings().resolution.width, window->GetWindowSettings().resolution.height);
 
 		perlinBuffer->attachments[0]->SetActive(0);

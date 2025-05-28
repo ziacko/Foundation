@@ -14,13 +14,13 @@ class scene
 public:
 
 	scene(const char* windowName = "Ziyad Barakat's Portfolio ( Example Scene )",
-		camera_t* bufferCamera = new camera_t(),
+		camera_t bufferCamera = camera_t(),
 		const char* shaderConfigPath = SHADER_CONFIG_DIR)
 	{
 		this->windowName = windowName;
 		this->sceneCamera = bufferCamera;
 		this->shaderConfigPath = shaderConfigPath;
-		defaultVertexBuffer = nullptr;
+		//defaultVertexBuffer = vertexBuffer_t();
 		//defaultUniform = nullptr;
 		imGUIFontTexture = 0;
 
@@ -47,7 +47,7 @@ public:
 
 		glClearColor(0.25f, 0.25f, 0.25f, 1.0f);
 		
-		sceneClock = new tinyClock_t();
+		//sceneClock = tinyClock_t();
 	}
 
 	virtual ~scene()
@@ -55,10 +55,10 @@ public:
 		ImGUIInvalidateDeviceObject(); // Missing cleanup for ImGui context
 		ImGui::DestroyContext(); // Should destroy the context
 		windowContextMap.clear(); // Clear the map
-		delete this->sceneCamera;		this->sceneCamera = nullptr;
+		//delete this->sceneCamera;		this->sceneCamera = nullptr;
 		delete manager;					manager = nullptr;
 		delete shaderHandler;			shaderHandler = nullptr;
-		delete sceneClock;				sceneClock = nullptr;
+		//delete sceneClock;				sceneClock = nullptr;
 		delete defaultTimer;			defaultTimer = nullptr;
 	}
 
@@ -134,12 +134,12 @@ protected:
 	//std::vector<tShaderProgram>				shaderPrograms;
 	tsl::robin_map<std::string, tShaderProgram>	shaderProgramsMap;
 
-	tinyClock_t*							sceneClock;
-	vertexBuffer_t*							defaultVertexBuffer;
+	tinyClock_t							sceneClock;
+	vertexBuffer_t							defaultVertexBuffer;
 
 	bufferHandler_t<defaultUniformBuffer>	defaultPayload;
 
-	camera_t*					sceneCamera;
+	camera_t					sceneCamera;
 	const char*					windowName;
 	GLuint						programGLID;
 	const char*					shaderConfigPath;
@@ -172,23 +172,23 @@ protected:
 	virtual void Update()
 	{
 		manager->PollForEvents();
-		sceneCamera->Update();
+		sceneCamera.Update();
 		if (lockedFrameRate > 0)
 		{
-			sceneClock->UpdateClockFixed(lockedFrameRate);
+			sceneClock.UpdateClockFixed(lockedFrameRate);
 		}
 		else
 		{
-			sceneClock->UpdateClockAdaptive();
+			sceneClock.UpdateClockAdaptive();
 		}		
 
 		defaultPayload.data.totalFrames++;
-		defaultPayload.data.deltaTime = (float)sceneClock->GetDeltaTime();
-		defaultPayload.data.totalTime = (float)sceneClock->GetTotalTime();
-		defaultPayload.data.framesPerSec = (float)(1.0 / sceneClock->GetDeltaTime());
-		defaultPayload.data.projection = sceneCamera->projection;
-		defaultPayload.data.view = sceneCamera->view;
-		defaultPayload.data.translation = sceneCamera->translation;
+		defaultPayload.data.deltaTime = (float)sceneClock.GetDeltaTime();
+		defaultPayload.data.totalTime = (float)sceneClock.GetTotalTime();
+		defaultPayload.data.framesPerSec = (float)(1.0 / sceneClock.GetDeltaTime());
+		defaultPayload.data.projection = sceneCamera.projection;
+		defaultPayload.data.view = sceneCamera.view;
+		defaultPayload.data.translation = sceneCamera.translation;
 
 		defaultPayload.Update(gl_uniform_buffer, gl_dynamic_draw);
 		//UpdateBuffer(defaultUniform, defaultUniform->bufferHandle, sizeof(*defaultUniform), gl_uniform_buffer, gl_dynamic_draw);
@@ -198,7 +198,7 @@ protected:
 	{
 		PreDraw();
 
-		glBindVertexArray(defaultVertexBuffer->vertexArrayHandle);
+		glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
 		glUseProgram(this->programGLID);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
@@ -222,8 +222,8 @@ protected:
 	{
 		ImGui::SetCurrentContext(windowContextMap[window]);
 
-		ImGui::Text("FPS %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, 1.0f / sceneClock->GetDeltaTime());
-		ImGui::Text("Total running time %.5f", sceneClock->GetTotalTime());
+		ImGui::Text("FPS %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, 1.0f / sceneClock.GetDeltaTime());
+		ImGui::Text("Total running time %.5f", sceneClock.GetTotalTime());
 		ImGui::Text("Mouse coordinates: \t X: %.0f \t Y: %.0f", io.MousePos.x, io.MousePos.y);
 		ImGui::Text("Window size: \t Width: %i \t Height: %i", window->GetWindowSettings().resolution.width, window->GetWindowSettings().resolution.height);
 
@@ -260,7 +260,7 @@ protected:
 			}
 		}
 		
-		sceneCamera->resolution = glm::vec2(window->GetWindowSettings().resolution.width, window->GetWindowSettings().resolution.height);
+		sceneCamera.resolution = glm::vec2(window->GetWindowSettings().resolution.width, window->GetWindowSettings().resolution.height);
 		//create a separate window that displays all possible rendering resolutions
 		//DrawCameraStats();
 	}
@@ -270,20 +270,20 @@ protected:
 		//set up the view matrix
 		ImGui::Begin("camera", &isGUIActive);// , ImVec2(0, 0));
 
-		ImGui::Combo("projection type", (int*)&sceneCamera->currentProjectionType, "perspective\0orthographic");  // NOLINT(performance-no-int-to-ptr)
+		ImGui::Combo("projection type", (int*)&sceneCamera.currentProjectionType, "perspective\0orthographic");  // NOLINT(performance-no-int-to-ptr)
 
-		if (sceneCamera->currentProjectionType == camera_t::projection_e::orthographic)
+		if (sceneCamera.currentProjectionType == camera_t::projection_e::orthographic)
 		{
-			ImGui::DragFloat("near plane", &sceneCamera->nearPlane);
-			ImGui::DragFloat("far plane", &sceneCamera->farPlane);
-			ImGui::SliderFloat("Field of view", &sceneCamera->fieldOfView, 0, 90, "%.10f");
+			ImGui::DragFloat("near plane", &sceneCamera.nearPlane);
+			ImGui::DragFloat("far plane", &sceneCamera.farPlane);
+			ImGui::SliderFloat("Field of view", &sceneCamera.fieldOfView, 0, 90, "%.10f");
 		}
 
 		else
 		{
-			ImGui::InputFloat("camera speed", &sceneCamera->speed, 0.f);
-			ImGui::InputFloat("x sensitivity", &sceneCamera->xSensitivity, 0.f);
-			ImGui::InputFloat("y sensitivity", &sceneCamera->ySensitivity, 0.f);
+			ImGui::InputFloat("camera speed", &sceneCamera.speed, 0.f);
+			ImGui::InputFloat("x sensitivity", &sceneCamera.xSensitivity, 0.f);
+			ImGui::InputFloat("y sensitivity", &sceneCamera.ySensitivity, 0.f);
 		}
 
 		if (ImGui::TreeNode("view matrix"))
@@ -295,26 +295,26 @@ protected:
 				//ImGui::Text("blarg");
 				//ImGui::SameLine();
 				//ImGui::NextColumn();
-				ImGui::DragFloat4("##", (float*)&sceneCamera->view[0], 0.1f, -100.0f, 100.0f);
+				ImGui::DragFloat4("##", (float*)&sceneCamera.view[0], 0.1f, -100.0f, 100.0f);
 				//ImGui::Columns(1);
 				ImGui::TreePop();
 			}
 
 			if (ImGui::TreeNode("up"))
 			{
-				ImGui::DragFloat4("##", (float*)&sceneCamera->view[1], 0.1f, -100.0f, 100.0f);
+				ImGui::DragFloat4("##", (float*)&sceneCamera.view[1], 0.1f, -100.0f, 100.0f);
 				ImGui::TreePop();
 			}
 
 			if (ImGui::TreeNode("forward"))
 			{
-				ImGui::DragFloat4("##", (float*)&sceneCamera->view[2], 0.1f, -100.0f, 100.0f);
+				ImGui::DragFloat4("##", (float*)&sceneCamera.view[2], 0.1f, -100.0f, 100.0f);
 				ImGui::TreePop();
 			}
 
 			if (ImGui::TreeNode("position"))
 			{
-				ImGui::DragFloat4("##", (float*)&sceneCamera->view[3], 0.1f, -100.0f, 100.0f);
+				ImGui::DragFloat4("##", (float*)&sceneCamera.view[3], 0.1f, -100.0f, 100.0f);
 				ImGui::TreePop();
 			}
 			ImGui::TreePop();
@@ -329,7 +329,7 @@ protected:
 	virtual void BeginGUI(tWindow* window)
 	{
 		ImGUINewFrame(window);
-		ImGui::Begin(window->GetWindowSettings().name, &isGUIActive);// , beginSize);
+		ImGui::Begin(window->GetWindowSettings().name.c_str(), &isGUIActive);// , beginSize);
 
 	}
 
@@ -350,7 +350,7 @@ protected:
 
 	virtual void SetupVertexBuffer()
 	{
-		defaultVertexBuffer = new vertexBuffer_t(defaultPayload.data.resolution);
+		defaultVertexBuffer = vertexBuffer_t(defaultPayload.data.resolution);
 
 		/*GLfloat quadVerts[24] =
 		{
@@ -420,16 +420,11 @@ protected:
 
 		UpdateBuffer(gl_uniform_buffer, gl_dynamic_draw);
 
-		defaultVertexBuffer->UpdateBuffer(dimensions);
+		defaultVertexBuffer.UpdateBuffer(dimensions);
 	}
 
 	virtual void HandleMouseClick(const tWindow* window, const mouseButton_t button, const buttonState_t state)
 	{
-		auto it = windowContextMap.find(const_cast<tWindow*>(window));
-		if (it != windowContextMap.end())
-		{
-			ImGui::SetCurrentContext(it->second);
-		}
 		ImGuiIO& io = ImGui::GetIO();
 
 		switch (button)
@@ -466,11 +461,6 @@ protected:
 
 	virtual void HandleMouseMotion(const tWindow* window, const vec2_t<int> windowPosition, const vec2_t<int> screenPosition)
 	{
-		auto it = windowContextMap.find(const_cast<tWindow*>(window));
-		if (it != windowContextMap.end())
-		{
-			ImGui::SetCurrentContext(it->second);
-		}
 		defaultPayload.data.mousePosition = glm::vec2(windowPosition.x, windowPosition.y);
 		UpdateBuffer(gl_uniform_buffer, gl_dynamic_draw);
 		ImGuiIO& io = ImGui::GetIO();
@@ -479,17 +469,53 @@ protected:
 
 	virtual void HandleMouseWheel(const tWindow* window, const mouseScroll_t scroll)
 	{
-		auto it = windowContextMap.find(const_cast<tWindow*>(window));
-		if (it != windowContextMap.end())
-		{
-			ImGui::SetCurrentContext(it->second);
-		}
 		ImGuiIO& io = ImGui::GetIO();
 		io.MouseWheel += (float)((scroll == mouseScroll_t::down) ? -1 : 1);
 	}
 
+	ImGuiKey MapToImGuiKey(int key)
+	{
+		// Map letters A-Z
+		if (key >= 'A' && key <= 'Z')
+		{
+			return static_cast<ImGuiKey>(ImGuiKey_A + (key - 'A'));
+		}
+		// Map numbers 0-9
+		if (key >= '0' && key <= '9')
+		{
+			return static_cast<ImGuiKey>(ImGuiKey_0 + (key - '0'));
+		}
+		// Map special keys using Windows virtual key codes
+		switch (key)
+		{
+		case TinyWindow::key_t::tab :			return ImGuiKey_Tab;			// VK_TAB
+		case TinyWindow::key_t::arrowLeft :		return ImGuiKey_LeftArrow;   // VK_LEFT
+		case TinyWindow::key_t::arrowRight :	return ImGuiKey_RightArrow;  // VK_RIGHT
+		case TinyWindow::key_t::arrowUp :		return ImGuiKey_UpArrow;     // VK_UP
+		case TinyWindow::key_t::arrowDown :		return ImGuiKey_DownArrow;   // VK_DOWN
+		case TinyWindow::key_t::pageUp :		return ImGuiKey_PageUp;      // VK_PRIOR
+		case TinyWindow::key_t::pageDown :		return ImGuiKey_PageDown;    // VK_NEXT
+		case TinyWindow::key_t::home :			return ImGuiKey_Home;        // VK_HOME
+		case TinyWindow::key_t::end :			return ImGuiKey_End;         // VK_END
+		case TinyWindow::key_t::insert :		return ImGuiKey_Insert;      // VK_INSERT
+		case TinyWindow::key_t::del :			return ImGuiKey_Delete;      // VK_DELETE
+		case TinyWindow::key_t::backspace :		return ImGuiKey_Backspace;   // VK_BACK
+		case TinyWindow::key_t::spacebar :		return ImGuiKey_Space;       // VK_SPACE
+		case TinyWindow::key_t::enter :			return ImGuiKey_Enter;       // VK_RETURN
+		case TinyWindow::key_t::escape :		return ImGuiKey_Escape;      // VK_ESCAPE
+		default: return ImGuiKey_None;
+		}
+	}
+
 	virtual void HandleKey(const tWindow* window, const unsigned int key, const keyState_t keyState)
 	{
+		ImGuiIO& io = ImGui::GetIO();
+		ImGuiKey imguiKey = MapToImGuiKey(key);
+		if (imguiKey != ImGuiKey_None) {
+			io.AddKeyEvent(imguiKey, keyState == keyState_t::down);
+		}
+
+		/*
 		auto it = windowContextMap.find(const_cast<tWindow*>(window));
 		if (it != windowContextMap.end())
 		{
@@ -517,7 +543,7 @@ protected:
 				break;
 			}
 			}
-		}
+		}*/
 	}
 
 	virtual void HandleFileDrop(const tWindow* window, const std::vector<std::string>& files, const vec2_t<int>& windowMousePosition)
@@ -540,25 +566,6 @@ protected:
 		ImGuiIO& io = ImGui::GetIO();
 		io.BackendRendererName = "imgui_impl_opengl3";
 		io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;
-		
-		io.AddKeyEvent(ImGuiKey_Tab, TinyWindow::tab);
-		io.AddKeyEvent(ImGuiKey_LeftArrow, TinyWindow::arrowLeft);
-		io.AddKeyEvent(ImGuiKey_RightArrow, TinyWindow::arrowRight);
-		io.AddKeyEvent(ImGuiKey_UpArrow, TinyWindow::arrowUp);
-		io.AddKeyEvent(ImGuiKey_PageUp, TinyWindow::pageUp);
-		io.AddKeyEvent(ImGuiKey_PageDown, TinyWindow::pageDown);
-		io.AddKeyEvent(ImGuiKey_Home, TinyWindow::home);
-		io.AddKeyEvent(ImGuiKey_End, TinyWindow::end);
-		io.AddKeyEvent(ImGuiKey_Delete, TinyWindow::del);
-		io.AddKeyEvent(ImGuiKey_Backspace, TinyWindow::backspace);
-		io.AddKeyEvent(ImGuiKey_Enter, TinyWindow::enter);
-		io.AddKeyEvent(ImGuiKey_Escape, TinyWindow::escape);
-		io.AddKeyEvent(ImGuiKey_A, 'a');
-		io.AddKeyEvent(ImGuiKey_C, 'c');
-		io.AddKeyEvent(ImGuiKey_V, 'v');
-		io.AddKeyEvent(ImGuiKey_X, 'x');
-		io.AddKeyEvent(ImGuiKey_Y, 'y');
-		io.AddKeyEvent(ImGuiKey_Z, 'z');
 
 #if defined(TW_WINDOWS)
 		//io.ImeWindowHandle = window->GetWindowHandle();
@@ -715,7 +722,15 @@ protected:
 		ImGuiIO& io = ImGui::GetIO();
 		io.DisplaySize = ImVec2((float)drawWindow->GetWindowSettings().resolution.width, (float)drawWindow->GetWindowSettings().resolution.height);
 		io.DisplayFramebufferScale = ImVec2(1, 1);
-		io.DeltaTime = (float)sceneClock->GetDeltaTime();
+		io.DeltaTime = (float)sceneClock.GetDeltaTime();
+		printf("imgui wants mouse capture? %i \n", io.WantCaptureMouse);
+		printf("imgui wants keyboard capture? %i \n", io.WantCaptureKeyboard);
+
+		auto it = windowContextMap.find(window);
+		if (it != windowContextMap.end())
+		{
+			ImGui::SetCurrentContext(it->second);
+		}
 
 		ImGui::NewFrame();
 	}
@@ -983,18 +998,5 @@ protected:
 
 		printf("---------------------opengl-callback-end--------------\n");
 	}
-
-private:
-
-	void LoadShaderJSONConfig(std::string_view shaderConfigPath, std::vector<tShaderProgram*>& shaderPrograms) //replace this with the JSON version of this)
-	{
-		//first load the JSON file as a string
-
-		//then chuck that into yyJSON to start decoding it
-
-
-	}
-
-
 };
 #endif

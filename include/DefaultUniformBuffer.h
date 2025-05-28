@@ -105,7 +105,7 @@ public:
 		totalFrames = 1;
 	}
 
-	defaultUniformBuffer(const camera_t& defaultCamera)// : uniformBuffer_t()
+	defaultUniformBuffer(const camera_t defaultCamera)// : uniformBuffer_t()
 	{
 		//uniformBuffer_t();
 		//BuildBuffer();
