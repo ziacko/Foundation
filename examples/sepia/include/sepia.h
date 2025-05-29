@@ -1,6 +1,6 @@
 #ifndef SEPIA_H
 #define SEPIA_H
-#include <textured.h>
+#include "textured.h"
 
 struct sepiaSettings_t
 {

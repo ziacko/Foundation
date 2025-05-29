@@ -1,5 +1,6 @@
-#include "textured.h"
-//#include <DefaultUniformBuffer.h>
+#pragma once
+
+#include <textured.h>
 
 struct bubbleSettings_t
 {
@@ -25,7 +26,7 @@ public:
 		bufferHandler_t<bubbleSettings_t> bubbleSettings = bufferHandler_t<bubbleSettings_t>(),
 		texture* defaultTexture = new texture(),
 		const char* windowName = "Ziyad Barakat's Portfolio ( bubble displacement )",		
-		camera_t* bubbleCamera = new camera_t(),
+		camera_t bubbleCamera = camera_t(),
 		const char* shaderConfigPath = SHADER_CONFIG_DIR, GLfloat attenuation = 1.0f,
 		GLfloat offset = 1.0f) : texturedScene(defaultTexture, windowName, bubbleCamera, shaderConfigPath)
 	{

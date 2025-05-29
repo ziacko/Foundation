@@ -1,5 +1,4 @@
-#ifndef TEXTURED_SCENE_H
-#define TEXTURED_SCENE_H
+#pragma once
 #include <scene.h>
 #include <Texture.h>
 
@@ -7,9 +6,9 @@ class texturedScene : public scene
 {
 public:
 
-	texturedScene(texture* defaultTexture = new texture("textures/earth_diffuse.tga"),
+	texturedScene(texture defaultTexture = texture("textures/earth_diffuse.tga"),
 		const char* windowName = "Ziyad Barakat's Portfolio (textured scene)",
-		camera_t* textureCamera = new camera_t(),
+		camera_t textureCamera = camera_t(),
 		const char* shaderConfigPath = SHADER_CONFIG_DIR) :
 		scene(windowName, textureCamera, shaderConfigPath)
 	{
@@ -20,7 +19,7 @@ public:
 	virtual void Initialize() override
 	{
 		scene::Initialize();
-		defaultTexture->LoadTexture();
+		defaultTexture.LoadTexture();
 	}
 
 	virtual void BuildGUI(tWindow* window, ImGuiIO io) override
@@ -44,9 +43,9 @@ public:
 		PreDraw();
 
 		glViewport(0, 0, window->GetWindowSettings().resolution.width, window->GetWindowSettings().resolution.height);
-		glBindVertexArray(defaultVertexBuffer->vertexArrayHandle);
+		glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
 		glUseProgram(this->programGLID);
-		defaultTexture->SetActive(0);
+		defaultTexture.SetActive(0);
 
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
@@ -62,9 +61,8 @@ public:
 
 protected:
 
-	texture*							defaultTexture;
+	texture								defaultTexture;
 	std::vector<std::string>			textureDirs;
 	int									currentTextureIndex;
 	bool								isGUIActive;
 };
-#endif

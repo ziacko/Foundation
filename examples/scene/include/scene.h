@@ -723,8 +723,6 @@ protected:
 		io.DisplaySize = ImVec2((float)drawWindow->GetWindowSettings().resolution.width, (float)drawWindow->GetWindowSettings().resolution.height);
 		io.DisplayFramebufferScale = ImVec2(1, 1);
 		io.DeltaTime = (float)sceneClock.GetDeltaTime();
-		printf("imgui wants mouse capture? %i \n", io.WantCaptureMouse);
-		printf("imgui wants keyboard capture? %i \n", io.WantCaptureKeyboard);
 
 		auto it = windowContextMap.find(window);
 		if (it != windowContextMap.end())

@@ -23,9 +23,9 @@ public:
 
 	bubbleScene(
 		bufferHandler_t<bubbleSettings_t> bubbleSettings = bufferHandler_t<bubbleSettings_t>(),
-		texture* defaultTexture = new texture(),
+		texture defaultTexture = texture(),
 		const char* windowName = "Ziyad Barakat's Portfolio ( bubble displacement )",		
-		camera_t* bubbleCamera = new camera_t(),
+		camera_t bubbleCamera = camera_t(),
 		const char* shaderConfigPath = SHADER_CONFIG_DIR, GLfloat attenuation = 1.0f,
 		GLfloat offset = 1.0f) : texturedScene(defaultTexture, windowName, bubbleCamera, shaderConfigPath)
 	{
@@ -70,7 +70,7 @@ protected:
 		GLfloat cellWidth = defaultPayload.data.resolution.x / bubble.data.gridDimensions;
 		GLfloat cellHeight = defaultPayload.data.resolution.y / bubble.data.gridDimensions;
 
-		defaultVertexBuffer = new vertexBuffer_t(glm::vec2(cellWidth, cellHeight));
+		defaultVertexBuffer = vertexBuffer_t(glm::vec2(cellWidth, cellHeight));
 	}
 
 	void Update() override
@@ -82,7 +82,7 @@ protected:
 	void Draw()	override
 	{
 
-		defaultTexture->GetUniformLocation(programGLID);
+		defaultTexture.GetUniformLocation(programGLID);
 		glUseProgram(this->programGLID);
 		if (enableWireframe)
 		{

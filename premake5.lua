@@ -9,7 +9,7 @@ end
 dofile (_SCRIPT_DIR .. "/premakeExtras/templates.lua")
 dofile (_SCRIPT_DIR .. "/premakeExtras/helperFunctions.lua")
 
-function scene_project(name, inheritances)
+function scene_project(name, parents)
     project(name)
         kind "ConsoleApp"
         language "C++"
@@ -24,6 +24,7 @@ function scene_project(name, inheritances)
         --use the last inheritance as the parent
         if inheritances and #inheritances > 0 then
             checkHeaderFile(name, inheritances[#inheritances])
+            --print("parents found for " .. name .. ": " .. table.concat(inheritances, ", "))
         else
             checkHeaderFile(name)
         end
@@ -79,10 +80,10 @@ function scene_project(name, inheritances)
         }
 
         -- Add extra includes
-        if inheritances then
-            for _, file in ipairs(inheritances) do
+        if parents then
+            for _, file in ipairs(parents) do
                 --surround the project name with the include path
-                local inheritPath = "%{wks.location}/examples/" .. file .. "/include/"
+                local inheritPath = "examples/" .. file .. "/include/"
                 --print("Adding extra include: " .. inheritPath)
                 includedirs { inheritPath }
             end
@@ -158,8 +159,8 @@ scene_project("gamma", {"textured"})
 scene_project("gaussian", {"textured"})
 scene_project("gaussianMulti" , {"textured"})
 scene_project("GOLCompute", {"gameOfLife"})
-scene_project("textureSettings", { "textured"})
-scene_project("mipMapping", { "textured"})
+scene_project("textureSettings", {"textured"})
+scene_project("mipMapping", {"textured"})
 scene_project("parallax", { "textured"})
 scene_project("perlin3D", {"perlin"})
 scene_project("pixelize", {"textured"})
