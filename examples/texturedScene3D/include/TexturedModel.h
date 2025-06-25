@@ -8,7 +8,7 @@ public:
 
 	texturedModel(
 		const char* windowName = "Ziyad Barakat's portfolio (textured Model)",
-		camera_t* texModelCamera = new camera_t(glm::vec2(1280, 720), 1.0f, camera_t::projection_e::perspective, 0.1f, 1000000.f),
+		camera_t texModelCamera = camera_t(glm::vec2(1280, 720), 1.0f, camera_t::projection_e::perspective, 0.1f, 1000000.f),
 		const char* shaderConfigPath = SHADER_CONFIG_DIR)
 		: scene3D(windowName, texModelCamera, shaderConfigPath)
 	{
@@ -29,9 +29,9 @@ protected:
 		ImGui::Begin("textures");
 		if (ImGui::SliderInt("active index:", &currentTexture, 0, testModel->meshes[0].textures.size() - 1))
 		{
-			testModel->meshes[0].textures[currentTexture].UnbindTexture();
-			testModel->meshes[0].textures[currentTexture].BindTexture();
-			testModel->meshes[0].textures[currentTexture].SetActive(0);
+			testModel.meshes[0].textures[currentTexture].UnbindTexture();
+			testModel.meshes[0].textures[currentTexture].BindTexture();
+			testModel.meshes[0].textures[currentTexture].SetActive(0);
 		}
 		ImGui::End();
 	}
@@ -48,12 +48,12 @@ protected:
 
 	virtual void DrawMeshes()
 	{
-		for (const auto& iter : testModel->meshes)
+		for (const auto& iter : testModel.meshes)
 		{
 			glBindVertexArray(iter.vertexArrayHandle);
 			glUseProgram(this->programGLID);
 
-			glViewport(0, 0, window->GetWindowSettings().resolution.width, window->GetWindowSettings().resolution.height);
+			glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 
 			if (wireframe)
 			{

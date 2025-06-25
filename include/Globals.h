@@ -18,6 +18,7 @@
 #include <array>
 #include <list>
 #include <filesystem>
+#include <utility>
 //external libs
 #include <TinyExtender.h>
 using namespace TinyExtender;
@@ -53,3 +54,9 @@ using namespace std::placeholders;
 #include "shaderLoader_t.h"
 #include "Texture.h"
 #include "FrameBuffer.h"
+
+
+//global defines
+#define PI 3.14159265
+constexpr float clearColor[4] = {0.25f, 0.25f, 0.25f, 1.0f};
+constexpr float clearColor2[4] = { 0.0f, 0.0f, 0.0f, 1.0f };

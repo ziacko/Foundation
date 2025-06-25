@@ -22,9 +22,9 @@ public:
 
 	erosionScene(
 		erosionSettings_t erosionSettings = erosionSettings_t(),
-		texture* defaultTexture = new texture(),
+		texture defaultTexture = texture(),
 		const char* windowName = "Ziyad Barakat's portfolio (erosion)",
-		camera_t* erosionCamera = new camera_t(),
+		camera_t erosionCamera = camera_t(),
 		const char* shaderConfigPath = SHADER_CONFIG_DIR)
 		: texturedScene(defaultTexture, windowName, erosionCamera, shaderConfigPath)
 	{

@@ -106,7 +106,7 @@ public:
 		perlinDesc.format = gl_rg;
 		perlinDesc.internalFormat = gl_rg16f;
 		perlinDesc.internalFormat = gl_rg16f;
-		perlinDesc.dimensions = glm::ivec3(window->GetWindowSettings().resolution.width, window->GetWindowSettings().resolution.height, 1);
+		perlinDesc.dimensions = glm::ivec3(window->GetSettings().resolution.width, window->GetSettings().resolution.height, 1);
 
 		perlinBuffer->AddAttachment(new frameBuffer::attachment_t("perlin", perlinDesc));
 
@@ -286,7 +286,7 @@ protected:
 
 	virtual void HandleMaximize(const tWindow* window) override
 	{
-		defaultPayload.data.resolution = glm::ivec2(window->GetWindowSettings().resolution.width, window->GetWindowSettings().resolution.height);
+		defaultPayload.data.resolution = glm::ivec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 		ResizeBuffers(defaultPayload.data.resolution);
 		Resize(window, defaultPayload.data.resolution);
 	}

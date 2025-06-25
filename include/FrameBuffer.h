@@ -268,7 +268,7 @@ public:
 		std::vector<GLenum> allImages;
 		for (auto iter : attachments)
 		{
-			switch (iter->FBODesc.attachmentType)
+			switch (iter.second.FBODesc.attachmentType)
 			{
 			case FBODescriptor::attachmentType_e::stencil:
 			case FBODescriptor::attachmentType_e::depth:
@@ -281,7 +281,7 @@ public:
 
 				default:
 				{
-					allImages.push_back(iter->FBODesc.attachmentFormat);
+					allImages.push_back(iter.second.FBODesc.attachmentFormat);
 					break;
 				}
 			}
@@ -303,44 +303,20 @@ public:
 
 	void Resize(glm::ivec3 newSize/*, bool unbind = true*/)
 	{
-		//delete the framebuffer
-		//glDeleteFramebuffers(1, &bufferHandle);
-
 		//resize the buffers
-		for (size_t iter = 0; iter < attachments.size(); iter++)
+		for (auto val : attachments | std::views::values)
 		{
-			//if its the last one, unbind textures
-			//if (iter == attachments.size() - 1)
-			//{
-				attachments[iter]->Resize(newSize);
-			//}
-
-			/*else if(unbind)
-			{
-				attachments[iter]->Resize(newSize, unbind);							   				 			  
-			}*/
+			val.Resize(newSize);
 		}
-		
-		//recreate the framebuffer and re-attach the textures
-		/*glGenFramebuffers(1, &bufferHandle);
-
-
-		for (auto iter : attachments)
-		{
-			iter->Initialize(iter->attachmentFormat);
-		}*/
-
-		//unbind that framebuffers
-		//Unbind();
 	}
 
-	void ClearTexture(attachment_t* attachment, float clearColor[4])
+	static void ClearTexture(const attachment_t& attachment, const float clearColor[4])
 	{
-		switch (attachment->FBODesc.attachmentType)
+		switch (attachment.FBODesc.attachmentType)
 		{
 		case FBODescriptor::attachmentType_e::color:
 		{	
-			glClearBufferfv(GL_COLOR, attachment->attachmentHandle, clearColor);
+			glClearBufferfv(GL_COLOR, attachment.attachmentHandle, clearColor);
 			break;
 		}
 
@@ -359,13 +335,13 @@ public:
 		case FBODescriptor::attachmentType_e::depthAndStencil:
 		{
 			//glClearBufferfv(GL_STENCIL, attachment->attachmentHandle, clearColor);
-			glClearBufferfi(GL_DEPTH, attachment->attachmentHandle, clearColor[0], (GLint)clearColor[1]);
+			glClearBufferfi(GL_DEPTH, attachment.attachmentHandle, clearColor[0], (GLint)clearColor[1]);
 			break;
 		}
 		}
 	}
 
-	void AddAttachment(attachment_t* attachment)
+	void AddAttachment(attachment_t attachment)
 	{
 		//if the current framebuffer is not this one then bind it
 		int currentBuffer = 0;
@@ -375,39 +351,40 @@ public:
 			Bind();
 		}
 
-		switch (attachment->FBODesc.attachmentType)
+		switch (attachment.FBODesc.attachmentType)
 		{
 		case FBODescriptor::attachmentType_e::color:
 		{
-			attachment->attachmentHandle = colorAttachmentNum;
-			attachment->Initialize(gl_color_attachment0 + colorAttachmentNum);
+			attachment.attachmentHandle = colorAttachmentNum;
+			attachment.Initialize(gl_color_attachment0 + colorAttachmentNum);
 			colorAttachmentNum++;
 			break;
 		}
 
 		case FBODescriptor::attachmentType_e::depth:
 		{
-			attachment->attachmentHandle = gl_depth_attachment;
-			attachment->Initialize(gl_depth_attachment);
+			attachment.attachmentHandle = gl_depth_attachment;
+			attachment.Initialize(gl_depth_attachment);
 			break;
 		}
 
 		case FBODescriptor::attachmentType_e::stencil:
 		{
-			attachment->attachmentHandle = gl_stencil_attachment;
-			attachment->Initialize(gl_stencil_attachment);
+			attachment.attachmentHandle = gl_stencil_attachment;
+			attachment.Initialize(gl_stencil_attachment);
 			break;
 		}
 
 		case FBODescriptor::attachmentType_e::depthAndStencil:
 		{
-			attachment->attachmentHandle = gl_depth_stencil_attachment;
-			attachment->Initialize(gl_depth_stencil_attachment);
+			attachment.attachmentHandle = gl_depth_stencil_attachment;
+			attachment.Initialize(gl_depth_stencil_attachment);
 			break;
 		}
 		}
 
-		attachments.push_back(attachment);
+		attachments.insert({attachment.uniformName, attachment});
+		//attachments.push_back(attachment);
 		CheckStatus();
 	}
 
@@ -490,7 +467,8 @@ public:
 
 	//ok we need a target, handle, etc.
 	GLuint							bufferHandle;
-	std::vector<attachment_t*>		attachments;
+	//std::vector<attachment_t*>		attachments;
+	tsl::robin_map<std::string, attachment_t>	attachments;
 	GLuint							colorAttachmentNum = 0;
 	GLuint							depthHandle = 0;
 };

@@ -138,6 +138,98 @@ workspace "Portfolio"
 
 --base scene project
 
+
+--ok now make a new command for "punlishing" a project
+-- this will create the project files, shaders, source and header files
+--then move the necessary library 
+
+--[[function publish_project(name, parents)
+    --first make a new folder for the project under ./pub/<name>
+    local projectDir = _SCRIPT_DIR .. "/pub/" .. name
+    os.mkdir(projectDir)
+    print("Publishing project: " .. name)
+    --create the source file directory and copy over the original source file
+    printf("Creating source directory for project: %s", name)
+    local sourceDir = projectDir .. "/source"
+    os.mkdir(sourceDir)
+    local sourceFilePath = _SCRIPT_DIR .. "/examples/" .. name .. "/source/" .. name .. ".cpp"
+    local sourceFile = io.open(sourceFilePath, "r")
+    if not sourceFile then
+        print("Source file not found: " .. sourceFilePath)
+        return
+    end
+    local newSourceFilePath = sourceDir .. "/" .. name .. ".cpp"
+    local newSourceFile = io.open(newSourceFilePath, "w")
+    if not newSourceFile then
+        print("Failed to create source file: " .. newSourceFilePath)
+        return
+    end
+    newSourceFile:write(sourceFile:read("*a"))
+    newSourceFile:close()
+    sourceFile:close()
+    printf("Source directory created at: %s", sourceDir)
+
+    --create the header file directory, go through each parent and copy the header files over + add scene.h by default
+    --create a sub-function that goes though each parent and copies the header files over
+    printf("Creating header directory for project: %s", name)
+    local headerDir = projectDir .. "/include"
+    os.mkdir(headerDir)
+    local sceneHeaderPath = _SCRIPT_DIR .. "/examples/scene/include/scene.h"
+    local sceneHeaderFile = io.open(sceneHeaderPath, "r")
+    if not sceneHeaderFile then
+        print("Scene header file not found: " .. sceneHeaderPath)
+        return
+    end
+    local newSceneHeaderPath = headerDir .. "/scene.h"
+    local newSceneHeaderFile = io.open(newSceneHeaderPath, "w")
+    
+    
+    --create the shader directory
+
+    --make a copy of the library folder into ./pub/<name>/lib
+
+    --copy over the shader files
+    --how do i copy oveer the model files? just copy them over by hand or copy all model and texture assets?
+    --maybe make a new folder for packaged assets under assets?
+
+    --create a new lua premake file from templates 
+
+    --need to account for assets like models and textures
+
+    --use a custom manifest file to store the project information?
+      --
+
+end
+
+
+newaction {
+    trigger = "publish",
+    description = "Publish a new project",
+    --first argument is the project name and anything following it are the parent projects
+    --grab every word after project name but no the final word
+
+    execute = function ()
+        local args = _OPTIONS["parents"] or "default"
+        local inputs = {}
+        for i, arg in ipairs(_ARGS) do
+            if not arg:match("^%-%-") then -- Ignore flags like --verbose
+                table.insert(inputs, arg)
+            end
+        end
+
+        print("parents: " .. inputs)
+
+        local name = _ACTION
+        if not name or name == "" then
+            print("Please provide a project name.")
+            return
+        end
+        publish_project(name, inputs)
+        print("Project " .. name .. " published successfully.")
+    end
+}]]--
+
+
 --2d projects
 scene_project("scene")
 scene_project("textured")
@@ -167,9 +259,14 @@ scene_project("pixelize", {"textured"})
 scene_project("radialBlur", {"textured"})
 scene_project("sepia",  {"textured"})
 scene_project("sharpen", {"textured"})
+scene_project("dotProduct")
 
 --3d projects
 scene_project("scene3D")
 scene_project("texturedScene3D", {"scene3D"})
 scene_project("depthPrePass", {"scene3D", "texturedScene3D"})
---scene_project("FXAA", {"scene3D", "texturedScene3D"})
+
+--anti aliasing projects
+scene_project("FXAA", {"scene3D", "texturedScene3D"})
+scene_project("SMAA", {"scene3D", "texturedScene3D"})
+scene_project("OAUpsampler", {"scene3D", "texturedScene3D", "SMAA"})

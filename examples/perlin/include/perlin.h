@@ -129,7 +129,7 @@ public:
 		perlinDesc.dataType = GL_FLOAT;
 		perlinDesc.format = GL_RGBA;
 		perlinDesc.internalFormat = gl_rgba16_snorm;
-		perlinDesc.dimensions = glm::ivec3(window->GetWindowSettings().resolution.width, window->GetWindowSettings().resolution.height, 1);
+		perlinDesc.dimensions = glm::ivec3(window->GetSettings().resolution.width, window->GetSettings().resolution.height, 1);
 
 		perlinBuffer->AddAttachment(new frameBuffer::attachment_t("perlin", perlinDesc));
 
@@ -218,7 +218,7 @@ protected:
 		perlinBuffer->attachments[0]->Draw();
 
 		glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
-		glViewport(0, 0, window->GetWindowSettings().resolution.width, window->GetWindowSettings().resolution.height);
+		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 
 		glUseProgram(this->programGLID);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -229,7 +229,7 @@ protected:
 		frameBuffer::Unbind();
 
 		glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
-		glViewport(0, 0, window->GetWindowSettings().resolution.width, window->GetWindowSettings().resolution.height);
+		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 
 		perlinBuffer->attachments[0]->SetActive(0);
 		glUseProgram(finalProgram);

@@ -96,6 +96,8 @@ class shaderLoader_t
                             localProgram.name = yyjson_get_str(name);
                         }
 
+                        printf("loading shader program: %s \n", localProgram.name.c_str());
+
                         // get outputs
                         yyjson_val* outputs = yyjson_obj_get(currentItem, "outputs");
                         if (outputs != nullptr && yyjson_is_arr(outputs))
@@ -147,6 +149,9 @@ class shaderLoader_t
                                 if (shaderPath != nullptr && yyjson_is_str(shaderPath))
                                 if (shaderType != nullptr && yyjson_is_str(shaderType))
                                 {
+
+                                    printf("loading shader: %s\n", yyjson_get_str(shaderName));
+
                                     std::string newPath = std::string( yyjson_get_str(shaderPath));
                                     const std::string localPath = shaderPathPart / PROJECT_NAME / newPath;
                                     TinyShaders::shaderType_t localType;
@@ -159,11 +164,14 @@ class shaderLoader_t
                                 {
                                     localProgram.shaders.push_back(localShader);
                                 }
+                                else
+                                {
+                                }
                             }
                         }
                         //ok now lets put it all together
                         localProgram = tShaderProgram(localProgram.name, localProgram.inputs, localProgram.outputs, localProgram.shaders);
-
+                        assert(localProgram.isCompiled);
                         if (localProgram.isCompiled)
                         {
                             //outPrograms->push_back(localProgram);

@@ -42,7 +42,7 @@ public:
 	{
 		PreDraw();
 
-		glViewport(0, 0, window->GetWindowSettings().resolution.width, window->GetWindowSettings().resolution.height);
+		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 		glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
 		glUseProgram(this->programGLID);
 		defaultTexture.SetActive(0);

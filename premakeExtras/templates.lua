@@ -16,9 +16,9 @@ sourceTemplate = [[
 
 int main()
 {
-	<name>Scene* exampleScene = new <name>Scene();
-	exampleScene->Initialize();
-	exampleScene->Run();
+	<name>Scene exampleScene = <name>Scene();
+	exampleScene.Initialize();
+	exampleScene.Run();
 
 	return 0;
 }

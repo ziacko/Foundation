@@ -27,21 +27,16 @@ layout(std140, binding = 0) uniform defaultSettings
 	uint		totalFrames;
 };
 
-layout(std140, binding = 2) uniform resolutionSetting
-{
-	vec2		dynResolution;
-};
-
 layout(std140, binding = 1) uniform SMAASettings
 {
-	float		threshold;
+	float		inThreshold;
 	float		contrastAdaptationFactor;
 	uint		maxSearchSteps;
 	uint		maxSearchStepsDiag;
 	uint		cornerRounding;
 };
 
-vec2 deltaResolution = vec2(1.0 / dynResolution.x, 1.0 / dynResolution.y );
+vec2 deltaResolution = vec2(1.0 / resolution.x, 1.0 / resolution.y );
 
 /**
  * Blend Weight Calculation Vertex Shader

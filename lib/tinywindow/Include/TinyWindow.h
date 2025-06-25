@@ -673,7 +673,7 @@ namespace TinyWindow
 		const unsigned int& GetCurrentStyle() const { return currentStyle; }
 		const vec2_t<int>& GetPreviousPosition() const { return previousPosition; }
 		const buttonState_t* GetMouseButtonState() const { return mouseButton; }
-		const windowSetting_t& GetWindowSettings() const { return settings; }
+		const windowSetting_t& GetSettings() const { return settings; }
 		const unsigned int& GetCurrentScreenIndex() const { return currentScreenIndex; }
 		const vec2_t<int>& GetPreviousMousePosition() const { return previousMousePosition; }
 		const vec2_t<unsigned int>& GetPreviousDimensions() const { return previousDimensions; }

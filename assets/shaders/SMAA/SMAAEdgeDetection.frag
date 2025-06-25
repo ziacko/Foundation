@@ -1,7 +1,7 @@
 #version 450
 //#define SMAA_THRESHOLD 0.01
 //#define SMAA_LOCAL_CONTRAST_ADAPTATION_FACTOR 4.0
-#define SMAA_DEPTH_THRESHOLD 1.0f//(0.1 * SMAA_THRESHOLD)
+float SMAA_DEPTH_THRESHOLD = 1.0f;//(0.1 * SMAA_THRESHOLD)
 
 in defaultBlock
 {
@@ -16,7 +16,7 @@ in edgeBlock
 
 out vec4 outColor;
 
-layout(std140, binding = 0) uniform defaultSettings
+layout(binding = 0) uniform defaultSettings
 {
 	mat4		projection;
 	mat4		view;
@@ -29,21 +29,21 @@ layout(std140, binding = 0) uniform defaultSettings
 	uint		totalFrames;
 };
 
-layout(std140, binding = 2) uniform resolutionSetting
+layout(binding = 1) uniform SMAASettings
 {
-	vec2		dynResolution;
-};
-
-layout(std140, binding = 1) uniform SMAASettings
-{
-	float		threshold;
+	float		inThreshold;
 	float		contrastAdaptationFactor;
 	uint		maxSearchSteps;
 	uint		maxSearchStepsDiag;
 	uint		cornerRounding;
 };
 
-layout(std140, binding = 3) uniform edgeDetectionSettings
+layout(binding = 2) uniform resolutionSetting
+{
+	vec2		dynResolution;
+};
+
+layout(binding = 3) uniform edgeDetectionSettings
 {
     float filterLevel;
 };
@@ -60,17 +60,17 @@ vec2 deltaResolution = vec2(1.0 / dynResolution.x, 1.0 / dynResolution.y );
  * thus 'colorTex' should be a non-sRGB texture.
  */
 vec2 SMAALumaEdgeDetectionPS(vec2 texcoord, vec4 offset[3], sampler2D colorTex
-                               #if SMAA_PREDICATION
-                               , sampler2D predicationTex
-                               #endif
+                               //#if SMAA_PREDICATION
+                               //, sampler2D predicationTex
+                               //#endif
                                )
 {
     // Calculate the threshold:
-    #if SMAA_PREDICATION
-    vec2 threshold = SMAACalculatePredicatedThreshold(texcoord, offset, sampler2D(predicationTex));
-    #else
-    vec2 threshold = vec2(threshold, threshold);
-    #endif
+    //#if SMAA_PREDICATION
+    //vec2 threshold = SMAACalculatePredicatedThreshold(texcoord, offset, sampler2D(predicationTex));
+    //#else
+    vec2 threshold = vec2(inThreshold, inThreshold);
+    //#endif
 
     // Calculate lumas:
     vec3 weights = vec3(0.2126, 0.7152, 0.0722);
@@ -118,17 +118,17 @@ vec2 SMAALumaEdgeDetectionPS(vec2 texcoord, vec4 offset[3], sampler2D colorTex
  * thus 'colorTex' should be a non-sRGB texture.
  */
 vec2 SMAAColorEdgeDetectionPS(vec2 texcoord, vec4 offset[3], sampler2D colorTex
-                                #if SMAA_PREDICATION
-                                , sampler2D predicationTex
-                                #endif
+                                //#if SMAA_PREDICATION
+                                //, sampler2D predicationTex
+                                //#endif
                                 ) 
 {
     // Calculate the threshold:
-    #if SMAA_PREDICATION
-    vec2 threshold = SMAACalculatePredicatedThreshold(texcoord, offset, predicationTex);
-    #else
-    vec2 threshold = vec2(threshold, threshold);
-    #endif
+    //#if SMAA_PREDICATION
+    //vec2 threshold = SMAACalculatePredicatedThreshold(texcoord, offset, predicationTex);
+    //#else
+    vec2 threshold = vec2(inThreshold, inThreshold);
+    //#endif
 
     // Calculate color deltas:
     vec4 delta;
@@ -185,14 +185,14 @@ vec2 SMAAColorEdgeDetectionPS(vec2 texcoord, vec4 offset[3], sampler2D colorTex
  */
 vec3 SMAAGatherNeighbours(vec2 texcoord, vec4 offset[3], sampler2D tex) 
 {
-    #ifdef SMAAGather
+    //#ifdef SMAAGather
     return textureGather(tex, texcoord + deltaResolution * vec2(-0.5, -0.5)).grb;
-    #else
-    float P = texture(tex, texcoord).r;
-    float Pleft = texture(tex, offset[0].xy).r;
-    float Ptop  = texture(tex, offset[0].zw).r;
-    return vec3(P, Pleft, Ptop);
-    #endif
+    //#else
+    //float P = texture(tex, texcoord).r;
+    //float Pleft = texture(tex, offset[0].xy).r;
+    //float Ptop  = texture(tex, offset[0].zw).r;
+    //return vec3(P, Pleft, Ptop);
+    //#endif
 }
 
 /**
@@ -202,7 +202,7 @@ vec2 SMAADepthEdgeDetectionPS(vec2 texcoord, vec4 offset[3], sampler2D depthTex)
 {
     vec3 neighbours = SMAAGatherNeighbours(texcoord, offset, depthTex);
     vec2 delta = abs(neighbours.xx - vec2(neighbours.y, neighbours.z));
-    vec2 edges = step(threshold, delta);
+    vec2 edges = step(inThreshold, delta);
 
     if (dot(edges, vec2(1.0, 1.0)) == 0.0)
 	{
@@ -214,5 +214,6 @@ vec2 SMAADepthEdgeDetectionPS(vec2 texcoord, vec4 offset[3], sampler2D depthTex)
 
 void main()
 {
-    outColor = vec4(SMAADepthEdgeDetectionPS(inBlock.uv, inEdge.offset, depthTexture).xy, 0, 1);
+   // outColor = vec4(SMAADepthEdgeDetectionPS(inBlock.uv, inEdge.offset, depthTexture).xy, 0, 1);
+    outColor = vec4(SMAAColorEdgeDetectionPS(inBlock.uv, inEdge.offset, colorTexture).xy, 0, 1);
 }

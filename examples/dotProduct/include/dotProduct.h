@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Scene.h>
+#include <scene.h>
 #include <cstdlib>
 #include "UniformBuffer.h"
 
@@ -17,7 +17,7 @@ public:
 	};
 
 	dotProductScene(const char* windowName = "Ziyad Barakat's portfolio (dot product helper)",
-		camera_t* camera = new camera_t(), const char* shaderConfigPath = "../../resources/shaders/DotProduct/DotProduct.txt")
+		camera_t camera = camera_t(), const char* shaderConfigPath = SHADER_CONFIG_DIR)
 		: scene(windowName, camera, shaderConfigPath){}
 
 	~dotProductScene() {};
@@ -28,7 +28,7 @@ protected:
 
 	void SetupVertexBuffer() override
 	{
-		defaultVertexBuffer = new vertexBuffer_t(glm::vec2(defaultPayload.data.resolution / nodes.data.scaler));
+		defaultVertexBuffer = vertexBuffer_t(glm::vec2(defaultPayload.data.resolution / nodes.data.scaler));
 	}
 
 	void Draw() override
@@ -44,8 +44,8 @@ protected:
 		glUseProgram(this->programGLID);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 		
-		DrawGUI(windows[0]);
-		windows[0]->SwapDrawBuffers();
+		DrawGUI(window);
+		manager->SwapDrawBuffers(window);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 
@@ -54,17 +54,17 @@ protected:
 		manager->PollForEvents();
 		if (lockedFrameRate > 0)
 		{
-			sceneClock->UpdateClockFixed(lockedFrameRate);
+			sceneClock.UpdateClockFixed(lockedFrameRate);
 		}
 		else
 		{
-			sceneClock->UpdateClockAdaptive();
+			sceneClock.UpdateClockAdaptive();
 		}
 
 		defaultPayload.data.totalFrames++;
-		defaultPayload.data.deltaTime = (float)sceneClock->GetDeltaTime();
-		defaultPayload.data.totalTime = (float)sceneClock->GetTotalTime();
-		defaultPayload.data.framesPerSec = (float)(1.0 / sceneClock->GetDeltaTime());
+		defaultPayload.data.deltaTime = (float)sceneClock.GetDeltaTime();
+		defaultPayload.data.totalTime = (float)sceneClock.GetTotalTime();
+		defaultPayload.data.framesPerSec = (float)(1.0 / sceneClock.GetDeltaTime());
 		defaultPayload.Update(gl_uniform_buffer, gl_dynamic_draw);
 	}
 
@@ -137,9 +137,9 @@ protected:
 		ImGui::End();
 	}
 
-	void Resize(tWindow* window, glm::ivec2 dimensions = glm::ivec2(0)) override
+	void Resize(const tWindow* window, glm::ivec2 dimensions = glm::ivec2(0)) override
 	{
-		glm::vec2 resolution = glm::vec2(window->settings.resolution.x, window->settings.resolution.y);
+		glm::vec2 resolution = glm::vec2(window->GetSettings().resolution.x, window->GetSettings().resolution.y);
 		glViewport(0, 0, resolution.x, resolution.y);
 		defaultPayload.data.resolution = glm::ivec2(resolution.x, resolution.y);
 		//let's try to set the projection so the 0 is at center
@@ -147,6 +147,6 @@ protected:
 		defaultPayload.data.projection = glm::ortho(0.0f, resolution.x, resolution.y, 0.0f, 0.01f, 10.0f);
 
 		defaultPayload.Update(gl_uniform_buffer, gl_dynamic_draw);
-		defaultVertexBuffer->UpdateBuffer(glm::ivec2(defaultPayload.data.resolution / nodes.data.scaler));
+		defaultVertexBuffer.UpdateBuffer(glm::ivec2(defaultPayload.data.resolution / nodes.data.scaler));
 	}
 };

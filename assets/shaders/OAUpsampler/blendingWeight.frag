@@ -43,7 +43,7 @@ layout(std140, binding = 2) uniform resolutionSetting
 
 layout(std140, binding = 1) uniform SMAASettings
 {
-	float		threshold;
+	float		inThreshold;
 	float		contrastAdaptationFactor;
 	uint		maxSearchSteps;
 	uint		maxSearchStepsDiag;
@@ -55,7 +55,7 @@ layout(binding = 0) uniform sampler2D edgesTexture;
 layout(binding = 1) uniform sampler2D areaTexture;
 layout(binding = 2) uniform sampler2D searchTexture;
 
-vec2 deltaResolution = vec2(1.0 / dynResolution.x, 1.0 / dynResolution.y );
+vec2 deltaResolution = vec2(1.0 / resolution.x, 1.0 / resolution.y );
 
 /**
  * Allows to decode two binary values from a bilinear-filtered access.
@@ -407,7 +407,7 @@ vec4 SMAABlendingWeightCalculationPS(vec2 texcoord, vec2 pixcoord, vec4 offset[3
 
 	//SMAA_BRANCH
 	if (e.g > 0.0) { // Edge at north
-		#if !defined(SMAA_DISABLE_DIAG_DETECTION)
+		/*#if !defined(SMAA_DISABLE_DIAG_DETECTION)
 		// Diagonals have both north and west edges, so searching for them in
 		// one of the boundaries is enough.
 		weights.rg = SMAACalculateDiagWeights(edgesTex, areaTex, texcoord, e, subsampleIndices);
@@ -416,7 +416,7 @@ vec4 SMAABlendingWeightCalculationPS(vec2 texcoord, vec2 pixcoord, vec4 offset[3
 		// horizontal/vertical processing.
 		//SMAA_BRANCH
 		if (weights.r == -weights.g) { // weights.r + weights.g == 0.0
-		#endif
+		#endif*/
 
 		vec2 d;
 
@@ -437,7 +437,7 @@ vec4 SMAABlendingWeightCalculationPS(vec2 texcoord, vec2 pixcoord, vec4 offset[3
 
 		// We want the distances to be in pixel units (doing this here allow to
 		// better interleave arithmetic and memory accesses):
-		d = abs(round(fma(dynResolution.xx, d, -pixcoord.xx)));
+		d = abs(round(fma(deltaResolution.xx, d, -pixcoord.xx)));
 
 		// SMAAArea below needs a sqrt, as the areas texture is compressed
 		// quadratically:
@@ -454,10 +454,10 @@ vec4 SMAABlendingWeightCalculationPS(vec2 texcoord, vec2 pixcoord, vec4 offset[3
 		coords.y = texcoord.y;
 		SMAADetectHorizontalCornerPattern(edgesTex, weights.rg, coords.xyzy, d);
 
-		#if !defined(SMAA_DISABLE_DIAG_DETECTION)
-		} else
+		//#if !defined(SMAA_DISABLE_DIAG_DETECTION)
+		//} else
 			e.r = 0.0; // Skip vertical processing.
-		#endif
+		//#endif
 	}
 
 	//SMAA_BRANCH
@@ -480,7 +480,7 @@ vec4 SMAABlendingWeightCalculationPS(vec2 texcoord, vec2 pixcoord, vec4 offset[3
 		d.y = coords.z;
 
 		// We want the distances to be in pixel units:
-		d = abs(round(fma(dynResolution.yy, d, -pixcoord.yy)));
+		d = abs(round(fma(deltaResolution.yy, d, -pixcoord.yy)));
 
 		// SMAAArea below needs a sqrt, as the areas texture is compressed 
 		// quadratically:

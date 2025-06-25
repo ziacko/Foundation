@@ -678,79 +678,6 @@ namespace TinyShaders
 				isCompiled = GL_TRUE;
 				ProcessInterfaces();
 
-				/*if(successful)
-				{
-					glGenProgramPipelines(1, &pipelineID);
-					unsigned int shaderBit = 0;
-					for (auto iter : shaders)
-					{
-						if (iter->seperable)
-						{
-							switch (iter->type)
-							{
-							case shaderType_t::vertex:
-							{
-								glUseProgramStages(pipelineID, gl_vertex_shader_bit, iter->pipelineHandle);
-								shaderBit |= gl_vertex_shader_bit;
-								break;
-							}
-
-							case shaderType_t::fragment:
-							{
-								glUseProgramStages(pipelineID, gl_fragment_shader_bit, iter->pipelineHandle);
-								shaderBit |= gl_fragment_shader_bit;
-								break;
-							}
-
-							case shaderType_t::geometry:
-							{
-								glUseProgramStages(pipelineID, gl_geometry_shader_bit, iter->pipelineHandle);
-								shaderBit |= gl_geometry_shader_bit;
-								break;
-							}
-
-							case shaderType_t::tessControl:
-							{
-								glUseProgramStages(pipelineID, gl_tess_control_shader_bit, iter->pipelineHandle);
-								shaderBit |= gl_tess_control_shader_bit;
-								break;
-							}
-
-							case shaderType_t::tessEval:
-							{
-								glUseProgramStages(pipelineID, gl_tess_evaluation_shader_bit, iter->pipelineHandle);
-								shaderBit |= gl_tess_evaluation_shader_bit;
-								break;
-							}
-
-							case shaderType_t::compute:
-							{
-								glUseProgramStages(pipelineID, gl_compute_shader_bit, iter->pipelineHandle);
-								shaderBit |= gl_compute_shader_bit;
-								break;
-							}
-							}
-						}
-					}
-
-					//glUseProgramStages(pipelineID, shaderBit, handle);
-					
-					//glBindProgramPipeline(pipelineID);
-					//glValidateProgramPipeline(pipelineID);
-
-					GLint outParam = 0;
-					//glGetProgramPipelineiv(pipelineID, gl_info_log_length, &outParam);
-
-					GLsizei blarg = 512;
-					char logBuffer[512];
-
-					//glGetProgramInfoLog(pipelineID, outParam, &blarg, logBuffer);
-
-					//printf("%s \n", logBuffer);
-
-				}*/
-				//if a shader successfully compiles then it will add itself to storage
-
 				if (saveBinary)
 				{
 					GLint binarySize = 0;
@@ -822,8 +749,8 @@ namespace TinyShaders
 		public:
 			parseUniformBlockEvent_t parseUniformBlockEvent;
 
-			std::vector< std::unique_ptr<tShaderProgram>>		shaderPrograms;    	/**< All loaded shader programs */
-			std::vector< std::unique_ptr<tShader>>			shaders;			/**< All loaded shaders*/
+			std::vector< std::unique_ptr<tShaderProgram>>		shaderPrograms;		/**< All loaded shader programs */
+			std::vector< std::unique_ptr<tShader>>				shaders;			/**< All loaded shaders*/
 
 			shaderManager(){}
 			~shaderManager(){}
@@ -1278,6 +1205,7 @@ namespace TinyShaders
 					{
 						for (auto & shaderProgram : shaderPrograms)
 						{
+							printf("found existing shader: %s \n", shaderName.c_str());
 							if ( shaderProgram != nullptr && shaderName.compare(shaderProgram->name) == 0)
 							{
 								return GL_TRUE;
@@ -1345,8 +1273,8 @@ namespace TinyShaders
 	};
 
 	/*
-* convert the given string to a shader type
-*/
+	* convert the given string to a shader type
+	*/
 	std::error_code StringToShaderType( const std::string& typeString, shaderType_t& shaderTypeOut )
 	{
 		if( !typeString.empty() )

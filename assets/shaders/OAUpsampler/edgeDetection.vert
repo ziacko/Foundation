@@ -1,4 +1,4 @@
-#version 440
+#version 450
 
 layout (location = 0) in vec4 position;
 layout (location = 1) in vec2 uv;
@@ -14,7 +14,7 @@ out edgeBlock
     vec4 offset[3];
 } outEdge;
 
-layout(std140, binding = 0) uniform defaultSettings
+layout(binding = 0) uniform defaultSettings
 {
 	mat4		projection;
 	mat4		view;
@@ -27,14 +27,14 @@ layout(std140, binding = 0) uniform defaultSettings
 	uint		totalFrames;
 };
 
-layout(std140, binding = 2) uniform resolutionSetting
+layout(binding = 2) uniform resolutionSetting
 {
 	vec2		dynResolution;
 };
 
-layout(std140, binding = 1) uniform SMAASettings
+layout(binding = 1) uniform SMAASettings
 {
-	float		threshold;
+	float		inThreshold;
 	float		contrastAdaptationFactor;
 	uint		maxSearchSteps;
 	uint		maxSearchStepsDiag;
@@ -42,7 +42,7 @@ layout(std140, binding = 1) uniform SMAASettings
 };
 
 
-vec2 deltaResolution = vec2(1.0 / dynResolution.x, 1.0 / dynResolution.y );
+vec2 deltaResolution = vec2(1.0 / resolution.x, 1.0 / resolution.y );
 
 /**
  * Edge Detection Vertex Shader

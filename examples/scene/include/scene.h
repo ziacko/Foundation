@@ -225,7 +225,7 @@ protected:
 		ImGui::Text("FPS %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, 1.0f / sceneClock.GetDeltaTime());
 		ImGui::Text("Total running time %.5f", sceneClock.GetTotalTime());
 		ImGui::Text("Mouse coordinates: \t X: %.0f \t Y: %.0f", io.MousePos.x, io.MousePos.y);
-		ImGui::Text("Window size: \t Width: %i \t Height: %i", window->GetWindowSettings().resolution.width, window->GetWindowSettings().resolution.height);
+		ImGui::Text("Window size: \t Width: %i \t Height: %i", window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 
 		if(ImGui::Button("Toggle Fullscreen"))
 		{
@@ -260,7 +260,7 @@ protected:
 			}
 		}
 		
-		sceneCamera.resolution = glm::vec2(window->GetWindowSettings().resolution.width, window->GetWindowSettings().resolution.height);
+		sceneCamera.resolution = glm::vec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 		//create a separate window that displays all possible rendering resolutions
 		//DrawCameraStats();
 	}
@@ -329,7 +329,7 @@ protected:
 	virtual void BeginGUI(tWindow* window)
 	{
 		ImGUINewFrame(window);
-		ImGui::Begin(window->GetWindowSettings().name.c_str(), &isGUIActive);// , beginSize);
+		ImGui::Begin(window->GetSettings().name.c_str(), &isGUIActive);// , beginSize);
 
 	}
 
@@ -390,9 +390,9 @@ protected:
 	virtual void InitializeUniforms()
 	{
 		defaultPayload.data = defaultUniformBuffer(this->sceneCamera);
-		glViewport(0, 0, window->GetWindowSettings().resolution.width, window->GetWindowSettings().resolution.height);
-		defaultPayload.data.resolution = glm::vec2(window->GetWindowSettings().resolution.width, window->GetWindowSettings().resolution.height);
-		defaultPayload.data.projection = glm::ortho(0.0f, (GLfloat)window->GetWindowSettings().resolution.width, (GLfloat)window->GetWindowSettings().resolution.height, 0.0f, 0.01f, 10.0f);
+		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
+		defaultPayload.data.resolution = glm::vec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
+		defaultPayload.data.projection = glm::ortho(0.0f, (GLfloat)window->GetSettings().resolution.width, (GLfloat)window->GetSettings().resolution.height, 0.0f, 0.01f, 10.0f);
 
 		SetupVertexBuffer();
 		SetupBuffer(gl_uniform_buffer, gl_dynamic_draw);
@@ -411,7 +411,7 @@ protected:
 	{
 		if (dimensions == glm::ivec2(0))
 		{
-			dimensions = glm::ivec2(window->GetWindowSettings().resolution.width, window->GetWindowSettings().resolution.height);
+			dimensions = glm::ivec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 		}
 		glViewport(0, 0, dimensions.x, dimensions.y);
 		
@@ -630,15 +630,15 @@ protected:
 		glEnable(GL_SCISSOR_TEST);
 		glActiveTexture(gl_texture0);
 
-		glm::vec2 resolution = glm::vec2(window->GetWindowSettings().resolution.x, window->GetWindowSettings().resolution.y);
+		glm::vec2 resolution = glm::vec2(window->GetSettings().resolution.x, window->GetSettings().resolution.y);
 		glViewport(0, 0, (GLsizei)(io.DisplaySize.x * io.DisplayFramebufferScale.x),
                  (GLsizei)(io.DisplaySize.y * io.DisplayFramebufferScale.y));
 
 		glm::mat4 proj = glm::ortho(-(resolution.x / 2), resolution.x / 2, resolution.y / 2, -(resolution.y / 2), -1.0f, 10.f);
 		const float orthoProjection[4][4] =
 		{
-			{ 2.0f / (float)window->GetWindowSettings().resolution.width, 0.0f, 0.0f, 0.0f },
-			{ 0.0f, 2.0f / -(float)window->GetWindowSettings().resolution.height, 0.0f, 0.0f },
+			{ 2.0f / (float)window->GetSettings().resolution.width, 0.0f, 0.0f, 0.0f },
+			{ 0.0f, 2.0f / -(float)window->GetSettings().resolution.height, 0.0f, 0.0f },
 			{ 0.0f, 0.0f, -1.0f, 0.0f },
 			{ -1.0f, 1.0f, 0.0f, 1.0f }
 		};
@@ -669,7 +669,7 @@ protected:
 				else
 				{
 					glBindTexture(GL_TEXTURE_2D, (GLuint)(intptr_t)drawCommand->TextureId);
-					glScissor((int)drawCommand->ClipRect.x, (int)(window->GetWindowSettings().resolution.height - drawCommand->ClipRect.w), (int)(drawCommand->ClipRect.z - drawCommand->ClipRect.x), (int)(drawCommand->ClipRect.w - drawCommand->ClipRect.y));
+					glScissor((int)drawCommand->ClipRect.x, (int)(window->GetSettings().resolution.height - drawCommand->ClipRect.w), (int)(drawCommand->ClipRect.z - drawCommand->ClipRect.x), (int)(drawCommand->ClipRect.w - drawCommand->ClipRect.y));
 					glDrawElements(GL_TRIANGLES, (GLsizei)drawCommand->ElemCount, sizeof(ImDrawIdx) == 2 ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT, indexBufferOffset);
 				}
 				indexBufferOffset += drawCommand->ElemCount;
@@ -720,7 +720,7 @@ protected:
 		}
 
 		ImGuiIO& io = ImGui::GetIO();
-		io.DisplaySize = ImVec2((float)drawWindow->GetWindowSettings().resolution.width, (float)drawWindow->GetWindowSettings().resolution.height);
+		io.DisplaySize = ImVec2((float)drawWindow->GetSettings().resolution.width, (float)drawWindow->GetSettings().resolution.height);
 		io.DisplayFramebufferScale = ImVec2(1, 1);
 		io.DeltaTime = (float)sceneClock.GetDeltaTime();
 

@@ -57,7 +57,7 @@ public:
 		gaussBuffer->Bind();
 
 		FBODescriptor gaussDesc;
-		auto localRes = window->GetWindowSettings().resolution;
+		auto localRes = window->GetSettings().resolution;
 		gaussDesc.dimensions = glm::ivec3(localRes.width, localRes.height, 1);
 
 		//add 2 render textures, one for the first pass and one for the second?
@@ -80,7 +80,7 @@ public:
 
 		defaultTexture->SetActive(0);
 
-		glViewport(0, 0, window->GetWindowSettings().resolution.width, window->GetWindowSettings().resolution.height);
+		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 		glBindVertexArray(defaultVertexBuffer->vertexArrayHandle);
 		glUseProgram(verticalProgram);
 		
@@ -94,7 +94,7 @@ public:
 
 		defaultTexture->SetActive(0);
 
-		glViewport(0, 0, window->GetWindowSettings().resolution.width, window->GetWindowSettings().resolution.height);
+		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 		glBindVertexArray(defaultVertexBuffer->vertexArrayHandle);
 		glUseProgram(horizontalProgram);
 		
@@ -108,7 +108,7 @@ public:
 		compareBuffer->attachments[0]->Draw();
 
 		glBindVertexArray(defaultVertexBuffer->vertexArrayHandle);
-		glViewport(0, 0, window->GetWindowSettings().resolution.width, window->GetWindowSettings().resolution.height);
+		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 
 		gaussBuffer->attachments[0]->SetActive(0);
 		gaussBuffer->attachments[1]->SetActive(1);
@@ -124,7 +124,7 @@ public:
 		//draw directly to backbuffer
 		frameBuffer::Unbind();
 		glBindVertexArray(defaultVertexBuffer->vertexArrayHandle);
-		glViewport(0, 0, window->GetWindowSettings().resolution.width, window->GetWindowSettings().resolution.height);
+		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 
 		tex1->SetActive(0);
 		tex2->SetActive(1);
@@ -242,7 +242,7 @@ protected:
 
 	virtual void HandleMaximize(const tWindow* window) override
 	{
-		defaultPayload.data.resolution = glm::ivec2(window->GetWindowSettings().resolution.width, window->GetWindowSettings().resolution.height);
+		defaultPayload.data.resolution = glm::ivec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 		ResizeBuffers(defaultPayload.data.resolution);
 		Resize(window, defaultPayload.data.resolution);
 	}

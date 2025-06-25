@@ -7,14 +7,14 @@
         ],
         "shaders": [
             {
-                "name": "jitterVertex",
-                "path": "FXAA/Model.vert",
-                "type": "Vertex"
+                "name": "treeVertex",
+                "path": "Model.vert",
+                "type": "vertex"
             },
             {
-                "name": "TreeFragment",
-                "path": "FXAA/SpeedTree.frag",
-                "type": "Fragment"
+                "name": "treeFragment",
+                "path": "SpeedTree.frag",
+                "type": "fragment"
             }
         ],
         "vertex attributes": [
@@ -32,14 +32,14 @@
         ],
         "shaders": [
             {
-                "name": "DefaultVertex",
-                "path": "FXAA/FXAA.vert",
-                "type": "Vertex"
+                "name": "FXAAVertex",
+                "path": "FXAA.vert",
+                "type": "vertex"
             },
             {
-                "name": "TexturedFragment",
-                "path": "FXAA/FXAA.frag",
-                "type": "Fragment"
+                "name": "FXAAFragment",
+                "path": "FXAA.frag",
+                "type": "fragment"
             }
         ],
         "vertex attributes": [
@@ -55,13 +55,13 @@
         "shaders": [
             {
                 "name": "DefaultVertex",
-                "path": "FXAA/Default.vert",
-                "type": "Vertex"
+                "path": "default.vert",
+                "type": "vertex"
             },
             {
-                "name": "TexturedFragment",
-                "path": "FXAA/Compare.frag",
-                "type": "Fragment"
+                "name": "compareFragment",
+                "path": "Compare.frag",
+                "type": "fragment"
             }
         ],
         "vertex attributes": [
@@ -76,14 +76,14 @@
         ],
         "shaders": [
             {
-                "name": "DefaultVertex",
-                "path": "FXAA/Default.vert",
-                "type": "Vertex"
+                "name": "finalVertex",
+                "path": "default.vert",
+                "type": "vertex"
             },
             {
-                "name": "TexturedFragment",
-                "path": "FXAA/Textured.frag",
-                "type": "Fragment"
+                "name": "finalFragment",
+                "path": "Textured.frag",
+                "type": "fragment"
             }
         ],
         "vertex attributes": [

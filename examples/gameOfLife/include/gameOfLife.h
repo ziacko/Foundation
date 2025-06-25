@@ -315,9 +315,9 @@ protected:
 
 	virtual void Resize(const tWindow* window, glm::ivec2 dimensions = glm::ivec2(0)) override
 	{
-		glViewport(0, 0, window->GetWindowSettings().resolution.x, window->GetWindowSettings().resolution.y);
-		defaultPayload.data.resolution = glm::ivec2(window->GetWindowSettings().resolution.x, window->GetWindowSettings().resolution.y);
-		defaultPayload.data.projection = glm::ortho(0.0f, (GLfloat)window->GetWindowSettings().resolution.x, (GLfloat)window->GetWindowSettings().resolution.y, 0.0f, 0.01f, 10.0f);
+		glViewport(0, 0, window->GetSettings().resolution.x, window->GetSettings().resolution.y);
+		defaultPayload.data.resolution = glm::ivec2(window->GetSettings().resolution.x, window->GetSettings().resolution.y);
+		defaultPayload.data.projection = glm::ortho(0.0f, (GLfloat)window->GetSettings().resolution.x, (GLfloat)window->GetSettings().resolution.y, 0.0f, 0.01f, 10.0f);
 		cellDimensions = glm::ivec2(defaultPayload.data.resolution.x / gol.data.dimensions, defaultPayload.data.resolution.y / gol.data.dimensions);
 
 		defaultPayload.Update(gl_uniform_buffer, gl_dynamic_draw);

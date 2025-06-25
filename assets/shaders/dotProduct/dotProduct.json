@@ -7,12 +7,12 @@
         "shaders": [
             {
                 "name": "defaultVertex",
-                "path": "default.vert",
+                "path": "DP.vert",
                 "type": "vertex"
             },
             {
-                "name": "contrastFragment",
-                "path": "contrast.frag",
+                "name": "defaultFragment",
+                "path": "DP.frag",
                 "type": "fragment"
             }
         ],
