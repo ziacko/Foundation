@@ -4,7 +4,7 @@
 
 struct resolutionSettings_t
 {
-    glm::vec2 resolutionPerc;
+    glm::vec2 resolutionPerc{1.0f, 1.0f};
 
     explicit resolutionSettings_t(glm::vec2 res = glm::vec2(1.0f, 1.0f))
     {
@@ -21,20 +21,20 @@ public:
         const char* shaderConfigPath = SHADER_CONFIG_DIR,
         model_t model = model_t("models/SoulSpear/SoulSpear.fbx")) : SMAAScene(windowName, texModelCamera, shaderConfigPath, std::move(model))
     {
-        res = glm::vec2(1, 1);
+        res = glm::ivec2(1, 1);
     }
 
-    virtual void Initialize() override
+    void Initialize() override
     {
         SMAAScene::Initialize();
     }
 
 protected:
 
-    glm::ivec2 res;
+    glm::ivec2 res{ 1, 1};
     bufferHandler_t<resolutionSettings_t> resolutionSettings;
 
-    virtual void GeometryPass()
+    void GeometryPass() override
     {
         geometryBuffer.Bind();
 
@@ -125,7 +125,7 @@ protected:
         resolutionSettings.Update(gl_uniform_buffer, gl_dynamic_draw);
     }
 
-    virtual void Draw() override
+    void Draw() override
     {
         sceneCamera.ChangeProjection(camera_t::projection_e::perspective);
 
@@ -164,34 +164,34 @@ protected:
     void ResizeBuffers(const glm::ivec2 resolution) override
     {
         auto res = glm::vec2(window->GetSettings().resolution.x, window->GetSettings().resolution.y) * resolutionSettings.data.resolutionPerc;
-        for (auto iter : geometryBuffer.attachments)
+        for (auto val : geometryBuffer.attachments | std::views::values)
         {
-            iter.second.Resize(glm::ivec3(res, 1));
+            val.Resize(glm::ivec3(res, 1));
         }
 
-        for (auto iter : edgesBuffer.attachments)
+        for (auto val : edgesBuffer.attachments | std::views::values)
         {
-            iter.second.Resize(glm::ivec3(res, 1));
+            val.Resize(glm::ivec3(res, 1));
         }
 
-        for (auto iter : weightsBuffer.attachments)
+        for (auto val : weightsBuffer.attachments | std::views::values)
         {
-            iter.second.Resize(glm::ivec3(res, 1));
+            val.Resize(glm::ivec3(res, 1));
         }
 
-        for (auto iter : SMAABuffer.attachments)
+        for (auto val : SMAABuffer.attachments | std::views::values)
         {
-            iter.second.Resize(glm::ivec3(res, 1));
+            val.Resize(glm::ivec3(res, 1));
         }
     }
 
-    virtual void HandleWindowResize(const tWindow* window, const TinyWindow::vec2_t<unsigned int> dimensions) override
+    void HandleWindowResize(const tWindow* window, const TinyWindow::vec2_t<unsigned int> dimensions) override
     {
         defaultPayload.data.resolution = glm::ivec2(dimensions.width, dimensions.height);
         ResizeBuffers(glm::ivec2(dimensions.x, dimensions.y));
     }
 
-    virtual void HandleMaximize(const tWindow* window) override
+    void HandleMaximize(const tWindow* window) override
     {
         defaultPayload.data.resolution = glm::ivec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
         ResizeBuffers(defaultPayload.data.resolution);
@@ -209,7 +209,7 @@ protected:
         ImGui::End();
     }
 
-    void BuildGUI(tWindow* window, ImGuiIO io) override
+    void BuildGUI(tWindow* window, const ImGuiIO io) override
     {
         SMAAScene::BuildGUI(window, io);
         DrawResolutionSettings();

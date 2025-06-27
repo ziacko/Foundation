@@ -16,6 +16,7 @@ in defaultBlock
 in blendBlock
 {
 	vec4 offset[3];
+	vec2 pixcoord;
 } inBlend;
 
 out vec4 outColor;
@@ -52,12 +53,12 @@ layout(binding = 0) uniform sampler2D edgesTexture;
 layout(binding = 1) uniform sampler2D areaTexture;
 layout(binding = 2) uniform sampler2D searchTexture;
 
-vec2 deltaResolution = vec2(1.0 / resolution.x, 1.0 / resolution.y );
+vec4 deltaResolution = vec4(1.0 / resolution.x, 1.0 / resolution.y, resolution.x, resolution.y);
 
-vec2 SMAA_AREATEX_PIXEL_SIZE = 1.0f / (vec2(160.0, 560.0) * dynResolution);
-float SMAA_AREATEX_SUBTEX_SIZE = (1.0f / 7.0) * dynResolution.y;	
-vec2 SMAA_SEARCHTEX_SIZE = vec2(66.0, 33.0) * dynResolution;
-vec2 SMAA_SEARCHTEX_PACKED_SIZE = vec2(64.0, 16.0) * dynResolution;
+vec2 SMAA_AREATEX_PIXEL_SIZE = 1.0f / vec2(160.0, 560.0);// * dynResolution);
+float SMAA_AREATEX_SUBTEX_SIZE = (1.0f / 7.0);// * dynResolution.y;	
+vec2 SMAA_SEARCHTEX_SIZE = vec2(66.0, 33.0);// * dynResolution;
+vec2 SMAA_SEARCHTEX_PACKED_SIZE = vec2(64.0, 16.0);// * dynResolution;
 
 /**
  * Allows to decode two binary values from a bilinear-filtered access.
@@ -439,7 +440,7 @@ vec4 SMAABlendingWeightCalculationPS(vec2 texcoord, vec2 pixcoord, vec4 offset[3
 
 		// We want the distances to be in pixel units (doing this here allow to
 		// better interleave arithmetic and memory accesses):
-		d = abs(round(fma(deltaResolution.xx, d, -pixcoord.xx)));
+		d = abs(round(fma(deltaResolution.zz, d, -pixcoord.xx)));
 
 		// SMAAArea below needs a sqrt, as the areas texture is compressed
 		// quadratically:
@@ -482,7 +483,7 @@ vec4 SMAABlendingWeightCalculationPS(vec2 texcoord, vec2 pixcoord, vec4 offset[3
 		d.y = coords.z;
 
 		// We want the distances to be in pixel units:
-		d = abs(round(fma(deltaResolution.yy, d, -pixcoord.yy)));
+		d = abs(round(fma(deltaResolution.ww, d, -pixcoord.yy)));
 
 		// SMAAArea below needs a sqrt, as the areas texture is compressed 
 		// quadratically:
@@ -510,10 +511,10 @@ void main()
 		vec4(2, 2, 2, 0)
 	};
 
-	uint index = totalFrames % 2;
+	//uint index = totalFrames % 2;
 	//ok the differece between texcoord and pixelcoord
-	outColor = SMAABlendingWeightCalculationPS(inBlock.uv, inBlock.position.xy, inBlend.offset,
-		edgesTexture, areaTexture, searchTexture, indices[index]);
+	outColor = SMAABlendingWeightCalculationPS(inBlock.uv, inBlend.pixcoord, inBlend.offset,
+		edgesTexture, areaTexture, searchTexture, vec4(0));
 		//outColor.w = 1.0f;
 
 	//outColor = vec4(1, 0, 0, 1);

@@ -51,7 +51,9 @@ layout(binding = 3) uniform edgeDetectionSettings
 layout(binding = 0) uniform sampler2D colorTexture;
 layout(binding = 1) uniform sampler2D depthTexture;
 
-vec2 deltaResolution = vec2(1.0 / dynResolution.x, 1.0 / dynResolution.y );
+vec4 deltaResolution = vec4(1.0 / resolution.x, 1.0 / resolution.y, resolution.x, resolution.y);
+
+float depthThreshold =  0.1f * inThreshold;
 
 /**
  * Luma Edge Detection
@@ -202,7 +204,7 @@ vec2 SMAADepthEdgeDetectionPS(vec2 texcoord, vec4 offset[3], sampler2D depthTex)
 {
     vec3 neighbours = SMAAGatherNeighbours(texcoord, offset, depthTex);
     vec2 delta = abs(neighbours.xx - vec2(neighbours.y, neighbours.z));
-    vec2 edges = step(inThreshold, delta);
+    vec2 edges = step(depthThreshold, delta);
 
     if (dot(edges, vec2(1.0, 1.0)) == 0.0)
 	{
@@ -214,6 +216,6 @@ vec2 SMAADepthEdgeDetectionPS(vec2 texcoord, vec4 offset[3], sampler2D depthTex)
 
 void main()
 {
-   // outColor = vec4(SMAADepthEdgeDetectionPS(inBlock.uv, inEdge.offset, depthTexture).xy, 0, 1);
-    outColor = vec4(SMAAColorEdgeDetectionPS(inBlock.uv, inEdge.offset, colorTexture).xy, 0, 1);
+    outColor = vec4(SMAADepthEdgeDetectionPS(inBlock.uv, inEdge.offset, depthTexture).xy, 0, 1);
+    //outColor = vec4(SMAAColorEdgeDetectionPS(inBlock.uv, inEdge.offset, colorTexture).xy, 0, 1);
 }

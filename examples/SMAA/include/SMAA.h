@@ -394,19 +394,19 @@ protected:
 		SMAABuffer.attachments["SMAA"].Resize(glm::ivec3(resolution, 1));
 	}
 
-	virtual void HandleWindowResize(const tWindow* window, const TinyWindow::vec2_t<unsigned int> dimensions) override
+	void HandleWindowResize(const tWindow* window, const TinyWindow::vec2_t<unsigned int> dimensions) override
 	{
 		defaultPayload.data.resolution = glm::ivec2(dimensions.width, dimensions.height);
 		ResizeBuffers(glm::ivec2(dimensions.x, dimensions.y));
 	}
 
-	virtual void HandleMaximize(const tWindow* window) override
+	void HandleMaximize(const tWindow* window) override
 	{
 		defaultPayload.data.resolution = glm::ivec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 		ResizeBuffers(defaultPayload.data.resolution);
 	}
 
-	virtual void InitializeUniforms() override
+	void InitializeUniforms() override
 	{
 		defaultPayload = bufferHandler_t<defaultUniformBuffer>(sceneCamera);
 		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
