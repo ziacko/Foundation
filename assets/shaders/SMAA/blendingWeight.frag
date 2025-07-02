@@ -282,7 +282,7 @@ float SMAASearchXLeft(sampler2D edgesTex, sampler2D searchTex, vec2 texcoord, fl
 	 */
 	vec2 e = vec2(0.0, 1.0);
 	while (texcoord.x > end && 
-		e.g > 0.8281 && // Is there some edge not activated?
+		e.g > 0.33 && // Is there some edge not activated?
 		e.r == 0.0) 
 	{ // Or is there a crossing edge that breaks the line?
 		e = textureLod(edgesTex, texcoord, 0.0).rg;
@@ -309,7 +309,7 @@ float SMAASearchXRight(sampler2D edgesTex, sampler2D searchTex, vec2 texcoord, f
 {
 	vec2 e = vec2(0.0, 1.0);
 	while (texcoord.x < end && 
-		   e.g > 0.8281 && // Is there some edge not activated?
+		   e.g > 0.33 && // Is there some edge not activated?
 		   e.r == 0.0) // Or is there a crossing edge that breaks the line?
 	{
 		e = textureLod(edgesTex, texcoord, 0.0).rg;
@@ -323,7 +323,7 @@ float SMAASearchYUp(sampler2D edgesTex, sampler2D searchTex, vec2 texcoord, floa
 {
 	vec2 e = vec2(1.0, 0.0);
 	while (texcoord.y > end && 
-		   e.r > 0.8281 && // Is there some edge not activated?
+		   e.r > 0.33 && // Is there some edge not activated?
 		   e.g == 0.0) // Or is there a crossing edge that breaks the line?
 	{
 		e = textureLod(edgesTex, texcoord, 0.0).rg;
@@ -337,7 +337,7 @@ float SMAASearchYDown(sampler2D edgesTex, sampler2D searchTex, vec2 texcoord, fl
 {
 	vec2 e = vec2(1.0, 0.0);
 	while (texcoord.y < end && 
-		   e.r > 0.8281 && // Is there some edge not activated?
+		   e.r > 0.33 && // Is there some edge not activated?
 		   e.g == 0.0) // Or is there a crossing edge that breaks the line?
 	{
 		e = textureLod(edgesTex, texcoord, 0.0).rg;

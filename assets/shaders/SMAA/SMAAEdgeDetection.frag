@@ -216,6 +216,6 @@ vec2 SMAADepthEdgeDetectionPS(vec2 texcoord, vec4 offset[3], sampler2D depthTex)
 
 void main()
 {
-    outColor = vec4(SMAADepthEdgeDetectionPS(inBlock.uv, inEdge.offset, depthTexture).xy, 0, 1);
-    //outColor = vec4(SMAAColorEdgeDetectionPS(inBlock.uv, inEdge.offset, colorTexture).xy, 0, 1);
+    //outColor = vec4(SMAADepthEdgeDetectionPS(inBlock.uv, inEdge.offset, depthTexture).xy, 0, 1);
+    outColor = vec4(SMAAColorEdgeDetectionPS(inBlock.uv, inEdge.offset, colorTexture).xy, 0, 1);
 }

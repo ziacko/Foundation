@@ -36,6 +36,7 @@ protected:
 
     void GeometryPass() override
     {
+
         geometryBuffer.Bind();
 
         glDrawBuffers(1, &geometryBuffer.attachments["color"].FBODesc.attachmentFormat);
@@ -65,10 +66,12 @@ protected:
         }
 
         frameBuffer::Unbind();
+
     }
 
     void EdgeDetectionPass() override
     {
+        glEnable(GL_CONSERVATIVE_RASTERIZATION_NV);
         edgesBuffer.Bind();
 
         glDrawBuffers(1, &edgesBuffer.attachments["edge"].FBODesc.attachmentFormat);
@@ -82,6 +85,7 @@ protected:
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
         frameBuffer::Unbind();
+        glDisable(GL_CONSERVATIVE_RASTERIZATION_NV);
     }
 
     void BlendingWeightsPass() override
