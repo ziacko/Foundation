@@ -151,6 +151,43 @@ public:
 			}
 		}
 
+		void Resize(glm::ivec2 newSize, bool unbind = true)
+		{
+			texDesc.dimensions = glm::ivec3(newSize, 1);
+			FBODesc.dimensions = glm::ivec3(newSize, 1);
+
+			switch (FBODesc.target)
+			{
+			case gl_texture_2d_multisample:
+				{
+					BindTexture();
+					glDeleteTextures(1, &handle);
+					glCreateTextures(FBODesc.target, 1, &handle);
+					BindTexture();
+					glTextureStorage2DMultisample(handle, this->FBODesc.sampleCount, this->FBODesc.internalFormat, this->FBODesc.dimensions.x, this->FBODesc.dimensions.y, true);
+					UnbindTexture();
+					break;
+				}
+
+			case gl_texture_2d:
+				{
+					BindTexture();
+					glTexImage2D(FBODesc.target, FBODesc.currentMipmapLevel, FBODesc.internalFormat, FBODesc.dimensions.x, FBODesc.dimensions.y, FBODesc.border, FBODesc.format, FBODesc.dataType, nullptr);
+					UnbindTexture();
+					break;
+				}
+
+			case gl_texture_3d:
+			case gl_texture_2d_array:
+				{
+					BindTexture();
+					//glTexImage3D(this->FBODesc.target, this->FBODesc.currentMipmapLevel, this->FBODesc.internalFormat, this->FBODesc.dimensions.x, this->FBODesc.dimensions.y, this->FBODesc.dimensions.z, this->FBODesc.border, this->FBODesc.format, this->FBODesc.dataType, nullptr);
+					UnbindTexture();
+					break;
+				}
+			}
+		}
+
 		void Resize(glm::ivec3 newSize, bool unbind = true)
 		{
 			texDesc.dimensions = newSize;

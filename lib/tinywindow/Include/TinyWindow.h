@@ -203,20 +203,20 @@ namespace TinyWindow
 	struct monitorSetting_t
 	{
 		// make all this private?
-		vec2_t<unsigned int> resolution;
-		// unsigned int bitsPerPixel;
-		unsigned int displayFrequency;
+		vec2_t<uint16_t> resolution;
+		// uint16_t bitsPerPixel;
+		uint16_t displayFrequency;
 
 #if defined(TW_WINDOWS)
-		unsigned int displayFlags;
-		unsigned int fixedOutput;
+		uint16_t displayFlags;
+		uint16_t fixedOutput;
 #elif defined(TW_LINUX)
 		RROutput output;
 		RRMode mode;
 		RRCrtc crtc;
 #endif
 
-		explicit monitorSetting_t(const vec2_t<unsigned int>& inResolution = vec2_t<unsigned int>::Zero(), const unsigned int& inDisplayFrequency = 0): resolution(inResolution), displayFrequency(inDisplayFrequency)
+		explicit monitorSetting_t(const vec2_t<uint16_t>& inResolution = vec2_t<uint16_t>::Zero(), const uint16_t& inDisplayFrequency = 0): resolution(inResolution), displayFrequency(inDisplayFrequency)
 		{
 #if defined(TW_WINDOWS)
 			displayFlags = 0;
@@ -241,10 +241,10 @@ namespace TinyWindow
 		std::string deviceName;
 		std::string monitorName;
 		std::string displayName;
-		vec4_t<unsigned int> extents;
+		vec4_t<uint16_t> extents;
 		monitorSetting_t currentSetting;
 		monitorSetting_t previousSetting;
-		vec2_t<unsigned int> resolution;
+		vec2_t<uint16_t> resolution;
 		std::vector<monitorSetting_t> settings;// store all display settings
 
 #if defined(TW_WINDOWS)
@@ -257,8 +257,8 @@ namespace TinyWindow
 		monitor_t()
 		{
 			isPrimary  = false;
-			resolution = vec2_t<unsigned int>::Zero();
-			extents	   = vec4_t<unsigned int>::Zero();
+			resolution = vec2_t<uint16_t>::Zero();
+			extents	   = vec4_t<uint16_t>::Zero();
 #if defined(TW_WINDOWS)
 			monitorHandle = nullptr;
 #endif
@@ -284,11 +284,11 @@ namespace TinyWindow
 		}
 
 		const bool* GetIsPrimary() const { return &isPrimary; }
-		const vec4_t<unsigned int>* GetExtents() const { return &extents; }
+		const vec4_t<uint16_t>* GetExtents() const { return &extents; }
 		const std::string* GetDeviceName() const { return &deviceName; }
 		const std::string* GetMonitorName() const { return &monitorName; }
 		const std::string* GetDisplayName() const { return &displayName; }
-		const vec2_t<unsigned int>* GetResolution() const { return &resolution; }
+		const vec2_t<uint16_t>* GetResolution() const { return &resolution; }
 		const monitorSetting_t* GetCurrentSetting() const { return &currentSetting; }
 		const monitorSetting_t* GetPreviousSetting() const { return &previousSetting; }
 		const std::vector<monitorSetting_t>* GetMonitorSettings() const { return &settings; }
@@ -368,7 +368,7 @@ namespace TinyWindow
 		friend class windowManager;
 
 		//should i move this to a window descriptor system?
-		explicit windowSetting_t(const std::string& name = "window", void* userData = nullptr, const vec2_t<unsigned int>& resolution = vec2_t<unsigned int>(defaultWindowWidth, defaultWindowHeight), const int& versionMajor = 4, const int& versionMinor = 5, const unsigned int& colorBits = 8, const unsigned int& depthBits = 24, const unsigned int& stencilBits = 8, const unsigned int& accumBits = 8, const state_t& currentState = state_t::normal, const profile_t& profile = profile_t::core)
+		explicit windowSetting_t(const std::string& name = "window", void* userData = nullptr, const vec2_t<uint16_t>& resolution = vec2_t<uint16_t>(defaultWindowWidth, defaultWindowHeight), const int& versionMajor = 4, const int& versionMinor = 5, const uint16_t& colorBits = 8, const uint16_t& depthBits = 24, const uint16_t& stencilBits = 8, const uint16_t& accumBits = 8, const state_t& currentState = state_t::normal, const profile_t& profile = profile_t::core)
 		{
 			this->name		   = name;
 			this->resolution   = resolution;
@@ -408,7 +408,7 @@ namespace TinyWindow
 		unsigned char depthBits;		   /**< Size of the Depth buffer. (defaults to 8 bit depth) */
 		unsigned char accumBits;		   /**< Size of the Accum buffer */
 		unsigned char stencilBits;		   /**< Size of the stencil buffer, (defaults to 8 bit) */
-		vec2_t<unsigned int> resolution; /**< Resolution/Size of the window stored in an array */
+		vec2_t<uint16_t> resolution; /**< Resolution/Size of the window stored in an array */
 
 #if !defined(TW_USE_VULKAN)
 		GLint versionMajor;				   /**< Major OpenGL version*/
@@ -630,15 +630,15 @@ namespace TinyWindow
 		errorEntry(error_t::success, "function call was successful"),
 	};
 
-	using keyEvent_t		  = std::function<void(const tWindow* window, const unsigned int& key, const keyState_t& keyState)>;
+	using keyEvent_t		  = std::function<void(const tWindow* window, const uint16_t& key, const keyState_t& keyState)>;
 	using focusEvent_t		  = std::function<void(const tWindow* window, const bool& isFocused)>;
-	using movedEvent_t		  = std::function<void(const tWindow* window, const vec2_t<int>& windowPosition)>;
-	using resizeEvent_t		  = std::function<void(const tWindow* window, const vec2_t<unsigned int>& windowResolution)>;
-	using fileDropEvent_t	  = std::function<void(const tWindow* window, const std::vector<std::string>& files, const vec2_t<int>& windowMousePosition)>;
+	using movedEvent_t		  = std::function<void(const tWindow* window, const vec2_t<int16_t>& windowPosition)>;
+	using resizeEvent_t		  = std::function<void(const tWindow* window, const vec2_t<uint16_t>& windowResolution)>;
+	using fileDropEvent_t	  = std::function<void(const tWindow* window, const std::vector<std::string>& files, const vec2_t<int16_t>& windowMousePosition)>;
 	using destroyedEvent_t	  = std::function<void(const tWindow* window)>;
 	using maximizedEvent_t	  = std::function<void(const tWindow* window)>;
 	using minimizedEvent_t	  = std::function<void(const tWindow* window)>;
-	using mouseMoveEvent_t	  = std::function<void(const tWindow* window, const vec2_t<int>& windowMousePosition, const vec2_t<int>& screenMousePosition)>;
+	using mouseMoveEvent_t	  = std::function<void(const tWindow* window, const vec2_t<int16_t>& windowMousePosition, const vec2_t<int16_t>& screenMousePosition)>;
 	using mouseWheelEvent_t	  = std::function<void(const tWindow* window, const mouseScroll_t& mouseScrollDirection)>;
 	using mouseButtonEvent_t  = std::function<void(const tWindow* window, const mouseButton_t& mouseButton, const buttonState_t& buttonState)>;
 	using windowErrorEvent_t  = std::function<void(const tWindow* window, const errorEntry& entry)>;
@@ -648,11 +648,11 @@ namespace TinyWindow
 	{
 		friend class windowManager;
 
-		using keyEvent_t		 = std::function<void(tWindow* window, unsigned int key, keyState_t keyState)>;
+		using keyEvent_t		 = std::function<void(tWindow* window, uint16_t key, keyState_t keyState)>;
 		using focusEvent_t		 = std::function<void(tWindow* window, bool isFocused)>;
-		using movedEvent_t		 = std::function<void(tWindow* window, vec2_t<int> windowPosition)>;
-		using resizeEvent_t		 = std::function<void(tWindow* window, vec2_t<unsigned int> windowResolution)>;
-		using mouseMoveEvent_t	 = std::function<void(tWindow* window, vec2_t<int> windowMousePosition, vec2_t<int> screenMousePosition)>;
+		using movedEvent_t		 = std::function<void(tWindow* window, vec2_t<int16_t> windowPosition)>;
+		using resizeEvent_t		 = std::function<void(tWindow* window, vec2_t<uint16_t> windowResolution)>;
+		using mouseMoveEvent_t	 = std::function<void(tWindow* window, vec2_t<int16_t> windowMousePosition, vec2_t<int16_t> screenMousePosition)>;
 		using destroyedEvent_t	 = std::function<void(tWindow* window)>;
 		using maximizedEvent_t	 = std::function<void(tWindow* window)>;
 		using minimizedEvent_t	 = std::function<void(tWindow* window)>;
@@ -666,17 +666,17 @@ namespace TinyWindow
 		const bool& GetIsInitialized() const { return initialized; }
 		const bool& GetContextCreated() const { return contextCreated; }
 		const keyState_t* GetKeyState() const { return keys; }
-		const vec2_t<int>& GetPosition() const { return position; }
+		vec2_t<int16_t> GetPosition() const { return position; }
 		const bool& GetIsCurrentContext() const { return isCurrentContext; }
 		const monitor_t* GetCurrentMonitor() const { return currentMonitor; }
-		const vec2_t<int>& GetMousePosition() const { return mousePosition; }
-		const unsigned int& GetCurrentStyle() const { return currentStyle; }
-		const vec2_t<int>& GetPreviousPosition() const { return previousPosition; }
+		const vec2_t<int16_t>& GetMousePosition() const { return mousePosition; }
+		const uint16_t& GetCurrentStyle() const { return currentStyle; }
+		const vec2_t<int16_t>& GetPreviousPosition() const { return previousPosition; }
 		const buttonState_t* GetMouseButtonState() const { return mouseButton; }
 		const windowSetting_t& GetSettings() const { return settings; }
-		const unsigned int& GetCurrentScreenIndex() const { return currentScreenIndex; }
-		const vec2_t<int>& GetPreviousMousePosition() const { return previousMousePosition; }
-		const vec2_t<unsigned int>& GetPreviousDimensions() const { return previousDimensions; }
+		const uint16_t& GetCurrentScreenIndex() const { return currentScreenIndex; }
+		const vec2_t<int16_t>& GetPreviousMousePosition() const { return previousMousePosition; }
+		const vec2_t<uint16_t>& GetPreviousDimensions() const { return previousDimensions; }
 
 		void SetShouldClose(const bool& inShouldClose) { shouldClose = inShouldClose; }
 
@@ -686,18 +686,18 @@ namespace TinyWindow
 		bool initialized;				 /**< Whether the window has been successfully initialized */
 		bool isFullscreen;				 /**< Whether the window is currently in fullscreen mode */
 		bool contextCreated;			 /**< Whether the OpenGL context has been successfully created */
-		vec2_t<int> position;			 /**< Position of the Window relative to the screen co-ordinates */
+		vec2_t<int16_t> position;			 /**< Position of the Window relative to the screen co-ordinates */
 		bool isCurrentContext;			 /**< Whether the window is the current window being drawn to */
 		keyState_t keys[last];			 /**< Record of keys that are either pressed or released in the respective window */
 		windowSetting_t settings;		 /**< List of User-defined settings for this windowS */
-		vec2_t<int> mousePosition;		 /**< Position of the Mouse cursor relative to the window co-ordinates */
-		unsigned int currentStyle;		 /**< The current style of the window */
+		vec2_t<int16_t> mousePosition;		 /**< Position of the Mouse cursor relative to the window co-ordinates */
+		uint16_t currentStyle;		 /**< The current style of the window */
 		monitor_t* currentMonitor;		 /**< The monitor that the window is currently rendering to */
-		vec2_t<int> previousPosition;	 /**< Previous position of the window before being set as Fullscreen */
-		unsigned int currentScreenIndex; /**< The Index of the screen currently being rendered to (fullscreen) */
-		vec2_t<int> previousMousePosition;
-		vec2_t<unsigned int> previousDimensions;
-		buttonState_t mouseButton[(unsigned int)mouseButton_t::last] {};
+		vec2_t<int16_t> previousPosition;	 /**< Previous position of the window before being set as Fullscreen */
+		uint16_t currentScreenIndex; /**< The Index of the screen currently being rendered to (fullscreen) */
+		vec2_t<int16_t> previousMousePosition;
+		vec2_t<uint16_t> previousDimensions;
+		buttonState_t mouseButton[(uint16_t)mouseButton_t::last] {};
 		/**< Record of mouse buttons that are either presses or released */
 
 #if defined(TW_USE_VULKAN)
@@ -715,7 +715,7 @@ namespace TinyWindow
 		HWND windowHandle;							 /**< A handle to A window */
 		HINSTANCE instanceHandle;					 /**< A handle to the window class instance */
 		int accumWheelDelta;						 /**< holds the accumulated mouse wheel delta for this window */
-		vec2_t<unsigned int> clientArea;			 /**< the width and height of the client window */
+		vec2_t<uint16_t> clientArea;			 /**< the width and height of the client window */
 
 #elif defined(TW_LINUX)
 
@@ -724,7 +724,7 @@ namespace TinyWindow
 		Window windowHandle;				/**< The X11 handle to the window. I wish they didn't name the type 'Window' */
 		XVisualInfo* visualInfo;			/**< The handle to the Visual Information. similar purpose to PixelformatDesriptor */
 		Display* currentDisplay;			/**< Handle to the X11 window */
-		unsigned int linuxDecorators;		/**< Enabled window decorators */
+		uint16_t linuxDecorators;		/**< Enabled window decorators */
 		XSetWindowAttributes setAttributes; /**< The attributes to be set for the window */
 
 		/* these atoms are needed to change window states via the extended window manager */
@@ -901,7 +901,7 @@ namespace TinyWindow
 			currentMonitor	   = nullptr;
 
 			std::fill(keys, keys + last, keyState_t::up);// = { keyState_t.bad };
-			std::fill_n(mouseButton, static_cast<unsigned int>(mouseButton_t::last), buttonState_t::up);
+			std::fill_n(mouseButton, static_cast<uint16_t>(mouseButton_t::last), buttonState_t::up);
 
 #if defined(TW_WINDOWS)
 			deviceContextHandle		 = nullptr;
@@ -912,7 +912,7 @@ namespace TinyWindow
 			windowHandle			 = nullptr;
 			instanceHandle			 = nullptr;
 			accumWheelDelta			 = 0;
-			clientArea				 = vec2_t<unsigned int>::Zero();
+			clientArea				 = vec2_t<uint16_t>::Zero();
 #endif
 
 #if defined(__linux__)
@@ -1066,17 +1066,17 @@ namespace TinyWindow
 		/**
 		* Return the total amount of windows the manager has
 		*/
-		int GetNumWindows() const { return static_cast<int>(windowList.size()); }
+		int GetNumWindows() const { return static_cast<int16_t>(windowList.size()); }
 
 		/**
 		* Return the mouse position in screen co-ordinates
 		*/
-		vec2_t<int> GetMousePositionInScreen() const { return screenMousePosition; }
+		vec2_t<int16_t> GetMousePositionInScreen() const { return screenMousePosition; }
 
 		/**
 		* Set the position of the mouse cursor relative to screen co-ordinates
 		*/
-		void SetMousePositionInScreen(vec2_t<int> mousePosition)
+		void SetMousePositionInScreen(vec2_t<int16_t> mousePosition)
 		{
 			screenMousePosition.x = mousePosition.x;
 			screenMousePosition.y = mousePosition.y;
@@ -1249,7 +1249,7 @@ namespace TinyWindow
 		/**
 		* Set the Size/Resolution of the given window
 		*/
-		void SetWindowSize(tWindow* window, vec2_t<unsigned int> newResolution)
+		void SetWindowSize(tWindow* window, vec2_t<uint16_t> newResolution)
 		{
 			window->previousDimensions	= window->settings.resolution;
 			window->settings.resolution = newResolution;
@@ -1263,7 +1263,7 @@ namespace TinyWindow
 		/**
 		* Set the Position of the given window relative to screen co-ordinates
 		*/
-		void SetPosition(tWindow* window, vec2_t<int> newPosition)
+		void SetPosition(tWindow* window, vec2_t<int16_t> newPosition)
 		{
 			window->previousPosition = window->position;
 			window->position		 = newPosition;
@@ -1285,7 +1285,7 @@ namespace TinyWindow
 		/**
 		* Set the mouse Position of the given window's co-ordinates
 		*/
-		void SetMousePosition(tWindow* window, vec2_t<int> newMousePosition)
+		void SetMousePosition(tWindow* window, vec2_t<int16_t> newMousePosition)
 		{
 			window->mousePosition.x = newMousePosition.x;
 			window->mousePosition.y = newMousePosition.y;
@@ -1444,7 +1444,7 @@ namespace TinyWindow
 		/**
 		* Toggles full-screen mode for a window by parsing in a monitor and a monitor setting index
 		*/
-		void ToggleFullscreen(tWindow* window, monitor_t* monitor, const unsigned int monitorSettingIndex)
+		void ToggleFullscreen(tWindow* window, monitor_t* monitor, const uint16_t monitorSettingIndex)
 		{
 			// isFullscreen = !isFullscreen;
 			// monitor->previousSetting = monitor->currentSetting;
@@ -1477,7 +1477,7 @@ namespace TinyWindow
 		*/
 		void SetIcon(tWindow* window)
 		{
-			// const char* windowName, const char* icon, unsigned int width, unsigned int height
+			// const char* windowName, const char* icon, uint16_t width, uint16_t height
 			AddWindowErrorLog(window, error_t::functionNotImplemented, __LINE__, __func__);
 		}
 
@@ -1611,7 +1611,7 @@ namespace TinyWindow
 		/**
 		* Enable window decorators
 		*/
-		void EnableDecorators(tWindow* window, unsigned int decorators)
+		void EnableDecorators(tWindow* window, uint16_t decorators)
 		{
 #if defined(TW_WINDOWS)
 
@@ -1693,7 +1693,7 @@ namespace TinyWindow
 		/**
 		* Disable window decorators
 		*/
-		void DisableDecorators(tWindow* window, unsigned int decorators)
+		void DisableDecorators(tWindow* window, uint16_t decorators)
 		{
 #if defined(TW_WINDOWS)
 			if (decorators & border)
@@ -1773,13 +1773,13 @@ namespace TinyWindow
 		const std::vector<errorEntry>& GetErrorLog() { return errorLog; }
 
 	private:
-		vec2_t<int> screenMousePosition;
+		vec2_t<int16_t> screenMousePosition;
 		std::vector<monitor_t> monitorList;
 		std::vector<formatSetting_t*> formatList;
 		std::vector<std::unique_ptr<tWindow>> windowList;// replace with unordered map?
 		std::vector<errorEntry> errorLog;
 
-		void AddWindowErrorLog(tWindow* window, error_t newError, const unsigned int& fileLine, const std::string& functionName)
+		void AddWindowErrorLog(tWindow* window, error_t newError, const uint16_t& fileLine, const std::string& functionName)
 		{
 			auto newString = errorLUT.at(newError);
 
@@ -1799,7 +1799,7 @@ namespace TinyWindow
 			}
 		}
 
-		void AddErrorLog(error_t newError, const unsigned int& fileLine = __LINE__, const std::string& functionName = __FUNCTION__)
+		void AddErrorLog(error_t newError, const uint16_t& fileLine = __LINE__, const std::string& functionName = __FUNCTION__)
 		{
 			auto newString = errorLUT.at(newError);
 
@@ -1967,7 +1967,7 @@ namespace TinyWindow
 		formatSetting_t* bestPixelFormat;
 
 		// the window procedure for all windows. This is used mainly to handle window events
-		static LRESULT CALLBACK WindowProcedure(HWND windowHandle, unsigned int winMessage, WPARAM wordParam, LPARAM longParam)
+		static LRESULT CALLBACK WindowProcedure(HWND windowHandle, uint16_t winMessage, WPARAM wordParam, LPARAM longParam)
 		{
 			windowManager* manager = (windowManager*)GetWindowLongPtr(windowHandle, GWLP_USERDATA);
 			tWindow* window		   = nullptr;
@@ -1976,7 +1976,7 @@ namespace TinyWindow
 				window = manager->GetWindowByHandle(windowHandle);
 			}
 
-			unsigned int translatedKey = 0;
+			uint16_t translatedKey = 0;
 			static bool wasLowerCase   = false;
 
 			switch (winMessage)
@@ -2027,8 +2027,8 @@ namespace TinyWindow
 				case WM_SIZE:
 					{
 						// high and low word are the client resolution. will need to change this
-						window->settings.resolution.width  = (unsigned int)LOWORD(longParam);
-						window->settings.resolution.height = (unsigned int)HIWORD(longParam);
+						window->settings.resolution.width  = (uint16_t)LOWORD(longParam);
+						window->settings.resolution.height = (uint16_t)HIWORD(longParam);
 
 						RECT tempRect;
 						GetClientRect(window->windowHandle, &tempRect);
@@ -2104,9 +2104,9 @@ namespace TinyWindow
 							case RIM_TYPEKEYBOARD:
 								{
 									const RAWKEYBOARD& rawKB = rawInput->data.keyboard;
-									unsigned int virtualKey	 = rawKB.VKey;
-									unsigned int scanCode	 = rawKB.MakeCode;
-									unsigned int flags		 = rawKB.Flags;
+									uint16_t virtualKey	 = rawKB.VKey;
+									uint16_t scanCode	 = rawKB.MakeCode;
+									uint16_t flags		 = rawKB.Flags;
 									bool isE0				 = false;
 									bool isE1				 = false;
 
@@ -2202,11 +2202,11 @@ namespace TinyWindow
 						// takes directly from the keyboard so WM_CHAR is needed to determine
 						// casing. still a pain though to see whether the key was pressed or
 						// released.
-						wasLowerCase			= islower(static_cast<int>(wordParam)) != 0;
+						wasLowerCase			= islower(static_cast<int16_t>(wordParam)) != 0;
 						window->keys[wordParam] = keyState_t::down;
 						if (manager->keyEvent != nullptr)
 						{
-							manager->keyEvent(window, static_cast<int>(wordParam), keyState_t::down);
+							manager->keyEvent(window, static_cast<int16_t>(wordParam), keyState_t::down);
 						}
 						break;
 					}
@@ -2307,12 +2307,12 @@ namespace TinyWindow
 										if (wasLowerCase)
 										{
 											// change the wordParam to lowercase
-											translatedKey = tolower(static_cast<unsigned int>(wordParam));
+											translatedKey = tolower(static_cast<uint16_t>(wordParam));
 										}
 										else
 										{
 											// keep it as is if it isn't
-											translatedKey = static_cast<unsigned int>(wordParam);
+											translatedKey = static_cast<uint16_t>(wordParam);
 										}
 
 										window->keys[translatedKey] = keyState_t::up;
@@ -2402,7 +2402,7 @@ namespace TinyWindow
 
 						if (manager->mouseMoveEvent != nullptr)
 						{
-							manager->mouseMoveEvent(window, window->mousePosition, vec2_t<int>(point.x, point.y));
+							manager->mouseMoveEvent(window, window->mousePosition, vec2_t<int16_t>(point.x, point.y));
 						}
 						break;
 					}
@@ -2413,7 +2413,7 @@ namespace TinyWindow
 
 						if (XButton == XBUTTON1)
 						{
-							window->mouseButton[(unsigned int)mouseButton_t::XFirst] = buttonState_t::down;
+							window->mouseButton[(uint16_t)mouseButton_t::XFirst] = buttonState_t::down;
 
 							if (manager->mouseButtonEvent != nullptr)
 							{
@@ -2423,7 +2423,7 @@ namespace TinyWindow
 
 						if (XButton == XBUTTON2)
 						{
-							window->mouseButton[(unsigned int)mouseButton_t::XSecond] = buttonState_t::down;
+							window->mouseButton[(uint16_t)mouseButton_t::XSecond] = buttonState_t::down;
 
 							if (manager->mouseButtonEvent != nullptr)
 							{
@@ -2506,7 +2506,7 @@ namespace TinyWindow
 
 				case WM_MBUTTONDOWN:
 					{
-						window->mouseButton[(unsigned int)mouseButton_t::middle] = buttonState_t::down;
+						window->mouseButton[(uint16_t)mouseButton_t::middle] = buttonState_t::down;
 
 						if (manager->mouseButtonEvent != nullptr)
 						{
@@ -2517,7 +2517,7 @@ namespace TinyWindow
 
 				case WM_MBUTTONUP:
 					{
-						window->mouseButton[(unsigned int)mouseButton_t::middle] = buttonState_t::up;
+						window->mouseButton[(uint16_t)mouseButton_t::middle] = buttonState_t::up;
 
 						if (manager->mouseButtonEvent != nullptr)
 						{
@@ -2599,22 +2599,22 @@ namespace TinyWindow
 				case WM_DROPFILES:
 					{
 						// get the number of files that were dropped
-						unsigned int numfilesDropped = DragQueryFile((HDROP)wordParam, 0xFFFFFFFF, nullptr, 0);
+						uint16_t numfilesDropped = DragQueryFile((HDROP)wordParam, 0xFFFFFFFF, nullptr, 0);
 						std::vector<std::string> files;
 
 						// for each file dropped store the path
 						for (size_t fileIter = 0; fileIter < numfilesDropped; fileIter++)
 						{
 							char file[255]			= {0};
-							unsigned int stringSize = DragQueryFile((HDROP)wordParam, (UINT)fileIter, nullptr, 0);// get the size of the string
+							uint16_t stringSize = DragQueryFile((HDROP)wordParam, (UINT)fileIter, nullptr, 0);// get the size of the string
 							DragQueryFile((HDROP)wordParam, (UINT)fileIter, (wchar_t*)file, stringSize + 1);	  // get the string itself
 							files.emplace_back(file);
 						}
 						POINT mousePoint;
-						vec2_t<int> mousePosition;
+						vec2_t<int16_t> mousePosition;
 						if (DragQueryPoint((HDROP)wordParam, &mousePoint))// get the mouse position where the file was dropped
 						{
-							mousePosition = vec2_t<int>(mousePoint.x, mousePoint.y);
+							mousePosition = vec2_t<int16_t>(mousePoint.x, mousePoint.y);
 						}
 
 						// release the memory
@@ -2648,7 +2648,7 @@ namespace TinyWindow
 
 			monitor_t* monitor		   = manager->GetMonitorByHandle(std::string(wstr.begin(), wstr.end()));
 			monitor->monitorHandle	   = monitorHandle;
-			monitor->extents		   = vec4_t<unsigned int>(monitorSize->left, monitorSize->top, monitorSize->right, monitorSize->bottom);
+			monitor->extents		   = vec4_t<uint16_t>(monitorSize->left, monitorSize->top, monitorSize->right, monitorSize->bottom);
 			monitor->resolution.width  = monitor->extents.right - monitor->extents.left;
 			monitor->resolution.height = monitor->extents.bottom - monitor->extents.top;
 			return true;
@@ -2750,11 +2750,11 @@ namespace TinyWindow
 		// initialize the pixel format for the selected window
 		void InitializePixelFormat(tWindow* window)
 		{
-			unsigned int count = WGL_NUMBER_PIXEL_FORMATS_ARB;
+			uint16_t count = WGL_NUMBER_PIXEL_FORMATS_ARB;
 			int format		   = 0;
 			int attribs[]	   = {WGL_SUPPORT_OPENGL_ARB, 1, WGL_DRAW_TO_WINDOW_ARB, 1, WGL_DOUBLE_BUFFER_ARB, 1, WGL_RED_BITS_ARB, window->settings.colorBits, WGL_GREEN_BITS_ARB, window->settings.colorBits, WGL_BLUE_BITS_ARB, window->settings.colorBits, WGL_ALPHA_BITS_ARB, window->settings.colorBits, WGL_DEPTH_BITS_ARB, window->settings.depthBits, WGL_STENCIL_BITS_ARB, window->settings.stencilBits, WGL_ACCUM_RED_BITS_ARB, window->settings.accumBits, WGL_ACCUM_GREEN_BITS_ARB, window->settings.accumBits, WGL_ACCUM_BLUE_BITS_ARB, window->settings.accumBits, WGL_ACCUM_ALPHA_BITS_ARB, window->settings.accumBits, WGL_ACCELERATION_ARB, WGL_FULL_ACCELERATION_ARB, WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_ARB};
 
-			std::vector<int> attribList;
+			std::vector<int16_t> attribList;
 			attribList.assign(attribs, attribs + std::size(attribs));
 
 			if (wglChoosePixelFormatARB != nullptr)
@@ -2855,9 +2855,9 @@ namespace TinyWindow
 		formatSetting_t* GetClosestFormat(const formatSetting_t* desiredFormat)
 		{
 			// go through all the compatible format settings
-			unsigned int absent, lowestAbsent		= UINT_MAX;
-			unsigned int colorDiff, lowestColorDiff = UINT_MAX;
-			unsigned int extraDiff, lowestExtraDiff = UINT_MAX;
+			uint16_t absent, lowestAbsent		= UINT_MAX;
+			uint16_t colorDiff, lowestColorDiff = UINT_MAX;
+			uint16_t extraDiff, lowestExtraDiff = UINT_MAX;
 			formatSetting_t* currentFormat;
 			formatSetting_t* closestFormat = nullptr;
 
@@ -2921,17 +2921,17 @@ namespace TinyWindow
 
 					if (desiredFormat->redBits != -1)
 					{
-						colorDiff += (unsigned int)pow((desiredFormat->redBits - currentFormat->redBits), 2);
+						colorDiff += (uint16_t)pow((desiredFormat->redBits - currentFormat->redBits), 2);
 					}
 
 					if (desiredFormat->greenBits != -1)
 					{
-						colorDiff += (unsigned int)pow((desiredFormat->greenBits - currentFormat->greenBits), 2);
+						colorDiff += (uint16_t)pow((desiredFormat->greenBits - currentFormat->greenBits), 2);
 					}
 
 					if (desiredFormat->blueBits != -1)
 					{
-						colorDiff += (unsigned int)pow((desiredFormat->blueBits - currentFormat->blueBits), 2);
+						colorDiff += (uint16_t)pow((desiredFormat->blueBits - currentFormat->blueBits), 2);
 					}
 				}
 
@@ -2941,42 +2941,42 @@ namespace TinyWindow
 
 					if (desiredFormat->alphaBits != -1)
 					{
-						extraDiff += (unsigned int)pow((desiredFormat->alphaBits - currentFormat->alphaBits), 2);
+						extraDiff += (uint16_t)pow((desiredFormat->alphaBits - currentFormat->alphaBits), 2);
 					}
 
 					if (desiredFormat->depthBits != -1)
 					{
-						extraDiff += (unsigned int)pow((desiredFormat->depthBits - currentFormat->depthBits), 2);
+						extraDiff += (uint16_t)pow((desiredFormat->depthBits - currentFormat->depthBits), 2);
 					}
 
 					if (desiredFormat->stencilBits != -1)
 					{
-						extraDiff += (unsigned int)pow((desiredFormat->stencilBits - currentFormat->stencilBits), 2);
+						extraDiff += (uint16_t)pow((desiredFormat->stencilBits - currentFormat->stencilBits), 2);
 					}
 
 					if (desiredFormat->accumRedBits != -1)
 					{
-						extraDiff += (unsigned int)pow((desiredFormat->accumRedBits - currentFormat->accumRedBits), 2);
+						extraDiff += (uint16_t)pow((desiredFormat->accumRedBits - currentFormat->accumRedBits), 2);
 					}
 
 					if (desiredFormat->accumGreenBits != -1)
 					{
-						extraDiff += (unsigned int)pow((desiredFormat->accumGreenBits - currentFormat->accumGreenBits), 2);
+						extraDiff += (uint16_t)pow((desiredFormat->accumGreenBits - currentFormat->accumGreenBits), 2);
 					}
 
 					if (desiredFormat->accumBlueBits != -1)
 					{
-						extraDiff += (unsigned int)pow((desiredFormat->accumBlueBits - currentFormat->accumBlueBits), 2);
+						extraDiff += (uint16_t)pow((desiredFormat->accumBlueBits - currentFormat->accumBlueBits), 2);
 					}
 
 					if (desiredFormat->numSamples != -1)
 					{
-						extraDiff += (unsigned int)pow((desiredFormat->numSamples - currentFormat->numSamples), 2);
+						extraDiff += (uint16_t)pow((desiredFormat->numSamples - currentFormat->numSamples), 2);
 					}
 
 					if (desiredFormat->alphaBits != -1)
 					{
-						extraDiff += (unsigned int)pow((desiredFormat->alphaBits - currentFormat->alphaBits), 2);
+						extraDiff += (uint16_t)pow((desiredFormat->alphaBits - currentFormat->alphaBits), 2);
 					}
 
 					if (desiredFormat->pixelRGB && !currentFormat->pixelRGB)
@@ -3041,7 +3041,7 @@ namespace TinyWindow
 			}
 		}
 
-		void Windows_ToggleFullscreen(tWindow* window, monitor_t* monitor, unsigned int monitorSettingIndex)
+		void Windows_ToggleFullscreen(tWindow* window, monitor_t* monitor, uint16_t monitorSettingIndex)
 		{
 			window->currentMonitor = monitor;
 
@@ -3122,10 +3122,10 @@ namespace TinyWindow
 					}
 			}
 
-			SetPosition(window, vec2_t<int>((int)monitor->extents.left, (int)monitor->extents.top));
+			SetPosition(window, vec2_t<int16_t>((int)monitor->extents.left, (int)monitor->extents.top));
 		}
 
-		static int RetrieveDataFromWin32Pointer(LPARAM longParam, unsigned int depth) { return (longParam >> depth) & ((1L << sizeof(longParam)) - 1); }
+		static int RetrieveDataFromWin32Pointer(LPARAM longParam, uint16_t depth) { return (longParam >> depth) & ((1L << sizeof(longParam)) - 1); }
 
 		static WPARAM DetermineLeftOrRight(WPARAM key, LPARAM longParam)
 		{
@@ -3167,7 +3167,7 @@ namespace TinyWindow
 			return newKey;
 		}
 
-		static unsigned int Windows_TranslateKey(WPARAM wordParam)
+		static uint16_t Windows_TranslateKey(WPARAM wordParam)
 		{
 			switch (wordParam)
 			{
@@ -3371,7 +3371,7 @@ namespace TinyWindow
 			}
 		}
 
-		static void Windows_SetWindowIcon(tWindow* window, const char* icon, unsigned int width, unsigned int height) { SendMessage(window->windowHandle, (UINT)WM_SETICON, ICON_BIG, (LPARAM)LoadImage(window->instanceHandle, (wchar_t*)icon, IMAGE_ICON, (int)width, (int)height, LR_LOADFROMFILE)); }
+		static void Windows_SetWindowIcon(tWindow* window, const char* icon, uint16_t width, uint16_t height) { SendMessage(window->windowHandle, (UINT)WM_SETICON, ICON_BIG, (LPARAM)LoadImage(window->instanceHandle, (wchar_t*)icon, IMAGE_ICON, (int)width, (int)height, LR_LOADFROMFILE)); }
 
 		void Windows_GetScreenInfo()
 		{
@@ -3407,20 +3407,20 @@ namespace TinyWindow
 					// get current display mode
 					DEVMODE devmode;
 					// get all display modes
-					unsigned int modeIndex = UINT_MAX;
+					uint16_t modeIndex = UINT_MAX;
 					while (EnumDisplaySettings(graphicsDevice.DeviceName, modeIndex, &devmode))
 					{
 						// get the current settings of the display
 						if (modeIndex == ENUM_CURRENT_SETTINGS)
 						{
-							monitor->currentSetting				 = monitorSetting_t(vec2_t<unsigned int>(devmode.dmPelsWidth, devmode.dmPelsHeight), devmode.dmDisplayFrequency);
+							monitor->currentSetting				 = monitorSetting_t(vec2_t<uint16_t>(devmode.dmPelsWidth, devmode.dmPelsHeight), devmode.dmDisplayFrequency);
 							monitor->currentSetting.displayFlags = devmode.dmDisplayFlags;
 							monitor->currentSetting.fixedOutput	 = devmode.dmDisplayFixedOutput;
 						}
 						// get the settings that are stored in the registry
 						else
 						{
-							monitorSetting_t* newSetting = new monitorSetting_t(vec2_t<unsigned int>(devmode.dmPelsWidth, devmode.dmPelsHeight), devmode.dmDisplayFrequency);
+							monitorSetting_t* newSetting = new monitorSetting_t(vec2_t<uint16_t>(devmode.dmPelsWidth, devmode.dmPelsHeight), devmode.dmDisplayFrequency);
 							newSetting->displayFlags	 = devmode.dmDisplayFlags;
 							newSetting->fixedOutput		 = devmode.dmDisplayFixedOutput;
 							monitor->settings.insert(monitor->settings.begin(), *std::move(newSetting));
@@ -3784,7 +3784,7 @@ namespace TinyWindow
 
 			XWindowAttributes attributes;
 			Status status	 = XGetWindowAttributes(window->currentDisplay, window->windowHandle, &attributes);
-			window->position = vec2_t<int>(attributes.x, attributes.y);
+			window->position = vec2_t<int16_t>(attributes.x, attributes.y);
 
 			InitializeGL(window);
 		}
@@ -3827,8 +3827,8 @@ namespace TinyWindow
 
 				case KeyPress:
 					{
-						unsigned int functionKeysym = XkbKeycodeToKeysym(currentDisplay, inEvent.xkey.keycode, 0, inEvent.xkey.state & ShiftMask ? 1 : 0);
-						unsigned int translatedKey	= Linux_TranslateKey(functionKeysym);
+						uint16_t functionKeysym = XkbKeycodeToKeysym(currentDisplay, inEvent.xkey.keycode, 0, inEvent.xkey.state & ShiftMask ? 1 : 0);
+						uint16_t translatedKey	= Linux_TranslateKey(functionKeysym);
 						window->keys[translatedKey] = keyState_t::down;
 						if (keyEvent != nullptr)
 							keyEvent(window, translatedKey, keyState_t::down);
@@ -3846,7 +3846,7 @@ namespace TinyWindow
 
 							if (nextEvent.type == KeyPress && nextEvent.xkey.time == inEvent.xkey.time && nextEvent.xkey.keycode == inEvent.xkey.keycode)
 							{
-								unsigned int functionKeysym = XkbKeycodeToKeysym(currentDisplay, inEvent.xkey.keycode, 0, inEvent.xkey.state & ShiftMask ? 1 : 0);
+								uint16_t functionKeysym = XkbKeycodeToKeysym(currentDisplay, inEvent.xkey.keycode, 0, inEvent.xkey.state & ShiftMask ? 1 : 0);
 
 								XNextEvent(currentDisplay, &inEvent);
 								triggered = true;
@@ -3857,8 +3857,8 @@ namespace TinyWindow
 
 						if (triggered == false)
 						{
-							unsigned int functionKeysym = XkbKeycodeToKeysym(currentDisplay, inEvent.xkey.keycode, 0, inEvent.xkey.state & ShiftMask ? 1 : 0);
-							unsigned int translatedKey	= Linux_TranslateKey(functionKeysym);
+							uint16_t functionKeysym = XkbKeycodeToKeysym(currentDisplay, inEvent.xkey.keycode, 0, inEvent.xkey.state & ShiftMask ? 1 : 0);
+							uint16_t translatedKey	= Linux_TranslateKey(functionKeysym);
 							window->keys[translatedKey] = keyState_t::up;
 
 							if (keyEvent != nullptr)
@@ -3874,7 +3874,7 @@ namespace TinyWindow
 						{
 							case 1:
 								{
-									window->mouseButton[(unsigned int)mouseButton_t::left] = buttonState_t::down;
+									window->mouseButton[(uint16_t)mouseButton_t::left] = buttonState_t::down;
 
 									if (mouseButtonEvent != nullptr)
 										mouseButtonEvent(window, mouseButton_t::left, buttonState_t::down);
@@ -3883,7 +3883,7 @@ namespace TinyWindow
 
 							case 2:
 								{
-									window->mouseButton[(unsigned int)mouseButton_t::middle] = buttonState_t::down;
+									window->mouseButton[(uint16_t)mouseButton_t::middle] = buttonState_t::down;
 
 									if (mouseButtonEvent != nullptr)
 										mouseButtonEvent(window, mouseButton_t::middle, buttonState_t::down);
@@ -3892,7 +3892,7 @@ namespace TinyWindow
 
 							case 3:
 								{
-									window->mouseButton[(unsigned int)mouseButton_t::right] = buttonState_t::down;
+									window->mouseButton[(uint16_t)mouseButton_t::right] = buttonState_t::down;
 
 									if (mouseButtonEvent != nullptr)
 										mouseButtonEvent(window, mouseButton_t::right, buttonState_t::down);
@@ -3901,7 +3901,7 @@ namespace TinyWindow
 
 							case 4:
 								{
-									window->mouseButton[(unsigned int)mouseScroll_t::up] = buttonState_t::down;
+									window->mouseButton[(uint16_t)mouseScroll_t::up] = buttonState_t::down;
 
 									if (mouseWheelEvent != nullptr)
 										mouseWheelEvent(window, mouseScroll_t::down);
@@ -3910,7 +3910,7 @@ namespace TinyWindow
 
 							case 5:
 								{
-									window->mouseButton[(unsigned int)mouseScroll_t::down] = buttonState_t::down;
+									window->mouseButton[(uint16_t)mouseScroll_t::down] = buttonState_t::down;
 
 									if (mouseWheelEvent != nullptr)
 										mouseWheelEvent(window, mouseScroll_t::down);
@@ -3934,7 +3934,7 @@ namespace TinyWindow
 							case 1:
 								{
 									// the left mouse button was released
-									window->mouseButton[(unsigned int)mouseButton_t::left] = buttonState_t::up;
+									window->mouseButton[(uint16_t)mouseButton_t::left] = buttonState_t::up;
 
 									if (mouseButtonEvent != nullptr)
 										mouseButtonEvent(window, mouseButton_t::left, buttonState_t::up);
@@ -3944,7 +3944,7 @@ namespace TinyWindow
 							case 2:
 								{
 									// the middle mouse button was released
-									window->mouseButton[(unsigned int)mouseButton_t::middle] = buttonState_t::up;
+									window->mouseButton[(uint16_t)mouseButton_t::middle] = buttonState_t::up;
 
 									if (mouseButtonEvent != nullptr)
 										mouseButtonEvent(window, mouseButton_t::middle, buttonState_t::up);
@@ -3954,7 +3954,7 @@ namespace TinyWindow
 							case 3:
 								{
 									// the right mouse button was released
-									window->mouseButton[(unsigned int)mouseButton_t::right] = buttonState_t::up;
+									window->mouseButton[(uint16_t)mouseButton_t::right] = buttonState_t::up;
 
 									if (mouseButtonEvent != nullptr)
 										mouseButtonEvent(window, mouseButton_t::right, buttonState_t::up);
@@ -3964,14 +3964,14 @@ namespace TinyWindow
 							case 4:
 								{
 									// the mouse wheel was scrolled up
-									window->mouseButton[(unsigned int)mouseScroll_t::up] = buttonState_t::down;
+									window->mouseButton[(uint16_t)mouseScroll_t::up] = buttonState_t::down;
 									break;
 								}
 
 							case 5:
 								{
 									// the mouse wheel was scrolled down
-									window->mouseButton[(unsigned int)mouseScroll_t::down] = buttonState_t::down;
+									window->mouseButton[(uint16_t)mouseScroll_t::down] = buttonState_t::down;
 									break;
 								}
 
@@ -3999,7 +3999,7 @@ namespace TinyWindow
 						screenMousePosition.y = inEvent.xmotion.y_root;
 
 						if (mouseMoveEvent != nullptr)
-							mouseMoveEvent(window, vec2_t<int>(inEvent.xmotion.x, inEvent.xmotion.y), vec2_t<int>(inEvent.xmotion.x_root, inEvent.xmotion.y_root));
+							mouseMoveEvent(window, vec2_t<int16_t>(inEvent.xmotion.x, inEvent.xmotion.y), vec2_t<int16_t>(inEvent.xmotion.x_root, inEvent.xmotion.y_root));
 						break;
 					}
 
@@ -4035,7 +4035,7 @@ namespace TinyWindow
 
 						if (resizeEvent != nullptr)
 						{
-							resizeEvent(window, vec2_t<unsigned int>(inEvent.xresizerequest.width, inEvent.xresizerequest.height));
+							resizeEvent(window, vec2_t<uint16_t>(inEvent.xresizerequest.width, inEvent.xresizerequest.height));
 						}
 						break;
 					}
@@ -4044,11 +4044,11 @@ namespace TinyWindow
 				case ConfigureNotify:
 					{
 						// check if window was resized
-						if ((unsigned int)inEvent.xconfigure.width != window->settings.resolution.width || (unsigned int)inEvent.xconfigure.height != window->settings.resolution.height)
+						if ((uint16_t)inEvent.xconfigure.width != window->settings.resolution.width || (uint16_t)inEvent.xconfigure.height != window->settings.resolution.height)
 						{
 							if (resizeEvent != nullptr)
 							{
-								resizeEvent(window, vec2_t<unsigned int>(inEvent.xconfigure.width, inEvent.xconfigure.height));
+								resizeEvent(window, vec2_t<uint16_t>(inEvent.xconfigure.width, inEvent.xconfigure.height));
 							}
 
 
@@ -4060,7 +4060,7 @@ namespace TinyWindow
 						if (inEvent.xconfigure.x != window->position.x || inEvent.xconfigure.y != window->position.y)
 						{
 							if (movedEvent != nullptr)
-								movedEvent(window, vec2_t<int>(inEvent.xconfigure.x, inEvent.xconfigure.y));
+								movedEvent(window, vec2_t<int16_t>(inEvent.xconfigure.x, inEvent.xconfigure.y));
 
 							window->position.x = inEvent.xconfigure.x;
 							window->position.y = inEvent.xconfigure.y;
@@ -4091,7 +4091,7 @@ namespace TinyWindow
 							window->settings.resolution.height = attributes.height;
 						
 							// go through each property and match it to an existing Atomic state
-							for (unsigned int itemIndex = 0; itemIndex < numItems; itemIndex++)
+							for (uint16_t itemIndex = 0; itemIndex < numItems; itemIndex++)
 							{
 								Atom currentProperty = ((long*)(properties))[itemIndex];
 
@@ -4234,7 +4234,7 @@ namespace TinyWindow
 		}
 
 		// translate keys from X keys to TinyWindow Keys
-		static unsigned int Linux_TranslateKey(const unsigned int& keySymbol)
+		static uint16_t Linux_TranslateKey(const uint16_t& keySymbol)
 		{
 			switch (keySymbol)
 			{
@@ -4292,7 +4292,7 @@ namespace TinyWindow
 		void Linux_SetWindowIcon(tWindow* window)
 		{
 			/*std::unique_ptr<window_t> window, const char*
-				icon, unsigned int width, unsigned int height */
+				icon, uint16_t width, uint16_t height */
 			// sorry :(
 			AddWindowErrorLog(window, error_t::linuxFunctionNotImplemented, __LINE__, __func__);
 		}
@@ -4325,7 +4325,7 @@ namespace TinyWindow
 				};
 
 			int frameBufferCount = 0;
-			unsigned int bestBufferConfig = 0;//, bestNumSamples = 0;
+			uint16_t bestBufferConfig = 0;//, bestNumSamples = 0;
 			GLXFBConfig* configs = glXChooseFBConfig(window->currentDisplay, 0, visualAttributes, &frameBufferCount);
 
 			if (configs == nullptr || frameBufferCount == 0)
@@ -4488,8 +4488,8 @@ namespace TinyWindow
 			bool isPrimary	   = (inOutput == primaryOutput);
 			auto crtcInfo	   = XRRGetCrtcInfo(rootDisplay, screenResources, inInfo->crtc);
 
-			inMonitor->extents	  = vec4_t<unsigned int>(crtcInfo->x, crtcInfo->y, crtcInfo->width, crtcInfo->height);
-			inMonitor->resolution = vec2_t(crtcInfo->width, crtcInfo->height);
+			inMonitor->extents	  = vec4_t<uint16_t>(crtcInfo->x, crtcInfo->y, crtcInfo->width, crtcInfo->height);
+			inMonitor->resolution = vec2_t<uint16_t>(crtcInfo->width, crtcInfo->height);
 			inMonitor->isPrimary  = isPrimary;
 		}
 
@@ -4553,8 +4553,8 @@ namespace TinyWindow
 										{
 											XRRModeInfo currentMode = screenResources->modes[modeIter];
 											monitorSetting_t newSetting;
-											newSetting.resolution		= vec2_t<unsigned int>(currentMode.width, currentMode.height);
-											newSetting.displayFrequency = (unsigned int)((double)currentMode.dotClock / ((double)currentMode.hTotal * (double)currentMode.vTotal));
+											newSetting.resolution		= vec2_t<uint16_t>(currentMode.width, currentMode.height);
+											newSetting.displayFrequency = (uint16_t)((double)currentMode.dotClock / ((double)currentMode.hTotal * (double)currentMode.vTotal));
 											newSetting.output			= screenResources->outputs[iter];
 											newSetting.crtc				= crtc;
 											newSetting.mode				= currentMode.id;
@@ -4591,8 +4591,8 @@ namespace TinyWindow
 								{
 									XRRModeInfo currentMode = screenResources->modes[modeIter];
 									monitorSetting_t newSetting;
-									newSetting.resolution		= vec2_t<unsigned int>(currentMode.width, currentMode.height);
-									newSetting.displayFrequency = (unsigned int)((double)currentMode.dotClock / ((double)currentMode.hTotal * (double)currentMode.vTotal));
+									newSetting.resolution		= vec2_t<uint16_t>(currentMode.width, currentMode.height);
+									newSetting.displayFrequency = (uint16_t)((double)currentMode.dotClock / ((double)currentMode.hTotal * (double)currentMode.vTotal));
 									newSetting.output			= screenResources->outputs[iter];
 									newSetting.crtc				= crtc;
 									newSetting.mode				= currentMode.id;
@@ -4621,7 +4621,7 @@ namespace TinyWindow
 			uriList	   = XInternAtom(currentDisplay, "text/uri-list", False);
 		}
 
-		void Linux_ToggleFullscreen(tWindow* window, monitor_t* monitor, const unsigned int& monitorSettingIndex)
+		void Linux_ToggleFullscreen(tWindow* window, monitor_t* monitor, const uint16_t& monitorSettingIndex)
 		{
 			// set window position and change style to popup
 			window->currentMonitor = monitor;
@@ -4644,8 +4644,8 @@ namespace TinyWindow
 				if (result == Success)
 				{
 					window->isFullscreen = !window->isFullscreen;// flip the toggle
-					SetWindowSize(window, vec2_t<unsigned int>(monitor->resolution.width, monitor->resolution.height));
-					SetPosition(window, vec2_t<int>((int)monitor->extents.left, (int)monitor->extents.top));
+					SetWindowSize(window, vec2_t<uint16_t>(monitor->resolution.width, monitor->resolution.height));
+					SetPosition(window, vec2_t<int16_t>((int)monitor->extents.left, (int)monitor->extents.top));
 					SetStyle(window, style_t::popup);
 				}
 			}
@@ -4655,8 +4655,8 @@ namespace TinyWindow
 				if (result == Success)
 				{
 					window->isFullscreen = !window->isFullscreen;// flip the toggle
-					SetWindowSize(window, vec2_t<unsigned int>(window->previousDimensions.width, window->previousDimensions.height));
-					SetPosition(window, vec2_t<int>(window->previousPosition.x, window->previousPosition.y));
+					SetWindowSize(window, vec2_t<uint16_t>(window->previousDimensions.width, window->previousDimensions.height));
+					SetPosition(window, vec2_t<int16_t>(window->previousPosition.x, window->previousPosition.y));
 					SetStyle(window, style_t::popup);
 				}
 			}

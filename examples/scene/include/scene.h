@@ -32,7 +32,7 @@ public:
 		windowSetting_t setting;
 		setting.name = windowName;
 		setting.userData = this;
-		setting.resolution = vec2_t<unsigned int>(1280, 720);
+		setting.resolution = vec2_t<uint16_t>(1280, 720);
 		setting.SetProfile(profile_t::core);
 		//setting.enableSRGB = true;
 
@@ -230,8 +230,8 @@ protected:
 		if(ImGui::Button("Toggle Fullscreen"))
 		{
 			manager->SetStyle(window, style_t::popup);
-			manager->SetPosition(window, vec2_t<int>::Zero());
-			manager->SetWindowSize(window, vec2_t<unsigned int>(manager->GetMonitors().back().GetResolution()->width, manager->GetMonitors().back().GetResolution()->height));
+			manager->SetPosition(window, vec2_t<int16_t>::Zero());
+			manager->SetWindowSize(window, vec2_t<uint16_t>(manager->GetMonitors().back().GetResolution()->width, manager->GetMonitors().back().GetResolution()->height));
 			manager->ToggleFullscreen(window, &manager->GetMonitors()[0], 0);
 		}
 
@@ -241,7 +241,7 @@ protected:
 		}
 
 		static int frameRatePick = 0;
-		ImGui::ListBox("Frame rate cap", &frameRatePick, frameRateSettings.data(), (int)frameRateSettings.size());
+		ImGui::ListBox("Frame rate cap", &frameRatePick, frameRateSettings.data(), (uint16_t)frameRateSettings.size());
 		switch (frameRatePick)
 		{
 			case 0: //none
@@ -449,7 +449,7 @@ protected:
 		}
 	}
 
-	virtual void HandleWindowResize(const tWindow* window, const TinyWindow::vec2_t<unsigned int> dimensions)
+	virtual void HandleWindowResize(const tWindow* window, const TinyWindow::vec2_t<uint16_t> dimensions)
 	{
 		Resize(window, glm::vec2(dimensions.x, dimensions.y));
 	}
@@ -459,7 +459,7 @@ protected:
 		Resize(window);
 	}
 
-	virtual void HandleMouseMotion(const tWindow* window, const vec2_t<int> windowPosition, const vec2_t<int> screenPosition)
+	virtual void HandleMouseMotion(const tWindow* window, const vec2_t<int16_t> windowPosition, const vec2_t<int16_t> screenPosition)
 	{
 		defaultPayload.data.mousePosition = glm::vec2(windowPosition.x, windowPosition.y);
 		UpdateBuffer(gl_uniform_buffer, gl_dynamic_draw);
@@ -473,7 +473,7 @@ protected:
 		io.MouseWheel += (float)((scroll == mouseScroll_t::down) ? -1 : 1);
 	}
 
-	ImGuiKey MapToImGuiKey(int key)
+	ImGuiKey MapToImGuiKey(int16_t key)
 	{
 		// Map letters A-Z
 		if (key >= 'A' && key <= 'Z')
@@ -507,7 +507,7 @@ protected:
 		}
 	}
 
-	virtual void HandleKey(const tWindow* window, const unsigned int key, const keyState_t keyState)
+	virtual void HandleKey(const tWindow* window, const uint16_t key, const keyState_t keyState)
 	{
 		ImGuiIO& io = ImGui::GetIO();
 		ImGuiKey imguiKey = MapToImGuiKey(key);
@@ -546,7 +546,7 @@ protected:
 		}*/
 	}
 
-	virtual void HandleFileDrop(const tWindow* window, const std::vector<std::string>& files, const vec2_t<int>& windowMousePosition)
+	virtual void HandleFileDrop(const tWindow* window, const std::vector<std::string>& files, const vec2_t<int16_t>& windowMousePosition)
 	{
 		//for each file that is dropped in
 		//make sure its a texture 

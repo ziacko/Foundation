@@ -185,7 +185,7 @@ protected:
 		scene::HandleMouseClick(window, button, state);
 	}
 
-	virtual void HandleMouseMotion(const tWindow* window, vec2_t<int> windowPosition, vec2_t<int> screenPosition) override
+	virtual void HandleMouseMotion(const tWindow* window, vec2_t<int16_t> windowPosition, vec2_t<int16_t> screenPosition) override
 	{
 		scene3D* thisScene = (scene3D*)window->GetSettings().userData;
 		scene::HandleMouseMotion(window, windowPosition, screenPosition);
@@ -219,7 +219,7 @@ protected:
 		defaultPayload.Update(gl_uniform_buffer, gl_dynamic_draw);
 	}
 
-	virtual void HandleWindowResize(const tWindow* window, TinyWindow::vec2_t<unsigned int> dimensions) override
+	virtual void HandleWindowResize(const tWindow* window, TinyWindow::vec2_t<uint16_t> dimensions) override
 	{
 		scene3D* thisScene = (scene3D*)window->GetSettings().userData;
 		glViewport(0, 0, dimensions.width, dimensions.height);
@@ -234,7 +234,7 @@ protected:
 		defaultPayload.Update(gl_uniform_buffer, gl_dynamic_draw);
 	}
 
-	virtual void HandleKey(const tWindow* window, const unsigned int key, const keyState_t state)	override
+	virtual void HandleKey(const tWindow* window, const uint16_t key, const keyState_t state)	override
 	{
 		auto it = windowContextMap.find(const_cast<tWindow*>(window));
 		if (it != windowContextMap.end())

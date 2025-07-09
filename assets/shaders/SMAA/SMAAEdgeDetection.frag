@@ -1,7 +1,27 @@
 #version 450
-//#define SMAA_THRESHOLD 0.01
-//#define SMAA_LOCAL_CONTRAST_ADAPTATION_FACTOR 4.0
-float SMAA_DEPTH_THRESHOLD = 1.0f;//(0.1 * SMAA_THRESHOLD)
+#define SMAATexture2D(tex) sampler2D tex
+#define SMAATexturePass2D(tex) tex
+#define SMAASampleLevelZero(tex, coord) textureLod(tex, coord, 0.0)
+#define SMAASampleLevelZeroPoint(tex, coord) textureLod(tex, coord, 0.0)
+#define SMAASampleLevelZeroOffset(tex, coord, offset) textureLodOffset(tex, coord, 0.0, offset)
+#define SMAASample(tex, coord) texture(tex, coord)
+#define SMAASamplePoint(tex, coord) texture(tex, coord)
+#define SMAASampleOffset(tex, coord, offset) texture(tex, coord, offset)
+#define SMAA_FLATTEN
+#define SMAA_BRANCH
+#define lerp(a, b, t) mix(a, b, t)
+#define saturate(a) clamp(a, 0.0, 1.0)
+#define mad(a, b, c) fma(a, b, c)
+#define SMAAGather(tex, coord) textureGather(tex, coord)
+#define float2 vec2
+#define float3 vec3
+#define float4 vec4
+#define int2 ivec2
+#define int3 ivec3
+#define int4 ivec4
+#define bool2 bvec2
+#define bool3 bvec3
+#define bool4 bvec4
 
 in defaultBlock
 {
@@ -51,9 +71,25 @@ layout(binding = 3) uniform edgeDetectionSettings
 layout(binding = 0) uniform sampler2D colorTexture;
 layout(binding = 1) uniform sampler2D depthTexture;
 
-vec4 deltaResolution = vec4(1.0 / resolution.x, 1.0 / resolution.y, resolution.x, resolution.y);
+vec4 SMAA_RT_METRICS = vec4(1.0 / resolution.x, 1.0 / resolution.y, resolution.x, resolution.y);
 
 float depthThreshold =  0.1f * inThreshold;
+
+/**
+ * Gathers current pixel, and the top-left neighbors.
+ */
+float3 SMAAGatherNeighbours(float2 texcoord,
+                            float4 offset[3],
+                            SMAATexture2D(tex)) {
+    #ifdef SMAAGather
+    return SMAAGather(tex, texcoord + SMAA_RT_METRICS.xy * float2(-0.5, -0.5)).grb;
+    #else
+    float P = SMAASamplePoint(tex, texcoord).r;
+    float Pleft = SMAASamplePoint(tex, offset[0].xy).r;
+    float Ptop  = SMAASamplePoint(tex, offset[0].zw).r;
+    return float3(P, Pleft, Ptop);
+    #endif
+}
 
 /**
  * Luma Edge Detection
@@ -61,47 +97,48 @@ float depthThreshold =  0.1f * inThreshold;
  * IMPORTANT NOTICE: luma edge detection requires gamma-corrected colors, and
  * thus 'colorTex' should be a non-sRGB texture.
  */
-vec2 SMAALumaEdgeDetectionPS(vec2 texcoord, vec4 offset[3], sampler2D colorTex
-                               //#if SMAA_PREDICATION
-                               //, sampler2D predicationTex
-                               //#endif
-                               )
-{
+float2 SMAALumaEdgeDetectionPS(float2 texcoord,
+                               float4 offset[3],
+                               SMAATexture2D(colorTex)
+                               /*#if SMAA_PREDICATION
+                               , SMAATexture2D(predicationTex)
+                               #endif*/
+                               ) {
     // Calculate the threshold:
-    //#if SMAA_PREDICATION
-    //vec2 threshold = SMAACalculatePredicatedThreshold(texcoord, offset, sampler2D(predicationTex));
-    //#else
-    vec2 threshold = vec2(inThreshold, inThreshold);
+    /*#if SMAA_PREDICATION
+    float2 threshold = SMAACalculatePredicatedThreshold(texcoord, offset, SMAATexturePass2D(predicationTex));
+    #else*/
+    float2 threshold = float2(inThreshold, inThreshold);
     //#endif
 
     // Calculate lumas:
-    vec3 weights = vec3(0.2126, 0.7152, 0.0722);
-    float L = dot(texture(colorTex, texcoord).rgb, weights);
+    float3 weights = float3(0.2126, 0.7152, 0.0722);
+    float L = dot(SMAASamplePoint(colorTex, texcoord).rgb, weights);
 
-    float Lleft = dot(texture(colorTex, offset[0].xy).rgb, weights);
-    float Ltop  = dot(texture(colorTex, offset[0].zw).rgb, weights);
+    float Lleft = dot(SMAASamplePoint(colorTex, offset[0].xy).rgb, weights);
+    float Ltop  = dot(SMAASamplePoint(colorTex, offset[0].zw).rgb, weights);
 
     // We do the usual threshold:
-    vec4 delta;
-    delta.xy = abs(L - vec2(Lleft, Ltop));
-    vec2 edges = step(threshold, delta.xy);
+    float4 delta;
+    delta.xy = abs(L - float2(Lleft, Ltop));
+    float2 edges = step(threshold, delta.xy);
 
     // Then discard if there is no edge:
-    if (dot(edges, vec2(1.0, 1.0)) == 0.0)
+    if (dot(edges, float2(1.0, 1.0)) == 0.0)
         discard;
 
     // Calculate right and bottom deltas:
-    float Lright = dot(texture(colorTex, offset[1].xy).rgb, weights);
-    float Lbottom  = dot(texture(colorTex, offset[1].zw).rgb, weights);
-    delta.zw = abs(L - vec2(Lright, Lbottom));
+    float Lright = dot(SMAASamplePoint(colorTex, offset[1].xy).rgb, weights);
+    float Lbottom  = dot(SMAASamplePoint(colorTex, offset[1].zw).rgb, weights);
+    delta.zw = abs(L - float2(Lright, Lbottom));
 
     // Calculate the maximum delta in the direct neighborhood:
-    vec2 maxDelta = max(delta.xy, delta.zw);
+    float2 maxDelta = max(delta.xy, delta.zw);
 
     // Calculate left-left and top-top deltas:
-    float Lleftleft = dot(texture(colorTex, offset[2].xy).rgb, weights);
-    float Ltoptop = dot(texture(colorTex, offset[2].zw).rgb, weights);
-    delta.zw = abs(vec2(Lleft, Ltop) - vec2(Lleftleft, Ltoptop));
+    float Lleftleft = dot(SMAASamplePoint(colorTex, offset[2].xy).rgb, weights);
+    float Ltoptop = dot(SMAASamplePoint(colorTex, offset[2].zw).rgb, weights);
+    delta.zw = abs(float2(Lleft, Ltop) - float2(Lleftleft, Ltoptop));
 
     // Calculate the final maximum delta:
     maxDelta = max(maxDelta.xy, delta.zw);
@@ -119,56 +156,57 @@ vec2 SMAALumaEdgeDetectionPS(vec2 texcoord, vec4 offset[3], sampler2D colorTex
  * IMPORTANT NOTICE: color edge detection requires gamma-corrected colors, and
  * thus 'colorTex' should be a non-sRGB texture.
  */
-vec2 SMAAColorEdgeDetectionPS(vec2 texcoord, vec4 offset[3], sampler2D colorTex
-                                //#if SMAA_PREDICATION
-                                //, sampler2D predicationTex
-                                //#endif
-                                ) 
-{
+float2 SMAAColorEdgeDetectionPS(float2 texcoord,
+                                float4 offset[3],
+                                SMAATexture2D(colorTex)
+                                /*#if SMAA_PREDICATION
+                                , SMAATexture2D(predicationTex)
+                                #endif*/
+                                ) {
     // Calculate the threshold:
     //#if SMAA_PREDICATION
-    //vec2 threshold = SMAACalculatePredicatedThreshold(texcoord, offset, predicationTex);
+    //float2 threshold = SMAACalculatePredicatedThreshold(texcoord, offset, predicationTex);
     //#else
-    vec2 threshold = vec2(inThreshold, inThreshold);
+    float2 threshold = float2(inThreshold, inThreshold);
     //#endif
 
     // Calculate color deltas:
-    vec4 delta;
-    vec3 C = texture(colorTex, texcoord).rgb;
+    float4 delta;
+    float3 C = SMAASamplePoint(colorTex, texcoord).rgb;
 
-    vec3 Cleft = texture(colorTex, offset[0].xy).rgb;
-    vec3 t = abs(C - Cleft);
+    float3 Cleft = SMAASamplePoint(colorTex, offset[0].xy).rgb;
+    float3 t = abs(C - Cleft);
     delta.x = max(max(t.r, t.g), t.b);
 
-    vec3 Ctop  = texture(colorTex, offset[0].zw).rgb;
+    float3 Ctop  = SMAASamplePoint(colorTex, offset[0].zw).rgb;
     t = abs(C - Ctop);
     delta.y = max(max(t.r, t.g), t.b);
 
     // We do the usual threshold:
-    vec2 edges = step(threshold, delta.xy);
+    float2 edges = step(threshold, delta.xy);
 
     // Then discard if there is no edge:
-    if (dot(edges, vec2(1.0, 1.0)) == 0.0)
+    if (dot(edges, float2(1.0, 1.0)) == 0.0)
         discard;
 
     // Calculate right and bottom deltas:
-    vec3 Cright = texture(colorTex, offset[1].xy).rgb;
+    float3 Cright = SMAASamplePoint(colorTex, offset[1].xy).rgb;
     t = abs(C - Cright);
     delta.z = max(max(t.r, t.g), t.b);
 
-    vec3 Cbottom  = texture(colorTex, offset[1].zw).rgb;
+    float3 Cbottom  = SMAASamplePoint(colorTex, offset[1].zw).rgb;
     t = abs(C - Cbottom);
     delta.w = max(max(t.r, t.g), t.b);
 
     // Calculate the maximum delta in the direct neighborhood:
-    vec2 maxDelta = max(delta.xy, delta.zw);
+    float2 maxDelta = max(delta.xy, delta.zw);
 
     // Calculate left-left and top-top deltas:
-    vec3 Cleftleft  = texture(colorTex, offset[2].xy).rgb;
+    float3 Cleftleft  = SMAASamplePoint(colorTex, offset[2].xy).rgb;
     t = abs(C - Cleftleft);
     delta.z = max(max(t.r, t.g), t.b);
 
-    vec3 Ctoptop = texture(colorTex, offset[2].zw).rgb;
+    float3 Ctoptop = SMAASamplePoint(colorTex, offset[2].zw).rgb;
     t = abs(C - Ctoptop);
     delta.w = max(max(t.r, t.g), t.b);
 
@@ -183,33 +221,17 @@ vec2 SMAAColorEdgeDetectionPS(vec2 texcoord, vec4 offset[3], sampler2D colorTex
 }
 
 /**
- * Gathers current pixel, and the top-left neighbors.
- */
-vec3 SMAAGatherNeighbours(vec2 texcoord, vec4 offset[3], sampler2D tex) 
-{
-    //#ifdef SMAAGather
-    return textureGather(tex, texcoord + deltaResolution * vec2(-0.5, -0.5)).grb;
-    //#else
-    //float P = texture(tex, texcoord).r;
-    //float Pleft = texture(tex, offset[0].xy).r;
-    //float Ptop  = texture(tex, offset[0].zw).r;
-    //return vec3(P, Pleft, Ptop);
-    //#endif
-}
-
-/**
  * Depth Edge Detection
  */
-vec2 SMAADepthEdgeDetectionPS(vec2 texcoord, vec4 offset[3], sampler2D depthTex) 
-{
-    vec3 neighbours = SMAAGatherNeighbours(texcoord, offset, depthTex);
-    vec2 delta = abs(neighbours.xx - vec2(neighbours.y, neighbours.z));
-    vec2 edges = step(depthThreshold, delta);
+float2 SMAADepthEdgeDetectionPS(float2 texcoord,
+                                float4 offset[3],
+                                SMAATexture2D(depthTex)) {
+    float3 neighbours = SMAAGatherNeighbours(texcoord, offset, SMAATexturePass2D(depthTex));
+    float2 delta = abs(neighbours.xx - float2(neighbours.y, neighbours.z));
+    float2 edges = step(inThreshold, delta);
 
-    if (dot(edges, vec2(1.0, 1.0)) == 0.0)
-	{
+    if (dot(edges, float2(1.0, 1.0)) == 0.0)
         discard;
-	}
 
     return edges;
 }

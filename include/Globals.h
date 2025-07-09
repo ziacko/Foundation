@@ -58,5 +58,7 @@ using namespace std::placeholders;
 
 //global defines
 #define PI 3.14159265
-constexpr float clearColor[4] = {0.25f, 0.25f, 0.25f, 1.0f};
+constexpr float clearColor[4] = {0.33f, 0.33f, 0.33f, 1.0f};
 constexpr float clearColor2[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+
+constexpr glm::vec2 defaultWindowSize = glm::vec2(1280, 720);

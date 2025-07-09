@@ -1,6 +1,27 @@
-#version 420
-#define SMAA_DECODE_VELOCITY(sample) sample.rg
-#define SMAA_REPROJECTION_WEIGHT_SCALE 80.0
+#version 450
+#define SMAATexture2D(tex) sampler2D tex
+#define SMAATexturePass2D(tex) tex
+#define SMAASampleLevelZero(tex, coord) textureLod(tex, coord, 0.0)
+#define SMAASampleLevelZeroPoint(tex, coord) textureLod(tex, coord, 0.0)
+#define SMAASampleLevelZeroOffset(tex, coord, offset) textureLodOffset(tex, coord, 0.0, offset)
+#define SMAASample(tex, coord) texture(tex, coord)
+#define SMAASamplePoint(tex, coord) texture(tex, coord)
+#define SMAASampleOffset(tex, coord, offset) texture(tex, coord, offset)
+#define SMAA_FLATTEN
+#define SMAA_BRANCH
+#define lerp(a, b, t) mix(a, b, t)
+#define saturate(a) clamp(a, 0.0, 1.0)
+#define mad(a, b, c) fma(a, b, c)
+#define SMAAGather(tex, coord) textureGather(tex, coord)
+#define float2 vec2
+#define float3 vec3
+#define float4 vec4
+#define int2 ivec2
+#define int3 ivec3
+#define int4 ivec4
+#define bool2 bvec2
+#define bool3 bvec3
+#define bool4 bvec4
 
 in defaultBlock
 {
@@ -44,54 +65,74 @@ layout(binding = 1) uniform sampler2D blendTex;
 /**
  * Conditional move:
  */
-void SMAAMovc(bvec2 cond, inout vec2 variable, vec2 value) {
-	if (cond.x) variable.x = value.x;
-	if (cond.y) variable.y = value.y;
+void SMAAMovc(bool2 cond, inout float2 variable, float2 value) {
+    SMAA_FLATTEN if (cond.x) variable.x = value.x;
+    SMAA_FLATTEN if (cond.y) variable.y = value.y;
 }
 
-void SMAAMovc(bvec4 cond, inout vec4 variable, vec4 value) {
-	SMAAMovc(cond.xy, variable.xy, value.xy);
-	SMAAMovc(cond.zw, variable.zw, value.zw);
+void SMAAMovc(bool4 cond, inout float4 variable, float4 value) {
+    SMAAMovc(cond.xy, variable.xy, value.xy);
+    SMAAMovc(cond.zw, variable.zw, value.zw);
 }
 
-vec2 deltaResolution = vec2(1.0 / resolution.x, 1.0 / resolution.y );
+vec4 SMAA_RT_METRICS = vec4(1.0 / resolution.x, 1.0 / resolution.y, resolution.x, resolution.y);
 
 //-----------------------------------------------------------------------------
 // Neighborhood Blending Pixel Shader (Third Pass)
 
-vec4 SMAANeighborhoodBlendingPS(vec2 texcoord, vec4 offset,
-    sampler2D colorTex, sampler2D blendTex) 
-{
+float4 SMAANeighborhoodBlendingPS(float2 texcoord,
+                                  float4 offset,
+                                  SMAATexture2D(colorTex),
+                                  SMAATexture2D(blendTex)
+                                  //#if SMAA_REPROJECTION
+                                  //, SMAATexture2D(velocityTex)
+                                  //#endif
+                                  ) {
     // Fetch the blending weights for current pixel:
-    vec4 a;
-    a.x = texture(blendTex, offset.xy).a; // Right
-    a.y = texture(blendTex, offset.zw).g; // Top
-    a.wz = texture(blendTex, texcoord).xz; // Bottom / Left
+    float4 a;
+    a.x = SMAASample(blendTex, offset.xy).a; // Right
+    a.y = SMAASample(blendTex, offset.zw).g; // Top
+    a.wz = SMAASample(blendTex, texcoord).xz; // Bottom / Left
 
     // Is there any blending weight with a value greater than 0.0?
-    if (dot(a, vec4(1.0, 1.0, 1.0, 1.0)) < 1e-5) 
-    {
-        vec4 color = textureLod(colorTex, texcoord, 0.0);
+    SMAA_BRANCH
+    if (dot(a, float4(1.0, 1.0, 1.0, 1.0)) < 1e-5) {
+        float4 color = SMAASampleLevelZero(colorTex, texcoord);
+
+        /*#if SMAA_REPROJECTION
+		float2 velocity = float2(1, 1) - -SMAA_GET_VELOCITY(texcoord);
+
+        // Pack velocity into the alpha channel:
+        color.a = sqrt(5.0 * length(velocity));
+        #endif*/
+
         return color;
-    } 
-    else 
-    {
+    } else {
         bool h = max(a.x, a.z) > max(a.y, a.w); // max(horizontal) > max(vertical)
 
         // Calculate the blending offsets:
-        vec4 blendingOffset = vec4(0.0, a.y, 0.0, a.w);
-        vec2 blendingWeight = a.yw;
-        SMAAMovc(bvec4(h, h, h, h), blendingOffset, vec4(a.x, 0.0, a.z, 0.0));
-        SMAAMovc(bvec2(h, h), blendingWeight, a.xz);
-        blendingWeight /= dot(blendingWeight, vec2(1.0, 1.0));
+        float4 blendingOffset = float4(0.0, a.y, 0.0, a.w);
+        float2 blendingWeight = a.yw;
+        SMAAMovc(bool4(h, h, h, h), blendingOffset, float4(a.x, 0.0, a.z, 0.0));
+        SMAAMovc(bool2(h, h), blendingWeight, a.xz);
+        blendingWeight /= dot(blendingWeight, float2(1.0, 1.0));
 
         // Calculate the texture coordinates:
-        vec4 blendingCoord = fma(blendingOffset, vec4(deltaResolution.xy, -deltaResolution.xy), texcoord.xyxy);
+        float4 blendingCoord = mad(blendingOffset, float4(SMAA_RT_METRICS.xy, -SMAA_RT_METRICS.xy), texcoord.xyxy);
 
         // We exploit bilinear filtering to mix current pixel with the chosen
         // neighbor:
-        vec4 color = blendingWeight.x * textureLod(colorTex, blendingCoord.xy, 0.0);
-        color += blendingWeight.y * textureLod(colorTex, blendingCoord.zw, 0.0);
+        float4 color = blendingWeight.x * SMAASampleLevelZero(colorTex, blendingCoord.xy);
+        color += blendingWeight.y * SMAASampleLevelZero(colorTex, blendingCoord.zw);
+
+        /*#if SMAA_REPROJECTION
+        // Antialias velocity for proper reprojection in a later stage:
+		float2 velocity = blendingWeight.x * SMAA_GET_VELOCITY(blendingCoord.xy);
+		velocity += blendingWeight.y * SMAA_GET_VELOCITY(blendingCoord.zw);
+
+        // Pack velocity into the alpha channel:
+        color.a = sqrt(5.0 * length(velocity));
+        #endif*/
 
         return color;
     }

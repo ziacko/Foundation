@@ -4,11 +4,11 @@
 
 struct resolutionSettings_t
 {
-    glm::vec2 resolutionPerc{1.0f, 1.0f};
+    glm::vec2 resolutionScale{1.0f, 1.0f};
 
     explicit resolutionSettings_t(glm::vec2 res = glm::vec2(1.0f, 1.0f))
     {
-        resolutionPerc = res;
+        resolutionScale = res;
     }
 };
 
@@ -17,11 +17,12 @@ class OAUpsamplerScene : public SMAAScene
 public:
 
     explicit OAUpsamplerScene(const char* windowName = "Ziyad Barakat's portfolio (OAUpsampler)",
-        const camera_t& texModelCamera = camera_t(glm::vec2(1280, 720), 0.31415f, camera_t::projection_e::perspective, 0.01f, 2000.f),
+        const camera_t& camera = camera_t(defaultWindowSize, 0.31415f, camera_t::projection_e::perspective, 0.01f, 2000.f),
         const char* shaderConfigPath = SHADER_CONFIG_DIR,
-        model_t model = model_t("models/SoulSpear/SoulSpear.fbx")) : SMAAScene(windowName, texModelCamera, shaderConfigPath, std::move(model))
+        model_t model = model_t("models/SoulSpear/SoulSpear.fbx")) : SMAAScene(windowName, camera, shaderConfigPath, std::move(model))
     {
-        res = glm::ivec2(1, 1);
+        resScale = glm::vec2(1, 1);
+        scaledResolution = camera.resolution * resScale;
     }
 
     void Initialize() override
@@ -31,12 +32,12 @@ public:
 
 protected:
 
-    glm::ivec2 res{ 1, 1};
+    glm::vec2 resScale{ 1, 1};
+    glm::ivec2 scaledResolution{ resScale.x, resScale.y };
     bufferHandler_t<resolutionSettings_t> resolutionSettings;
 
     void GeometryPass() override
     {
-
         geometryBuffer.Bind();
 
         glDrawBuffers(1, &geometryBuffer.attachments["color"].FBODesc.attachmentFormat);
@@ -44,18 +45,12 @@ protected:
         //we just need the first LOd so only do the first 3 meshes
         for (size_t iter = 0; iter < 1; iter++)
         {
-            if (testModel.meshes[iter].isCollision)
-            {
-                continue;
-            }
-
             testModel.meshes[iter].textures[0].SetActive(0);
-            //add the previous depth?
 
             glBindVertexArray(testModel.meshes[iter].vertexArrayHandle);
             glUseProgram(geometryProgram->handle);
 
-            glViewport(0, 0, res.x, res.y);
+            glViewport(0, 0, scaledResolution.x, scaledResolution.y);
 
             if (wireframe)
             {
@@ -71,7 +66,6 @@ protected:
 
     void EdgeDetectionPass() override
     {
-        glEnable(GL_CONSERVATIVE_RASTERIZATION_NV);
         edgesBuffer.Bind();
 
         glDrawBuffers(1, &edgesBuffer.attachments["edge"].FBODesc.attachmentFormat);
@@ -81,11 +75,10 @@ protected:
 
         glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
         glUseProgram(edgeDetectionProgram->handle);
-        glViewport(0, 0, res.x, res.y);
+        glViewport(0, 0, scaledResolution.x, scaledResolution.y);
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
         frameBuffer::Unbind();
-        glDisable(GL_CONSERVATIVE_RASTERIZATION_NV);
     }
 
     void BlendingWeightsPass() override
@@ -100,7 +93,7 @@ protected:
 
         glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
         glUseProgram(blendingWeightProgram->handle);
-        glViewport(0, 0, res.x, res.y);
+        glViewport(0, 0, scaledResolution.x, scaledResolution.y);
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
         frameBuffer::Unbind();
@@ -117,7 +110,7 @@ protected:
 
         glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
         glUseProgram(SMAAProgram->handle);
-        glViewport(0, 0, res.x, res.y);
+        glViewport(0, 0, scaledResolution.x, scaledResolution.y);
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
         frameBuffer::Unbind();
@@ -132,15 +125,14 @@ protected:
     void Draw() override
     {
         sceneCamera.ChangeProjection(camera_t::projection_e::perspective);
-
         sceneCamera.Update();
-
         UpdateDefaultBuffer();
 
         GeometryPass(); //render current scene with jitter
 
-        sceneCamera.resolution = res;
+        sceneCamera.resolution = scaledResolution;
         sceneCamera.ChangeProjection(camera_t::projection_e::orthographic);
+        sceneCamera.Update();
         UpdateDefaultBuffer();
 
         EdgeDetectionPass();
@@ -149,7 +141,7 @@ protected:
 
         sceneCamera.resolution = glm::vec2(window->GetSettings().resolution.x, window->GetSettings().resolution.y);
         sceneCamera.Update();
-
+        UpdateDefaultBuffer();
         FinalPass(&SMAABuffer.attachments["SMAA"], &geometryBuffer.attachments["color"]);
 
         DrawGUI(window);
@@ -167,48 +159,50 @@ protected:
 
     void ResizeBuffers(const glm::ivec2 resolution) override
     {
-        auto res = glm::vec2(window->GetSettings().resolution.x, window->GetSettings().resolution.y) * resolutionSettings.data.resolutionPerc;
         for (auto val : geometryBuffer.attachments | std::views::values)
         {
-            val.Resize(glm::ivec3(res, 1));
+            val.Resize(resolution);
         }
 
         for (auto val : edgesBuffer.attachments | std::views::values)
         {
-            val.Resize(glm::ivec3(res, 1));
+            val.Resize(resolution);
         }
 
         for (auto val : weightsBuffer.attachments | std::views::values)
         {
-            val.Resize(glm::ivec3(res, 1));
+            val.Resize(resolution);
         }
 
         for (auto val : SMAABuffer.attachments | std::views::values)
         {
-            val.Resize(glm::ivec3(res, 1));
+            val.Resize(resolution);
         }
+
+        sceneCamera.resolution = resolution;
     }
 
-    void HandleWindowResize(const tWindow* window, const TinyWindow::vec2_t<unsigned int> dimensions) override
+    void HandleWindowResize(const tWindow* window, const TinyWindow::vec2_t<uint16_t> dimensions) override
     {
-        defaultPayload.data.resolution = glm::ivec2(dimensions.width, dimensions.height);
-        ResizeBuffers(glm::ivec2(dimensions.x, dimensions.y));
+        scaledResolution = glm::vec2(dimensions.x, dimensions.y) * resScale;
+        ResizeBuffers(glm::ivec2(scaledResolution));
     }
 
     void HandleMaximize(const tWindow* window) override
     {
-        defaultPayload.data.resolution = glm::ivec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
-        ResizeBuffers(defaultPayload.data.resolution);
+        scaledResolution = glm::vec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height) * resScale;
+        ResizeBuffers(glm::ivec2(scaledResolution));
     }
 
     void DrawResolutionSettings()
     {
         ImGui::Begin("resolution scale", &isGUIActive);
-        if (ImGui::DragFloat("scaleX", &resolutionSettings.data.resolutionPerc.x, 0.01f) ||
-            ImGui::DragFloat("scaleY", &resolutionSettings.data.resolutionPerc.y, 0.01f))
+        if (ImGui::DragFloat("scaleX", &resolutionSettings.data.resolutionScale.x, 0.01f) ||
+            ImGui::DragFloat("scaleY", &resolutionSettings.data.resolutionScale.y, 0.01f))
         {
-            res = glm::vec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height) * resolutionSettings.data.resolutionPerc;
-            ResizeBuffers(glm::ivec2(res));
+            resScale =  resolutionSettings.data.resolutionScale;
+            scaledResolution = glm::vec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height) * resScale;
+            ResizeBuffers(scaledResolution);
         }
         ImGui::End();
     }

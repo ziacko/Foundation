@@ -31,7 +31,7 @@
         ],
         "shaders": [
             {
-                "name": "defaultVertex",
+                "name": "edgeVertex",
                 "path": "edgeDetection.vert",
                 "type": "vertex"
             },
@@ -53,7 +53,7 @@
         ],
         "shaders": [
             {
-                "name": "defaultVertex",
+                "name": "blendVertex",
                 "path": "blendingWeight.vert",
                 "type": "vertex"
             },
@@ -75,7 +75,7 @@
         ],
         "shaders": [
             {
-                "name": "defaultVertex",
+                "name": "NeighborVertex",
                 "path": "SMAA.vert",
                 "type": "vertex"
             },

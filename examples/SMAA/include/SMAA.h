@@ -59,11 +59,17 @@ public:
 
 		FBODescriptor colorDesc;
 		colorDesc.dimensions = glm::ivec3(window->GetSettings().resolution.width, window->GetSettings().resolution.height, 1);
+		colorDesc.wrapRSetting = GL_CLAMP;
+		colorDesc.wrapTSetting = GL_CLAMP;
+		colorDesc.wrapSSetting = GL_CLAMP;
 
 		FBODescriptor depthDesc;
 		depthDesc.target = GL_TEXTURE_2D;
 		depthDesc.dataType = GL_FLOAT;
 		depthDesc.format = GL_DEPTH_COMPONENT;
+		depthDesc.wrapRSetting = GL_CLAMP;
+		depthDesc.wrapTSetting = GL_CLAMP;
+		depthDesc.wrapSSetting = GL_CLAMP;
 		depthDesc.internalFormat = gl_depth_component32f;
 		depthDesc.attachmentType = FBODescriptor::attachmentType_e::depth;
 		depthDesc.dimensions = glm::ivec3(window->GetSettings().resolution.width, window->GetSettings().resolution.height, 1);
@@ -71,7 +77,7 @@ public:
 		geometryBuffer.Initialize();
 		geometryBuffer.Bind();
 
-		geometryBuffer.AddAttachment(frameBuffer::attachment_t("color"));
+		geometryBuffer.AddAttachment(frameBuffer::attachment_t("color", colorDesc));
 		geometryBuffer.AddAttachment(frameBuffer::attachment_t("depth", depthDesc));
 
 		edgesBuffer.Initialize();
@@ -79,15 +85,31 @@ public:
 
 		FBODescriptor edgeDesc;
 		edgeDesc.format = gl_rg;
-		edgeDesc.internalFormat = gl_rg8;
+		edgeDesc.dataType = GL_FLOAT;
+		edgeDesc.internalFormat = gl_rg32f;
 		edgeDesc.dimensions = glm::ivec3(window->GetSettings().resolution.width, window->GetSettings().resolution.height, 1);
+		edgeDesc.wrapRSetting = GL_CLAMP;
+		edgeDesc.wrapTSetting = GL_CLAMP;
+		edgeDesc.wrapSSetting = GL_CLAMP;
+		//edgeDesc.minFilterSetting = GL_NEAREST;
+		//edgeDesc.magFilterSetting = GL_NEAREST;
 
 		edgesBuffer.AddAttachment(frameBuffer::attachment_t("edge", edgeDesc));
 
 		weightsBuffer.Initialize();
 		weightsBuffer.Bind();
 
-		weightsBuffer.AddAttachment(frameBuffer::attachment_t("blend", colorDesc));
+		FBODescriptor weightsDesc;
+		weightsDesc = colorDesc;
+		weightsDesc.dataType = GL_FLOAT;
+		weightsDesc.internalFormat = gl_rgba32f;
+		weightsDesc.wrapRSetting = GL_CLAMP;
+		weightsDesc.wrapTSetting = GL_CLAMP;
+		weightsDesc.wrapSSetting = GL_CLAMP;
+		//weightsDesc.minFilterSetting = GL_NEAREST;
+		//weightsDesc.magFilterSetting = GL_NEAREST;
+
+		weightsBuffer.AddAttachment(frameBuffer::attachment_t("blend", weightsDesc));
 
 		SMAABuffer.Initialize();
 		SMAABuffer.Bind();
@@ -150,6 +172,7 @@ protected:
 		sceneCamera.UpdateProjection();
 		defaultPayload.data.projection = sceneCamera.projection;
 		defaultPayload.data.view = sceneCamera.view;
+		defaultPayload.data.resolution = sceneCamera.resolution;
 		if (sceneCamera.currentProjectionType == camera_t::projection_e::perspective)
 		{
 			defaultPayload.data.translation = testModel.makeTransform();
@@ -368,7 +391,7 @@ protected:
 		frameBuffer::Unbind();
 
 		SMAABuffer.Bind();
-		frameBuffer::ClearTexture(SMAABuffer.attachments["SMAA"], clearColor);
+		frameBuffer::ClearTexture(SMAABuffer.attachments["SMAA"], clearColor2);
 		frameBuffer::Unbind();
 
 		edgesBuffer.Bind();
@@ -378,8 +401,6 @@ protected:
 		weightsBuffer.Bind();
 		frameBuffer::ClearTexture(weightsBuffer.attachments["blend"], clearColor2);
 		frameBuffer::Unbind();
-
-		sceneCamera.ChangeProjection(camera_t::projection_e::perspective);
 	}
 
 	virtual void ResizeBuffers(const glm::ivec2 resolution)
@@ -394,7 +415,7 @@ protected:
 		SMAABuffer.attachments["SMAA"].Resize(glm::ivec3(resolution, 1));
 	}
 
-	void HandleWindowResize(const tWindow* window, const TinyWindow::vec2_t<unsigned int> dimensions) override
+	void HandleWindowResize(const tWindow* window, const TinyWindow::vec2_t<uint16_t> dimensions) override
 	{
 		defaultPayload.data.resolution = glm::ivec2(dimensions.width, dimensions.height);
 		ResizeBuffers(glm::ivec2(dimensions.x, dimensions.y));
