@@ -80,7 +80,7 @@
                 "type": "vertex"
             },
             {
-                "name": "texturedFragment",
+                "name": "SMAAResolve",
                 "path": "SMAAResolve.frag",
                 "type": "fragment"
             }
@@ -97,12 +97,12 @@
         ],
         "shaders": [
             {
-                "name": "defaultVertex",
+                "name": "defaultVertex1",
                 "path": "default.vert",
                 "type": "vertex"
             },
             {
-                "name": "texturedFragment",
+                "name": "compare",
                 "path": "compare.frag",
                 "type": "fragment"
             }
@@ -119,7 +119,7 @@
         ],
         "shaders": [
             {
-                "name": "defaultVertex",
+                "name": "defaultVertex2",
                 "path": "default.vert",
                 "type": "vertex"
             },

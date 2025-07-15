@@ -88,7 +88,7 @@ public:
 		//assert(OpenGLDebugCallback);
 		
 		//glEnable(GL_DEPTH_TEST);
-		LoadShaderProgramsFromConfigFile(shaderConfigPath, false, &shaderProgramsMap);
+		LoadShaderProgramsFromConfigFile(shaderConfigPath, shaderHandler, &shaderProgramsMap);
 		
 		//shaderHandler->LoadShaderProgramsFromConfigFile(shaderConfigPath, false, &shaderPrograms); //replace this with the JSON version of this
 		defProgram = shaderProgramsMap[PROJECT_NAME]; //need a better way to automate this

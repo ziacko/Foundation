@@ -6,12 +6,12 @@
         ],
         "shaders": [
             {
-                "name": "default",
+                "name": "defaultVert",
                 "path": "default.vert",
                 "type": "vertex"
             },
             {
-                "name": "default",
+                "name": "defaultFrag",
                 "path": "default.frag",
                 "type": "fragment"
             }

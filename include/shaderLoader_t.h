@@ -2,16 +2,14 @@
 // Created by ziyad on 1/04/25.
 //
 
-#ifndef SHADERLOADER_H
-#define SHADERLOADER_H
-#include <TinyShaders.h>
+#pragma once
 
 //ok here we just need a basic system to load sanders via JSON
 
 
 //do we even bother making this a class?
 
-static void LoadShaderProgramsFromConfigFile( const std::string& shaderConfigPath, bool saveBinary = false, tsl::robin_map<std::string, tShaderProgram>* outPrograms = nullptr )
+static void LoadShaderProgramsFromConfigFile( const std::string& shaderConfigPath, shaderManager* manager, tsl::robin_map<std::string, tShaderProgram>* outPrograms = nullptr )
 {
     auto currentDir = std::filesystem::current_path();
     uint16_t numInputs = 0;
@@ -54,14 +52,6 @@ static void LoadShaderProgramsFromConfigFile( const std::string& shaderConfigPat
 
         yyjson_val* root = yyjson_doc_get_root(jsonDoc);
         assert(root != nullptr);
-
-        //start accessing values
-            //program name
-            //outputs - string - array
-            //shaders - array
-                //string(name), string(path) , string(type)
-            //vertex attributes
-                //string - array
 
         if (yyjson_is_arr(root))
         {
@@ -140,35 +130,28 @@ static void LoadShaderProgramsFromConfigFile( const std::string& shaderConfigPat
                             {
 
                                 printf("loading shader: %s\n", yyjson_get_str(shaderName));
+                                printf("loading shader type: %s\n", yyjson_get_str(shaderType));
 
                                 std::string newPath = std::string( yyjson_get_str(shaderPath));
                                 const std::string localPath = shaderPathPart / PROJECT_NAME / newPath;
                                 TinyShaders::shaderType_e localType;
                                 TinyShaders::StringToShaderType(std::string(yyjson_get_str(shaderType)), localType);
+
                                 //prepend the working directory to path
-                                localShader = tShader(yyjson_get_str(shaderName), localType, localPath);
+                                manager->LoadShader(yyjson_get_str(shaderName), localPath, localType);
                             }
 
-                            if (localShader.isCompiled == true)
+                            if (manager->GetShader(yyjson_get_str(shaderName))->isCompiled == true)
                             {
-                                localProgram.shaders.push_back(localShader);
-                            }
-                            else
-                            {
+                                localProgram.shaders.push_back(*manager->shaders[yyjson_get_str(shaderName)]);
                             }
                         }
                     }
                     //ok now lets put it all together
-                    localProgram = tShaderProgram(localProgram.name, localProgram.inputs, localProgram.outputs, localProgram.shaders);
-                    assert(localProgram.isCompiled);
-                    if (localProgram.isCompiled)
-                    {
-                        //outPrograms->push_back(localProgram);
-                        outPrograms->insert({std::string(localProgram.name), localProgram});
-                    }
+                    manager->BuildProgramFromShaders(localProgram.name, localProgram.inputs, localProgram.outputs, localProgram.shaders);
+                    outPrograms->emplace(localProgram.name, *manager->shaderPrograms[localProgram.name]);
                 }
             }
         }
     }
 }
-#endif //SHADERLOADER_H

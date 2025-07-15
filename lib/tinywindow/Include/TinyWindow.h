@@ -6,8 +6,6 @@
 #pragma ide diagnostic ignored "modernize-use-nodiscard"
 // created by Ziyad Barakat 2014 - 2025
 
-#include <array>
-#include <cmath>
 #include <cstdlib>
 #include <string>
 
@@ -107,10 +105,8 @@
 #endif//__linux__
 
 #include <algorithm>
-#include <bitset>
 #include <cstring>
 #include <functional>
-#include <iomanip>
 #include <memory>
 #include <vector>
 
@@ -552,8 +548,8 @@ namespace TinyWindow
 		invalidProfile,					/**< If an invalid OpenGL profile is being used */
 		invalidInterval,				/**< If a window swap interval setting is invalid */
 		fullscreenFailed,				/**< If setting the window to fullscreen has failed */
-		noExtensions,					/**< If platform specific window extensions have not been properly loaded */
-		invalidExtension,				/**< If a platform specific window extension is not supported */
+		noExtensions,					/**< If platform-specific window extensions have not been properly loaded */
+		invalidExtension,				/**< If a platform-specific window extension is not supported */
 		invalidDummyWindow,				/**< If the dummy window creation has failed */
 		invalidDummyPixelFormat,		/**< If the pixel format for the dummy context id invalid */
 		dummyCreationFailed,			/**< If the dummy context has failed to be created */
@@ -619,7 +615,7 @@ namespace TinyWindow
 		errorEntry(error_e::linuxNoValidFBConfig, "Linux Error: failed to get valid FBConfig"),
 		errorEntry(error_e::linuxNoHDRConfig, "Linux Error: failed to get HDR config"),
 		errorEntry(error_e::windowsCannotCreateWindows, "Windows Error: failed to create window"),
-		//errorEntry(error_t::windowsFullscreenBadDualView, "Error: invalid window name"),
+		//errorEntry(error_t::windowsFullscreenBadDualView, "Windows Error: bad dual view value for fullscreen"),
 		errorEntry(error_e::windowsFullscreenBadFlags, "Windows Error: Bad display change flags"),
 		errorEntry(error_e::windowsFullscreenBadMode, "Windows Error: Bad display change mode"),
 		errorEntry(error_e::WindowsFullscreenBadParam, "Windows Error: Bad display change Parameter"),
@@ -661,42 +657,42 @@ namespace TinyWindow
 
 	public:
 		const bool& GetIsFocused() const { return inFocus; }
+		const keyState_e* GetKeyState() const { return keys; }
+		vec2_t<int16_t> GetPosition() const { return position; }
 		const bool& GetShouldClose() const { return shouldClose; }
 		const bool& GetIsFullscreen() const { return isFullscreen; }
 		const bool& GetIsInitialized() const { return initialized; }
+		const windowSetting_t& GetSettings() const { return settings; }
+		const uint16_t& GetCurrentStyle() const { return currentStyle; }
 		const bool& GetContextCreated() const { return contextCreated; }
-		const keyState_e* GetKeyState() const { return keys; }
-		vec2_t<int16_t> GetPosition() const { return position; }
 		const bool& GetIsCurrentContext() const { return isCurrentContext; }
 		const monitor_t* GetCurrentMonitor() const { return currentMonitor; }
-		const vec2_t<int16_t>& GetMousePosition() const { return mousePosition; }
-		const uint16_t& GetCurrentStyle() const { return currentStyle; }
-		const vec2_t<int16_t>& GetPreviousPosition() const { return previousPosition; }
 		const buttonState_e* GetMouseButtonState() const { return mouseButton; }
-		const windowSetting_t& GetSettings() const { return settings; }
+		const vec2_t<int16_t>& GetMousePosition() const { return mousePosition; }
 		const uint16_t& GetCurrentScreenIndex() const { return currentScreenIndex; }
-		const vec2_t<int16_t>& GetPreviousMousePosition() const { return previousMousePosition; }
+		const vec2_t<int16_t>& GetPreviousPosition() const { return previousPosition; }
 		const vec2_t<uint16_t>& GetPreviousDimensions() const { return previousDimensions; }
+		const vec2_t<int16_t>& GetPreviousMousePosition() const { return previousMousePosition; }
 
 		void SetShouldClose(const bool& inShouldClose) { shouldClose = inShouldClose; }
 
 	private:
-		bool inFocus;					 /**< Whether the Window is currently in focus(if it is the current window be used) */
-		bool shouldClose;				 /**< Whether the Window should be closing */
-		bool initialized;				 /**< Whether the window has been successfully initialized */
-		bool isFullscreen;				 /**< Whether the window is currently in fullscreen mode */
-		bool contextCreated;			 /**< Whether the OpenGL context has been successfully created */
-		vec2_t<int16_t> position;			 /**< Position of the Window relative to the screen co-ordinates */
-		bool isCurrentContext;			 /**< Whether the window is the current window being drawn to */
-		keyState_e keys[last];			 /**< Record of keys that are either pressed or released in the respective window */
-		windowSetting_t settings;		 /**< List of User-defined settings for this windowS */
-		vec2_t<int16_t> mousePosition;		 /**< Position of the Mouse cursor relative to the window co-ordinates */
-		uint16_t currentStyle;		 /**< The current style of the window */
-		monitor_t* currentMonitor;		 /**< The monitor that the window is currently rendering to */
-		vec2_t<int16_t> previousPosition;	 /**< Previous position of the window before being set as Fullscreen */
-		uint16_t currentScreenIndex; /**< The Index of the screen currently being rendered to (fullscreen) */
-		vec2_t<int16_t> previousMousePosition;
+		bool inFocus;						/**< Whether the Window is currently in focus(if it is the current window be used) */
+		bool shouldClose;					/**< Whether the Window should be closing */
+		bool initialized;					/**< Whether the window has been successfully initialized */
+		bool isFullscreen;					/**< Whether the window is currently in fullscreen mode */
+		bool contextCreated;				/**< Whether the OpenGL context has been successfully created */
+		bool isCurrentContext;				/**< Whether the window is the current window being drawn to */
+		uint16_t currentStyle;				/**< The current style of the window */
+		keyState_e keys[last];				/**< Record of keys that are either pressed or released in the respective window */
+		vec2_t<int16_t> position;			/**< Position of the Window relative to the screen co-ordinates */
+		windowSetting_t settings;			/**< List of User-defined settings for this windowS */
+		monitor_t* currentMonitor;			/**< The monitor that the window is currently rendering to */
+		uint16_t currentScreenIndex;		/**< The Index of the screen currently being rendered to (fullscreen) */
+		vec2_t<int16_t> mousePosition;		/**< Position of the Mouse cursor relative to the window co-ordinates */
+		vec2_t<int16_t> previousPosition;	/**< Previous position of the window before being set as Fullscreen */
 		vec2_t<uint16_t> previousDimensions;
+		vec2_t<int16_t> previousMousePosition;
 		buttonState_e mouseButton[(uint16_t)mouseButton_e::last] {};
 		/**< Record of mouse buttons that are either presses or released */
 
@@ -719,7 +715,7 @@ namespace TinyWindow
 
 #elif defined(TW_LINUX)
 
-		int* attributes;					/**< Attributes of the window. RGB, depth, stencil, etc */
+		int16_t* attributes;					/**< Attributes of the window. RGB, depth, stencil, etc */
 		GLXContext context;					/**< The handle to the GLX rendering context */
 		Window windowHandle;				/**< The X11 handle to the window. I wish they didn't name the type 'Window' */
 		XVisualInfo* visualInfo;			/**< The handle to the Visual Information. similar purpose to PixelformatDesriptor */
@@ -752,7 +748,6 @@ namespace TinyWindow
 		Atom AtomWindowTypeNotification;
 		Atom AtomWindowTypeCombo;
 		Atom AtomWindowTypeDND;
-
 
 		Atom AtomState;
 		Atom AtomStateModal;
@@ -966,7 +961,7 @@ namespace TinyWindow
 		windowErrorEvent_t windowErrorEvent; /**< This is the callback to be used when an error has occurred */
 		managerErrorEvent_t managerErrorEvent; /**< This is the callback to be used when a manager specific error has occurred */
 
-		windowManager() {}
+		windowManager() = default;
 
 		/**
 		* Shutdown and delete all windows in the manager
@@ -1036,7 +1031,7 @@ namespace TinyWindow
 		/**
 		* Use this to add a window to the manager
 		*/
-		tWindow* AddWindow(windowSetting_t windowSetting)
+		tWindow* AddWindow(const windowSetting_t& windowSetting)
 		{
 			if (windowSetting.name.empty() == false)
 			{
@@ -1049,7 +1044,7 @@ namespace TinyWindow
 			return nullptr;
 		}
 
-		tWindow* AddSharedWindow(tWindow* sourceWindow, windowSetting_t windowSetting)
+		tWindow* AddSharedWindow(tWindow* sourceWindow, const windowSetting_t& windowSetting)
 		{
 			if (windowSetting.name.empty() == false)
 			{
@@ -1249,7 +1244,7 @@ namespace TinyWindow
 		/**
 		* Set the Size/Resolution of the given window
 		*/
-		void SetWindowSize(tWindow* window, vec2_t<uint16_t> newResolution)
+		void SetWindowSize(tWindow* window, vec2_t<uint16_t> newResolution) const
 		{
 			window->previousDimensions	= window->settings.resolution;
 			window->settings.resolution = newResolution;
@@ -1263,7 +1258,7 @@ namespace TinyWindow
 		/**
 		* Set the Position of the given window relative to screen co-ordinates
 		*/
-		void SetPosition(tWindow* window, vec2_t<int16_t> newPosition)
+		void SetPosition(tWindow* window, vec2_t<int16_t> newPosition) const //lol, sure
 		{
 			window->previousPosition = window->position;
 			window->position		 = newPosition;
@@ -1285,7 +1280,7 @@ namespace TinyWindow
 		/**
 		* Set the mouse Position of the given window's co-ordinates
 		*/
-		void SetMousePosition(tWindow* window, vec2_t<int16_t> newMousePosition)
+		void SetMousePosition(tWindow* window, const vec2_t<int16_t>& newMousePosition) const
 		{
 			window->mousePosition.x = newMousePosition.x;
 			window->mousePosition.y = newMousePosition.y;
@@ -1311,7 +1306,7 @@ namespace TinyWindow
 		/**
 		* Swap the draw buffers of the given window.
 		*/
-		void SwapDrawBuffers(tWindow* window)
+		void SwapDrawBuffers(const tWindow* window) const
 		{
 #if defined(TW_WINDOWS)
 			SwapBuffers(window->deviceContextHandle);
@@ -1323,7 +1318,7 @@ namespace TinyWindow
 		/**
 		* Make the given window be the current OpenGL Context to be drawn to
 		*/
-		void MakeCurrentContext(tWindow* window)
+		void MakeCurrentContext(const tWindow* window) const
 		{
 #if defined(TW_WINDOWS)
 			wglMakeCurrent(window->deviceContextHandle, window->glRenderingContextHandle);
@@ -1337,7 +1332,7 @@ namespace TinyWindow
 		/**
 		* Toggle the minimization state of the given window
 		*/
-		void Minimize(tWindow* window, bool newState)
+		void Minimize(tWindow* window, const bool& newState) const
 		{
 			if (newState)
 			{
@@ -1364,7 +1359,7 @@ namespace TinyWindow
 		/**
 		* Toggle the maximization state of the current window
 		*/
-		void Maximize(tWindow* window, bool newState)
+		void Maximize(tWindow* window, const bool& newState) const
 		{
 			if (newState)
 			{
@@ -1372,16 +1367,15 @@ namespace TinyWindow
 #if defined(TW_WINDOWS)
 				ShowWindow(window->windowHandle, SW_MAXIMIZE);
 #elif defined(TW_LINUX)
-				XEvent currentEvent;
-				memset(&currentEvent, 0, sizeof(currentEvent));
+				XEvent currentEvent = {};
 
 				currentEvent.xany.type			  = ClientMessage;
 				currentEvent.xclient.message_type = window->AtomState;
 				currentEvent.xclient.format		  = 32;
 				currentEvent.xclient.window		  = window->windowHandle;
 				currentEvent.xclient.data.l[0]	  = (window->settings.currentState == state_e::maximized);
-				currentEvent.xclient.data.l[1]	  = window->AtomStateMaximizedVert;
-				currentEvent.xclient.data.l[2]	  = window->AtomStateMaximizedVert;
+				currentEvent.xclient.data.l[1]	  = (long)window->AtomStateMaximizedVert;
+				currentEvent.xclient.data.l[2]	  = (long)window->AtomStateMaximizedVert;
 
 				XSendEvent(currentDisplay, window->windowHandle, 0, SubstructureNotifyMask, &currentEvent);
 #endif
@@ -1399,9 +1393,9 @@ namespace TinyWindow
 				currentEvent.xclient.message_type = window->AtomState;
 				currentEvent.xclient.format		  = 32;
 				currentEvent.xclient.window		  = window->windowHandle;
-				currentEvent.xclient.data.l[0]	  = (window->settings.currentState == state_e::maximized);
-				currentEvent.xclient.data.l[1]	  = window->AtomStateMaximizedVert;
-				currentEvent.xclient.data.l[2]	  = window->AtomStateMaximizedVert;
+				currentEvent.xclient.data.l[0]	  = (long)(window->settings.currentState == state_e::maximized);
+				currentEvent.xclient.data.l[1]	  = (long)window->AtomStateMaximizedVert;
+				currentEvent.xclient.data.l[2]	  = (long)window->AtomStateMaximizedVert;
 
 				XSendEvent(currentDisplay, window->windowHandle, 0, SubstructureNotifyMask, &currentEvent);
 #endif
@@ -1411,7 +1405,7 @@ namespace TinyWindow
 		/**
 		* Toggle the given window's full screen mode
 		*/
-		void SetFullScreen(tWindow* window, bool newState /* need to add definition for which screen*/)
+		void SetFullScreen(tWindow* window, const bool newState /* need to add definition for which screen*/) const
 		{
 			window->settings.currentState = newState ? state_e::fullscreen : state_e::normal;
 
@@ -1433,7 +1427,7 @@ namespace TinyWindow
 			currentEvent.xclient.format		  = 32;
 			currentEvent.xclient.window		  = window->windowHandle;
 			currentEvent.xclient.data.l[0]	  = window->settings.currentState == state_e::fullscreen;
-			currentEvent.xclient.data.l[1]	  = window->AtomFullScreen;
+			currentEvent.xclient.data.l[1]	  = (long)window->AtomFullScreen;
 
 			XSendEvent(currentDisplay, window->windowHandle, 0, SubstructureNotifyMask, &currentEvent);
 
@@ -1484,7 +1478,7 @@ namespace TinyWindow
 		/**
 		* Set the window to be in focus
 		*/
-		void Focus(tWindow* window, bool newState)
+		void Focus(tWindow* window, const bool& newState) const
 		{
 			if (newState)
 			{
@@ -1519,7 +1513,7 @@ namespace TinyWindow
 		/**
 		* Set the window style preset
 		*/
-		void SetStyle(tWindow* window, style_e windowStyle)
+		void SetStyle(tWindow* window, const style_e& windowStyle)
 		{
 #if defined(TW_WINDOWS)
 			switch (windowStyle)
@@ -1553,8 +1547,8 @@ namespace TinyWindow
 				case style_e::normal:
 					{
 						window->linuxDecorators = (1L << 2);
-						window->currentStyle	= window->linuxMove | window->linuxClose | window->linuxMaximize | window->linuxMinimize;
-						long Hints[5]			= {window->hint_e::function | window->hint_e::decorator, window->currentStyle, window->linuxDecorators, 0, 0};
+						window->currentStyle	= tWindow::linuxMove | tWindow::linuxClose | tWindow::linuxMaximize | tWindow::linuxMinimize;
+						const long Hints[5]			= {tWindow::function | tWindow::decorator, window->currentStyle, window->linuxDecorators, 0, 0};
 
 						XChangeProperty(currentDisplay, window->windowHandle, window->AtomHints, XA_ATOM, 32, PropModeReplace, (unsigned char*)Hints, 5);
 						XMapWindow(currentDisplay, window->windowHandle);
@@ -1611,7 +1605,7 @@ namespace TinyWindow
 		/**
 		* Enable window decorators
 		*/
-		void EnableDecorators(tWindow* window, uint16_t decorators)
+		void EnableDecorators(tWindow* window, const uint16_t& decorators)
 		{
 #if defined(TW_WINDOWS)
 
@@ -1693,7 +1687,7 @@ namespace TinyWindow
 		/**
 		* Disable window decorators
 		*/
-		void DisableDecorators(tWindow* window, uint16_t decorators)
+		void DisableDecorators(tWindow* window, const uint16_t& decorators) const
 		{
 #if defined(TW_WINDOWS)
 			if (decorators & border)
@@ -1779,7 +1773,7 @@ namespace TinyWindow
 		std::vector<std::unique_ptr<tWindow>> windowList;// replace with unordered map?
 		std::vector<errorEntry> errorLog;
 
-		void AddWindowErrorLog(tWindow* window, error_e newError, const uint16_t& fileLine, const std::string& functionName)
+		void AddWindowErrorLog(const tWindow* window, const error_e& newError, const uint16_t& fileLine, const std::string& functionName)
 		{
 			auto newString = errorLUT.at(newError);
 
@@ -1789,7 +1783,7 @@ namespace TinyWindow
 			newString.append(" at line ");
 			newString.append(std::to_string(fileLine));
 
-			auto newEntry = errorEntry(error_e::invalidWindowName, newString);
+			const auto newEntry = errorEntry(error_e::invalidWindowName, newString);
 
 			errorLog.push_back(newEntry);
 
@@ -1799,7 +1793,7 @@ namespace TinyWindow
 			}
 		}
 
-		void AddErrorLog(error_e newError, const uint16_t& fileLine = __LINE__, const std::string& functionName = __FUNCTION__)
+		void AddErrorLog(const error_e& newError, const uint16_t& fileLine = __LINE__, const std::string& functionName = __FUNCTION__)
 		{
 			auto newString = errorLUT.at(newError);
 
@@ -1809,7 +1803,7 @@ namespace TinyWindow
 			newString.append("at line %i \n");
 			newString.append(std::to_string(fileLine));
 
-			auto newEntry = errorEntry(error_e::invalidWindowName, newString);
+			auto newEntry = errorEntry(newError, newString);
 
 			errorLog.push_back(newEntry);
 
@@ -3727,7 +3721,7 @@ namespace TinyWindow
 		void Linux_InitializeWindow(tWindow* window)
 		{
 			window->currentDisplay = currentDisplay;
-			window->attributes = new int[5] {GLX_RGBA, GLX_DOUBLEBUFFER, GLX_DEPTH_SIZE, window->settings.depthBits, None};
+			window->attributes = new int16_t[5] {GLX_RGBA, GLX_DOUBLEBUFFER, GLX_DEPTH_SIZE, window->settings.depthBits, None};
 
 			window->linuxDecorators = 1;
 			window->currentStyle |= tWindow::linuxClose | tWindow::linuxMaximize | tWindow::linuxMinimize | tWindow::linuxMove;
@@ -3784,14 +3778,14 @@ namespace TinyWindow
 
 			XWindowAttributes attributes;
 			Status status	 = XGetWindowAttributes(window->currentDisplay, window->windowHandle, &attributes);
-			window->position = vec2_t<int16_t>(attributes.x, attributes.y);
+			window->position = vec2_t<int16_t>((int16_t)attributes.x, (int16_t)attributes.y);
 
 			InitializeGL(window);
 		}
 
-		void Linux_ShutdownWindow(tWindow* window) { XDestroyWindow(currentDisplay, window->windowHandle); }
+		void Linux_ShutdownWindow(tWindow* window) const { XDestroyWindow(currentDisplay, window->windowHandle); }
 
-		void Linux_Shutdown()
+		void Linux_Shutdown() const
 		{
 			for (const auto& windowIndex: windowList)
 				Linux_ShutdownWindow(windowIndex.get());
@@ -3827,8 +3821,8 @@ namespace TinyWindow
 
 				case KeyPress:
 					{
-						uint16_t functionKeysym = XkbKeycodeToKeysym(currentDisplay, inEvent.xkey.keycode, 0, inEvent.xkey.state & ShiftMask ? 1 : 0);
-						uint16_t translatedKey	= Linux_TranslateKey(functionKeysym);
+						const uint16_t functionKeysym = XkbKeycodeToKeysym(currentDisplay, inEvent.xkey.keycode, 0, inEvent.xkey.state & ShiftMask ? 1 : 0);
+						const uint16_t translatedKey	= Linux_TranslateKey(functionKeysym);
 						window->keys[translatedKey] = keyState_e::down;
 						if (keyEvent != nullptr)
 							keyEvent(window, translatedKey, keyState_e::down);
@@ -3846,7 +3840,7 @@ namespace TinyWindow
 
 							if (nextEvent.type == KeyPress && nextEvent.xkey.time == inEvent.xkey.time && nextEvent.xkey.keycode == inEvent.xkey.keycode)
 							{
-								uint16_t functionKeysym = XkbKeycodeToKeysym(currentDisplay, inEvent.xkey.keycode, 0, inEvent.xkey.state & ShiftMask ? 1 : 0);
+								const uint16_t functionKeysym = XkbKeycodeToKeysym(currentDisplay, inEvent.xkey.keycode, 0, inEvent.xkey.state & ShiftMask ? 1 : 0);
 
 								XNextEvent(currentDisplay, &inEvent);
 								triggered = true;
@@ -3857,8 +3851,8 @@ namespace TinyWindow
 
 						if (triggered == false)
 						{
-							uint16_t functionKeysym = XkbKeycodeToKeysym(currentDisplay, inEvent.xkey.keycode, 0, inEvent.xkey.state & ShiftMask ? 1 : 0);
-							uint16_t translatedKey	= Linux_TranslateKey(functionKeysym);
+							const uint16_t functionKeysym = XkbKeycodeToKeysym(currentDisplay, inEvent.xkey.keycode, 0, inEvent.xkey.state & ShiftMask ? 1 : 0);
+							const uint16_t translatedKey	= Linux_TranslateKey(functionKeysym);
 							window->keys[translatedKey] = keyState_e::up;
 
 							if (keyEvent != nullptr)
@@ -3991,15 +3985,15 @@ namespace TinyWindow
 						window->previousMousePosition = window->mousePosition;
 
 						// set the windows mouse position to match the event
-						window->mousePosition.x = inEvent.xmotion.x;
-						window->mousePosition.y = inEvent.xmotion.y;
+						window->mousePosition.x = (int16_t)inEvent.xmotion.x;
+						window->mousePosition.y = (int16_t)inEvent.xmotion.y;
 
 						/// set the screen mouse position to match the event
-						screenMousePosition.x = inEvent.xmotion.x_root;
-						screenMousePosition.y = inEvent.xmotion.y_root;
+						screenMousePosition.x = (int16_t)inEvent.xmotion.x_root;
+						screenMousePosition.y = (int16_t)inEvent.xmotion.y_root;
 
 						if (mouseMoveEvent != nullptr)
-							mouseMoveEvent(window, vec2_t<int16_t>(inEvent.xmotion.x, inEvent.xmotion.y), vec2_t<int16_t>(inEvent.xmotion.x_root, inEvent.xmotion.y_root));
+							mouseMoveEvent(window, vec2_t<int16_t>((int16_t)inEvent.xmotion.x, (int16_t)inEvent.xmotion.y), vec2_t<int16_t>((int16_t)inEvent.xmotion.x_root, (int16_t)inEvent.xmotion.y_root));
 						break;
 					}
 
@@ -4060,10 +4054,10 @@ namespace TinyWindow
 						if (inEvent.xconfigure.x != window->position.x || inEvent.xconfigure.y != window->position.y)
 						{
 							if (movedEvent != nullptr)
-								movedEvent(window, vec2_t<int16_t>(inEvent.xconfigure.x, inEvent.xconfigure.y));
+								movedEvent(window, vec2_t<int16_t>((int16_t)inEvent.xconfigure.x, (int16_t)inEvent.xconfigure.y));
 
-							window->position.x = inEvent.xconfigure.x;
-							window->position.y = inEvent.xconfigure.y;
+							window->position.x = (int16_t)inEvent.xconfigure.x;
+							window->position.y = (int16_t)inEvent.xconfigure.y;
 						}
 						break;
 					}
@@ -4091,7 +4085,7 @@ namespace TinyWindow
 							window->settings.resolution.height = attributes.height;
 						
 							// go through each property and match it to an existing Atomic state
-							for (uint16_t itemIndex = 0; itemIndex < numItems; itemIndex++)
+							for (ulong itemIndex = 0; itemIndex < numItems; itemIndex++)
 							{
 								Atom currentProperty = ((long*)(properties))[itemIndex];
 
@@ -4152,6 +4146,7 @@ namespace TinyWindow
 							break;
 						break;
 					}
+			default: {};
 			}
 
 			if (inEvent.type == window->AtomXDNDPosition)
@@ -4396,7 +4391,7 @@ namespace TinyWindow
 				//GetBestFrameBufferConfig(window);
 				GLXContext dummyContext = glXCreateNewContext(window->currentDisplay, window->settings.bestFBConfig, GLX_RGBA_TYPE, nullptr, true);
 
-				if (dummyContext == NULL)
+				if (dummyContext == nullptr)
 				{
 					AddWindowErrorLog(window, error_e::linuxFunctionNotImplemented, __LINE__, __func__);
 					return;
@@ -4436,8 +4431,8 @@ namespace TinyWindow
 
 				XWindowAttributes attributes;
 				XGetWindowAttributes(window->currentDisplay, window->windowHandle, &attributes);
-				window->position.x = attributes.x;
-				window->position.y = attributes.y;
+				window->position.x = (int16_t)attributes.x;
+				window->position.y = (int16_t)attributes.y;
 
 				window->contextCreated = true;
 				window->InitializeAtoms();
@@ -4448,14 +4443,14 @@ namespace TinyWindow
 			}
 		}
 
-		void GetExtraMonitorData(XRROutputInfo* inInfo, RROutput inOutput, monitor_t* inMonitor)
+		void GetExtraMonitorData(const XRROutputInfo* inInfo, const RROutput& inOutput, monitor_t* inMonitor)
 		{
 			// throw in a vector of monitors and the output
 			std::string GPUName;
 			std::string monitorName;
-			auto rootDisplay					= XOpenDisplay(nullptr);
-			auto rootWindow						= XDefaultRootWindow(rootDisplay);
-			XRRScreenResources* screenResources = XRRGetScreenResources(rootDisplay, rootWindow);
+			auto rootDisplay						= XOpenDisplay(nullptr);
+			const auto rootWindow			= XDefaultRootWindow(rootDisplay);
+			XRRScreenResources* screenResources		= XRRGetScreenResources(rootDisplay, rootWindow);
 
 			Atom edid_atom = XInternAtom(rootDisplay, RR_PROPERTY_RANDR_EDID, False);
 			unsigned char* edid_data;
