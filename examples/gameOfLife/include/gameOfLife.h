@@ -110,7 +110,7 @@ protected:
 
 		if (currentTickDelay < tickDelay)
 		{
-			currentTickDelay += sceneClock->GetDeltaTime();
+			currentTickDelay += clock->GetDeltaTime();
 		}
 
 		else

@@ -1,5 +1,6 @@
 #ifndef CAMERA_H
 #define CAMERA_H
+#include "Globals.h"
 
 class camera_t
 {
@@ -51,9 +52,9 @@ public:
 	static const float		defaultPersNear;// = 15.0f;
 	static const float		defaultPersFar;//= 1000.0f;
 
-	explicit camera_t(glm::vec2 resolution = glm::vec2(1280, 720), float speed = 1.0f,
-	                  projection_e type = projection_e::orthographic, float nearPlane = 0.1f,
-	                  float farPlane = 1000.0f, float fieldOfView = 60.0f)
+	explicit camera_t(glm::vec2 resolution = defaultWindowSize, float speed = defaultCameraSpeed,
+	                  projection_e type = projection_e::orthographic, float nearPlane = defaultNearPlane,
+	                  float farPlane = defaultFarPlane, float fieldOfView = defaultFieldOfView)
 	{
 		this->farPlane = farPlane;
 		this->nearPlane = nearPlane;

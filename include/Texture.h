@@ -1,15 +1,9 @@
-#ifndef TEXTURE_H
-#define TEXTURE_H
-#include <stb_image.h>
-#include <stb_image_write.h>
-#include <gli/gli.hpp>
-
-
+#pragma once
 //instead of one mega class of texture, just break it down into seperate 
 
 struct textureDescriptor
 {
-	textureDescriptor(GLenum target = GL_TEXTURE_2D, GLenum dataType = GL_UNSIGNED_BYTE,
+	explicit textureDescriptor(GLenum target = GL_TEXTURE_2D, GLenum dataType = GL_UNSIGNED_BYTE,
 		GLenum format = GL_RGBA, GLint internalFormat = GL_RGBA8,		
 		GLenum minFilterSetting = GL_LINEAR, GLenum magFilterSetting = GL_LINEAR,
 		GLenum wrapSSetting = GL_REPEAT, GLenum wrapTSetting = GL_REPEAT, GLenum wrapRSetting = gl_clamp_to_edge,
@@ -85,8 +79,8 @@ public:
 		albedo
 	};
 
-	texture(std::string path = "textures/earth_diffuse.tga", textureType_t texType = textureType_t::image,
-		std::string uniformName = "defaultTexture", textureDescriptor texDescriptor = textureDescriptor())
+	explicit texture(std::string path = "textures/earth_diffuse.tga", textureType_t texType = textureType_t::image,
+	                 std::string uniformName = "defaultTexture", textureDescriptor texDescriptor = textureDescriptor())
 	{
 		this->path = path;
 		this->uniformName = uniformName;
@@ -101,13 +95,14 @@ public:
 		uniformHandle = 0;
 	}
 	
-	virtual ~texture(){}
+	virtual ~texture() = default;
+
 	void SetActive() const
 	{
 		glBindTextureUnit(handle, handle);
 	}
 	
-	virtual void GetUniformLocation(GLuint programHandle)
+	virtual void GetUniformLocation(const GLuint& programHandle)
 	{
 		uniformHandle = glGetUniformLocation(programHandle, uniformName.c_str());
 		glUniform1i(uniformHandle, handle);
@@ -410,27 +405,27 @@ public:
 		this->texType = newType;
 	}
 
-	std::string GetFilePath()
+	std::string GetFilePath() const
 	{
 		return path;
 	}
 
-	std::string GetUniformName()
+	std::string GetUniformName() const
 	{
 		return uniformName;
 	}
 
-	unsigned int GetHandle()
+	unsigned int GetHandle() const
 	{
 		return handle;
 	}
 
-	GLuint64 GetResidentHandle()
+	GLuint64 GetResidentHandle() const
 	{
 		return residentHandle;
 	}
 
-	std::vector<float> GetPixels()
+	std::vector<float> GetPixels() const
 	{
 		int bytes = texDesc.dimensions.x * texDesc.dimensions.y * 2;
 
@@ -440,11 +435,12 @@ public:
 
 		std::vector<float> result;
 		result.assign(pixels, pixels + bytes);
+		delete pixels; //do some cleanup
 		return result;
 	}
 
 	//copy another texture into itself. just 2D textures right now
-	void Copy(texture* otherTexture)
+	void Copy(const texture* otherTexture) const
 	{
 		glCopyImageSubData(otherTexture->handle, otherTexture->texDesc.target, otherTexture->texDesc.currentMipmapLevel, 0, 0, 0,
 			handle, texDesc.target, texDesc.currentMipmapLevel, 0, 0, 0,
@@ -467,7 +463,7 @@ public:
 
 	}
 
-	void Initialize()
+	void Initialize() const
 	{
 		
 	}
@@ -488,7 +484,7 @@ public:
 
 private:
 
-	void stbLoad(char* data, bool reload = false)
+	void stbLoad(const char* data, const bool reload = false)
 	{
 		switch (texDesc.channels)
 		{
@@ -530,87 +526,59 @@ private:
 
 		switch (texDesc.target)
 		{
-		case GL_TEXTURE_1D:
-		{
-			break;
-		}
-
-		case gl_texture_1d_array:
-		{
-			break;
-		}
-
-		case GL_TEXTURE_2D:
-		{
-			glTexParameteri(texDesc.target, GL_TEXTURE_WRAP_S, texDesc.wrapSSetting);
-			glTexParameteri(texDesc.target, GL_TEXTURE_WRAP_T, texDesc.wrapTSetting);
-
-			if(texDesc.isImmutable)
-			{				
-				glTexStorage2D(texDesc.target, texDesc.mipmapLevels, texDesc.internalFormat, texDesc.dimensions.x, texDesc.dimensions.y);
-				glTextureSubImage2D(handle, texDesc.currentMipmapLevel, texDesc.xOffset, texDesc.yOffset, texDesc.dimensions.x, texDesc.dimensions.y, texDesc.format, texDesc.dataType, data);
-			}
-
-			else
+			case GL_TEXTURE_1D:
+			case gl_texture_1d_array:
 			{
-				glTexImage2D(texDesc.target, texDesc.currentMipmapLevel, texDesc.internalFormat, texDesc.dimensions.x, texDesc.dimensions.y, texDesc.border, texDesc.format, texDesc.dataType, data);
+				break;
 			}
-			
-			if (texDesc.mipmapLevels > 0)
+
+			case GL_TEXTURE_2D:
 			{
-				glGenerateMipmap(GL_TEXTURE_2D);
+				glTexParameteri(texDesc.target, GL_TEXTURE_WRAP_S, texDesc.wrapSSetting);
+				glTexParameteri(texDesc.target, GL_TEXTURE_WRAP_T, texDesc.wrapTSetting);
+
+				if(texDesc.isImmutable)
+				{
+					glTexStorage2D(texDesc.target, texDesc.mipmapLevels, texDesc.internalFormat, texDesc.dimensions.x, texDesc.dimensions.y);
+					glTextureSubImage2D(handle, texDesc.currentMipmapLevel, texDesc.xOffset, texDesc.yOffset, texDesc.dimensions.x, texDesc.dimensions.y, texDesc.format, texDesc.dataType, data);
+				}
+
+				else
+				{
+					glTexImage2D(texDesc.target, texDesc.currentMipmapLevel, texDesc.internalFormat, texDesc.dimensions.x, texDesc.dimensions.y, texDesc.border, texDesc.format, texDesc.dataType, data);
+				}
+
+				if (texDesc.mipmapLevels > 0)
+				{
+					glGenerateMipmap(GL_TEXTURE_2D);
+				}
+
+				break;
 			}
-			
-			break;
-		}
 
-		case gl_texture_2d_array:
-		{
-			break;
-		}
+			case gl_texture_2d_array:
+			{
+				break;
+			}
 
-		case gl_texture_2d_multisample:
-		{
-			glTexParameteri(texDesc.target, GL_TEXTURE_WRAP_S, texDesc.wrapSSetting);
-			glTexParameteri(texDesc.target, GL_TEXTURE_WRAP_T, texDesc.wrapTSetting);
-			break;
-		}
+			case gl_texture_2d_multisample:
+			{
+				glTexParameteri(texDesc.target, GL_TEXTURE_WRAP_S, texDesc.wrapSSetting);
+				glTexParameteri(texDesc.target, GL_TEXTURE_WRAP_T, texDesc.wrapTSetting);
+				break;
+			}
 
-		case gl_texture_2d_multisample_array:
-		{
-			break;
-		}
+			case gl_texture_2d_multisample_array:
+			case gl_texture_3d:
+			case gl_texture_buffer:
+			case gl_texture_rectangle:
+			case gl_texture_cube_map:
+			case gl_texture_cube_map_array:
+			default:
+			{
 
-		case gl_texture_3d:
-		{
-			break;
-		}
-
-		case gl_texture_buffer:
-		{
-			break;
-		}
-
-		case gl_texture_rectangle:
-		{
-			break;
-		}
-
-		case gl_texture_cube_map:
-		{
-			break;
-		}
-
-		case gl_texture_cube_map_array:
-		{
-			break;
-		}
-
-		default:
-		{
-
-			break;
-		}
+				break;
+			}
 		}
 
 		
@@ -749,4 +717,3 @@ private:
 		UnbindTexture();
 	}
 };
-#endif

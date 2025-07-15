@@ -5,6 +5,7 @@
 #define QOI_IMPLEMENTATION
 #define IMGUI_IMPL_OPENGL_USE_VERTEX_ARRAY
 #define IMGUI_IMPL_OPENGL_USE_BUFFER_BINDING
+
 //C++ libs
 #include <iostream>
 #include <string>
@@ -36,6 +37,9 @@ using namespace TinyShaders;
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/euler_angles.hpp>
+#include <gli/gli.hpp>
+#include <stb_image.h>
+#include <stb_image_write.h>
 #include <imgui.h>
 #include <yyjson.h>
 #include <absl/container/inlined_vector.h>
@@ -43,6 +47,22 @@ using namespace TinyShaders;
 #include <absl/strings/string_view.h>
 #include <tsl/robin_map.h>
 #include <ufbx.h>
+
+//global defines
+#define PI 3.14159265
+constexpr float clearColor[4] = {0.33f, 0.33f, 0.33f, 1.0f};
+constexpr float clearColor2[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+
+constexpr glm::vec2 defaultWindowSize = glm::vec2(1280, 720);
+
+constexpr float defaultNearPlane = 0.01f;
+constexpr float defaultFarPlane = 100.0f;
+constexpr float defaultFieldOfView = 90.0f;
+constexpr float defaultCameraSpeed = PI * 0.1;
+
+constexpr glm::vec2 defaultViewportOrigin = glm::vec2(0);
+
+//local headers
 using namespace TinyWindow;
 using namespace std::placeholders;
 //internal libs
@@ -56,9 +76,3 @@ using namespace std::placeholders;
 #include "FrameBuffer.h"
 
 
-//global defines
-#define PI 3.14159265
-constexpr float clearColor[4] = {0.33f, 0.33f, 0.33f, 1.0f};
-constexpr float clearColor2[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
-
-constexpr glm::vec2 defaultWindowSize = glm::vec2(1280, 720);

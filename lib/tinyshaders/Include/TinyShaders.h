@@ -35,13 +35,13 @@ namespace TinyShaders
 {
 	using parseUniformBlockEvent_t = std::function<void(GLuint errorNumber, std::string errorMessage)>;
 
-	const int maxNumShaderComponents = 5;/**< The Maximum number of components a shader program can have. It's always 5*/
-	std::string defaultProgramBinaryExtension = ".glbin";
-	std::string defaultBinaryPath = "./Shaders/";
-	std::string defaultBinaryconfigPath = "Binaries.txt";
-	std::string defaultShaderProgramPath = "Shaders.txt";
+	constexpr int maxNumShaderComponents = 5;/**< The Maximum number of components a shader program can have. It's always 5*/
+	inline std::string defaultProgramBinaryExtension = ".glbin";
+	inline std::string defaultBinaryPath = "./Shaders/";
+	inline std::string defaultBinaryConfigPath = "Binaries.txt";
+	inline std::string defaultShaderProgramPath = "Shaders.txt";
 
-	enum class error_t
+	enum class error_e
 	{
 		success,
 		invalidString,
@@ -63,7 +63,7 @@ namespace TinyShaders
 		shaderProgramCompileFailed
 	};
 
-	enum class shaderType_t
+	enum class shaderType_e
 	{
 		vertex = gl_vertex_shader,
 		fragment = gl_fragment_shader,
@@ -73,90 +73,93 @@ namespace TinyShaders
 		compute = gl_compute_shader
 	};
 
+	typedef std::pair<error_e, std::string> errorLUT;
+
+
 	class errorCategory_t : public std::error_category
 	{
 		public:
-			const char* name() const throw() override
+			const char* name() const noexcept override
 			{
 				return "tinyShaders";
 			}
 
 			virtual std::string message(int errorValue) const override
 			{
-				auto err = (error_t)errorValue;
+				auto err = (error_e)errorValue;
 				switch (err)
 				{
-				case error_t::success:
+				case error_e::success:
 				{
 					return "function call was successful \n";
 				}
-				case error_t::invalidString:
+				case error_e::invalidString:
 				{
 					return "Error: string was invalid \n";
 				}					
-				case error_t::invalidShaderProgramName:
+				case error_e::invalidShaderProgramName:
 				{
 					return "Error: invalid shader program name \n";
 				}					
-				case error_t::invalidShaderProgramIndex:
+				case error_e::invalidShaderProgramIndex:
 				{
 					return "Error: invalid shader program index \n";
 				}
-				case error_t::invalidShaderName:
+				case error_e::invalidShaderName:
 				{
 					return "Error: invalid shader name \n";
 				}
-				case error_t::invalidShaderIndex:
+				case error_e::invalidShaderIndex:
 				{
 					return "Error: invalid shader index \n";
 				}
-				case error_t::invalidFilePath:
+				case error_e::invalidFilePath:
 				{
 					return "Error: invalid file path \n";
 				}
-				case error_t::shaderProgramNotFound:
+				case error_e::shaderProgramNotFound:
 				{
 					return "Error: shader program not found \n";
 				}
-				case error_t::shaderNotFound:
+				case error_e::shaderNotFound:
 				{
 					return "Error: shader not found \n";
 				}
-				case error_t::invalidShaderType:
+				case error_e::invalidShaderType:
 				{
 					return "Error: invalid shader type \n";
 				}
-				case error_t::shaderLoadFailed:
+				case error_e::shaderLoadFailed:
 				{
 					return "Error: shader has failed to load \n";
 				}
-				case error_t::shaderProgramLoadFailed:
+				case error_e::shaderProgramLoadFailed:
 				{
 					return "Error: shader program has failed to load \n";
 				}
-				case error_t::shaderProgramLinkFailed:
+				case error_e::shaderProgramLinkFailed:
 				{
 					return "Error: shader program linking has failed \n";
 				}
-				case error_t::shaderAlreadyLoaded:
+				case error_e::shaderAlreadyLoaded:
 				{
 					return "Error: shader has already been loaded. skipping \n";
 				}
-				case error_t::shaderProgramAlreadyExists:
+				case error_e::shaderProgramAlreadyExists:
 				{
 					return "Error: shader program has already been loaded. skipping \n";
 				}
-				case error_t::invalidSourceFile:
+				case error_e::invalidSourceFile:
 				{
 					return "Error: source file is invalid \n";
 				}
 
-				case error_t::shaderCompileFailed:
+				case error_e::shaderCompileFailed:
 				{
 					return "Error: the shader has failed to compile \n";
 				}
 
-				case error_t::shaderProgramCompileFailed:
+				case error_e::shaderProgramCompileFailed:
 				{
 					return "Error: the shader program has failed to compile \n";
 				}
@@ -177,7 +180,7 @@ namespace TinyShaders
 			}
 	};
 
-	inline std::error_code make_error_code(error_t errorCode)
+	inline std::error_code make_error_code(error_e errorCode)
 	{
 		return std::error_code(static_cast<int>(errorCode), errorCategory_t::get());
 	}
@@ -313,7 +316,7 @@ namespace TinyShaders
 
 namespace std
 {
-	template<> struct is_error_code_enum<TinyShaders::error_t> : std::true_type {};
+	template<> struct is_error_code_enum<TinyShaders::error_e> : std::true_type {};
 };
 
 namespace TinyShaders
@@ -327,7 +330,7 @@ namespace TinyShaders
 		std::string			name;			/**<The name of the shader component */
 		std::string			filePath;		/**<The FilePath of the component*/
 		GLuint				handle;			/**<The handle to the shader in OpenGL*/
-		shaderType_t		type;			/**<The type of shader ( Vertex, Fragment, etc.)*/
+		shaderType_e		type;			/**<The type of shader ( Vertex, Fragment, etc.)*/
 		GLboolean			isCompiled;		/**<Whether the shader has been compiled*/
 		GLuint				pipelineHandle;
 		GLboolean			seperable;
@@ -340,7 +343,7 @@ namespace TinyShaders
 		//inputs and outputs
 		//vertex attributes(name and type?)
 
-		tShader(std::string shaderName, shaderType_t shaderType, std::string shaderFilePath, bool seperable = true) :
+		tShader(std::string shaderName, shaderType_e shaderType, std::string shaderFilePath, bool seperable = true) :
 			name(shaderName), type(shaderType), isCompiled(false), filePath(shaderFilePath), seperable(seperable)
 		{
 			std::string buffer;
@@ -349,7 +352,7 @@ namespace TinyShaders
 			Compile(buffer);
 		}
 
-		tShader(std::string shaderName, std::string buffer, shaderType_t shaderType, bool seperable = true)
+		tShader(std::string shaderName, std::string buffer, shaderType_e shaderType, bool seperable = true)
 			: name(shaderName), type(shaderType), seperable(seperable)
 		{
 			type = shaderType;
@@ -360,7 +363,7 @@ namespace TinyShaders
 		}
 		
 		tShader() :
-		handle(0), type(shaderType_t::vertex), isCompiled(false), seperable(false) {}
+		handle(0), type(shaderType_e::vertex), isCompiled(false), seperable(false) {}
 
 		~tShader() {}
 
@@ -438,7 +441,7 @@ namespace TinyShaders
 					if (successful != GL_TRUE)
 					{
 						printf("%s \n", errorLog);
-						return error_t::shaderLoadFailed;
+						return error_e::shaderLoadFailed;
 					}
 
 					else
@@ -449,15 +452,15 @@ namespace TinyShaders
 				}
 				else
 				{
-					return error_t::invalidSourceFile;
+					return error_e::invalidSourceFile;
 				}
 			}
 			else
 			{
 				//either the file name doesn't exist or the component has already been loaded
-				return error_t::invalidFilePath;
+				return error_e::invalidFilePath;
 			}
-			return error_t::success;
+			return error_e::success;
 		}
 
 		/*
@@ -478,7 +481,7 @@ namespace TinyShaders
 
 			if (file == nullptr)
 			{
-				return error_t::invalidFilePath;
+				return error_e::invalidFilePath;
 			}
 
 			//get total byte in given file
@@ -492,7 +495,7 @@ namespace TinyShaders
 
 			fclose(file);
 			bufferToFill = buffer;
-			return error_t::success;
+			return error_e::success;
 		}
 	};
 
@@ -533,7 +536,7 @@ namespace TinyShaders
 			pipelineID(0)
 		{
 			isCompiled = GL_FALSE;
-			if (Compile(saveBinary) != error_t::success)
+			if (Compile(saveBinary) != error_e::success)
 			{
 				exit(0);
 			};
@@ -559,7 +562,7 @@ namespace TinyShaders
 			shaders.push_back(computeShader);
 			isCompiled = false;
 
-			if (Compile(saveBinary) != error_t::success)
+			if (Compile(saveBinary) != error_e::success)
 			{
 				exit(0);
 			}
@@ -672,7 +675,7 @@ namespace TinyShaders
 				{
 					glGetProgramInfoLog(handle, sizeof(errorLog), 0, errorLog);
 					printf("%s \n", errorLog);
-					return error_t::shaderProgramLinkFailed;
+					return error_e::shaderProgramLinkFailed;
 				}
 
 				isCompiled = GL_TRUE;
@@ -687,7 +690,7 @@ namespace TinyShaders
 
 					if (buffer == nullptr)
 					{
-						return error_t::shaderProgramCompileFailed;
+						return error_e::shaderProgramCompileFailed;
 					}
 
 					GLenum binaryFormat = GL_NONE;
@@ -710,9 +713,9 @@ namespace TinyShaders
 				}
 
 
-				return error_t::success;
+				return error_e::success;
 			}
-			return error_t::shaderProgramAlreadyExists;
+			return error_e::shaderProgramAlreadyExists;
 		}
 	};
 
@@ -789,12 +792,12 @@ namespace TinyShaders
 						if (shaderProgram->name.compare(programName) == 0)
 						{
 							outProgram = shaderProgram.get();
-							return error_t::success;
+							return error_e::success;
 						}
 					}
-					return error_t::shaderProgramNotFound;
+					return error_e::shaderProgramNotFound;
 				}
-				return error_t::invalidShaderProgramName;
+				return error_e::invalidShaderProgramName;
 			}
 
 			/*
@@ -809,18 +812,18 @@ namespace TinyShaders
 						if (shaderIter->name.compare(shaderName) == 0)
 						{
 							outShader = shaderIter.get();
-							return error_t::success;
+							return error_e::success;
 						}
 					}
-					return error_t::shaderNotFound;
+					return error_e::shaderNotFound;
 				}
-				return error_t::invalidShaderName;
+				return error_e::invalidShaderName;
 			}
 
 			/*
 			* load an OpenGL shader
 			*/
-			std::error_code LoadShader( std::string name, std::string shaderFile, shaderType_t shaderType, tShader* outShader = nullptr, bool seperable = true )
+			std::error_code LoadShader( std::string name, std::string shaderFile, shaderType_e shaderType, tShader* outShader = nullptr, bool seperable = true )
 			{
 				if (!name.empty())
 				{
@@ -829,11 +832,11 @@ namespace TinyShaders
 					{
 						shaders.push_back(std::move(newShader));
 						outShader = shaders.back().get();
-						return error_t::success;
+						return error_e::success;
 					}
-					return error_t::shaderCompileFailed;
+					return error_e::shaderCompileFailed;
 				}
-				return error_t::invalidString;
+				return error_e::invalidString;
 			}
 
 			/*
@@ -1166,9 +1169,9 @@ namespace TinyShaders
 						{
 							outProgram = shaderPrograms.back().get();
 						}
-						return error_t::success;
+						return error_e::success;
 					}
-					return error_t::shaderProgramLoadFailed;
+					return error_e::shaderProgramLoadFailed;
 			}
 
 			std::error_code BuildProgramFromShaders(const std::string& shaderName,
@@ -1189,9 +1192,9 @@ namespace TinyShaders
 					{
 						outProgram = shaderPrograms.back().get();
 					}
-					return error_t::success;
+					return error_e::success;
 				}
-				return error_t::shaderProgramLoadFailed;
+				return error_e::shaderProgramLoadFailed;
 			}
 
 			/*
@@ -1241,7 +1244,7 @@ namespace TinyShaders
 				return false;
 			}
 
-			std::error_code LoadShaderFromBuffer( const std::string& name, const std::string& buffer, const shaderType_t& shaderType )
+			std::error_code LoadShaderFromBuffer( const std::string& name, const std::string& buffer, const shaderType_e& shaderType )
 			{
 				if ( !buffer.empty() )
 				{
@@ -1253,18 +1256,18 @@ namespace TinyShaders
 							if (newShader->isCompiled)
 							{
 								shaders.push_back(std::move(newShader));
-								return error_t::success;
+								return error_e::success;
 							}
 							else
 							{
-								return error_t::shaderCompileFailed;
+								return error_e::shaderCompileFailed;
 							}
 						}
-						return error_t::shaderNotFound;
+						return error_e::shaderNotFound;
 					}
-					return error_t::invalidShaderName;
+					return error_e::invalidShaderName;
 				}
-				return error_t::invalidString;
+				return error_e::invalidString;
 			}
 
 		//private:
@@ -1275,79 +1278,79 @@ namespace TinyShaders
 	/*
 	* convert the given string to a shader type
 	*/
-	std::error_code StringToShaderType( const std::string& typeString, shaderType_t& shaderTypeOut )
+	std::error_code StringToShaderType( const std::string& typeString, shaderType_e& shaderTypeOut )
 	{
 		if( !typeString.empty() )
 		{
 			if ( typeString.compare("vertex") == 0 )
 			{
-				shaderTypeOut = shaderType_t::vertex;
-				return error_t::success;
+				shaderTypeOut = shaderType_e::vertex;
+				return error_e::success;
 			}
 
 			if ( typeString.compare("fragment") == 0 )
 			{
-				shaderTypeOut = shaderType_t::fragment;
-				return error_t::success;
+				shaderTypeOut = shaderType_e::fragment;
+				return error_e::success;
 			}
 
 			if ( typeString.compare("geometry") == 0 )
 			{
-				shaderTypeOut = shaderType_t::geometry;
-				return error_t::success;
+				shaderTypeOut = shaderType_e::geometry;
+				return error_e::success;
 			}
 
 			if ( typeString.compare("tessellation_Control") == 0 )
 			{
-				shaderTypeOut = shaderType_t::tessControl;
-				return error_t::success;
+				shaderTypeOut = shaderType_e::tessControl;
+				return error_e::success;
 			}
 
 			if ( typeString.compare("tessellation_Evaluation") == 0 )
 			{
-				shaderTypeOut = shaderType_t::tessEval;
-				return error_t::success;
+				shaderTypeOut = shaderType_e::tessEval;
+				return error_e::success;
 			}
 
 			if (typeString.compare("compute") == 0)
 			{
-				shaderTypeOut = shaderType_t::compute;
-				return error_t::success;
+				shaderTypeOut = shaderType_e::compute;
+				return error_e::success;
 			}
 
-			return error_t::invalidShaderType;
+			return error_e::invalidShaderType;
 		}
-		return error_t::invalidString;
+		return error_e::invalidString;
 	}
 
 	/*
 	* convert the given shader type to a string
 	*/
-	std::string ShaderTypeToString( const shaderType_t& shaderType )
+	std::string ShaderTypeToString( const shaderType_e& shaderType )
 	{
 		switch ( shaderType )
 		{
-		case shaderType_t::vertex:
+		case shaderType_e::vertex:
 			{
 				return "vertex";
 			}
-		case shaderType_t::fragment:
+		case shaderType_e::fragment:
 			{
 				return "fragment";
 			}
-		case shaderType_t::geometry:
+		case shaderType_e::geometry:
 			{
 				return "geometry";
 			}
-		case shaderType_t::tessControl:
+		case shaderType_e::tessControl:
 			{
 				return "tessellation Control";
 			}
-		case shaderType_t::tessEval:
+		case shaderType_e::tessEval:
 			{
 				return "tessellation Evaluation";
 			}
-		case shaderType_t::compute:
+		case shaderType_e::compute:
 			{
 				return "compute";
 			}

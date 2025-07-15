@@ -28,14 +28,14 @@ layout (location = 1) in vec2 uv;
 
 out defaultBlock
 {
-	vec4 position;
-	vec2 uv;
+	noperspective vec4 position;
+	noperspective vec2 uv;
 } outBlock;
 
 out blendBlock
 {
-	vec4 offset[3];
-	vec2 pixcoord;
+	noperspective vec4 offset[3];
+	noperspective vec2 pixcoord;
 } outBlend;
 
 layout(std140, binding = 0) uniform defaultSettings
@@ -53,6 +53,7 @@ layout(std140, binding = 0) uniform defaultSettings
 
 layout(std140, binding = 1) uniform SMAASettings
 {
+	vec4 		rtMetrics;
 	float		inThreshold;
 	float		contrastAdaptationFactor;
 	uint		maxSearchSteps;
@@ -60,28 +61,30 @@ layout(std140, binding = 1) uniform SMAASettings
 	uint		cornerRounding;
 };
 
-vec4 SMAA_RT_METRICS = vec4(1.f / resolution.x, 1.f / resolution.y, resolution.x, resolution.y);
 /**
  * Blend Weight Calculation Vertex Shader
  */
-void SMAABlendingWeightCalculationVS(float2 texcoord, out float2 pixcoord, out float4 offset[3])
-{
-    pixcoord = texcoord * SMAA_RT_METRICS.zw;
+void SMAABlendingWeightCalculationVS(float2 texcoord,
+                                     out float2 pixcoord,
+                                     out float4 offset[3]) {
+    pixcoord = texcoord * rtMetrics.zw;
 
     // We will use these offsets for the searches later on (see @PSEUDO_GATHER4):
-	offset[0] = mad(SMAA_RT_METRICS.xyxy, float4(-0.25, -0.125, -0.25, -0.125), texcoord.xyxy);
-    offset[1] = mad(SMAA_RT_METRICS.xyxy, float4(-0.125, -0.25, -0.125,  1.25), texcoord.xyxy);
+    offset[0] = mad(rtMetrics.xyxy, float4(-0.25, -0.125,  1.25, -0.125), texcoord.xyxy);
+    offset[1] = mad(rtMetrics.xyxy, float4(-0.125, -0.25, -0.125,  1.25), texcoord.xyxy);
 
     // And these for the searches, they indicate the ends of the loops:
-    offset[2] = mad(SMAA_RT_METRICS.xxyy,
+    offset[2] = mad(rtMetrics.xxyy,
                     float4(-2.0, 2.0, -2.0, 2.0) * float(maxSearchSteps),
                     float4(offset[0].xz, offset[1].yw));
 }
 
 void main()
 {
-	outBlock.position = projection * view * translation * position;
+	outBlock.position = position;
 	outBlock.uv = outBlock.position.xy * 0.5f + 0.5f;
+	//outBlock.uv.y = 1.0 - outBlock.uv.y; // Flip Y coordinate for correct texture sampling
 	SMAABlendingWeightCalculationVS(outBlock.uv, outBlend.pixcoord, outBlend.offset);
+
 	gl_Position = outBlock.position;
 }

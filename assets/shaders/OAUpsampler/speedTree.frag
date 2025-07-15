@@ -35,22 +35,20 @@ vec3 srgb_to_rgb_approx(vec3 srgb) {
     return pow(srgb, vec3(SRGB_INVERSE_GAMMA));
 }
 
+vec3 linearToSRGB(vec3 linear) {
+    return pow(clamp(linear, 0.0, 1.0), vec3(0.454545)); // 1.0 / 2.2 ≈ 0.454545
+}
+
+vec3 srgbToLinear(vec3 srgb) {
+    return pow(srgb, vec3(2.2));
+}
+
 void main()
 {
 	//clamp the alpha down hard. if alpha is less than 0.1, clamp it to 0
 	vec4 col =  texture(diffuse, inBlock.uv);
 
-	if(col.a < 0.5)
-	{
-		discard;
-	}
-
-	else
-	{
-		col.a = 1;
-	}
-
 	// (xchen) gamma to linear sRGB transformation
-	outColor.xyz = srgb_to_rgb_approx( col.xyz );
+	outColor.xyz = col.xyz;// srgbToLinear(col.xyz);
 	outColor.a = col.a;
 }

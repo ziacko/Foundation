@@ -102,7 +102,12 @@ function scene_project(name, parents)
             debugdir(_SCRIPT_DIR)
 end
 
-location "build/cmake"
+if os.host() == "linux" then
+    location "build/cmake"
+    else if os.host() == "windows" then
+    location "build/vs"
+    end
+end
 
 workspace "Portfolio"
     configurations { "Debug", "Release" }
@@ -122,6 +127,7 @@ workspace "Portfolio"
     filter { "configurations:Release" }
         optimize "on"
         symbols "off"
+        targetdir "bin/Release"
 
     filter {"platforms:Win64"}
     system "Windows"
@@ -133,6 +139,11 @@ workspace "Portfolio"
             
     filter "configurations:Release"
         defines { "ABSL_HARDENED" }
+
+    filter { "toolset:clang"}
+        configurations { "Debug", "Release" }
+        buildoptions { "-Wno-missing-template-arg-list-after-template-kw",
+                    "-Wdeprecated-enum-enum-conversion"}
             
     filter {}  -- Reset filter
 
@@ -229,7 +240,6 @@ newaction {
     end
 }]]--
 
-
 --2d projects
 scene_project("scene")
 scene_project("textured")
@@ -270,3 +280,4 @@ scene_project("depthPrePass", {"scene3D", "texturedScene3D"})
 scene_project("FXAA", {"scene3D", "texturedScene3D"})
 scene_project("SMAA", {"scene3D", "texturedScene3D"})
 scene_project("OAUpsampler", {"scene3D", "texturedScene3D", "SMAA"})
+scene_project("MSAA", {"scene3D", "texturedScene3D"})

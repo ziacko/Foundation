@@ -349,13 +349,13 @@ namespace TinyWindow
 		}
 	};
 
-	enum class profile_t
+	enum class profile_e
 	{
 		core,
 		compatibility,
 	};
 
-	enum class state_t
+	enum class state_e
 	{
 		normal,		/**< The window is in its default state */
 		maximized,	/**< The window is currently maximized */
@@ -368,7 +368,7 @@ namespace TinyWindow
 		friend class windowManager;
 
 		//should i move this to a window descriptor system?
-		explicit windowSetting_t(const std::string& name = "window", void* userData = nullptr, const vec2_t<uint16_t>& resolution = vec2_t<uint16_t>(defaultWindowWidth, defaultWindowHeight), const int& versionMajor = 4, const int& versionMinor = 5, const uint16_t& colorBits = 8, const uint16_t& depthBits = 24, const uint16_t& stencilBits = 8, const uint16_t& accumBits = 8, const state_t& currentState = state_t::normal, const profile_t& profile = profile_t::core)
+		explicit windowSetting_t(const std::string& name = "window", void* userData = nullptr, const vec2_t<uint16_t>& resolution = vec2_t<uint16_t>(defaultWindowWidth, defaultWindowHeight), const int& versionMajor = 4, const int& versionMinor = 5, const uint16_t& colorBits = 8, const uint16_t& depthBits = 24, const uint16_t& stencilBits = 8, const uint16_t& accumBits = 8, const state_e& currentState = state_e::normal, const profile_e& profile = profile_e::core)
 		{
 			this->name		   = name;
 			this->resolution   = resolution;
@@ -390,19 +390,19 @@ namespace TinyWindow
 #endif
 		}
 
-		void SetProfile(profile_t inProfile)
+		void SetProfile(profile_e inProfile)
 		{
 #if defined(TW_WINDOWS) && !defined(TW_USE_VULKAN)
 			this->profile = (inProfile == profile_t::compatibility) ? WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB : WGL_CONTEXT_CORE_PROFILE_BIT_ARB;
 #elif defined(TW_LINUX) && !defined(TW_USE_VULKAN)
-			this->profile = (inProfile == profile_t::compatibility) ? GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB : GLX_CONTEXT_CORE_PROFILE_BIT_ARB;
+			this->profile = (inProfile == profile_e::compatibility) ? GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB : GLX_CONTEXT_CORE_PROFILE_BIT_ARB;
 #endif
 		}
 
 		void* userData;
 		std::string name; /**< Name of the window */
 		bool enableSRGB;  /**< whether the window will support an sRGB colorspace backbuffer*/
-		state_t currentState;
+		state_e currentState;
 		/**< The current state of the window. these states include Normal, Minimized, Maximized and Full screen */
 		unsigned char colorBits;		   /**< Color format of the window. (defaults to 32 bit color) */
 		unsigned char depthBits;		   /**< Size of the Depth buffer. (defaults to 8 bit depth) */
@@ -421,14 +421,14 @@ namespace TinyWindow
 #endif
 	};
 
-	enum class keyState_t
+	enum class keyState_e
 	{
 		bad,  /**< If get key state fails (could not name it ERROR) */
 		up,	  /**< The key is currently up */
 		down, /**< The key is currently down */
 	};
 
-	enum key_t
+	enum key_e
 	{
 		bad	  = -1,		 /**< The key pressed is considered invalid */
 		first = 256 + 1, /**< The first key that is not a char */
@@ -492,13 +492,13 @@ namespace TinyWindow
 		last = apps,	 /**< The last key to be supported */
 	};
 
-	enum class buttonState_t
+	enum class buttonState_e
 	{
 		up,	 /**< The mouse button is currently up */
 		down /**< The mouse button is currently down */
 	};
 
-	enum class mouseButton_t
+	enum class mouseButton_e
 	{
 		left,	 /**< The left mouse button */
 		right,	 /**< The right mouse button */
@@ -508,13 +508,13 @@ namespace TinyWindow
 		last,	 /**< The last mouse button to be supported */
 	};
 
-	enum class mouseScroll_t
+	enum class mouseScroll_e
 	{
 		down, /**< The mouse wheel up */
 		up	  /**< The mouse wheel down */
 	};
 
-	enum decorator_t
+	enum decorator_e
 	{
 		titleBar	   = 1L << 1, /**< The title bar decoration of the window */
 		icon		   = 1L << 2, /**< The icon decoration of the window */
@@ -525,14 +525,14 @@ namespace TinyWindow
 		sizeableBorder = 1L << 7, /**< The sizable border decoration of the window */
 	};
 
-	enum class style_t
+	enum class style_e
 	{
 		bare,	/**< The window has no decorators but the window border and title bar */
 		normal, /**< The default window style for the respective platform */
 		popup,	/**< The window has no decorators */
 	};
 
-	enum class error_t
+	enum class error_e
 	{
 		success,						/**< If a function call was successful*/
 		invalidWindowName,				/**< If an invalid window name was given */
@@ -582,55 +582,55 @@ namespace TinyWindow
 		windowsFunctionNotImplemented,	/**< Windows: When a function has yet to be implemented on the Windows platform in the current version of the API */
 	};
 
-	typedef std::pair<error_t, std::string> errorEntry;
-	const std::unordered_map<error_t, std::string> errorLUT =
+	typedef std::pair<error_e, std::string> errorEntry;
+	const std::unordered_map<error_e, std::string> errorLUT =
 	{
-		errorEntry(error_t::invalidWindowName, "Error: invalid window name"),
-		errorEntry(error_t::invalidIconPath, "Error: invalid icon path"),
-		errorEntry(error_t::invalidWindowIndex, "Error: invalid window index"),
-		errorEntry(error_t::invalidWindowState, "Error: invalid window state"),
-		errorEntry(error_t::invalidResolution, "Error: invalid resolution"),
-		errorEntry(error_t::invalidContext, "Error: Failed to create OpenGL context"),
-		errorEntry(error_t::existingContext, "Error: context already created"),
-		errorEntry(error_t::notInitialized, "Error: Window manager not initialized"),
-		errorEntry(error_t::alreadyInitialized, "Error: window has already been initialized"),
-		errorEntry(error_t::invalidTitlebar, "Error: invalid title bar name (cannot be null or nullptr)"),
-		errorEntry(error_t::invalidCallback, "Error: invalid event callback given"),
-		errorEntry(error_t::windowInvalid, "Error: window was not found"),
-		errorEntry(error_t::invalidWindowStyle, "Error: invalid window style given"),
-		errorEntry(error_t::invalidVersion, "Error: invalid OpenGL version"),
-		errorEntry(error_t::invalidProfile, "Error: invalid OpenGL profile"),
-		errorEntry(error_t::fullscreenFailed, "Error: failed to enter fullscreen mode"),
-		errorEntry(error_t::functionNotImplemented, "Error: I'm sorry but this function has not been implemented yet"),
-		errorEntry(error_t::noExtensions, "Error: Platform extensions have not been loaded correctly"),
-		errorEntry(error_t::invalidExtension, "Error: Platform specific extension is not valid"),
-		errorEntry(error_t::invalidDummyWindow, "Error: the dummy window failed to be created"),
-		errorEntry(error_t::invalidDummyPixelFormat, "Error: the pixel format for the dummy context is invalid"),
-		errorEntry(error_t::dummyCreationFailed, "Error: the dummy context has failed to be created"),
-		errorEntry(error_t::invalidDummyContext, "Error: the dummy context in invalid"),
-		errorEntry(error_t::dummyCannotMakeCurrent, "Error: the dummy cannot be made the current context"),
-		errorEntry(error_t::cannotCreateCurrent, "Error: the context cannot be made current"),
-		errorEntry(error_t::invalidMonitorSettingIndex, "Error: the provided monitor setting index is invalid"),
-		errorEntry(error_t::linuxCannotConnectXServer, "Linux Error: cannot connect to X server"),
-		errorEntry(error_t::linuxInvalidVisualinfo, "Linux Error: Invalid visual information given"),
-		errorEntry(error_t::linuxCannotCreateWindow, "Linux Error: failed to create window"),
-		errorEntry(error_t::linuxFunctionNotImplemented, "Linux Error: function not implemented on Linux platform yet"),
-		errorEntry(error_t::linuxCannotCreateDummyContext, "Linux Error: failed to create dummy context"),
-		errorEntry(error_t::linuxNoValidFBConfig, "Linux Error: failed to get valid FBConfig"),
-		errorEntry(error_t::linuxNoHDRConfig, "Linux Error: failed to get HDR config"),
-		errorEntry(error_t::windowsCannotCreateWindows, "Windows Error: failed to create window"),
+		errorEntry(error_e::invalidWindowName, "Error: invalid window name"),
+		errorEntry(error_e::invalidIconPath, "Error: invalid icon path"),
+		errorEntry(error_e::invalidWindowIndex, "Error: invalid window index"),
+		errorEntry(error_e::invalidWindowState, "Error: invalid window state"),
+		errorEntry(error_e::invalidResolution, "Error: invalid resolution"),
+		errorEntry(error_e::invalidContext, "Error: Failed to create OpenGL context"),
+		errorEntry(error_e::existingContext, "Error: context already created"),
+		errorEntry(error_e::notInitialized, "Error: Window manager not initialized"),
+		errorEntry(error_e::alreadyInitialized, "Error: window has already been initialized"),
+		errorEntry(error_e::invalidTitlebar, "Error: invalid title bar name (cannot be null or nullptr)"),
+		errorEntry(error_e::invalidCallback, "Error: invalid event callback given"),
+		errorEntry(error_e::windowInvalid, "Error: window was not found"),
+		errorEntry(error_e::invalidWindowStyle, "Error: invalid window style given"),
+		errorEntry(error_e::invalidVersion, "Error: invalid OpenGL version"),
+		errorEntry(error_e::invalidProfile, "Error: invalid OpenGL profile"),
+		errorEntry(error_e::fullscreenFailed, "Error: failed to enter fullscreen mode"),
+		errorEntry(error_e::functionNotImplemented, "Error: I'm sorry but this function has not been implemented yet"),
+		errorEntry(error_e::noExtensions, "Error: Platform extensions have not been loaded correctly"),
+		errorEntry(error_e::invalidExtension, "Error: Platform specific extension is not valid"),
+		errorEntry(error_e::invalidDummyWindow, "Error: the dummy window failed to be created"),
+		errorEntry(error_e::invalidDummyPixelFormat, "Error: the pixel format for the dummy context is invalid"),
+		errorEntry(error_e::dummyCreationFailed, "Error: the dummy context has failed to be created"),
+		errorEntry(error_e::invalidDummyContext, "Error: the dummy context in invalid"),
+		errorEntry(error_e::dummyCannotMakeCurrent, "Error: the dummy cannot be made the current context"),
+		errorEntry(error_e::cannotCreateCurrent, "Error: the context cannot be made current"),
+		errorEntry(error_e::invalidMonitorSettingIndex, "Error: the provided monitor setting index is invalid"),
+		errorEntry(error_e::linuxCannotConnectXServer, "Linux Error: cannot connect to X server"),
+		errorEntry(error_e::linuxInvalidVisualinfo, "Linux Error: Invalid visual information given"),
+		errorEntry(error_e::linuxCannotCreateWindow, "Linux Error: failed to create window"),
+		errorEntry(error_e::linuxFunctionNotImplemented, "Linux Error: function not implemented on Linux platform yet"),
+		errorEntry(error_e::linuxCannotCreateDummyContext, "Linux Error: failed to create dummy context"),
+		errorEntry(error_e::linuxNoValidFBConfig, "Linux Error: failed to get valid FBConfig"),
+		errorEntry(error_e::linuxNoHDRConfig, "Linux Error: failed to get HDR config"),
+		errorEntry(error_e::windowsCannotCreateWindows, "Windows Error: failed to create window"),
 		//errorEntry(error_t::windowsFullscreenBadDualView, "Error: invalid window name"),
-		errorEntry(error_t::windowsFullscreenBadFlags, "Windows Error: Bad display change flags"),
-		errorEntry(error_t::windowsFullscreenBadMode, "Windows Error: Bad display change mode"),
-		errorEntry(error_t::WindowsFullscreenBadParam, "Windows Error: Bad display change Parameter"),
-		errorEntry(error_t::WindowsFullscreenChangeFailed, "Windows Error: The display driver failed to implement the specified graphics mode"),
-		errorEntry(error_t::WindowsFullscreenNotUpdated, "Windows Error: Unable to write settings to the registry"),
-		errorEntry(error_t::WindowsFullscreenNeedRestart, "Windows Error: The computer must be restarted for the graphics mode to work"),
-		errorEntry(error_t::windowsFunctionNotImplemented, "Windows Error: function not implemented on Windows platform yet"),
-		errorEntry(error_t::success, "function call was successful"),
+		errorEntry(error_e::windowsFullscreenBadFlags, "Windows Error: Bad display change flags"),
+		errorEntry(error_e::windowsFullscreenBadMode, "Windows Error: Bad display change mode"),
+		errorEntry(error_e::WindowsFullscreenBadParam, "Windows Error: Bad display change Parameter"),
+		errorEntry(error_e::WindowsFullscreenChangeFailed, "Windows Error: The display driver failed to implement the specified graphics mode"),
+		errorEntry(error_e::WindowsFullscreenNotUpdated, "Windows Error: Unable to write settings to the registry"),
+		errorEntry(error_e::WindowsFullscreenNeedRestart, "Windows Error: The computer must be restarted for the graphics mode to work"),
+		errorEntry(error_e::windowsFunctionNotImplemented, "Windows Error: function not implemented on Windows platform yet"),
+		errorEntry(error_e::success, "function call was successful"),
 	};
 
-	using keyEvent_t		  = std::function<void(const tWindow* window, const uint16_t& key, const keyState_t& keyState)>;
+	using keyEvent_t		  = std::function<void(const tWindow* window, const uint16_t& key, const keyState_e& keyState)>;
 	using focusEvent_t		  = std::function<void(const tWindow* window, const bool& isFocused)>;
 	using movedEvent_t		  = std::function<void(const tWindow* window, const vec2_t<int16_t>& windowPosition)>;
 	using resizeEvent_t		  = std::function<void(const tWindow* window, const vec2_t<uint16_t>& windowResolution)>;
@@ -639,8 +639,8 @@ namespace TinyWindow
 	using maximizedEvent_t	  = std::function<void(const tWindow* window)>;
 	using minimizedEvent_t	  = std::function<void(const tWindow* window)>;
 	using mouseMoveEvent_t	  = std::function<void(const tWindow* window, const vec2_t<int16_t>& windowMousePosition, const vec2_t<int16_t>& screenMousePosition)>;
-	using mouseWheelEvent_t	  = std::function<void(const tWindow* window, const mouseScroll_t& mouseScrollDirection)>;
-	using mouseButtonEvent_t  = std::function<void(const tWindow* window, const mouseButton_t& mouseButton, const buttonState_t& buttonState)>;
+	using mouseWheelEvent_t	  = std::function<void(const tWindow* window, const mouseScroll_e& mouseScrollDirection)>;
+	using mouseButtonEvent_t  = std::function<void(const tWindow* window, const mouseButton_e& mouseButton, const buttonState_e& buttonState)>;
 	using windowErrorEvent_t  = std::function<void(const tWindow* window, const errorEntry& entry)>;
 	using managerErrorEvent_t = std::function<void(const errorEntry& entry)>;
 
@@ -648,7 +648,7 @@ namespace TinyWindow
 	{
 		friend class windowManager;
 
-		using keyEvent_t		 = std::function<void(tWindow* window, uint16_t key, keyState_t keyState)>;
+		using keyEvent_t		 = std::function<void(tWindow* window, uint16_t key, keyState_e keyState)>;
 		using focusEvent_t		 = std::function<void(tWindow* window, bool isFocused)>;
 		using movedEvent_t		 = std::function<void(tWindow* window, vec2_t<int16_t> windowPosition)>;
 		using resizeEvent_t		 = std::function<void(tWindow* window, vec2_t<uint16_t> windowResolution)>;
@@ -656,8 +656,8 @@ namespace TinyWindow
 		using destroyedEvent_t	 = std::function<void(tWindow* window)>;
 		using maximizedEvent_t	 = std::function<void(tWindow* window)>;
 		using minimizedEvent_t	 = std::function<void(tWindow* window)>;
-		using mouseWheelEvent_t	 = std::function<void(tWindow* window, mouseScroll_t mouseScrollDirection)>;
-		using mouseButtonEvent_t = std::function<void(tWindow* window, mouseButton_t mouseButton, buttonState_t buttonState)>;
+		using mouseWheelEvent_t	 = std::function<void(tWindow* window, mouseScroll_e mouseScrollDirection)>;
+		using mouseButtonEvent_t = std::function<void(tWindow* window, mouseButton_e mouseButton, buttonState_e buttonState)>;
 
 	public:
 		const bool& GetIsFocused() const { return inFocus; }
@@ -665,14 +665,14 @@ namespace TinyWindow
 		const bool& GetIsFullscreen() const { return isFullscreen; }
 		const bool& GetIsInitialized() const { return initialized; }
 		const bool& GetContextCreated() const { return contextCreated; }
-		const keyState_t* GetKeyState() const { return keys; }
+		const keyState_e* GetKeyState() const { return keys; }
 		vec2_t<int16_t> GetPosition() const { return position; }
 		const bool& GetIsCurrentContext() const { return isCurrentContext; }
 		const monitor_t* GetCurrentMonitor() const { return currentMonitor; }
 		const vec2_t<int16_t>& GetMousePosition() const { return mousePosition; }
 		const uint16_t& GetCurrentStyle() const { return currentStyle; }
 		const vec2_t<int16_t>& GetPreviousPosition() const { return previousPosition; }
-		const buttonState_t* GetMouseButtonState() const { return mouseButton; }
+		const buttonState_e* GetMouseButtonState() const { return mouseButton; }
 		const windowSetting_t& GetSettings() const { return settings; }
 		const uint16_t& GetCurrentScreenIndex() const { return currentScreenIndex; }
 		const vec2_t<int16_t>& GetPreviousMousePosition() const { return previousMousePosition; }
@@ -688,7 +688,7 @@ namespace TinyWindow
 		bool contextCreated;			 /**< Whether the OpenGL context has been successfully created */
 		vec2_t<int16_t> position;			 /**< Position of the Window relative to the screen co-ordinates */
 		bool isCurrentContext;			 /**< Whether the window is the current window being drawn to */
-		keyState_t keys[last];			 /**< Record of keys that are either pressed or released in the respective window */
+		keyState_e keys[last];			 /**< Record of keys that are either pressed or released in the respective window */
 		windowSetting_t settings;		 /**< List of User-defined settings for this windowS */
 		vec2_t<int16_t> mousePosition;		 /**< Position of the Mouse cursor relative to the window co-ordinates */
 		uint16_t currentStyle;		 /**< The current style of the window */
@@ -697,7 +697,7 @@ namespace TinyWindow
 		uint16_t currentScreenIndex; /**< The Index of the screen currently being rendered to (fullscreen) */
 		vec2_t<int16_t> previousMousePosition;
 		vec2_t<uint16_t> previousDimensions;
-		buttonState_t mouseButton[(uint16_t)mouseButton_t::last] {};
+		buttonState_e mouseButton[(uint16_t)mouseButton_e::last] {};
 		/**< Record of mouse buttons that are either presses or released */
 
 #if defined(TW_USE_VULKAN)
@@ -798,7 +798,7 @@ namespace TinyWindow
 		Atom AtomXDNDActionAsk;
 		Atom AtomXDNDActionPrivate;
 
-		enum decorator_t
+		enum decorator_e
 		{
 			linuxBorder	  = 1L << 1,
 			linuxMove	  = 1L << 2,
@@ -807,7 +807,7 @@ namespace TinyWindow
 			linuxClose	  = 1L << 5,
 		};
 
-		enum hint_t
+		enum hint_e
 		{
 			function = 1,
 			decorator,
@@ -900,8 +900,8 @@ namespace TinyWindow
 			isFullscreen	   = false;
 			currentMonitor	   = nullptr;
 
-			std::fill(keys, keys + last, keyState_t::up);// = { keyState_t.bad };
-			std::fill_n(mouseButton, static_cast<uint16_t>(mouseButton_t::last), buttonState_t::up);
+			std::fill(keys, keys + last, keyState_e::up);// = { keyState_t.bad };
+			std::fill_n(mouseButton, static_cast<uint16_t>(mouseButton_e::last), buttonState_e::up);
 
 #if defined(TW_WINDOWS)
 			deviceContextHandle		 = nullptr;
@@ -1158,7 +1158,7 @@ namespace TinyWindow
 				ShutdownWindow(window);
 			}
 
-			AddWindowErrorLog(window, error_t::windowInvalid, __LINE__, __func__);
+			AddWindowErrorLog(window, error_e::windowInvalid, __LINE__, __func__);
 		}
 
 		/**
@@ -1192,7 +1192,7 @@ namespace TinyWindow
 
 				if (result != 0)
 				{
-					AddWindowErrorLog(window, error_t::invalidInterval, __LINE__, __func__);
+					AddWindowErrorLog(window, error_e::invalidInterval, __LINE__, __func__);
 					return;
 				}
 				glXMakeCurrent(previousDisplay, window->windowHandle, previousGLContext);
@@ -1341,7 +1341,7 @@ namespace TinyWindow
 		{
 			if (newState)
 			{
-				window->settings.currentState = state_t::minimized;
+				window->settings.currentState = state_e::minimized;
 
 #if defined(TW_WINDOWS)
 				ShowWindow(window->windowHandle, SW_MINIMIZE);
@@ -1351,7 +1351,7 @@ namespace TinyWindow
 			}
 			else
 			{
-				window->settings.currentState = state_t::normal;
+				window->settings.currentState = state_e::normal;
 #if defined(TW_WINDOWS)
 				ShowWindow(window->windowHandle, SW_RESTORE);
 #elif defined(TW_LINUX)
@@ -1368,7 +1368,7 @@ namespace TinyWindow
 		{
 			if (newState)
 			{
-				window->settings.currentState = state_t::maximized;
+				window->settings.currentState = state_e::maximized;
 #if defined(TW_WINDOWS)
 				ShowWindow(window->windowHandle, SW_MAXIMIZE);
 #elif defined(TW_LINUX)
@@ -1379,7 +1379,7 @@ namespace TinyWindow
 				currentEvent.xclient.message_type = window->AtomState;
 				currentEvent.xclient.format		  = 32;
 				currentEvent.xclient.window		  = window->windowHandle;
-				currentEvent.xclient.data.l[0]	  = (window->settings.currentState == state_t::maximized);
+				currentEvent.xclient.data.l[0]	  = (window->settings.currentState == state_e::maximized);
 				currentEvent.xclient.data.l[1]	  = window->AtomStateMaximizedVert;
 				currentEvent.xclient.data.l[2]	  = window->AtomStateMaximizedVert;
 
@@ -1388,7 +1388,7 @@ namespace TinyWindow
 			}
 			else
 			{
-				window->settings.currentState = state_t::normal;
+				window->settings.currentState = state_e::normal;
 #if defined(TW_WINDOWS)
 				ShowWindow(window->windowHandle, SW_RESTORE);
 #elif defined(TW_LINUX)
@@ -1399,7 +1399,7 @@ namespace TinyWindow
 				currentEvent.xclient.message_type = window->AtomState;
 				currentEvent.xclient.format		  = 32;
 				currentEvent.xclient.window		  = window->windowHandle;
-				currentEvent.xclient.data.l[0]	  = (window->settings.currentState == state_t::maximized);
+				currentEvent.xclient.data.l[0]	  = (window->settings.currentState == state_e::maximized);
 				currentEvent.xclient.data.l[1]	  = window->AtomStateMaximizedVert;
 				currentEvent.xclient.data.l[2]	  = window->AtomStateMaximizedVert;
 
@@ -1413,7 +1413,7 @@ namespace TinyWindow
 		*/
 		void SetFullScreen(tWindow* window, bool newState /* need to add definition for which screen*/)
 		{
-			window->settings.currentState = newState ? state_t::fullscreen : state_t::normal;
+			window->settings.currentState = newState ? state_e::fullscreen : state_e::normal;
 
 #if defined(TW_WINDOWS)
 
@@ -1432,7 +1432,7 @@ namespace TinyWindow
 			currentEvent.xclient.message_type = window->AtomState;
 			currentEvent.xclient.format		  = 32;
 			currentEvent.xclient.window		  = window->windowHandle;
-			currentEvent.xclient.data.l[0]	  = window->settings.currentState == state_t::fullscreen;
+			currentEvent.xclient.data.l[0]	  = window->settings.currentState == state_e::fullscreen;
 			currentEvent.xclient.data.l[1]	  = window->AtomFullScreen;
 
 			XSendEvent(currentDisplay, window->windowHandle, 0, SubstructureNotifyMask, &currentEvent);
@@ -1469,7 +1469,7 @@ namespace TinyWindow
 				XStoreName(currentDisplay, window->windowHandle, newTitle);
 #endif
 			}
-			AddWindowErrorLog(window, TinyWindow::error_t::invalidTitlebar, __LINE__, __func__);
+			AddWindowErrorLog(window, TinyWindow::error_e::invalidTitlebar, __LINE__, __func__);
 		}
 
 		/**
@@ -1478,7 +1478,7 @@ namespace TinyWindow
 		void SetIcon(tWindow* window)
 		{
 			// const char* windowName, const char* icon, uint16_t width, uint16_t height
-			AddWindowErrorLog(window, error_t::functionNotImplemented, __LINE__, __func__);
+			AddWindowErrorLog(window, error_e::functionNotImplemented, __LINE__, __func__);
 		}
 
 		/**
@@ -1519,7 +1519,7 @@ namespace TinyWindow
 		/**
 		* Set the window style preset
 		*/
-		void SetStyle(tWindow* window, style_t windowStyle)
+		void SetStyle(tWindow* window, style_e windowStyle)
 		{
 #if defined(TW_WINDOWS)
 			switch (windowStyle)
@@ -1550,18 +1550,18 @@ namespace TinyWindow
 
 			switch (windowStyle)
 			{
-				case style_t::normal:
+				case style_e::normal:
 					{
 						window->linuxDecorators = (1L << 2);
 						window->currentStyle	= window->linuxMove | window->linuxClose | window->linuxMaximize | window->linuxMinimize;
-						long Hints[5]			= {window->hint_t::function | window->hint_t::decorator, window->currentStyle, window->linuxDecorators, 0, 0};
+						long Hints[5]			= {window->hint_e::function | window->hint_e::decorator, window->currentStyle, window->linuxDecorators, 0, 0};
 
 						XChangeProperty(currentDisplay, window->windowHandle, window->AtomHints, XA_ATOM, 32, PropModeReplace, (unsigned char*)Hints, 5);
 						XMapWindow(currentDisplay, window->windowHandle);
 						break;
 					}
 
-				case style_t::bare:
+				case style_e::bare:
 					{
 						MWMHints_t hints;
 						// Set up Motif hints to control decorations
@@ -1585,7 +1585,7 @@ namespace TinyWindow
 						break;
 					}
 
-				case style_t::popup:
+				case style_e::popup:
 					{
 						MWMHints_t hints;
 						hints.flags		  = MWM_HINTS_DECORATIONS | MWM_HINTS_FUNCTIONS;
@@ -1602,7 +1602,7 @@ namespace TinyWindow
 
 				default:
 					{
-						AddWindowErrorLog(window, error_t::invalidWindowStyle, __LINE__, __func__);
+						AddWindowErrorLog(window, error_e::invalidWindowStyle, __LINE__, __func__);
 					}
 			}
 #endif
@@ -1779,7 +1779,7 @@ namespace TinyWindow
 		std::vector<std::unique_ptr<tWindow>> windowList;// replace with unordered map?
 		std::vector<errorEntry> errorLog;
 
-		void AddWindowErrorLog(tWindow* window, error_t newError, const uint16_t& fileLine, const std::string& functionName)
+		void AddWindowErrorLog(tWindow* window, error_e newError, const uint16_t& fileLine, const std::string& functionName)
 		{
 			auto newString = errorLUT.at(newError);
 
@@ -1789,7 +1789,7 @@ namespace TinyWindow
 			newString.append(" at line ");
 			newString.append(std::to_string(fileLine));
 
-			auto newEntry = errorEntry(error_t::invalidWindowName, newString);
+			auto newEntry = errorEntry(error_e::invalidWindowName, newString);
 
 			errorLog.push_back(newEntry);
 
@@ -1799,7 +1799,7 @@ namespace TinyWindow
 			}
 		}
 
-		void AddErrorLog(error_t newError, const uint16_t& fileLine = __LINE__, const std::string& functionName = __FUNCTION__)
+		void AddErrorLog(error_e newError, const uint16_t& fileLine = __LINE__, const std::string& functionName = __FUNCTION__)
 		{
 			auto newString = errorLUT.at(newError);
 
@@ -1809,7 +1809,7 @@ namespace TinyWindow
 			newString.append("at line %i \n");
 			newString.append(std::to_string(fileLine));
 
-			auto newEntry = errorEntry(error_t::invalidWindowName, newString);
+			auto newEntry = errorEntry(error_e::invalidWindowName, newString);
 
 			errorLog.push_back(newEntry);
 
@@ -1909,7 +1909,7 @@ namespace TinyWindow
 			window->glRenderingContextHandle = nullptr;
 
 #elif defined(TW_LINUX)
-			if (window->settings.currentState == state_t::fullscreen)
+			if (window->settings.currentState == state_e::fullscreen)
 				Restore(window);
 
 			glXDestroyContext(currentDisplay, window->context);
@@ -3734,7 +3734,7 @@ namespace TinyWindow
 
 			if (!currentDisplay)
 			{
-				AddWindowErrorLog(window, error_t::linuxCannotConnectXServer, __LINE__, __func__);
+				AddWindowErrorLog(window, error_e::linuxCannotConnectXServer, __LINE__, __func__);
 				return;
 			}
 
@@ -3762,7 +3762,7 @@ namespace TinyWindow
 
 			if (!window->visualInfo)
 			{
-				AddWindowErrorLog(window, error_t::linuxInvalidVisualinfo, __LINE__, __func__);
+				AddWindowErrorLog(window, error_e::linuxInvalidVisualinfo, __LINE__, __func__);
 				return;
 			}
 
@@ -3774,7 +3774,7 @@ namespace TinyWindow
 
 			if (!window->windowHandle)
 			{
-				AddWindowErrorLog(window, error_t::linuxCannotCreateWindow, __LINE__, __func__);
+				AddWindowErrorLog(window, error_e::linuxCannotCreateWindow, __LINE__, __func__);
 				return;
 			}
 
@@ -3829,9 +3829,9 @@ namespace TinyWindow
 					{
 						uint16_t functionKeysym = XkbKeycodeToKeysym(currentDisplay, inEvent.xkey.keycode, 0, inEvent.xkey.state & ShiftMask ? 1 : 0);
 						uint16_t translatedKey	= Linux_TranslateKey(functionKeysym);
-						window->keys[translatedKey] = keyState_t::down;
+						window->keys[translatedKey] = keyState_e::down;
 						if (keyEvent != nullptr)
-							keyEvent(window, translatedKey, keyState_t::down);
+							keyEvent(window, translatedKey, keyState_e::down);
 
 						break;
 					}
@@ -3851,7 +3851,7 @@ namespace TinyWindow
 								XNextEvent(currentDisplay, &inEvent);
 								triggered = true;
 								if (keyEvent != nullptr)
-									keyEvent(window, Linux_TranslateKey(functionKeysym), keyState_t::down);
+									keyEvent(window, Linux_TranslateKey(functionKeysym), keyState_e::down);
 							}
 						}
 
@@ -3859,10 +3859,10 @@ namespace TinyWindow
 						{
 							uint16_t functionKeysym = XkbKeycodeToKeysym(currentDisplay, inEvent.xkey.keycode, 0, inEvent.xkey.state & ShiftMask ? 1 : 0);
 							uint16_t translatedKey	= Linux_TranslateKey(functionKeysym);
-							window->keys[translatedKey] = keyState_t::up;
+							window->keys[translatedKey] = keyState_e::up;
 
 							if (keyEvent != nullptr)
-								keyEvent(window, translatedKey, keyState_t::up);
+								keyEvent(window, translatedKey, keyState_e::up);
 						}
 
 						break;
@@ -3874,46 +3874,46 @@ namespace TinyWindow
 						{
 							case 1:
 								{
-									window->mouseButton[(uint16_t)mouseButton_t::left] = buttonState_t::down;
+									window->mouseButton[(uint16_t)mouseButton_e::left] = buttonState_e::down;
 
 									if (mouseButtonEvent != nullptr)
-										mouseButtonEvent(window, mouseButton_t::left, buttonState_t::down);
+										mouseButtonEvent(window, mouseButton_e::left, buttonState_e::down);
 									break;
 								}
 
 							case 2:
 								{
-									window->mouseButton[(uint16_t)mouseButton_t::middle] = buttonState_t::down;
+									window->mouseButton[(uint16_t)mouseButton_e::middle] = buttonState_e::down;
 
 									if (mouseButtonEvent != nullptr)
-										mouseButtonEvent(window, mouseButton_t::middle, buttonState_t::down);
+										mouseButtonEvent(window, mouseButton_e::middle, buttonState_e::down);
 									break;
 								}
 
 							case 3:
 								{
-									window->mouseButton[(uint16_t)mouseButton_t::right] = buttonState_t::down;
+									window->mouseButton[(uint16_t)mouseButton_e::right] = buttonState_e::down;
 
 									if (mouseButtonEvent != nullptr)
-										mouseButtonEvent(window, mouseButton_t::right, buttonState_t::down);
+										mouseButtonEvent(window, mouseButton_e::right, buttonState_e::down);
 									break;
 								}
 
 							case 4:
 								{
-									window->mouseButton[(uint16_t)mouseScroll_t::up] = buttonState_t::down;
+									window->mouseButton[(uint16_t)mouseScroll_e::up] = buttonState_e::down;
 
 									if (mouseWheelEvent != nullptr)
-										mouseWheelEvent(window, mouseScroll_t::down);
+										mouseWheelEvent(window, mouseScroll_e::down);
 									break;
 								}
 
 							case 5:
 								{
-									window->mouseButton[(uint16_t)mouseScroll_t::down] = buttonState_t::down;
+									window->mouseButton[(uint16_t)mouseScroll_e::down] = buttonState_e::down;
 
 									if (mouseWheelEvent != nullptr)
-										mouseWheelEvent(window, mouseScroll_t::down);
+										mouseWheelEvent(window, mouseScroll_e::down);
 									break;
 								}
 
@@ -3934,44 +3934,44 @@ namespace TinyWindow
 							case 1:
 								{
 									// the left mouse button was released
-									window->mouseButton[(uint16_t)mouseButton_t::left] = buttonState_t::up;
+									window->mouseButton[(uint16_t)mouseButton_e::left] = buttonState_e::up;
 
 									if (mouseButtonEvent != nullptr)
-										mouseButtonEvent(window, mouseButton_t::left, buttonState_t::up);
+										mouseButtonEvent(window, mouseButton_e::left, buttonState_e::up);
 									break;
 								}
 
 							case 2:
 								{
 									// the middle mouse button was released
-									window->mouseButton[(uint16_t)mouseButton_t::middle] = buttonState_t::up;
+									window->mouseButton[(uint16_t)mouseButton_e::middle] = buttonState_e::up;
 
 									if (mouseButtonEvent != nullptr)
-										mouseButtonEvent(window, mouseButton_t::middle, buttonState_t::up);
+										mouseButtonEvent(window, mouseButton_e::middle, buttonState_e::up);
 									break;
 								}
 
 							case 3:
 								{
 									// the right mouse button was released
-									window->mouseButton[(uint16_t)mouseButton_t::right] = buttonState_t::up;
+									window->mouseButton[(uint16_t)mouseButton_e::right] = buttonState_e::up;
 
 									if (mouseButtonEvent != nullptr)
-										mouseButtonEvent(window, mouseButton_t::right, buttonState_t::up);
+										mouseButtonEvent(window, mouseButton_e::right, buttonState_e::up);
 									break;
 								}
 
 							case 4:
 								{
 									// the mouse wheel was scrolled up
-									window->mouseButton[(uint16_t)mouseScroll_t::up] = buttonState_t::down;
+									window->mouseButton[(uint16_t)mouseScroll_e::up] = buttonState_e::down;
 									break;
 								}
 
 							case 5:
 								{
 									// the mouse wheel was scrolled down
-									window->mouseButton[(uint16_t)mouseScroll_t::down] = buttonState_t::down;
+									window->mouseButton[(uint16_t)mouseScroll_e::down] = buttonState_e::down;
 									break;
 								}
 
@@ -4294,7 +4294,7 @@ namespace TinyWindow
 			/*std::unique_ptr<window_t> window, const char*
 				icon, uint16_t width, uint16_t height */
 			// sorry :(
-			AddWindowErrorLog(window, error_t::linuxFunctionNotImplemented, __LINE__, __func__);
+			AddWindowErrorLog(window, error_e::linuxFunctionNotImplemented, __LINE__, __func__);
 		}
 
 		void Linux_InitExtensions()
@@ -4330,7 +4330,7 @@ namespace TinyWindow
 
 			if (configs == nullptr || frameBufferCount == 0)
 			{
-				AddWindowErrorLog(window, error_t::linuxNoValidFBConfig, __LINE__, __func__);
+				AddWindowErrorLog(window, error_e::linuxNoValidFBConfig, __LINE__, __func__);
 				return;
 			}
 
@@ -4398,7 +4398,7 @@ namespace TinyWindow
 
 				if (dummyContext == NULL)
 				{
-					AddWindowErrorLog(window, error_t::linuxFunctionNotImplemented, __LINE__, __func__);
+					AddWindowErrorLog(window, error_e::linuxFunctionNotImplemented, __LINE__, __func__);
 					return;
 				}
 
@@ -4417,7 +4417,7 @@ namespace TinyWindow
 
 				if (window->context == nullptr)
 				{
-					AddWindowErrorLog(window, error_t::invalidContext, __LINE__, __func__);
+					AddWindowErrorLog(window, error_e::invalidContext, __LINE__, __func__);
 					return;
 				}
 			}
@@ -4430,7 +4430,7 @@ namespace TinyWindow
 			{
 				if (glXMakeCurrent(window->currentDisplay, window->windowHandle, window->context) == false)
 				{
-					AddWindowErrorLog(window, error_t::dummyCannotMakeCurrent, __LINE__, __func__);
+					AddWindowErrorLog(window, error_e::dummyCannotMakeCurrent, __LINE__, __func__);
 					return;
 				}
 
@@ -4444,7 +4444,7 @@ namespace TinyWindow
 			}
 			else
 			{
-				AddWindowErrorLog(window, error_t::linuxCannotConnectXServer, __LINE__, __func__);
+				AddWindowErrorLog(window, error_e::linuxCannotConnectXServer, __LINE__, __func__);
 			}
 		}
 
@@ -4646,7 +4646,7 @@ namespace TinyWindow
 					window->isFullscreen = !window->isFullscreen;// flip the toggle
 					SetWindowSize(window, vec2_t<uint16_t>(monitor->resolution.width, monitor->resolution.height));
 					SetPosition(window, vec2_t<int16_t>((int)monitor->extents.left, (int)monitor->extents.top));
-					SetStyle(window, style_t::popup);
+					SetStyle(window, style_e::popup);
 				}
 			}
 			else if (window->isFullscreen == true)
@@ -4657,7 +4657,7 @@ namespace TinyWindow
 					window->isFullscreen = !window->isFullscreen;// flip the toggle
 					SetWindowSize(window, vec2_t<uint16_t>(window->previousDimensions.width, window->previousDimensions.height));
 					SetPosition(window, vec2_t<int16_t>(window->previousPosition.x, window->previousPosition.y));
-					SetStyle(window, style_t::popup);
+					SetStyle(window, style_e::popup);
 				}
 			}
 		}

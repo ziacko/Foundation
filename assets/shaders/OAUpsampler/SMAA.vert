@@ -30,6 +30,7 @@ out defaultBlock
 {
 	vec4 position;
 	vec2 uv;
+	//vec2 flippedUV;
 } outBlock;
 
 out blendBlock
@@ -50,13 +51,9 @@ layout(std140, binding = 0) uniform defaultSettings
 	uint		totalFrames;
 };
 
-layout(std140, binding = 2) uniform resolutionSetting
-{
-	vec2		dynResolution;
-};
-
 layout(std140, binding = 1) uniform SMAASettings
 {
+	vec4 		rtMetrics;
 	float		inThreshold;
 	float		contrastAdaptationFactor;
 	uint		maxSearchSteps;
@@ -64,20 +61,20 @@ layout(std140, binding = 1) uniform SMAASettings
 	uint		cornerRounding;
 };
 
-vec4 SMAA_RT_METRICS = vec4(1.0 / resolution.x, 1.0 / resolution.y, resolution.x, resolution.y);
-
 /**
  * Neighborhood Blending Vertex Shader
  */
 void SMAANeighborhoodBlendingVS(float2 texcoord, out float4 offset)
 {
-    offset = mad(SMAA_RT_METRICS.xyxy, float4( 1.0, 0.0, 0.0,  1.0), texcoord.xyxy);
+    offset = mad(rtMetrics.xyxy, float4( 1.0, 0.0, 0.0,  1.0), texcoord.xyxy);
 }
 
 void main()
 {
-	outBlock.position = projection * view * translation * position;
-	outBlock.uv = outBlock.position.xy * 0.5f + 0.5f;
+	outBlock.position = position;
+	outBlock.uv = outBlock.position.xy * 0.5 + 0.5;
+	//outBlock.flippedUV = outBlock.uv; // Flip Y coordinate for correct texture sampling
+	//outBlock.flippedUV.y = 1.0 - outBlock.flippedUV.y;
 	SMAANeighborhoodBlendingVS(outBlock.uv, outBlend.offset);
 	gl_Position = outBlock.position;
 }

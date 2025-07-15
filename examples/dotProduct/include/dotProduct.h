@@ -54,23 +54,23 @@ protected:
 		manager->PollForEvents();
 		if (lockedFrameRate > 0)
 		{
-			sceneClock.UpdateClockFixed(lockedFrameRate);
+			clock.UpdateClockFixed(lockedFrameRate);
 		}
 		else
 		{
-			sceneClock.UpdateClockAdaptive();
+			clock.UpdateClockAdaptive();
 		}
 
 		defaultPayload.data.totalFrames++;
-		defaultPayload.data.deltaTime = (float)sceneClock.GetDeltaTime();
-		defaultPayload.data.totalTime = (float)sceneClock.GetTotalTime();
-		defaultPayload.data.framesPerSec = (float)(1.0 / sceneClock.GetDeltaTime());
+		defaultPayload.data.deltaTime = (float)clock.GetDeltaTime();
+		defaultPayload.data.totalTime = (float)clock.GetTotalTime();
+		defaultPayload.data.framesPerSec = (float)(1.0 / clock.GetDeltaTime());
 		defaultPayload.Update(gl_uniform_buffer, gl_dynamic_draw);
 	}
 
 	void InitializeUniforms() override 
 	{
-		defaultPayload.data = defaultUniformBuffer(this->sceneCamera);
+		defaultPayload.data = defaultUniformBuffer(this->camera);
 		glm::vec2 resolution = defaultPayload.data.resolution;
 		glViewport(0, 0, resolution.x, resolution.y);
 		defaultPayload.data.resolution = resolution;

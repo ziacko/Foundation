@@ -36,7 +36,7 @@ in edgeBlock
 
 out vec4 outColor;
 
-layout(binding = 0) uniform defaultSettings
+layout(std140, binding = 0) uniform defaultSettings
 {
 	mat4		projection;
 	mat4		view;
@@ -49,8 +49,9 @@ layout(binding = 0) uniform defaultSettings
 	uint		totalFrames;
 };
 
-layout(binding = 1) uniform SMAASettings
+layout(std140, binding = 1) uniform SMAASettings
 {
+    vec4 		rtMetrics;
 	float		inThreshold;
 	float		contrastAdaptationFactor;
 	uint		maxSearchSteps;
@@ -58,22 +59,8 @@ layout(binding = 1) uniform SMAASettings
 	uint		cornerRounding;
 };
 
-layout(binding = 2) uniform resolutionSetting
-{
-	vec2		dynResolution;
-};
-
-layout(binding = 3) uniform edgeDetectionSettings
-{
-    float filterLevel;
-};
-
 layout(binding = 0) uniform sampler2D colorTexture;
 layout(binding = 1) uniform sampler2D depthTexture;
-
-vec4 SMAA_RT_METRICS = vec4(1.0 / resolution.x, 1.0 / resolution.y, resolution.x, resolution.y);
-
-float depthThreshold =  0.1f * inThreshold;
 
 /**
  * Gathers current pixel, and the top-left neighbors.
@@ -82,7 +69,7 @@ float3 SMAAGatherNeighbours(float2 texcoord,
                             float4 offset[3],
                             SMAATexture2D(tex)) {
     #ifdef SMAAGather
-    return SMAAGather(tex, texcoord + SMAA_RT_METRICS.xy * float2(-0.5, -0.5)).grb;
+    return SMAAGather(tex, texcoord + rtMetrics.xy * float2(-0.5, -0.5)).grb;
     #else
     float P = SMAASamplePoint(tex, texcoord).r;
     float Pleft = SMAASamplePoint(tex, offset[0].xy).r;
@@ -90,6 +77,9 @@ float3 SMAAGatherNeighbours(float2 texcoord,
     return float3(P, Pleft, Ptop);
     #endif
 }
+
+//-----------------------------------------------------------------------------
+// Edge Detection Pixel Shaders (First Pass)
 
 /**
  * Luma Edge Detection
@@ -100,16 +90,16 @@ float3 SMAAGatherNeighbours(float2 texcoord,
 float2 SMAALumaEdgeDetectionPS(float2 texcoord,
                                float4 offset[3],
                                SMAATexture2D(colorTex)
-                               /*#if SMAA_PREDICATION
+                               #if SMAA_PREDICATION
                                , SMAATexture2D(predicationTex)
-                               #endif*/
+                               #endif
                                ) {
     // Calculate the threshold:
-    /*#if SMAA_PREDICATION
+    #if SMAA_PREDICATION
     float2 threshold = SMAACalculatePredicatedThreshold(texcoord, offset, SMAATexturePass2D(predicationTex));
-    #else*/
+    #else
     float2 threshold = float2(inThreshold, inThreshold);
-    //#endif
+    #endif
 
     // Calculate lumas:
     float3 weights = float3(0.2126, 0.7152, 0.0722);
@@ -159,16 +149,16 @@ float2 SMAALumaEdgeDetectionPS(float2 texcoord,
 float2 SMAAColorEdgeDetectionPS(float2 texcoord,
                                 float4 offset[3],
                                 SMAATexture2D(colorTex)
-                                /*#if SMAA_PREDICATION
+                                #if SMAA_PREDICATION
                                 , SMAATexture2D(predicationTex)
-                                #endif*/
+                                #endif
                                 ) {
     // Calculate the threshold:
-    //#if SMAA_PREDICATION
-    //float2 threshold = SMAACalculatePredicatedThreshold(texcoord, offset, predicationTex);
-    //#else
+    #if SMAA_PREDICATION
+    float2 threshold = SMAACalculatePredicatedThreshold(texcoord, offset, predicationTex);
+    #else
     float2 threshold = float2(inThreshold, inThreshold);
-    //#endif
+    #endif
 
     // Calculate color deltas:
     float4 delta;
@@ -223,11 +213,12 @@ float2 SMAAColorEdgeDetectionPS(float2 texcoord,
 /**
  * Depth Edge Detection
  */
-float2 SMAADepthEdgeDetectionPS(float2 texcoord, float4 offset[3], SMAATexture2D(depthTex))
-{
+float2 SMAADepthEdgeDetectionPS(float2 texcoord,
+                                float4 offset[3],
+                                SMAATexture2D(depthTex)) {
     float3 neighbours = SMAAGatherNeighbours(texcoord, offset, SMAATexturePass2D(depthTex));
     float2 delta = abs(neighbours.xx - float2(neighbours.y, neighbours.z));
-    float2 edges = step(inThreshold * 0.01, delta);
+    float2 edges = step(inThreshold * 0.01f, delta);
 
     if (dot(edges, float2(1.0, 1.0)) == 0.0)
         discard;

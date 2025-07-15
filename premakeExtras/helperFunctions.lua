@@ -3,7 +3,7 @@ function checkShaderFileConfig(name)
     local shaderPath = _SCRIPT_DIR .. "/assets/shaders/" .. name .. "/" .. name .. ".json"
     local shaderFile = io.open(shaderPath, "r")
 if not shaderFile then
-    --create the shader file
+    --create the shader config file
     local shaderFile = io.open(shaderPath, "w")
     --replace every instance of <name> in the template with the name
     local shaderConfigTemplate = string.gsub(shaderConfigTemplate, "<name>", name)
@@ -12,7 +12,7 @@ if not shaderFile then
     end
 end
 
---ok need another function for vertec and fragment shaders
+--ok need another function for vertex and fragment shaders
 function checkShaderFiles(name)
     local shaderPath = _SCRIPT_DIR .. "/assets/shaders/" .. name .. "/"
     local vertexShaderFile = io.open(shaderPath .. "default.vert", "r")
@@ -34,18 +34,15 @@ end
 --ok now for source file
 function checkSourceFile(name)
     local sourcePath = _SCRIPT_DIR .. "/examples/" .. name .. "/source/" .. name .. ".cpp"
+    -- Check if the source file already exists
     local sourceFile = io.open(sourcePath, "r")
-    --check if the directory is empty
-    local sourceDir = _SCRIPT_DIR .. "/examples/" .. name .. "/source/"
-    local sourceDirHandle = io.popen("ls -A " .. sourceDir)
-    local sourceDirContents = sourceDirHandle:read("*a")
-    sourceDirHandle:close()
-    if sourceDirContents == "" then
-        --create the source file
-        local sourceFile = io.open(sourcePath, "w")
-        -- find every instance of <name> in the template and replace it with the name
+    if not sourceFile then
+        -- File does not exist, create it
+        sourceFile = io.open(sourcePath, "w")
         local sourceTemplate = string.gsub(sourceTemplate, "<name>", name)
         sourceFile:write(sourceTemplate)
+        sourceFile:close()
+    else
         sourceFile:close()
     end
 end
@@ -53,24 +50,19 @@ end
 --and now for the header file
 function checkHeaderFile(name, parent)
     local headerPath = _SCRIPT_DIR .. "/examples/" .. name .. "/include/" .. name .. ".h"
+    -- Only create the header file if it does not exist
     local headerFile = io.open(headerPath, "r")
-    --check if the directory is empty
-    local sourceDir = _SCRIPT_DIR .. "/examples/" .. name .. "/source/"
-    local sourceDirHandle = io.popen("ls -A " .. sourceDir)
-    local sourceDirContents = sourceDirHandle:read("*a")
-    sourceDirHandle:close()
-if sourceDirContents == "" then
-    --create the header file
-    local headerFile = io.open(headerPath, "w")
-    -- find every instance of <name> in the template and replace it with the name
-    local headerTemplate = string.gsub(headerTemplate, "<name>", name)
-    -- find every instance of <parent> in the template and replace it with the parent
-    if parent then
-        headerTemplate = string.gsub(headerTemplate, "<parent>", parent)
+    if not headerFile then
+        headerFile = io.open(headerPath, "w")
+        local headerTemplate = string.gsub(headerTemplate, "<name>", name)
+        if parent then
+            headerTemplate = string.gsub(headerTemplate, "<parent>", parent)
         else
             headerTemplate = string.gsub(headerTemplate, "<parent>", "scene")
         end
-            headerFile:write(headerTemplate)
-            headerFile:close()
+        headerFile:write(headerTemplate)
+        headerFile:close()
+    else
+        headerFile:close()
     end
 end

@@ -1,7 +1,7 @@
 #ifndef TEMPORALAA_H
 #define TEMPORALAA_H
 
-#include "Scene3D.h"
+#include "scene3D.h"
 #include "FrameBuffer.h"
 
 class MSAA : public scene3D
@@ -10,7 +10,7 @@ public:
 
 	MSAA(
 		const char* windowName = "Ziyad Barakat's portfolio (MSAA)",
-		camera* texModelCamera = new camera(glm::vec2(1280, 720), 5.0f, camera::projection_t::perspective, 0.1f, 2000.f),
+		camera_t* texModelCamera = new camera_t(glm::vec2(1280, 720), 5.0f, camera_t::projection_e::perspective, 0.1f, 2000.f),
 		const char* shaderConfigPath = "../../resources/shaders/MSAA.txt",
 		model_t* model = new model_t("../../resources/models/fbx_foliage/broadleaf_field/Broadleaf_Desktop_Field.FBX"))
 		: scene3D(windowName, texModelCamera, shaderConfigPath, model)
@@ -70,37 +70,37 @@ protected:
 		manager->PollForEvents();
 		if (lockedFrameRate > 0)
 		{
-			sceneClock->UpdateClockFixed(lockedFrameRate);
+			clock->UpdateClockFixed(lockedFrameRate);
 		}
 		else
 		{
-			sceneClock->UpdateClockAdaptive();
+			clock->UpdateClockAdaptive();
 		}
 
-		defaultPayload.data.deltaTime = (float)sceneClock->GetDeltaTime();
-		defaultPayload.data.totalTime = (float)sceneClock->GetTotalTime();
-		defaultPayload.data.framesPerSec = (float)(1.0 / sceneClock->GetDeltaTime());
+		defaultPayload.data.deltaTime = (float)clock->GetDeltaTime();
+		defaultPayload.data.totalTime = (float)clock->GetTotalTime();
+		defaultPayload.data.framesPerSec = (float)(1.0 / clock->GetDeltaTime());
 		defaultPayload.data.totalFrames++;
 		defaultPayload.Update();
 	}
 
 	void UpdateDefaultBuffer()
 	{
-		sceneCamera->UpdateProjection();
-		defaultPayload.data.projection = sceneCamera->projection;
-		defaultPayload.data.view = sceneCamera->view;
-		if (sceneCamera->currentProjectionType == camera::projection_t::perspective)
+		camera->UpdateProjection();
+		defaultPayload.data.projection = camera->projection;
+		defaultPayload.data.view = camera->view;
+		if (camera->currentProjectionType == camera::projection_t::perspective)
 		{
 			defaultPayload.data.translation = testModel->makeTransform();
 		}
 
 		else
 		{
-			defaultPayload.data.translation = sceneCamera->translation;
+			defaultPayload.data.translation = camera->translation;
 		}
-		defaultPayload.data.deltaTime = (float)sceneClock->GetDeltaTime();
-		defaultPayload.data.totalTime = (float)sceneClock->GetTotalTime();
-		defaultPayload.data.framesPerSec = (float)(1.0 / sceneClock->GetDeltaTime());
+		defaultPayload.data.deltaTime = (float)clock->GetDeltaTime();
+		defaultPayload.data.totalTime = (float)clock->GetTotalTime();
+		defaultPayload.data.framesPerSec = (float)(1.0 / clock->GetDeltaTime());
 
 		defaultPayload.Update();
 		defaultVertexBuffer->UpdateBuffer(defaultPayload.data.resolution);
@@ -108,14 +108,14 @@ protected:
 
 	virtual void Draw()
 	{
-		sceneCamera->ChangeProjection(camera::projection_t::perspective);
-		sceneCamera->Update();
+		camera->ChangeProjection(camera::projection_t::perspective);
+		camera->Update();
 
 		UpdateDefaultBuffer();
 
 		GeometryPass();
 
-		sceneCamera->ChangeProjection(camera::projection_t::orthographic);
+		camera->ChangeProjection(camera::projection_t::orthographic);
 		UpdateDefaultBuffer();
 
 		FinalPass(geometryBuffer->attachments[0]);
@@ -206,13 +206,13 @@ protected:
 		//set up the view matrix
 		ImGui::Begin("camera", &isGUIActive);
 
-		ImGui::DragFloat("near plane", &sceneCamera->nearPlane);
-		ImGui::DragFloat("far plane", &sceneCamera->farPlane);
-		ImGui::SliderFloat("Field of view", &sceneCamera->fieldOfView, 0, 90, "%.0f");
+		ImGui::DragFloat("near plane", &camera->nearPlane);
+		ImGui::DragFloat("far plane", &camera->farPlane);
+		ImGui::SliderFloat("Field of view", &camera->fieldOfView, 0, 90, "%.0f");
 
-		ImGui::InputFloat("camera speed", &sceneCamera->speed, 0.f);
-		ImGui::InputFloat("x sensitivity", &sceneCamera->xSensitivity, 0.f);
-		ImGui::InputFloat("y sensitivity", &sceneCamera->ySensitivity, 0.f);
+		ImGui::InputFloat("camera speed", &camera->speed, 0.f);
+		ImGui::InputFloat("x sensitivity", &camera->xSensitivity, 0.f);
+		ImGui::InputFloat("y sensitivity", &camera->ySensitivity, 0.f);
 		ImGui::End();
 	}
 
@@ -226,7 +226,7 @@ protected:
 		glClear(GL_DEPTH_BUFFER_BIT);
 		geometryBuffer->Unbind();
 
-		sceneCamera->ChangeProjection(camera::projection_t::perspective);
+		camera.ChangeProjection(camera_t::projection_e::perspective);
 	}
 
 	virtual void ResizeBuffers(glm::ivec2 resolution)
@@ -234,13 +234,13 @@ protected:
 		geometryBuffer->Resize(glm::ivec3(resolution, 1));
 	}
 
-	virtual void HandleWindowResize(tWindow* window, TinyWindow::vec2_t<unsigned int> dimensions) override
+	virtual void HandleWindowResize(const tWindow* window, TinyWindow::vec2_t<unsigned int> dimensions) override
 	{
 		defaultPayload.data.resolution = glm::ivec2(dimensions.width, dimensions.height);	
 		ResizeBuffers(glm::ivec2(dimensions.x, dimensions.y));
 	}
 
-	virtual void HandleMaximize(tWindow* window) override
+	virtual void HandleMaximize(const tWindow* window) override
 	{
 		defaultPayload.data.resolution = glm::ivec2(window->settings.resolution.width, window->settings.resolution.height);
 		ResizeBuffers(defaultPayload.data.resolution);
@@ -251,9 +251,9 @@ protected:
 		glViewport(0, 0, windows[0]->settings.resolution.width, windows[0]->settings.resolution.height);
 
 		defaultPayload.data.resolution = glm::ivec2(windows[0]->settings.resolution.width, windows[0]->settings.resolution.height);
-		defaultPayload.data.projection = sceneCamera->projection;
-		defaultPayload.data.translation = sceneCamera->translation;
-		defaultPayload.data.view = sceneCamera->view;
+		defaultPayload.data.projection = camera->projection;
+		defaultPayload.data.translation = camera->translation;
+		defaultPayload.data.view = camera->view;
 
 		defaultPayload.Initialize(0);
 		SetupVertexBuffer();

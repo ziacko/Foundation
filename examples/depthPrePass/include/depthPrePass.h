@@ -67,16 +67,16 @@ protected:
 		manager->PollForEvents();
 		if (lockedFrameRate > 0)
 		{
-			sceneClock.UpdateClockFixed(lockedFrameRate);
+			clock.UpdateClockFixed(lockedFrameRate);
 		}
 		else
 		{
-			sceneClock.UpdateClockAdaptive();
+			clock.UpdateClockAdaptive();
 		}
 
-		defaultPayload.data.deltaTime = (float)sceneClock.GetDeltaTime();
-		defaultPayload.data.totalTime = (float)sceneClock.GetTotalTime();
-		defaultPayload.data.framesPerSec = (float)(1.0 / sceneClock.GetDeltaTime());
+		defaultPayload.data.deltaTime = (float)clock.GetDeltaTime();
+		defaultPayload.data.totalTime = (float)clock.GetTotalTime();
+		defaultPayload.data.framesPerSec = (float)(1.0 / clock.GetDeltaTime());
 		defaultPayload.data.totalFrames++;
 
 		defaultVertexBuffer.UpdateBuffer(defaultPayload.data.resolution);
@@ -84,21 +84,21 @@ protected:
 
 	void UpdateDefaultBuffer()
 	{
-		sceneCamera.UpdateProjection();
-		defaultPayload.data.projection = sceneCamera.projection;
-		defaultPayload.data.view = sceneCamera.view;
-		if (sceneCamera.currentProjectionType == camera_t::projection_e::perspective)
+		camera.UpdateProjection();
+		defaultPayload.data.projection = camera.projection;
+		defaultPayload.data.view = camera.view;
+		if (camera.currentProjectionType == camera_t::projection_e::perspective)
 		{
 			defaultPayload.data.translation = testModel.makeTransform();
 		}
 
 		else
 		{
-			defaultPayload.data.translation = sceneCamera.translation;
+			defaultPayload.data.translation = camera.translation;
 		}
-		defaultPayload.data.deltaTime = (float)sceneClock.GetDeltaTime();
-		defaultPayload.data.totalTime = (float)sceneClock.GetTotalTime();
-		defaultPayload.data.framesPerSec = (float)(1.0 / sceneClock.GetDeltaTime());
+		defaultPayload.data.deltaTime = (float)clock.GetDeltaTime();
+		defaultPayload.data.totalTime = (float)clock.GetTotalTime();
+		defaultPayload.data.framesPerSec = (float)(1.0 / clock.GetDeltaTime());
 
 		defaultPayload.Update();
 
@@ -107,15 +107,15 @@ protected:
 
 	void Draw() override
 	{
-		sceneCamera.ChangeProjection(camera_t::projection_e::perspective);
-		sceneCamera.Update();
+		camera.ChangeProjection(camera_t::projection_e::perspective);
+		camera.Update();
 
 		UpdateDefaultBuffer();
 
 		EarlyDepthPass();
 		GeometryPass(); //render current scene with jitter
 
-		sceneCamera.ChangeProjection(camera_t::projection_e::orthographic);
+		camera.ChangeProjection(camera_t::projection_e::orthographic);
 		UpdateDefaultBuffer();
 
 		FinalPass(geometryBuffer->attachments[0], geometryBuffer->attachments[1]);
@@ -261,13 +261,13 @@ protected:
 		//set up the view matrix
 		ImGui::Begin("camera", &isGUIActive);
 
-		ImGui::DragFloat("near plane", &sceneCamera.nearPlane);
-		ImGui::DragFloat("far plane", &sceneCamera.farPlane);
-		ImGui::SliderFloat("Field of view", &sceneCamera.fieldOfView, 0, 90, "%.0f");
+		ImGui::DragFloat("near plane", &camera.nearPlane);
+		ImGui::DragFloat("far plane", &camera.farPlane);
+		ImGui::SliderFloat("Field of view", &camera.fieldOfView, 0, 90, "%.0f");
 
-		ImGui::InputFloat("camera speed", &sceneCamera.speed, 0.f);
-		ImGui::InputFloat("x sensitivity", &sceneCamera.xSensitivity, 0.f);
-		ImGui::InputFloat("y sensitivity", &sceneCamera.ySensitivity, 0.f);
+		ImGui::InputFloat("camera speed", &camera.speed, 0.f);
+		ImGui::InputFloat("x sensitivity", &camera.xSensitivity, 0.f);
+		ImGui::InputFloat("y sensitivity", &camera.ySensitivity, 0.f);
 		ImGui::End();
 	}
 
@@ -281,7 +281,7 @@ protected:
 		glClear(GL_DEPTH_BUFFER_BIT);
 		geometryBuffer->Unbind();
 
-		sceneCamera.ChangeProjection(camera_t::projection_e::perspective);
+		camera.ChangeProjection(camera_t::projection_e::perspective);
 	}
 
 	virtual void ResizeBuffers(glm::ivec2 resolution)
@@ -307,9 +307,9 @@ protected:
 		glViewport(0, 0, resolution.width, resolution.height);
 
 		defaultPayload.data.resolution = glm::ivec2(resolution.width, resolution.height);
-		defaultPayload.data.projection = sceneCamera.projection;
-		defaultPayload.data.translation = sceneCamera.translation;
-		defaultPayload.data.view = sceneCamera.view;
+		defaultPayload.data.projection = camera.projection;
+		defaultPayload.data.translation = camera.translation;
+		defaultPayload.data.view = camera.view;
 
 		SetupVertexBuffer();
 		defaultPayload.Initialize(0);

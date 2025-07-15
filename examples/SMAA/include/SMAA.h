@@ -5,16 +5,17 @@
 
 struct SMAASettings_t
 {
-	//float				weightScale;
-	float				threshold;
-	float				contrastAdaptationFactor;
+	glm::vec4		rtMetrics;
+	float			threshold;
+	float			contrastAdaptationFactor;
 
-	int		maxSearchSteps;
-	int		maxSearchStepsDiag;
-	int		cornerRounding;
+	int				maxSearchSteps;
+	int				maxSearchStepsDiag;
+	int				cornerRounding;
 
-	explicit SMAASettings_t(const float threshold = 0.05, const float CAFactor = 2.0f, const unsigned int maxSearchSteps = 32, const unsigned int maxSearchStepsDiag = 16, const unsigned int cornerRounding = 25)
+	explicit SMAASettings_t(const glm::ivec2& resolution = defaultWindowSize, const float threshold = 0.05, const float CAFactor = 2.0f, const unsigned int maxSearchSteps = 32, const unsigned int maxSearchStepsDiag = 16, const unsigned int cornerRounding = 25)
 	{
+		this->rtMetrics = glm::vec4(1.0 / resolution.x, 1.0 / resolution.y, resolution.x, resolution.y);
 		this->threshold = threshold;
 		this->contrastAdaptationFactor = CAFactor;
 		this->maxSearchSteps = maxSearchSteps;
@@ -29,10 +30,10 @@ public:
 
 	explicit SMAAScene(
 		const char* windowName = "Ziyad Barakat's portfolio (SMAA)",
-		const camera_t& texModelCamera = camera_t(glm::vec2(1280, 720), 0.31415f, camera_t::projection_e::perspective, 0.01f, 2000.f),
+		const camera_t& camera = camera_t(defaultWindowSize, defaultCameraSpeed, camera_t::projection_e::perspective),
 		const char* shaderConfigPath = SHADER_CONFIG_DIR,
 		model_t model = model_t("models/SoulSpear/SoulSpear.fbx"))
-		: scene3D(windowName, texModelCamera, shaderConfigPath, std::move(model))
+		: scene3D(windowName, camera, shaderConfigPath, std::move(model))
 	{
 		//glDisable(GL_BLEND);
 		glEnable(GL_DEPTH_TEST);
@@ -44,8 +45,8 @@ public:
 		weightsBuffer = frameBuffer();
 		SMAABuffer = frameBuffer();
 
-		SMAAArea = texture("assets/textures/SMAA/AreaTexDX10.dds");
-		SMAASearch = texture("assets/textures/SMAA/SearchTex.dds");
+		SMAAArea = texture("textures/SMAA/AreaTexDX_Flipped.png");
+		SMAASearch = texture("assets/textures/SMAA/SearchTex_Flipped.dds");
 	}
 
 	~SMAAScene() override = default;
@@ -57,19 +58,24 @@ public:
 		SMAAArea.LoadTexture();
 		SMAASearch.LoadTexture();
 
+		SMAASearch.SetMagFilter(GL_NEAREST);
+		SMAASearch.SetMinFilter(GL_NEAREST);
+
 		FBODescriptor colorDesc;
 		colorDesc.dimensions = glm::ivec3(window->GetSettings().resolution.width, window->GetSettings().resolution.height, 1);
-		colorDesc.wrapRSetting = GL_CLAMP;
-		colorDesc.wrapTSetting = GL_CLAMP;
-		colorDesc.wrapSSetting = GL_CLAMP;
+		colorDesc.dataType = GL_FLOAT;
+		colorDesc.format = GL_RGBA;
+		colorDesc.internalFormat = gl_rgb32f;
+		colorDesc.wrapRSetting = GL_CLAMP_TO_EDGE;
+		colorDesc.wrapTSetting = GL_CLAMP_TO_EDGE;
+		colorDesc.wrapSSetting = GL_CLAMP_TO_EDGE;
 
 		FBODescriptor depthDesc;
-		depthDesc.target = GL_TEXTURE_2D;
 		depthDesc.dataType = GL_FLOAT;
 		depthDesc.format = GL_DEPTH_COMPONENT;
-		depthDesc.wrapRSetting = GL_CLAMP;
-		depthDesc.wrapTSetting = GL_CLAMP;
-		depthDesc.wrapSSetting = GL_CLAMP;
+		depthDesc.wrapRSetting = GL_CLAMP_TO_EDGE;
+		depthDesc.wrapTSetting = GL_CLAMP_TO_EDGE;
+		depthDesc.wrapSSetting = GL_CLAMP_TO_EDGE;
 		depthDesc.internalFormat = gl_depth_component32f;
 		depthDesc.attachmentType = FBODescriptor::attachmentType_e::depth;
 		depthDesc.dimensions = glm::ivec3(window->GetSettings().resolution.width, window->GetSettings().resolution.height, 1);
@@ -88,9 +94,9 @@ public:
 		edgeDesc.dataType = GL_FLOAT;
 		edgeDesc.internalFormat = gl_rg32f;
 		edgeDesc.dimensions = glm::ivec3(window->GetSettings().resolution.width, window->GetSettings().resolution.height, 1);
-		edgeDesc.wrapRSetting = GL_CLAMP;
-		edgeDesc.wrapTSetting = GL_CLAMP;
-		edgeDesc.wrapSSetting = GL_CLAMP;
+		edgeDesc.wrapRSetting = GL_CLAMP_TO_EDGE;
+		edgeDesc.wrapTSetting = GL_CLAMP_TO_EDGE;
+		edgeDesc.wrapSSetting = GL_CLAMP_TO_EDGE;
 		//edgeDesc.minFilterSetting = GL_NEAREST;
 		//edgeDesc.magFilterSetting = GL_NEAREST;
 
@@ -103,9 +109,9 @@ public:
 		weightsDesc = colorDesc;
 		weightsDesc.dataType = GL_FLOAT;
 		weightsDesc.internalFormat = gl_rgba32f;
-		weightsDesc.wrapRSetting = GL_CLAMP;
-		weightsDesc.wrapTSetting = GL_CLAMP;
-		weightsDesc.wrapSSetting = GL_CLAMP;
+		weightsDesc.wrapRSetting = GL_CLAMP_TO_EDGE;
+		weightsDesc.wrapTSetting = GL_CLAMP_TO_EDGE;
+		weightsDesc.wrapSSetting = GL_CLAMP_TO_EDGE;
 		//weightsDesc.minFilterSetting = GL_NEAREST;
 		//weightsDesc.magFilterSetting = GL_NEAREST;
 
@@ -123,6 +129,8 @@ public:
 		finalProgram = &shaderProgramsMap["final"];
 
 		frameBuffer::Unbind();
+
+		glDisable(GL_MULTISAMPLE);
 	}
 
 protected:
@@ -152,54 +160,55 @@ protected:
 		manager->PollForEvents();
 		if (lockedFrameRate > 0)
 		{
-			sceneClock.UpdateClockFixed(lockedFrameRate);
+			clock.UpdateClockFixed(lockedFrameRate);
 		}
 		else
 		{
-			sceneClock.UpdateClockAdaptive();
+			clock.UpdateClockAdaptive();
 		}
 
-		defaultPayload.data.deltaTime = (float)sceneClock.GetDeltaTime();
-		defaultPayload.data.totalTime = (float)sceneClock.GetTotalTime();
-		defaultPayload.data.framesPerSec = (float)(1.0 / sceneClock.GetDeltaTime());
+		defaultPayload.data.deltaTime = (float)clock.GetDeltaTime();
+		defaultPayload.data.totalTime = (float)clock.GetTotalTime();
+		defaultPayload.data.framesPerSec = (float)(1.0 / clock.GetDeltaTime());
 		defaultPayload.data.totalFrames++;
+		defaultPayload.data.resolution = camera.resolution;
 
 		SMAAsettings.Update(gl_uniform_buffer, gl_dynamic_draw);
 	}
 
 	void UpdateDefaultBuffer()
 	{
-		sceneCamera.UpdateProjection();
-		defaultPayload.data.projection = sceneCamera.projection;
-		defaultPayload.data.view = sceneCamera.view;
-		defaultPayload.data.resolution = sceneCamera.resolution;
-		if (sceneCamera.currentProjectionType == camera_t::projection_e::perspective)
+		camera.UpdateProjection();
+		defaultPayload.data.projection = camera.projection;
+		defaultPayload.data.view = camera.view;
+		defaultPayload.data.resolution = camera.resolution;
+		if (camera.currentProjectionType == camera_t::projection_e::perspective)
 		{
 			defaultPayload.data.translation = testModel.makeTransform();
 		}
 
 		else
 		{
-			defaultPayload.data.translation = sceneCamera.translation;
+			defaultPayload.data.translation = camera.translation;
 		}
-		defaultPayload.data.deltaTime = (float)sceneClock.GetDeltaTime();
-		defaultPayload.data.totalTime = (float)sceneClock.GetTotalTime();
-		defaultPayload.data.framesPerSec = (float)(1.0 / sceneClock.GetDeltaTime());
+		defaultPayload.data.deltaTime = (float)clock.GetDeltaTime();
+		defaultPayload.data.totalTime = (float)clock.GetTotalTime();
+		defaultPayload.data.framesPerSec = (float)(1.0 / clock.GetDeltaTime());
 
 		defaultPayload.Update();
-		defaultVertexBuffer.UpdateBuffer(defaultPayload.data.resolution);
+		//defaultVertexBuffer.UpdateBuffer(defaultPayload.data.resolution);
 	}
 
 	virtual void Draw() override
 	{
-		sceneCamera.ChangeProjection(camera_t::projection_e::perspective);
-		sceneCamera.Update();
+		camera.ChangeProjection(camera_t::projection_e::perspective);
+		camera.Update();
 
 		UpdateDefaultBuffer();
 
 		GeometryPass(); //render current scene with jitter
 
-		sceneCamera.ChangeProjection(camera_t::projection_e::orthographic);
+		camera.ChangeProjection(camera_t::projection_e::orthographic);
 		UpdateDefaultBuffer();
 		
 		EdgeDetectionPass();
@@ -371,15 +380,20 @@ protected:
 	virtual void DrawCameraStats() override
 	{
 		//set up the view matrix
+		//set up the view matrix
 		ImGui::Begin("camera", &isGUIActive);
 
-		ImGui::DragFloat("near plane", &sceneCamera.nearPlane);
-		ImGui::DragFloat("far plane", &sceneCamera.farPlane);
-		ImGui::SliderFloat("Field of view", &sceneCamera.fieldOfView, 0, 90, "%.0f");
+		ImGui::SliderFloat("near plane", &camera.nearPlane, 0.00001f, 1.0f, "%.0f");
+		ImGui::SliderFloat("far plane", &camera.farPlane, 0, defaultFarPlane, "%.0f");
+		ImGui::SliderFloat("Field of view", &camera.fieldOfView, 0, 90, "%.0f");
 
-		ImGui::InputFloat("camera speed", &sceneCamera.speed, 0.f);
-		ImGui::InputFloat("x sensitivity", &sceneCamera.xSensitivity, 0.f);
-		ImGui::InputFloat("y sensitivity", &sceneCamera.ySensitivity, 0.f);
+		ImGui::InputFloat("camera speed", &camera.speed, 0.01f);
+		ImGui::InputFloat("x sensitivity", &camera.xSensitivity, 0.f);
+		ImGui::InputFloat("y sensitivity", &camera.ySensitivity, 0.f);
+
+		ImGui::Text("local up %f %f %f %f", camera.up.x, camera.up.y, camera.up.z, camera.up.w);
+		ImGui::Text("local right %f %f %f %f", camera.right.x, camera.right.y, camera.right.z, camera.right.w);
+		ImGui::Text("local forward %f %f %f %f", camera.forward.x, camera.forward.y, camera.forward.z, camera.forward.w);
 		ImGui::End();
 	}
 
@@ -429,13 +443,13 @@ protected:
 
 	void InitializeUniforms() override
 	{
-		defaultPayload = bufferHandler_t<defaultUniformBuffer>(sceneCamera);
+		defaultPayload = bufferHandler_t<defaultUniformBuffer>(camera);
 		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 
 		defaultPayload.data.resolution = glm::ivec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
-		defaultPayload.data.projection = sceneCamera.projection;
-		defaultPayload.data.translation = sceneCamera.translation;
-		defaultPayload.data.view = sceneCamera.view;
+		defaultPayload.data.projection = camera.projection;
+		defaultPayload.data.translation = camera.translation;
+		defaultPayload.data.view = camera.view;
 
 		defaultPayload.Initialize(0);
 		SMAAsettings.Initialize(1);

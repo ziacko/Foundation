@@ -2,11 +2,13 @@
 #pragma once
 #include "SMAA.h"
 
+constexpr glm::vec2 defaultResScale = glm::vec2(1, 1);
+
 struct resolutionSettings_t
 {
-    glm::vec2 resolutionScale{1.0f, 1.0f};
+    glm::vec2 resolutionScale{defaultResScale};
 
-    explicit resolutionSettings_t(glm::vec2 res = glm::vec2(1.0f, 1.0f))
+    explicit resolutionSettings_t(const glm::vec2& res = defaultResScale)
     {
         resolutionScale = res;
     }
@@ -17,11 +19,11 @@ class OAUpsamplerScene : public SMAAScene
 public:
 
     explicit OAUpsamplerScene(const char* windowName = "Ziyad Barakat's portfolio (OAUpsampler)",
-        const camera_t& camera = camera_t(defaultWindowSize, 0.31415f, camera_t::projection_e::perspective, 0.01f, 2000.f),
+        const camera_t& camera = camera_t(defaultWindowSize, defaultCameraSpeed, camera_t::projection_e::perspective),
         const char* shaderConfigPath = SHADER_CONFIG_DIR,
         model_t model = model_t("models/SoulSpear/SoulSpear.fbx")) : SMAAScene(windowName, camera, shaderConfigPath, std::move(model))
     {
-        resScale = glm::vec2(1, 1);
+        resScale = glm::vec2(defaultResScale);
         scaledResolution = camera.resolution * resScale;
     }
 
@@ -32,7 +34,7 @@ public:
 
 protected:
 
-    glm::vec2 resScale{ 1, 1};
+    glm::vec2 resScale{defaultResScale};
     glm::ivec2 scaledResolution{ resScale.x, resScale.y };
     bufferHandler_t<resolutionSettings_t> resolutionSettings;
 
@@ -43,25 +45,26 @@ protected:
         glDrawBuffers(1, &geometryBuffer.attachments["color"].FBODesc.attachmentFormat);
 
         //we just need the first LOd so only do the first 3 meshes
-        for (size_t iter = 0; iter < 1; iter++)
+        for (auto& mesh : testModel.meshes)
         {
-            testModel.meshes[iter].textures[0].SetActive(0);
+            for (uint8_t texIter = 0; texIter < mesh.textures.size(); texIter++)
+            {
+                mesh.textures[texIter].SetActive(texIter);
+            }
 
-            glBindVertexArray(testModel.meshes[iter].vertexArrayHandle);
+            glBindVertexArray(mesh.vertexArrayHandle);
             glUseProgram(geometryProgram->handle);
 
-            glViewport(0, 0, scaledResolution.x, scaledResolution.y);
+            glViewport(defaultViewportOrigin.x, defaultViewportOrigin.y, scaledResolution.x, scaledResolution.y);
 
             if (wireframe)
             {
                 glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
             }
-            glDrawElements(GL_TRIANGLES, testModel.meshes[iter].indices.size(), GL_UNSIGNED_INT, nullptr);
+            glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, nullptr);
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         }
-
         frameBuffer::Unbind();
-
     }
 
     void EdgeDetectionPass() override
@@ -75,7 +78,7 @@ protected:
 
         glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
         glUseProgram(edgeDetectionProgram->handle);
-        glViewport(0, 0, scaledResolution.x, scaledResolution.y);
+        glViewport(defaultViewportOrigin.x, defaultViewportOrigin.y, scaledResolution.x, scaledResolution.y);
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
         frameBuffer::Unbind();
@@ -93,7 +96,7 @@ protected:
 
         glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
         glUseProgram(blendingWeightProgram->handle);
-        glViewport(0, 0, scaledResolution.x, scaledResolution.y);
+        glViewport(defaultViewportOrigin.x, defaultViewportOrigin.y, scaledResolution.x, scaledResolution.y);
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
         frameBuffer::Unbind();
@@ -105,12 +108,12 @@ protected:
         glDrawBuffers(1, &SMAABuffer.attachments["SMAA"].FBODesc.attachmentFormat);
 
         //current frame
-        geometryBuffer.attachments["color"].SetActive(0); // color
+        geometryBuffer.attachments["color"].SetActive(0); //color
         weightsBuffer.attachments["blend"].SetActive(1); //blending weights
 
         glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
         glUseProgram(SMAAProgram->handle);
-        glViewport(0, 0, scaledResolution.x, scaledResolution.y);
+        glViewport(defaultViewportOrigin.x, defaultViewportOrigin.y, scaledResolution.x, scaledResolution.y);
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
         frameBuffer::Unbind();
@@ -124,23 +127,23 @@ protected:
 
     void Draw() override
     {
-        sceneCamera.ChangeProjection(camera_t::projection_e::perspective);
-        sceneCamera.Update();
+        camera.ChangeProjection(camera_t::projection_e::perspective);
+        camera.Update();
         UpdateDefaultBuffer();
 
-        GeometryPass(); //render current scene with jitter
+        GeometryPass();
 
-        sceneCamera.resolution = scaledResolution;
-        sceneCamera.ChangeProjection(camera_t::projection_e::orthographic);
-        sceneCamera.Update();
+        camera.resolution = scaledResolution;
+        camera.ChangeProjection(camera_t::projection_e::orthographic);
+        camera.Update();
         UpdateDefaultBuffer();
 
         EdgeDetectionPass();
         BlendingWeightsPass();
         SMAAPass();
 
-        sceneCamera.resolution = glm::vec2(window->GetSettings().resolution.x, window->GetSettings().resolution.y);
-        sceneCamera.Update();
+        camera.resolution = glm::vec2(window->GetSettings().resolution.x, window->GetSettings().resolution.y);
+        camera.Update();
         UpdateDefaultBuffer();
         FinalPass(&SMAABuffer.attachments["SMAA"], &geometryBuffer.attachments["color"]);
 
@@ -179,18 +182,18 @@ protected:
             val.Resize(resolution);
         }
 
-        sceneCamera.resolution = resolution;
+        camera.resolution = resolution;
     }
 
     void HandleWindowResize(const tWindow* window, const TinyWindow::vec2_t<uint16_t> dimensions) override
     {
-        scaledResolution = glm::vec2(dimensions.x, dimensions.y) * resScale;
+        UpdateResolution(glm::ivec2(dimensions.x, dimensions.y));
         ResizeBuffers(glm::ivec2(scaledResolution));
     }
 
     void HandleMaximize(const tWindow* window) override
     {
-        scaledResolution = glm::vec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height) * resScale;
+        UpdateResolution(glm::ivec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height));
         ResizeBuffers(glm::ivec2(scaledResolution));
     }
 
@@ -200,8 +203,7 @@ protected:
         if (ImGui::DragFloat("scaleX", &resolutionSettings.data.resolutionScale.x, 0.01f) ||
             ImGui::DragFloat("scaleY", &resolutionSettings.data.resolutionScale.y, 0.01f))
         {
-            resScale =  resolutionSettings.data.resolutionScale;
-            scaledResolution = glm::vec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height) * resScale;
+            UpdateResolutionScale(resolutionSettings.data.resolutionScale);
             ResizeBuffers(scaledResolution);
         }
         ImGui::End();
@@ -211,5 +213,24 @@ protected:
     {
         SMAAScene::BuildGUI(window, io);
         DrawResolutionSettings();
+    }
+
+    void UpdateResolutionScale(const glm::vec2& resolutionScale)
+    {
+        resScale =  resolutionScale;
+        scaledResolution = glm::vec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height) * resScale;
+        camera.resolution = scaledResolution;
+        camera.Update();
+
+        SMAAsettings.data.rtMetrics = glm::vec4(1.0 / scaledResolution.x, 1.0 / scaledResolution.y, scaledResolution.x, scaledResolution.y);
+    }
+
+    void UpdateResolution(const glm::ivec2& resolution)
+    {
+        scaledResolution = glm::vec2(resolution.x, resolution.y) * resScale;
+        camera.resolution = scaledResolution;
+        camera.Update();
+
+        SMAAsettings.data.rtMetrics = glm::vec4(1.0 / scaledResolution.x, 1.0 / scaledResolution.y, scaledResolution.x, scaledResolution.y);
     }
 };

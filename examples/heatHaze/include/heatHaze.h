@@ -269,7 +269,7 @@ protected:
 		glClear(GL_DEPTH_BUFFER_BIT);
 		perlinBuffer->Unbind();
 
-		sceneCamera->ChangeProjection(camera_t::projection_e::perspective);
+		camera->ChangeProjection(camera_t::projection_e::perspective);
 	}
 
 	virtual void ResizeBuffers(glm::ivec2 resolution)

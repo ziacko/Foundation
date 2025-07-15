@@ -91,7 +91,7 @@ protected:
 		for (const auto& iter : testModel.meshes)
 		{
 			glBindVertexArray(iter.vertexArrayHandle);
-			glUseProgram(this->programGLID);
+			glUseProgram(defProgram.handle);
 
 			glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 
@@ -115,26 +115,26 @@ protected:
 	{
 		//this keeps resetting the values
 		manager->PollForEvents();
-		sceneCamera.Update();
-		sceneClock.UpdateClockAdaptive();
+		camera.Update();
+		clock.UpdateClockAdaptive();
 
-		defaultPayload.data.deltaTime = (float)sceneClock.GetDeltaTime();
-		defaultPayload.data.totalTime = (float)sceneClock.GetTotalTime();
-		defaultPayload.data.framesPerSec = (float)(1.0 / sceneClock.GetDeltaTime());
+		defaultPayload.data.deltaTime = (float)clock.GetDeltaTime();
+		defaultPayload.data.totalTime = (float)clock.GetTotalTime();
+		defaultPayload.data.framesPerSec = (float)(1.0 / clock.GetDeltaTime());
 		defaultPayload.data.totalFrames++;
 
-		defaultPayload.data.projection = sceneCamera.projection;
-		defaultPayload.data.view = sceneCamera.view;
-		if (sceneCamera.currentProjectionType == camera_t::projection_e::perspective)
+		defaultPayload.data.projection = camera.projection;
+		defaultPayload.data.view = camera.view;
+		if (camera.currentProjectionType == camera_t::projection_e::perspective)
 		{
 			defaultPayload.data.translation = glm::identity<glm::mat4>();
 		}
 
 		else
 		{
-			defaultPayload.data.translation = sceneCamera.translation;
+			defaultPayload.data.translation = camera.translation;
 		}
-		
+
 		defaultPayload.Update(gl_uniform_buffer, gl_dynamic_draw);
 	}
 
@@ -150,29 +150,29 @@ protected:
 		//set up the view matrix
 		ImGui::Begin("camera", &isGUIActive);
 
-		ImGui::DragFloat("near plane", &sceneCamera.nearPlane, 0.1f, 0.00001f, 3.0f);
-		ImGui::DragFloat("far plane", &sceneCamera.farPlane);
-		ImGui::SliderFloat("Field of view", &sceneCamera.fieldOfView, 0, 90, "%.0f");
+		ImGui::SliderFloat("near plane", &camera.nearPlane, 0.00001f, 1.0f, "%.0f");
+		ImGui::SliderFloat("far plane", &camera.farPlane, 0, defaultFarPlane, "%.0f");
+		ImGui::SliderFloat("Field of view", &camera.fieldOfView, 0, 90, "%.0f");
 
-		ImGui::InputFloat("camera speed", &sceneCamera.speed);
-		ImGui::InputFloat("x sensitivity", &sceneCamera.xSensitivity, 0.f);
-		ImGui::InputFloat("y sensitivity", &sceneCamera.ySensitivity, 0.f);
+		ImGui::InputFloat("camera speed", &camera.speed, 0.01f);
+		ImGui::InputFloat("x sensitivity", &camera.xSensitivity, 0.f);
+		ImGui::InputFloat("y sensitivity", &camera.ySensitivity, 0.f);
 
-		ImGui::Text("local up %f %f %f %f", sceneCamera.up.x, sceneCamera.up.y, sceneCamera.up.z, sceneCamera.up.w);
-		ImGui::Text("local right %f %f %f %f", sceneCamera.right.x, sceneCamera.right.y, sceneCamera.right.z, sceneCamera.right.w);
-		ImGui::Text("local forward %f %f %f %f", sceneCamera.forward.x, sceneCamera.forward.y, sceneCamera.forward.z, sceneCamera.forward.w);
+		ImGui::Text("local up %f %f %f %f", camera.up.x, camera.up.y, camera.up.z, camera.up.w);
+		ImGui::Text("local right %f %f %f %f", camera.right.x, camera.right.y, camera.right.z, camera.right.w);
+		ImGui::Text("local forward %f %f %f %f", camera.forward.x, camera.forward.y, camera.forward.z, camera.forward.w);
 		ImGui::End();
 	}
 
 	virtual void InitializeUniforms() override
 	{
-		defaultPayload.data = defaultUniformBuffer(sceneCamera);
+		defaultPayload.data = defaultUniformBuffer(camera);
 		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 
 		defaultPayload.data.resolution = glm::vec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
-		defaultPayload.data.projection = sceneCamera.projection;
-		defaultPayload.data.translation = sceneCamera.translation;
-		defaultPayload.data.view = sceneCamera.view;
+		defaultPayload.data.projection = camera.projection;
+		defaultPayload.data.translation = camera.translation;
+		defaultPayload.data.view = camera.view;
 
 		materialBuffer.data = baseMaterialSettings_t();
 
@@ -180,7 +180,7 @@ protected:
 		materialBuffer.Initialize(1);
 	}
 
-	virtual void HandleMouseClick(const tWindow* window, mouseButton_t button, buttonState_t state) override
+	virtual void HandleMouseClick(const tWindow* window, mouseButton_e button, buttonState_e state) override
 	{
 		scene::HandleMouseClick(window, button, state);
 	}
@@ -191,18 +191,18 @@ protected:
 		scene::HandleMouseMotion(window, windowPosition, screenPosition);
 
 		glm::vec2 mouseDelta = glm::vec2(window->GetMousePosition().x - window->GetPreviousMousePosition().x, window->GetMousePosition().y - window->GetPreviousMousePosition().y);
-		float deltaTime = (float)thisScene->sceneClock.GetDeltaTime();
+		float deltaTime = (float)thisScene->clock.GetDeltaTime();
 
-		if (window->GetMouseButtonState()[(int)mouseButton_t::right] == buttonState_t::down)
+		if (window->GetMouseButtonState()[(int)mouseButton_e::right] == buttonState_e::down)
 		{
 			if (mouseDelta.x != 0)
 			{
-				sceneCamera.Yaw((float)((mouseDelta.x * sceneCamera.xSensitivity) * (1 - deltaTime)));
+				camera.Yaw((float)((mouseDelta.x * camera.xSensitivity) * (1 - deltaTime)));
 			}
 
 			if (mouseDelta.y != 0)
 			{
-				sceneCamera.Pitch((float)((mouseDelta.y * sceneCamera.ySensitivity) * (1 - deltaTime)));
+				camera.Pitch((float)((mouseDelta.y * camera.ySensitivity) * (1 - deltaTime)));
 			}
 		}
 	}
@@ -210,10 +210,10 @@ protected:
 	virtual void HandleMaximize(const tWindow* window) override
 	{
 		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
-		sceneCamera.resolution = glm::vec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
-		defaultPayload.data.resolution = sceneCamera.resolution;
-		sceneCamera.UpdateProjection();
-		defaultPayload.data.projection = sceneCamera.projection;
+		camera.resolution = glm::vec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
+		defaultPayload.data.resolution = camera.resolution;
+		camera.UpdateProjection();
+		defaultPayload.data.projection = camera.projection;
 
 		//bind the uniform buffer and refill it
 		defaultPayload.Update(gl_uniform_buffer, gl_dynamic_draw);
@@ -223,18 +223,18 @@ protected:
 	{
 		scene3D* thisScene = (scene3D*)window->GetSettings().userData;
 		glViewport(0, 0, dimensions.width, dimensions.height);
-		sceneCamera.resolution = glm::vec2(dimensions.width, dimensions.height);
-		defaultPayload.data.resolution = sceneCamera.resolution;
-		sceneCamera.UpdateProjection();
-		defaultPayload.data.projection = sceneCamera.projection;
-		defaultPayload.data.deltaTime = (float)sceneClock.GetDeltaTime();
-		defaultPayload.data.totalTime = (float)sceneClock.GetTotalTime();
-		defaultPayload.data.framesPerSec = (float)(1.0 / sceneClock.GetDeltaTime());
+		camera.resolution = glm::vec2(dimensions.width, dimensions.height);
+		defaultPayload.data.resolution = camera.resolution;
+		camera.UpdateProjection();
+		defaultPayload.data.projection = camera.projection;
+		defaultPayload.data.deltaTime = (float)clock.GetDeltaTime();
+		defaultPayload.data.totalTime = (float)clock.GetTotalTime();
+		defaultPayload.data.framesPerSec = (float)(1.0 / clock.GetDeltaTime());
 
 		defaultPayload.Update(gl_uniform_buffer, gl_dynamic_draw);
 	}
 
-	virtual void HandleKey(const tWindow* window, const uint16_t key, const keyState_t state)	override
+	virtual void HandleKey(const tWindow* window, const uint16_t key, const keyState_e state)	override
 	{
 		auto it = windowContextMap.find(const_cast<tWindow*>(window));
 		if (it != windowContextMap.end())
@@ -244,7 +244,7 @@ protected:
 		ImGuiIO& io = ImGui::GetIO();
 
 
-		if (state == keyState_t::down)
+		if (state == keyState_e::down)
 		{
 			io.KeysData[key].Down = true;
 			io.AddInputCharacter(key);
@@ -256,58 +256,58 @@ protected:
 			io.KeysData[key].Down = false;
 		}
 		float camSpeed = 0.0f;
-		if (key == TinyWindow::key_t::leftShift && state == keyState_t::down)
+		if (key == TinyWindow::key_e::leftShift && state == keyState_e::down)
 		{
-			camSpeed = sceneCamera.speed * 2;
+			camSpeed = camera.speed * 2;
 		}
-		
+
 		else
 		{
-			camSpeed = sceneCamera.speed;
+			camSpeed = camera.speed;
 		}
 
-		float deltaTime = (float)sceneClock.GetDeltaTime();
+		float deltaTime = (float)clock.GetDeltaTime();
 
-		if (state == keyState_t::down) //instead of one key could we check multiple keys?
+		if (state == keyState_e::down) //instead of one key could we check multiple keys?
 		{
-			if(window->GetKeyState()['w'] == keyState_t::down)
+			if(window->GetKeyState()['w'] == keyState_e::down)
 			{
-				sceneCamera.MoveForward(camSpeed, deltaTime);
+				camera.MoveForward(camSpeed, deltaTime);
 			}
 
-			if (window->GetKeyState()['s'] == keyState_t::down)
+			if (window->GetKeyState()['s'] == keyState_e::down)
 			{
-				sceneCamera.MoveForward(-camSpeed, deltaTime);
+				camera.MoveForward(-camSpeed, deltaTime);
 			}
 
-			if (window->GetKeyState()['a'] == keyState_t::down)
+			if (window->GetKeyState()['a'] == keyState_e::down)
 			{
-				sceneCamera.MoveRight(-camSpeed, deltaTime);
+				camera.MoveRight(-camSpeed, deltaTime);
 			}
 
-			if (window->GetKeyState()['d'] == keyState_t::down)
+			if (window->GetKeyState()['d'] == keyState_e::down)
 			{
-				sceneCamera.MoveRight(camSpeed, deltaTime);
+				camera.MoveRight(camSpeed, deltaTime);
 			}
 
-			if (window->GetKeyState()['e'] == keyState_t::down)
+			if (window->GetKeyState()['e'] == keyState_e::down)
 			{
-				sceneCamera.MoveUp(camSpeed, deltaTime);
+				camera.MoveUp(camSpeed, deltaTime);
 			}
 
-			if (window->GetKeyState()['q'] == keyState_t::down)
+			if (window->GetKeyState()['q'] == keyState_e::down)
 			{
-				sceneCamera.MoveUp(-camSpeed, deltaTime);
+				camera.MoveUp(-camSpeed, deltaTime);
 			}
 
-			if (window->GetKeyState()['z'] == keyState_t::down)
+			if (window->GetKeyState()['z'] == keyState_e::down)
 			{
-				sceneCamera.Roll(glm::radians((float)sceneCamera.zSensitivity * deltaTime));
+				camera.Roll(glm::radians((float)camera.zSensitivity * deltaTime));
 			}
 
-			if (window->GetKeyState()['x'] == keyState_t::down)
+			if (window->GetKeyState()['x'] == keyState_e::down)
 			{
-				sceneCamera.Roll(glm::radians((float)-sceneCamera.zSensitivity * deltaTime));
+				camera.Roll(glm::radians((float)-camera.zSensitivity * deltaTime));
 			}
 		}
 	}
