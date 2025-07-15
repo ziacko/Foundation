@@ -63,22 +63,23 @@ namespace TinyShaders
 	typedef std::pair<const error_e,  const std::string> errorEntry;
 	const std::unordered_map<const error_e, const std::string> errorLUT =
 	{
+
 		errorEntry(error_e::invalidString, "Error: invalid string"),
-		errorEntry(error_e::invalidShaderProgramName, "Error: invalid shader program name"),
-		errorEntry(error_e::invalidShaderProgramIndex, "Error: invalid shader program index"),
-		errorEntry(error_e::invalidShaderName, "Error: invalid shader name"),
-		errorEntry(error_e::invalidShaderIndex, "Error: invalid shader index"),
-		errorEntry(error_e::invalidFilePath, "Error: invalid file path"),
-		errorEntry(error_e::shaderProgramNotFound, "Error: shader program not found"),
 		errorEntry(error_e::shaderNotFound, "Error: shader not found"),
+		errorEntry(error_e::invalidFilePath, "Error: invalid file path"),
+		errorEntry(error_e::invalidShaderName, "Error: invalid shader name"),
 		errorEntry(error_e::invalidShaderType, "Error: invalid shader type"),
-		errorEntry(error_e::shaderLoadFailed, "Error: shader has failed to load"),
-		errorEntry(error_e::shaderProgramLoadFailed, "Error: shader program load failed"),
-		errorEntry(error_e::shaderProgramLinkFailed, "Error: shader program linking failed"),
-		errorEntry(error_e::shaderAlreadyLoaded, "Error: shader has already been loaded"),
-		errorEntry(error_e::shaderProgramAlreadyExists, "Error: shader program already exists"),
+		errorEntry(error_e::invalidShaderIndex, "Error: invalid shader index"),
 		errorEntry(error_e::invalidSourceFile, "Error: source file is invalid"),
+		errorEntry(error_e::shaderLoadFailed, "Error: shader has failed to load"),
+		errorEntry(error_e::shaderProgramNotFound, "Error: shader program not found"),
+		errorEntry(error_e::shaderProgramLoadFailed, "Error: shader program load failed"),
+		errorEntry(error_e::shaderAlreadyLoaded, "Error: shader has already been loaded"),
 		errorEntry(error_e::shaderCompileFailed, "Error: the shader has failed to compile"),
+		errorEntry(error_e::invalidShaderProgramName, "Error: invalid shader program name"),
+		errorEntry(error_e::shaderProgramLinkFailed, "Error: shader program linking failed"),
+		errorEntry(error_e::invalidShaderProgramIndex, "Error: invalid shader program index"),
+		errorEntry(error_e::shaderProgramAlreadyExists, "Error: shader program already exists"),
 		errorEntry(error_e::shaderProgramCompileFailed, "Error: the shader program has failed to compile"),
 	};
 	using managerErrorEvent_t = std::function<void(const errorEntry& entry)>;
