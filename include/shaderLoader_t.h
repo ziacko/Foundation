@@ -12,13 +12,6 @@
 static void LoadShaderProgramsFromConfigFile( const std::string& shaderConfigPath, shaderManager* manager, tsl::robin_map<std::string, tShaderProgram>* outPrograms = nullptr )
 {
     auto currentDir = std::filesystem::current_path();
-    uint16_t numInputs = 0;
-    uint16_t numOutputs = 0;
-    uint16_t numPrograms = 0;
-    uint16_t numShaders = 0;
-    uint16_t iterator;
-
-    std::vector<std::string> inputs, outputs, paths, names;
     std::vector<tShader*> localShaders;
 
     auto workingDire = std::filesystem::current_path();
@@ -134,8 +127,8 @@ static void LoadShaderProgramsFromConfigFile( const std::string& shaderConfigPat
 
                                 std::string newPath = std::string( yyjson_get_str(shaderPath));
                                 const std::string localPath = shaderPathPart / PROJECT_NAME / newPath;
-                                TinyShaders::shaderType_e localType;
-                                TinyShaders::StringToShaderType(std::string(yyjson_get_str(shaderType)), localType);
+                                shaderType_e localType;
+                                StringToShaderType(std::string(yyjson_get_str(shaderType)), localType);
 
                                 //prepend the working directory to path
                                 manager->LoadShader(yyjson_get_str(shaderName), localPath, localType);
@@ -143,13 +136,13 @@ static void LoadShaderProgramsFromConfigFile( const std::string& shaderConfigPat
 
                             if (manager->GetShader(yyjson_get_str(shaderName))->isCompiled == true)
                             {
-                                localProgram.shaders.push_back(*manager->shaders[yyjson_get_str(shaderName)]);
+                                localProgram.shaders.push_back(*manager->GetShader(yyjson_get_str(shaderName)));
                             }
                         }
                     }
                     //ok now lets put it all together
                     manager->BuildProgramFromShaders(localProgram.name, localProgram.inputs, localProgram.outputs, localProgram.shaders);
-                    outPrograms->emplace(localProgram.name, *manager->shaderPrograms[localProgram.name]);
+                    outPrograms->emplace(localProgram.name, *manager->GetShaderProgram(localProgram.name));
                 }
             }
         }

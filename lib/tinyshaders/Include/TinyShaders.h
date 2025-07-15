@@ -333,9 +333,6 @@ namespace TinyShaders
 		shaderErrorEvent_t shaderErrorEvent;
 		shaderProgramErrorEvent_t shaderProgramErrorEvent;
 
-		std::unordered_map< std::string, std::unique_ptr<tShaderProgram>>	shaderPrograms;		/**< All loaded shader programs */
-		std::unordered_map< std::string, std::unique_ptr<tShader>>			shaders;			/**< All loaded shaders*/
-
 		shaderManager(){}
 		~shaderManager() { Shutdown(); }
 
@@ -490,6 +487,8 @@ namespace TinyShaders
 		private:
 
 		std::vector<errorEntry> errorLog;
+		std::unordered_map< std::string, std::unique_ptr<tShaderProgram>>	shaderPrograms;		/**< All loaded shader programs */
+		std::unordered_map< std::string, std::unique_ptr<tShader>>			shaders;			/**< All loaded shaders*/
 
 		void ProcessInterfaces(const tShaderProgram* shaderProgram)
 		{
