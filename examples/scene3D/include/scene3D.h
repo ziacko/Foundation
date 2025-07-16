@@ -29,9 +29,9 @@ class scene3D : public scene
 public:
 
 	scene3D(const char* windowName = "Ziyad Barakat's Portfolio(3D scene)",
-		camera_t camera3D = camera_t(glm::vec2(1280, 720), PI, camera_t::projection_e::perspective, 0.1f, 1000000.f),
+		const camera_t& camera3D = camera_t(defaultWindowSize, defaultCameraSpeed, camera_t::projection_e::perspective),
 		const char* shaderConfigPath = SHADER_CONFIG_DIR,
-		model_t model = model_t("models/SoulSpear/SoulSpear.fbx")) :
+		const model_t& model = model_t("models/SoulSpear/SoulSpear.fbx")) :
 		scene(windowName, camera3D, shaderConfigPath)
 	{
 		testModel = model;
@@ -39,10 +39,8 @@ public:
 		glClearColor(0.25f, 0.25f, 0.25f, 1.0f);
 	}
 
-	virtual ~scene3D() {};
-
 	//override input code. use this to mess with camera
-	virtual void SetupCallbacks() override 
+	void SetupCallbacks() override
 	{
 		manager->resizeEvent = std::bind(&scene3D::HandleWindowResize, this, _1, _2);
 		manager->maximizedEvent = std::bind(&scene3D::HandleMaximize, this, _1);
@@ -53,18 +51,11 @@ public:
 		manager->keyEvent = std::bind(&scene3D::HandleKey, this, _1, _2, _3);
 	}
 
-	virtual void Initialize() override
+	void Initialize() override
 	{
 		scene::Initialize();
 		testModel.loadModel();
-		//model.Load();
-		//for(size_t iter = 0; iter < testModel->meshes.size(); iter++)
-		{
-		/*	testModel->boneBuffer.Initialize(0, gl_shader_storage_buffer, gl_dynamic_draw);
-			testModel->boneBuffer.Update(gl_shader_storage_buffer, gl_dynamic_draw,
-				sizeof(glm::mat4) * testModel->boneBuffer.data.finalTransforms.size(),
-				testModel->boneBuffer.data.finalTransforms.data());*/
-		}
+
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LEQUAL);
 
@@ -78,7 +69,6 @@ protected:
 	model_t testModel;
 	OBJModel model;
 	bufferHandler_t<baseMaterialSettings_t>	materialBuffer;
-	bool wireframe;
 
 	unsigned int OGLProgram{};
 
@@ -86,7 +76,7 @@ protected:
 	float accumReturn{};
 	float accumMult{};
 
-	virtual void Draw() override 
+	void Draw() override
 	{
 		for (const auto& iter : testModel.meshes)
 		{
@@ -100,7 +90,6 @@ protected:
 				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 			}
 
-
 			glDrawElements(GL_TRIANGLES, iter.indices.size(), GL_UNSIGNED_INT, 0);
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		}
@@ -111,7 +100,7 @@ protected:
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 
-	virtual void Update() override
+	void Update() override
 	{
 		//this keeps resetting the values
 		manager->PollForEvents();
@@ -138,33 +127,34 @@ protected:
 		defaultPayload.Update(gl_uniform_buffer, gl_dynamic_draw);
 	}
 
-	virtual void BuildGUI(tWindow* window, ImGuiIO io) override
+	void BuildGUI(tWindow* window, const ImGuiIO& io) override
 	{
 		scene::BuildGUI(window, io);
-		ImGui::Checkbox("wireframe", &wireframe);
 		DrawCameraStats();
 	}
 
-	virtual void DrawCameraStats() override
+	void DrawCameraStats() override
 	{
 		//set up the view matrix
-		ImGui::Begin("camera", &isGUIActive);
+		if (ImGui::BeginTabItem("Camera"))
+		{
+			ImGui::SliderFloat("near plane", &camera.nearPlane, defaultNearPlane, 1.0f, "%.3f", ImGuiSliderFlags_NoInput);
+			ImGui::SliderFloat("far plane", &camera.farPlane, 0, defaultFarPlane, "%.3f", ImGuiSliderFlags_NoInput);
+			ImGui::SliderFloat("Field of view", &camera.fieldOfView, 0, defaultFieldOfView, "%.3f", ImGuiSliderFlags_NoInput);
 
-		ImGui::SliderFloat("near plane", &camera.nearPlane, 0.00001f, 1.0f, "%.0f");
-		ImGui::SliderFloat("far plane", &camera.farPlane, 0, defaultFarPlane, "%.0f");
-		ImGui::SliderFloat("Field of view", &camera.fieldOfView, 0, 90, "%.0f");
+			ImGui::InputFloat("camera speed", &camera.speed, 0.01f);
+			ImGui::InputFloat("x sensitivity", &camera.xSensitivity, 0.f);
+			ImGui::InputFloat("y sensitivity", &camera.ySensitivity, 0.f);
 
-		ImGui::InputFloat("camera speed", &camera.speed, 0.01f);
-		ImGui::InputFloat("x sensitivity", &camera.xSensitivity, 0.f);
-		ImGui::InputFloat("y sensitivity", &camera.ySensitivity, 0.f);
+			ImGui::Text("local up %f %f %f %f", camera.up.x, camera.up.y, camera.up.z, camera.up.w);
+			ImGui::Text("local right %f %f %f %f", camera.right.x, camera.right.y, camera.right.z, camera.right.w);
+			ImGui::Text("local forward %f %f %f %f", camera.forward.x, camera.forward.y, camera.forward.z, camera.forward.w);
 
-		ImGui::Text("local up %f %f %f %f", camera.up.x, camera.up.y, camera.up.z, camera.up.w);
-		ImGui::Text("local right %f %f %f %f", camera.right.x, camera.right.y, camera.right.z, camera.right.w);
-		ImGui::Text("local forward %f %f %f %f", camera.forward.x, camera.forward.y, camera.forward.z, camera.forward.w);
-		ImGui::End();
+			ImGui::EndTabItem();
+		}
 	}
 
-	virtual void InitializeUniforms() override
+	void InitializeUniforms() override
 	{
 		defaultPayload.data = defaultUniformBuffer(camera);
 		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
@@ -180,12 +170,12 @@ protected:
 		materialBuffer.Initialize(1);
 	}
 
-	virtual void HandleMouseClick(const tWindow* window, mouseButton_e button, buttonState_e state) override
+	void HandleMouseClick(const tWindow* window, mouseButton_e button, buttonState_e state) override
 	{
 		scene::HandleMouseClick(window, button, state);
 	}
 
-	virtual void HandleMouseMotion(const tWindow* window, vec2_t<int16_t> windowPosition, vec2_t<int16_t> screenPosition) override
+	void HandleMouseMotion(const tWindow* window, vec2_t<int16_t> windowPosition, vec2_t<int16_t> screenPosition) override
 	{
 		scene3D* thisScene = (scene3D*)window->GetSettings().userData;
 		scene::HandleMouseMotion(window, windowPosition, screenPosition);
@@ -207,7 +197,7 @@ protected:
 		}
 	}
 
-	virtual void HandleMaximize(const tWindow* window) override
+	void HandleMaximize(const tWindow* window) override
 	{
 		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 		camera.resolution = glm::vec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
@@ -219,7 +209,7 @@ protected:
 		defaultPayload.Update(gl_uniform_buffer, gl_dynamic_draw);
 	}
 
-	virtual void HandleWindowResize(const tWindow* window, TinyWindow::vec2_t<uint16_t> dimensions) override
+	void HandleWindowResize(const tWindow* window, TinyWindow::vec2_t<uint16_t> dimensions) override
 	{
 		scene3D* thisScene = (scene3D*)window->GetSettings().userData;
 		glViewport(0, 0, dimensions.width, dimensions.height);
@@ -234,7 +224,7 @@ protected:
 		defaultPayload.Update(gl_uniform_buffer, gl_dynamic_draw);
 	}
 
-	virtual void HandleKey(const tWindow* window, const uint16_t key, const keyState_e state)	override
+	void HandleKey(const tWindow* window, const int16_t& key, const keyState_e& state)	override
 	{
 		auto it = windowContextMap.find(const_cast<tWindow*>(window));
 		if (it != windowContextMap.end())

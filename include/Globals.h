@@ -50,8 +50,8 @@ using namespace TinyShaders;
 
 //global defines
 #define PI 3.14159265
-constexpr float clearColor[4] = {0.33f, 0.33f, 0.33f, 1.0f};
-constexpr float clearColor2[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+constexpr glm::vec4 clearColor = {0.33f, 0.33f, 0.33f, 1.0f};
+constexpr glm::vec4 clearColor2 = { 0.0f, 0.0f, 0.0f, 1.0f };
 
 constexpr glm::vec2 defaultWindowSize = glm::vec2(1280, 720);
 
@@ -61,6 +61,8 @@ constexpr float defaultFieldOfView = 90.0f;
 constexpr float defaultCameraSpeed = PI * 0.1;
 
 constexpr glm::vec2 defaultViewportOrigin = glm::vec2(0);
+
+//could put all opf these into a namespace but what to call it? globdefaults? gDefs?
 
 //local headers
 using namespace TinyWindow;

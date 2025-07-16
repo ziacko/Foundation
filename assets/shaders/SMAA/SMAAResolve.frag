@@ -50,14 +50,15 @@ layout(std140, binding = 0) uniform defaultSettings
 	uint 		totalFrames;
 };
 
-/*
-layout(std140, binding = 1) uniform sobelSettings
+layout(std140, binding = 1) uniform SMAASettings
 {
-	float		redModifier;
-	float		greenModifier;
-	float		blueModifier;
-	float		cellDistance;
-};*/
+	vec4 		rtMetrics;
+	float		inThreshold;
+	float		contrastAdaptationFactor;
+	uint		maxSearchSteps;
+	uint		maxSearchStepsDiag;
+	uint		cornerRounding;
+};
 
 layout(binding = 0) uniform sampler2D colorTex;
 layout(binding = 1) uniform sampler2D blendTex;
@@ -75,8 +76,6 @@ void SMAAMovc(bool4 cond, inout float4 variable, float4 value) {
     SMAAMovc(cond.zw, variable.zw, value.zw);
 }
 
-vec4 SMAA_RT_METRICS = vec4(1.0 / resolution.x, 1.0 / resolution.y, resolution.x, resolution.y);
-
 //-----------------------------------------------------------------------------
 // Neighborhood Blending Pixel Shader (Third Pass)
 
@@ -84,9 +83,9 @@ float4 SMAANeighborhoodBlendingPS(float2 texcoord,
                                   float4 offset,
                                   SMAATexture2D(colorTex),
                                   SMAATexture2D(blendTex)
-                                  //#if SMAA_REPROJECTION
-                                  //, SMAATexture2D(velocityTex)
-                                  //#endif
+                                  #if SMAA_REPROJECTION
+                                  , SMAATexture2D(velocityTex)
+                                  #endif
                                   ) {
     // Fetch the blending weights for current pixel:
     float4 a;
@@ -99,12 +98,12 @@ float4 SMAANeighborhoodBlendingPS(float2 texcoord,
     if (dot(a, float4(1.0, 1.0, 1.0, 1.0)) < 1e-5) {
         float4 color = SMAASampleLevelZero(colorTex, texcoord);
 
-        /*#if SMAA_REPROJECTION
-		float2 velocity = float2(1, 1) - -SMAA_GET_VELOCITY(texcoord);
+        #if SMAA_REPROJECTION
+        float2 velocity = SMAA_DECODE_VELOCITY(SMAASampleLevelZero(velocityTex, texcoord));
 
         // Pack velocity into the alpha channel:
         color.a = sqrt(5.0 * length(velocity));
-        #endif*/
+        #endif
 
         return color;
     } else {
@@ -118,21 +117,21 @@ float4 SMAANeighborhoodBlendingPS(float2 texcoord,
         blendingWeight /= dot(blendingWeight, float2(1.0, 1.0));
 
         // Calculate the texture coordinates:
-        float4 blendingCoord = mad(blendingOffset, float4(SMAA_RT_METRICS.xy, -SMAA_RT_METRICS.xy), texcoord.xyxy);
+        float4 blendingCoord = mad(blendingOffset, float4(rtMetrics.xy, -rtMetrics.xy), texcoord.xyxy);
 
         // We exploit bilinear filtering to mix current pixel with the chosen
         // neighbor:
         float4 color = blendingWeight.x * SMAASampleLevelZero(colorTex, blendingCoord.xy);
         color += blendingWeight.y * SMAASampleLevelZero(colorTex, blendingCoord.zw);
 
-        /*#if SMAA_REPROJECTION
+        #if SMAA_REPROJECTION
         // Antialias velocity for proper reprojection in a later stage:
-		float2 velocity = blendingWeight.x * SMAA_GET_VELOCITY(blendingCoord.xy);
-		velocity += blendingWeight.y * SMAA_GET_VELOCITY(blendingCoord.zw);
+        float2 velocity = blendingWeight.x * SMAA_DECODE_VELOCITY(SMAASampleLevelZero(velocityTex, blendingCoord.xy));
+        velocity += blendingWeight.y * SMAA_DECODE_VELOCITY(SMAASampleLevelZero(velocityTex, blendingCoord.zw));
 
         // Pack velocity into the alpha channel:
         color.a = sqrt(5.0 * length(velocity));
-        #endif*/
+        #endif
 
         return color;
     }

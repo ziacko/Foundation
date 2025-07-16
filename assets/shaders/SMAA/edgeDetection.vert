@@ -28,16 +28,16 @@ layout (location = 1) in vec2 uv;
 
 out defaultBlock
 {
-	vec4 position;
-	vec2 uv;
+	noperspective vec4 position;
+	noperspective vec2 uv;
 } outBlock;
 
 out edgeBlock
 {
-    vec4 offset[3];
+    noperspective vec4 offset[3];
 } outEdge;
 
-layout(binding = 0) uniform defaultSettings
+layout(std140, binding = 0) uniform defaultSettings
 {
 	mat4		projection;
 	mat4		view;
@@ -50,13 +50,9 @@ layout(binding = 0) uniform defaultSettings
 	uint		totalFrames;
 };
 
-layout(binding = 2) uniform resolutionSetting
+layout(std140, binding = 1) uniform SMAASettings
 {
-	vec2		dynResolution;
-};
-
-layout(binding = 1) uniform SMAASettings
-{
+	vec4 		rtMetrics;
 	float		inThreshold;
 	float		contrastAdaptationFactor;
 	uint		maxSearchSteps;
@@ -65,23 +61,43 @@ layout(binding = 1) uniform SMAASettings
 };
 
 
-vec4 SMAA_RT_METRICS = vec4(1.0 / resolution.x, 1.0 / resolution.y, resolution.x, resolution.y);
+float snapToZeroOrOne(float value, float threshold) {
+    if (value < threshold) return 0.0;
+    if (value > 1.0 - threshold) return 1.0;
+    return value;
+}
+
+vec4 snapToZeroOrOne(vec4 value, float threshold) {
+    return vec4(
+        snapToZeroOrOne(value.x, threshold),
+        snapToZeroOrOne(value.y, threshold),
+        snapToZeroOrOne(value.z, threshold),
+		snapToZeroOrOne(value.w, threshold)
+    );
+}
 
 /**
  * Edge Detection Vertex Shader
  */
 void SMAAEdgeDetectionVS(float2 texcoord, out float4 offset[3])
 {
-    offset[0] = mad(SMAA_RT_METRICS.xyxy, float4(-1.0, 0.0, 0.0, -1.0), texcoord.xyxy);
-    offset[1] = mad(SMAA_RT_METRICS.xyxy, float4( 1.0, 0.0, 0.0,  1.0), texcoord.xyxy);
-    offset[2] = mad(SMAA_RT_METRICS.xyxy, float4(-2.0, 0.0, 0.0, -2.0), texcoord.xyxy);
+    offset[0] = mad(rtMetrics.xyxy, float4(-1.0, 0.0, 0.0, -1.0), texcoord.xyxy);
+    offset[1] = mad(rtMetrics.xyxy, float4( 1.0, 0.0, 0.0,  1.0), texcoord.xyxy);
+    offset[2] = mad(rtMetrics.xyxy, float4(-2.0, 0.0, 0.0, -2.0), texcoord.xyxy);
+
+	//offset[0] = snapToZeroOrOne(offset[0], 0.5);
+	//offset[1] = snapToZeroOrOne(offset[1], 0.5);
+	//offset[2] = snapToZeroOrOne(offset[2], 0.5);
+	
 }
 
 void main()
 {
-	outBlock.position = projection * view * translation * position;
-	outBlock.uv = outBlock.position.xy * 0.5f + 0.5f;
-    SMAAEdgeDetectionVS(outBlock.uv, outEdge.offset);
+	outBlock.position = position;
+	outBlock.uv = outBlock.position.xy * 0.5 + 0.5;
+
+	//outBlock.uv.y = 1.0 - outBlock.uv.y; // Flip Y coordinate for correct texture sampling
+	SMAAEdgeDetectionVS(outBlock.uv, outEdge.offset);
 
 	gl_Position = outBlock.position;
 }

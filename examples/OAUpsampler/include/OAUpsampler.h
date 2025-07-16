@@ -199,17 +199,19 @@ protected:
 
     void DrawResolutionSettings()
     {
-        ImGui::Begin("resolution scale", &isGUIActive);
-        if (ImGui::DragFloat("scaleX", &resolutionSettings.data.resolutionScale.x, 0.01f) ||
-            ImGui::DragFloat("scaleY", &resolutionSettings.data.resolutionScale.y, 0.01f))
+        if (ImGui::BeginTabItem("resolution scale"))
         {
-            UpdateResolutionScale(resolutionSettings.data.resolutionScale);
-            ResizeBuffers(scaledResolution);
+            if (ImGui::DragFloat("scaleX", &resolutionSettings.data.resolutionScale.x, 0.01f) ||
+                ImGui::DragFloat("scaleY", &resolutionSettings.data.resolutionScale.y, 0.01f))
+            {
+                UpdateResolutionScale(resolutionSettings.data.resolutionScale);
+                ResizeBuffers(scaledResolution);
+            }
+            ImGui::EndTabItem();
         }
-        ImGui::End();
     }
 
-    void BuildGUI(tWindow* window, const ImGuiIO io) override
+    void BuildGUI(tWindow* window, const ImGuiIO& io) override
     {
         SMAAScene::BuildGUI(window, io);
         DrawResolutionSettings();
@@ -222,7 +224,7 @@ protected:
         camera.resolution = scaledResolution;
         camera.Update();
 
-        SMAAsettings.data.rtMetrics = glm::vec4(1.0 / scaledResolution.x, 1.0 / scaledResolution.y, scaledResolution.x, scaledResolution.y);
+        SMAASettings.data.rtMetrics = glm::vec4(1.0 / scaledResolution.x, 1.0 / scaledResolution.y, scaledResolution.x, scaledResolution.y);
     }
 
     void UpdateResolution(const glm::ivec2& resolution)
@@ -231,6 +233,6 @@ protected:
         camera.resolution = scaledResolution;
         camera.Update();
 
-        SMAAsettings.data.rtMetrics = glm::vec4(1.0 / scaledResolution.x, 1.0 / scaledResolution.y, scaledResolution.x, scaledResolution.y);
+        SMAASettings.data.rtMetrics = glm::vec4(1.0 / scaledResolution.x, 1.0 / scaledResolution.y, scaledResolution.x, scaledResolution.y);
     }
 };

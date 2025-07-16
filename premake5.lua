@@ -14,8 +14,7 @@ function scene_project(name, parents)
         kind "ConsoleApp"
         language "C++"
         cppdialect "C++20"
-        
-        targetdir (_SCRIPT_DIR .. "/examples/" .. name .. "/bin/")
+
         toolset "clang"
         debugdir(_SCRIPT_DIR) -- Changed to use workspace location
         local extradir = "./examples/" .. name .. "/"
@@ -40,7 +39,7 @@ function scene_project(name, parents)
             "examples/" .. name .. "/include/**.h",
             "examples/" .. name .. "/source/**.cpp",
             "include/Globals.h",
-            "lib/imgui/*.cpp",
+            "lib/imgui-docking/*.cpp",
             "lib/yyjson/src/yyjson.c",
             "lib/ufbx/ufbx.c",
             shaderPath,
@@ -59,7 +58,7 @@ function scene_project(name, parents)
             "lib/glm/",
             "lib/gli/",
             "lib/stb/",
-            "lib/imgui/",
+            "lib/imgui-docking/",
             "lib/robin-map/include/",
             "lib/abseil-cpp/absl/",
             "lib/cereal/",
@@ -100,12 +99,24 @@ function scene_project(name, parents)
 
             -- Add CMake working directory
             debugdir(_SCRIPT_DIR)
+
+        --communal settings for all projects
+        filter { "configurations:Debug" }
+            defines { "DEBUG" }
+            symbols "on"
+            optimize "Off"
+            targetdir (_SCRIPT_DIR .. "/bin/Debug")
+
+        filter { "configurations:Release" }
+            optimize "on"
+            symbols "off"
+            targetdir (_SCRIPT_DIR .. "/bin/Release")
 end
 
 if os.host() == "linux" then
-    location "build/cmake"
+    location "proj/cmake"
     else if os.host() == "windows" then
-    location "build/vs"
+    location "proj/vs"
     end
 end
 
@@ -116,18 +127,6 @@ workspace "Portfolio"
     filter "system:windows"
         platforms { "Windows" }
     architecture "x64"
-
-    --communal settings for all projects
-    filter { "configurations:Debug" }
-        defines { "DEBUG" }
-        symbols "on"
-        optimize "Off"
-        targetdir "bin/Debug"
-
-    filter { "configurations:Release" }
-        optimize "on"
-        symbols "off"
-        targetdir "bin/Release"
 
     filter {"platforms:Win64"}
     system "Windows"
@@ -143,7 +142,7 @@ workspace "Portfolio"
     filter { "toolset:clang"}
         configurations { "Debug", "Release" }
         buildoptions { "-Wno-missing-template-arg-list-after-template-kw",
-                    "-Wdeprecated-enum-enum-conversion"}
+                    "-Wno-deprecated-enum-enum-conversion"}
             
     filter {}  -- Reset filter
 

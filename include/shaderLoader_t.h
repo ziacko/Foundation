@@ -4,12 +4,8 @@
 
 #pragma once
 
-//ok here we just need a basic system to load sanders via JSON
-
-
-//do we even bother making this a class?
-
-static void LoadShaderProgramsFromConfigFile( const std::string& shaderConfigPath, shaderManager* manager, tsl::robin_map<std::string, tShaderProgram>* outPrograms = nullptr )
+//ok here we just need a basic system to load snaders via JSON
+static void LoadShaderProgramsFromConfigFile(shaderManager* manager, tsl::robin_map<std::string, tShaderProgram>* outPrograms = nullptr )
 {
     auto currentDir = std::filesystem::current_path();
     std::vector<tShader*> localShaders;
@@ -125,7 +121,7 @@ static void LoadShaderProgramsFromConfigFile( const std::string& shaderConfigPat
                                 printf("loading shader: %s\n", yyjson_get_str(shaderName));
                                 printf("loading shader type: %s\n", yyjson_get_str(shaderType));
 
-                                std::string newPath = std::string( yyjson_get_str(shaderPath));
+                                const std::string newPath = std::string( yyjson_get_str(shaderPath));
                                 const std::string localPath = shaderPathPart / PROJECT_NAME / newPath;
                                 shaderType_e localType;
                                 StringToShaderType(std::string(yyjson_get_str(shaderType)), localType);

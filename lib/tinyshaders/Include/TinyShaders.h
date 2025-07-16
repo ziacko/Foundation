@@ -243,15 +243,15 @@ namespace TinyShaders
 		GLuint				pipelineHandle;
 		GLboolean			separable;
 
-		explicit tShader(std::string  shaderName, const shaderType_e& shaderType, const std::string& shaderFilePath, const bool& separable = true) :
-			name(std::move(shaderName)), filePath(shaderFilePath), type(shaderType), isCompiled(false), separable(separable)
+		explicit tShader(std::string  shaderName, const shaderType_e& shaderType, std::string  shaderFilePath, const bool& separable = true) :
+			name(std::move(shaderName)), filePath(std::move(shaderFilePath)), type(shaderType), isCompiled(false), separable(separable)
 		{
 			pipelineHandle = 0;
 			handle = 0;
 		}
 
-		explicit tShader(std::string  shaderName, const std::string& buffer, const shaderType_e& shaderType, const bool& separable = true)
-			: name(std::move(shaderName)), buffer(buffer), type(shaderType), separable(separable)
+		explicit tShader(std::string  shaderName, std::string  buffer, const shaderType_e& shaderType, const bool& separable = true)
+			: name(std::move(shaderName)), buffer(std::move(buffer)), type(shaderType), separable(separable)
 		{
 			type = shaderType;
 			pipelineHandle = 0;
@@ -293,12 +293,12 @@ namespace TinyShaders
 		/*
 		* uses the given values to create an OpenGL shader program
 		*/
-		tShaderProgram(const std::string& programName,
+		tShaderProgram(std::string  programName,
 			const std::vector< std::string >& programInputs,
 			const std::vector< std::string >& programOutputs,
 			const std::vector< tShader >& programShaders,
 			bool saveBinary = false) :
-			name(programName), handle(0),
+			name(std::move(programName)), handle(0),
 			inputs(programInputs), outputs(programOutputs),
 			shaders(programShaders), pipelineID(0)
 		{
@@ -308,14 +308,14 @@ namespace TinyShaders
 		/*
 		* another bare-bones constructor
 		*/
-		explicit tShaderProgram(const std::string& programName) :
-			name(programName), handle(0), isCompiled(false), pipelineID(0) {};
+		explicit tShaderProgram(std::string  programName) :
+			name(std::move(programName)), handle(0), isCompiled(false), pipelineID(0) {};
 
-		tShaderProgram(const std::string& programName, const GLuint programHandle) :
-			name(programName), handle(programHandle), isCompiled(false), pipelineID(0) {}
+		tShaderProgram(std::string  programName, const GLuint programHandle) :
+			name(std::move(programName)), handle(programHandle), isCompiled(false), pipelineID(0) {}
 
-		tShaderProgram(const std::string& programName, const tShader& computeShader)
-			: name(programName), handle(0), pipelineID(0)
+		tShaderProgram(std::string  programName, const tShader& computeShader)
+			: name(std::move(programName)), handle(0), pipelineID(0)
 		{
 			shaders.push_back(computeShader);
 			isCompiled = false;
@@ -333,7 +333,7 @@ namespace TinyShaders
 		shaderErrorEvent_t shaderErrorEvent;
 		shaderProgramErrorEvent_t shaderProgramErrorEvent;
 
-		shaderManager(){}
+		shaderManager() = default;
 		~shaderManager() { Shutdown(); }
 
 		tShader* GetShader(const std::string& name)
@@ -377,7 +377,7 @@ namespace TinyShaders
 			if (!name.empty())
 			{
 				std::unique_ptr<tShader> newShader(new tShader(name, shaderType, shaderFile));
-				FileToBuffer(shaderFile, newShader.get()->buffer);
+				FileToBuffer(shaderFile, newShader->buffer);
 				CompileShader(newShader.get());
 
 				if (newShader->isCompiled)
@@ -490,53 +490,6 @@ namespace TinyShaders
 		std::unordered_map< std::string, std::unique_ptr<tShaderProgram>>	shaderPrograms;		/**< All loaded shader programs */
 		std::unordered_map< std::string, std::unique_ptr<tShader>>			shaders;			/**< All loaded shaders*/
 
-		void ProcessInterfaces(const tShaderProgram* shaderProgram)
-		{
-			//get all interfaces and resources
-
-		//uniforms
-			GLint numResources = 0;
-			GLint resource = 0;
-			GLint maxNumResources = 0;
-			GLint numActiveBlocks = 0;
-
-			std::vector<GLenum> supportedInterfaces = {};
-
-			for (auto interfaceIter : interfaces)
-			{
-				//glGetProgramInterfaceiv(handle, interfaceIter, gl_active_uniform_blocks, &numActiveBlocks);
-				glGetProgramInterfaceiv(shaderProgram->handle, interfaceIter, gl_active_resources, &numResources);
-				const GLenum blockProperties[1] = { gl_num_active_variables };
-				const GLenum activeUnifProp[1] = { gl_active_variables };
-				const GLenum unifProperties[3] = { gl_name_length, gl_type, gl_location };
-
-				for (int blockIter = 0; blockIter < numResources; blockIter++)
-				{
-					int numActiveUniforms = 0;
-					glGetProgramResourceiv(shaderProgram->handle, gl_uniform_block, blockIter, 1, blockProperties, 1, NULL, &numActiveUniforms);
-					if (numActiveUniforms == 0)
-					{
-						return;
-					}
-
-					std::vector<int>	blockUniforms(numActiveUniforms);
-					glGetProgramResourceiv(shaderProgram->handle, gl_uniform_block, blockIter, 1, activeUnifProp, numActiveUniforms, NULL, &blockUniforms[0]);
-
-					for (size_t uniformIter = 0; uniformIter < numActiveUniforms; uniformIter++)
-					{
-						int values[3];
-						glGetProgramResourceiv(shaderProgram->handle, gl_uniform, blockUniforms[uniformIter], 3, unifProperties, 3, NULL, values);
-
-						std::vector<char> nameData(values[0]);
-						glGetProgramResourceName(shaderProgram->handle, gl_uniform, blockUniforms[uniformIter], nameData.size(), NULL, &nameData[0]);
-						std::string name(nameData.begin(), nameData.end() - 1);
-						printf("%s \n", name.c_str());
-					}
-				}
-			}
-		}
-
-
 		/*
 		* compile the shader from a given text file
 		*/
@@ -552,11 +505,11 @@ namespace TinyShaders
 					{
 						shader->handle = glCreateShader(static_cast<unsigned int>(shader->type));
 						const char* str = shader->buffer.c_str();
-						glShaderSource(shader->handle, 1, (const char**)&str, 0);
+						glShaderSource(shader->handle, 1, (const char**)&str, nullptr);
 						glCompileShader(shader->handle);
 
 						glGetShaderiv(shader->handle, gl_compile_status, &successful);
-						glGetShaderInfoLog(shader->handle, sizeof(errorLog), 0, errorLog);
+						glGetShaderInfoLog(shader->handle, sizeof(errorLog), nullptr, errorLog);
 
 						if (shader->separable)
 						{
@@ -597,14 +550,14 @@ namespace TinyShaders
 		/*
 		* compile the OpenGL shader program with the given information
 		*/
-		void CompileShaderProgram(tShaderProgram* program, bool saveBinary = true)
+		void CompileShaderProgram(tShaderProgram* program, const bool saveBinary = true)
 		{
 			program->handle = glCreateProgram();
 			char errorLog[512];
 			GLint successful = GL_FALSE;
 			if (!program->isCompiled)
 			{
-				for (auto& shader : program->shaders)
+				for (const auto& shader : program->shaders)
 				{
 					//if (shader != nullptr)
 					{
@@ -634,7 +587,7 @@ namespace TinyShaders
 
 				if (successful != 1)
 				{
-					glGetProgramInfoLog(program->handle, sizeof(errorLog), 0, errorLog);
+					glGetProgramInfoLog(program->handle, sizeof(errorLog), nullptr, errorLog);
 #if defined(DEBUG)
 					printf("%s \n", errorLog);
 					AddShaderProgramErrorLog(program, error_e::shaderProgramCompileFailed);
@@ -659,7 +612,7 @@ namespace TinyShaders
 
 					GLenum binaryFormat = GL_NONE;
 
-					glGetProgramBinary(program->handle, binarySize, NULL, &binaryFormat, buffer);
+					glGetProgramBinary(program->handle, binarySize, nullptr, &binaryFormat, buffer);
 
 					std::string path;
 
@@ -689,7 +642,7 @@ namespace TinyShaders
 			newString.append("at line %i \n");
 			newString.append(std::to_string(fileLine));
 
-			auto newEntry = errorEntry(newError, newString);
+			const auto newEntry = errorEntry(newError, newString);
 
 			errorLog.push_back(newEntry);
 
@@ -709,7 +662,7 @@ namespace TinyShaders
 			newString.append("at line %i \n");
 			newString.append(std::to_string(fileLine));
 
-			auto newEntry = errorEntry(newError, newString);
+			const auto newEntry = errorEntry(newError, newString);
 
 			errorLog.push_back(newEntry);
 
@@ -729,7 +682,7 @@ namespace TinyShaders
 			newString.append("at line %i \n");
 			newString.append(std::to_string(fileLine));
 
-			auto newEntry = errorEntry(newError, newString);
+			const auto newEntry = errorEntry(newError, newString);
 
 			errorLog.push_back(newEntry);
 
@@ -775,6 +728,52 @@ namespace TinyShaders
 					std::string name((char*)&nameData[0], nameData.size() - 1);
 
 					printf("index %d: %s %s @ location %d.\n", iter, TypeToString(values[1]).c_str(), name.c_str(), values[3]);
+				}
+			}
+		}
+
+		void ProcessInterfaces(const tShaderProgram* shaderProgram)
+		{
+			//get all interfaces and resources
+
+			//uniforms
+			GLint numResources = 0;
+			GLint resource = 0;
+			GLint maxNumResources = 0;
+			GLint numActiveBlocks = 0;
+
+			std::vector<GLenum> supportedInterfaces = {};
+
+			for (auto interfaceIter : interfaces)
+			{
+				//glGetProgramInterfaceiv(handle, interfaceIter, gl_active_uniform_blocks, &numActiveBlocks);
+				glGetProgramInterfaceiv(shaderProgram->handle, interfaceIter, gl_active_resources, &numResources);
+				const GLenum blockProperties[1] = { gl_num_active_variables };
+				const GLenum activeUnifProp[1] = { gl_active_variables };
+				const GLenum unifProperties[3] = { gl_name_length, gl_type, gl_location };
+
+				for (int blockIter = 0; blockIter < numResources; blockIter++)
+				{
+					int numActiveUniforms = 0;
+					glGetProgramResourceiv(shaderProgram->handle, gl_uniform_block, blockIter, 1, blockProperties, 1, NULL, &numActiveUniforms);
+					if (numActiveUniforms == 0)
+					{
+						return;
+					}
+
+					std::vector<int>	blockUniforms(numActiveUniforms);
+					glGetProgramResourceiv(shaderProgram->handle, gl_uniform_block, blockIter, 1, activeUnifProp, numActiveUniforms, NULL, &blockUniforms[0]);
+
+					for (size_t uniformIter = 0; uniformIter < numActiveUniforms; uniformIter++)
+					{
+						int values[3];
+						glGetProgramResourceiv(shaderProgram->handle, gl_uniform, blockUniforms[uniformIter], 3, unifProperties, 3, NULL, values);
+
+						std::vector<char> nameData(values[0]);
+						glGetProgramResourceName(shaderProgram->handle, gl_uniform, blockUniforms[uniformIter], nameData.size(), NULL, &nameData[0]);
+						std::string name(nameData.begin(), nameData.end() - 1);
+						printf("%s \n", name.c_str());
+					}
 				}
 			}
 		}

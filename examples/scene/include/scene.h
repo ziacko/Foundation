@@ -12,10 +12,9 @@ using frameRates_t = enum {UNCAPPED = 0, THIRTY = 30, SIXTY = 60, NINETY = 90, O
 class scene
 {
 public:
-
-	scene(const char* windowName = "Ziyad Barakat's Portfolio ( Example Scene )",
-		const camera_t& camera = camera_t(),
-		const char* shaderConfigPath = SHADER_CONFIG_DIR)
+	explicit scene(const char* windowName = "Ziyad Barakat's Portfolio ( Example Scene )",
+	               const camera_t& camera = camera_t(),
+	               const char* shaderConfigPath = SHADER_CONFIG_DIR)
 	{
 		this->windowName = windowName;
 		this->camera = camera;
@@ -32,7 +31,7 @@ public:
 		windowSetting_t setting;
 		setting.name = windowName;
 		setting.userData = this;
-		setting.resolution = vec2_t<uint16_t>(1280, 720);
+		setting.resolution = vec2_t<uint16_t>(defaultWindowSize.x, defaultWindowSize.y);
 		setting.SetProfile(profile_e::core);
 		//setting.enableSRGB = true;
 
@@ -45,7 +44,7 @@ public:
 
 		scene::InitImGUI(window);
 
-		glClearColor(0.25f, 0.25f, 0.25f, 1.0f);
+		glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
 		
 		//sceneClock = tinyClock_t();
 	}
@@ -85,19 +84,14 @@ public:
 		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 		glDebugMessageCallback(&OpenGLDebugCallback, nullptr);
 
-		//assert(OpenGLDebugCallback);
-		
-		//glEnable(GL_DEPTH_TEST);
-		LoadShaderProgramsFromConfigFile(shaderConfigPath, shaderHandler, &shaderProgramsMap);
-		
-		//shaderHandler->LoadShaderProgramsFromConfigFile(shaderConfigPath, false, &shaderPrograms); //replace this with the JSON version of this
+		LoadShaderProgramsFromConfigFile(shaderHandler, &shaderProgramsMap);
+
 		defProgram = shaderProgramsMap[PROJECT_NAME]; //need a better way to automate this
 
 		glUseProgram(defProgram.handle);
 
 		InitializeUniforms();
 		SetupCallbacks();
-		//defaultPayload = bufferPayload<defaultUniformBuffer>();
 		defaultTimer = new GPUTimer();
 	}
 
@@ -144,9 +138,9 @@ protected:
 
 	ImGuiContext*				imGUIContext;
 	GLuint						imGUIFontTexture;
-	GLint						imGUIShaderhandle;
-	GLint						imGUIVertexHandle;
-	GLint						imGUIFragmentHandle;
+	GLuint						imGUIShaderhandle;
+	GLuint						imGUIVertexHandle;
+	GLuint						imGUIFragmentHandle;
 	GLint						imGUITexAttribLocation;
 	GLint						imGUIProjMatrixAttribLocation;
 	GLint						imGUIPositionAttribLocation;
@@ -158,6 +152,7 @@ protected:
 	int interval = 1;
 
 	bool						isGUIActive;
+	bool						wireframe;
 
 	bool						isFrameRateLocked;
 	int							lockedFrameRate = UNCAPPED;
@@ -166,6 +161,9 @@ protected:
 	int							currentResolution = 0;
 
 	GPUTimer*					defaultTimer;
+
+	std::string					defaultDockName = "Default";
+	ImGuiID left_node, central_node;
 
 	virtual void Update()
 	{
@@ -216,52 +214,56 @@ protected:
 		glClear(GL_COLOR_BUFFER_BIT);
 	}
 
-	virtual void BuildGUI(tWindow* window, ImGuiIO io)
+	virtual void BuildGUI(tWindow* window, const ImGuiIO& io)
 	{
-		ImGui::SetCurrentContext(windowContextMap[window]);
-
-		ImGui::Text("FPS %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, 1.0f / clock.GetDeltaTime());
-		ImGui::Text("Total running time %.5f", clock.GetTotalTime());
-		ImGui::Text("Mouse coordinates: \t X: %.0f \t Y: %.0f", io.MousePos.x, io.MousePos.y);
-		ImGui::Text("Window size: \t Width: %i \t Height: %i", window->GetSettings().resolution.width, window->GetSettings().resolution.height);
-
-		if(ImGui::Button("Toggle Fullscreen"))
+		if (ImGui::BeginTabItem("Default"))
 		{
-			manager->SetStyle(window, style_e::popup);
-			manager->SetPosition(window, vec2_t<int16_t>::Zero());
-			manager->SetWindowSize(window, vec2_t<uint16_t>(manager->GetMonitors().back().GetResolution()->width, manager->GetMonitors().back().GetResolution()->height));
-			manager->ToggleFullscreen(window, &manager->GetMonitors()[0], 0);
-		}
+			ImGui::SetCurrentContext(windowContextMap[window]);
 
-		if (ImGui::InputInt("Swap Interval", &interval, 1))
-		{
-			manager->SetWindowSwapInterval(window, interval);
-		}
+			ImGui::Text("FPS %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, 1.0f / clock.GetDeltaTime());
+			ImGui::Text("Total running time %.5f", clock.GetTotalTime());
+			ImGui::Text("Mouse coordinates: \t X: %.0f \t Y: %.0f", io.MousePos.x, io.MousePos.y);
+			ImGui::Text("Window size: \t Width: %i \t Height: %i", window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 
-		static int frameRatePick = 0;
-		ImGui::ListBox("Frame rate cap", &frameRatePick, frameRateSettings.data(), (uint16_t)frameRateSettings.size());
-		switch (frameRatePick)
-		{
+			if(ImGui::Button("Toggle Fullscreen"))
+			{
+				manager->SetStyle(window, style_e::popup);
+				manager->SetPosition(window, vec2_t<int16_t>::Zero());
+				manager->SetWindowSize(window, vec2_t<uint16_t>(manager->GetMonitors().back().GetResolution()->width, manager->GetMonitors().back().GetResolution()->height));
+				manager->ToggleFullscreen(window, &manager->GetMonitors()[0], 0);
+			}
+
+			if (ImGui::InputInt("Swap Interval", &interval, 1))
+			{
+				manager->SetWindowSwapInterval(window, interval);
+			}
+
+			static int frameRatePick = 0;
+			ImGui::ListBox("Frame rate cap", &frameRatePick, frameRateSettings.data(), (uint16_t)frameRateSettings.size());
+			switch (frameRatePick)
+			{
 			case 0: //none
 			case 1: //30
 			case 2: //60
 			case 3: //90
 			case 4: //120
-			{
-				lockedFrameRate = frameRatePick * 30;
-				break;
-			}
+				{
+					lockedFrameRate = frameRatePick * 30;
+					break;
+				}
 			case 5: //144
-			{
-				lockedFrameRate = 144;
-				break;
+				{
+					lockedFrameRate = 144;
+					break;
+				}
+			default: {};
 			}
-		default: {};
+
+			camera.resolution = glm::vec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
+			ImGui::Checkbox("wireframe", &wireframe);
+			ImGui::EndTabItem();
 		}
-		
-		camera.resolution = glm::vec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
-		//create a separate window that displays all possible rendering resolutions
-		//DrawCameraStats();
+		//ImGui::End();
 	}
 
 	virtual void DrawCameraStats()
@@ -328,21 +330,25 @@ protected:
 	virtual void BeginGUI(tWindow* window)
 	{
 		ImGUINewFrame(window);
-		//ImGuiViewport* viewport = ImGui::GetMainViewport();
-		//ImGui::SetNextWindowPos(viewport->Pos);
-		//auto sidePanelSize = viewport->Size;
-		//viewport->Size.x *= 0.33; //on quater the X
-		//ImGui::SetNextWindowSize(viewport->Size);
-		//auto windowFlags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove;
 
-		ImGui::Begin(window->GetSettings().name.c_str(), &isGUIActive);//, windowFlags);// , beginSize);
+		ImGui::DockSpace(ImGui::GetID(defaultDockName.c_str()), ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_NoResize);
+		ImGuiID dockspace_id = ImGui::GetID(defaultDockName.c_str());
+		//ImGui::DockBuilderRemoveNode(dockspace_id, dockspace_id | ImGuiDockNodeFlags_DockSpace);
+		ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace);
+		ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Left, 0.2f, &left_node, &central_node);
+		ImGui::DockBuilderFinish(dockspace_id);
 
-		//ImGui::
+		ImGui::SetNextWindowDockID(left_node, ImGuiCond_Once);
+		ImGui::Begin(window->GetSettings().name.c_str(), &isGUIActive, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
+		ImGui::SetWindowSize(ImVec2(window->GetSettings().resolution.width / 4, window->GetSettings().resolution.height));
+		ImGui::SetWindowPos(ImVec2(0, 0));
 
+		ImGui::BeginTabBar("SidePanelTabs");
 	}
 
 	virtual void EndGUI(tWindow* window)
 	{
+		ImGui::EndTabBar();
 		ImGui::End();
 		ImGui::Render();
 		HandleImGUIRender(window);
@@ -359,17 +365,6 @@ protected:
 	virtual void SetupVertexBuffer()
 	{
 		defaultVertexBuffer = vertexBuffer_t(true);
-
-		/*GLfloat quadVerts[24] =
-		{
-			0.0f, 0.0f, 1.0f, 1.0f,
-			sceneCamera->resolution.x, 0.0f, 1.0f, 1.0f,
-			0.0f, sceneCamera->resolution.y, 1.0f, 1.0f,
-
-			sceneCamera->resolution.x, 0.0f, 1.0f, 1.0f,
-			0.0f, sceneCamera->resolution.y, 1.0f, 1.0f,
-			sceneCamera->resolution.x, sceneCamera->resolution.y, 1.0f, 1.0f,
-		};*/
 	}
 
 	virtual void SetupIndexBuffer()
@@ -377,22 +372,16 @@ protected:
 
 	}
 
-	void SetupBuffer(GLenum target, GLenum usage)
+	void SetupBuffer(const GLenum target, const GLenum usage)
 	{
 		//TODO: get the currently bound buffer and rebind to that after this operation is done
 		defaultPayload.Initialize(0, target, usage);
-		/*glGenBuffers(1, &bufferHandle);
-		UpdateBuffer(buffer, bufferHandle, bufferSize, target, usage);
-		glBindBufferBase(target, bufferUniformHandle, bufferHandle);*/
 	}
 
-	//fuh. ill do it AFTER i've fixed GOL
-	void UpdateBuffer(GLenum target, GLenum usage)
+	void UpdateBuffer(const GLenum target, const GLenum usage)
 	{
 		//TODO: get the currently bound buffer and rebind to that after this operation is done
 		defaultPayload.Update(target, usage);
-		/*glBindBuffer(target, bufferHandle);
-		glBufferData(target, bufferSize, buffer, usage);*/
 	}
 
 	virtual void InitializeUniforms()
@@ -411,8 +400,6 @@ protected:
 	void SetupDefaultUniforms()
 	{
 		defaultPayload.SetupUniforms(defProgram.handle, "defaultSettings", 0);
-		/*defaultUniform->uniformHandle = glGetUniformBlockIndex(this->programGLID, "defaultSettings");
-		glUniformBlockBinding(this->programGLID, defaultUniform->uniformHandle, 0);*/
 	}
 
 	virtual void Resize(const tWindow* window, glm::ivec2 dimensions = glm::ivec2(0))
@@ -427,8 +414,6 @@ protected:
 		defaultPayload.data.projection = glm::ortho(0.0f, (GLfloat)dimensions.x, (GLfloat)dimensions.y, 0.0f, 0.01f, 10.0f);
 
 		UpdateBuffer(gl_uniform_buffer, gl_dynamic_draw);
-
-		//defaultVertexBuffer.UpdateBuffer(dimensions);
 	}
 
 	virtual void HandleMouseClick(const tWindow* window, const mouseButton_e button, const buttonState_e state)
@@ -482,7 +467,7 @@ protected:
 		io.MouseWheel += (float)((scroll == mouseScroll_e::down) ? -1 : 1);
 	}
 
-	ImGuiKey MapToImGuiKey(int16_t key)
+	static ImGuiKey MapToImGuiKey(const int16_t& key)
 	{
 		// Map letters A-Z
 		if (key >= 'A' && key <= 'Z')
@@ -497,68 +482,38 @@ protected:
 		// Map special keys using Windows virtual key codes
 		switch (key)
 		{
-		case TinyWindow::key_e::tab :			return ImGuiKey_Tab;			// VK_TAB
-		case TinyWindow::key_e::arrowLeft :		return ImGuiKey_LeftArrow;   // VK_LEFT
-		case TinyWindow::key_e::arrowRight :	return ImGuiKey_RightArrow;  // VK_RIGHT
-		case TinyWindow::key_e::arrowUp :		return ImGuiKey_UpArrow;     // VK_UP
-		case TinyWindow::key_e::arrowDown :		return ImGuiKey_DownArrow;   // VK_DOWN
-		case TinyWindow::key_e::pageUp :		return ImGuiKey_PageUp;      // VK_PRIOR
-		case TinyWindow::key_e::pageDown :		return ImGuiKey_PageDown;    // VK_NEXT
-		case TinyWindow::key_e::home :			return ImGuiKey_Home;        // VK_HOME
-		case TinyWindow::key_e::end :			return ImGuiKey_End;         // VK_END
-		case TinyWindow::key_e::insert :		return ImGuiKey_Insert;      // VK_INSERT
-		case TinyWindow::key_e::del :			return ImGuiKey_Delete;      // VK_DELETE
-		case TinyWindow::key_e::backspace :		return ImGuiKey_Backspace;   // VK_BACK
-		case TinyWindow::key_e::spacebar :		return ImGuiKey_Space;       // VK_SPACE
-		case TinyWindow::key_e::enter :			return ImGuiKey_Enter;       // VK_RETURN
-		case TinyWindow::key_e::escape :		return ImGuiKey_Escape;      // VK_ESCAPE
-		default: return ImGuiKey_None;
+			case tab :			return ImGuiKey_Tab;			// VK_TAB
+			case arrowLeft :	return ImGuiKey_LeftArrow;   // VK_LEFT
+			case arrowRight :	return ImGuiKey_RightArrow;  // VK_RIGHT
+			case arrowUp :		return ImGuiKey_UpArrow;     // VK_UP
+			case arrowDown :	return ImGuiKey_DownArrow;   // VK_DOWN
+			case pageUp :		return ImGuiKey_PageUp;      // VK_PRIOR
+			case pageDown :		return ImGuiKey_PageDown;    // VK_NEXT
+			case home :			return ImGuiKey_Home;        // VK_HOME
+			case end :			return ImGuiKey_End;         // VK_END
+			case insert :		return ImGuiKey_Insert;      // VK_INSERT
+			case del :			return ImGuiKey_Delete;      // VK_DELETE
+			case backspace :	return ImGuiKey_Backspace;   // VK_BACK
+			case spacebar :		return ImGuiKey_Space;       // VK_SPACE
+			case enter :		return ImGuiKey_Enter;       // VK_RETURN
+			case escape :		return ImGuiKey_Escape;      // VK_ESCAPE
+			default: return ImGuiKey_None;
 		}
 	}
 
-	virtual void HandleKey(const tWindow* window, const uint16_t key, const keyState_e keyState)
+	virtual void HandleKey(const tWindow* window, const int16_t& key, const keyState_e& keyState)
 	{
 		ImGuiIO& io = ImGui::GetIO();
 		ImGuiKey imguiKey = MapToImGuiKey(key);
 		if (imguiKey != ImGuiKey_None) {
 			io.AddKeyEvent(imguiKey, keyState == keyState_e::down);
 		}
-
-		/*
-		auto it = windowContextMap.find(const_cast<tWindow*>(window));
-		if (it != windowContextMap.end())
-		{
-			ImGui::SetCurrentContext(it->second);
-		}
-		ImGuiIO& io = ImGui::GetIO();
-		if (key < 255 && keyState == keyState_t::down)
-		{
-			io.AddInputCharacter(key);
-		}
-
-		else
-		{
-			switch (keyState)
-			{
-			case keyState_t::up:
-			{
-				io.KeysData[key].Down = false;
-				break;
-			}
-
-			case keyState_t::down:
-			{
-				io.KeysData[key].Down = true;
-				break;
-			}
-			}
-		}*/
 	}
 
 	virtual void HandleFileDrop(const tWindow* window, const std::vector<std::string>& files, const vec2_t<int16_t>& windowMousePosition)
 	{
-		//for each file that is dropped in
-		//make sure its a texture 
+		//for each file dropped in
+		//make sure it's a texture
 		//and load up a new window for each one?
 	}
 
@@ -567,7 +522,7 @@ protected:
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
 		
-		if (windowContextMap.find(window) != windowContextMap.end()) {
+		if (windowContextMap.contains(window)) {
 			ImGui::DestroyContext(windowContextMap[window]);
 		}
 		windowContextMap[window] = ImGui::GetCurrentContext();
@@ -575,6 +530,7 @@ protected:
 		ImGuiIO& io = ImGui::GetIO();
 		io.BackendRendererName = "imgui_impl_opengl3";
 		io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;
+		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
 #if defined(TW_WINDOWS)
 		//io.ImeWindowHandle = window->GetWindowHandle();
@@ -677,8 +633,8 @@ protected:
 
 				else
 				{
-					glBindTexture(GL_TEXTURE_2D, (GLuint)(intptr_t)drawCommand->TextureId);
-					glScissor((int)drawCommand->ClipRect.x, (int)(window->GetSettings().resolution.height - drawCommand->ClipRect.w), (int)(drawCommand->ClipRect.z - drawCommand->ClipRect.x), (int)(drawCommand->ClipRect.w - drawCommand->ClipRect.y));
+					glBindTexture(GL_TEXTURE_2D, (GLuint)(intptr_t)drawCommand->GetTexID());
+					glScissor(drawCommand->ClipRect.x, window->GetSettings().resolution.height - drawCommand->ClipRect.w, drawCommand->ClipRect.z - drawCommand->ClipRect.x, drawCommand->ClipRect.w - drawCommand->ClipRect.y);
 					glDrawElements(GL_TRIANGLES, (GLsizei)drawCommand->ElemCount, sizeof(ImDrawIdx) == 2 ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT, indexBufferOffset);
 				}
 
@@ -703,7 +659,7 @@ protected:
 
 	virtual void ImGUICreateFontsTexture()
 	{
-		ImGuiIO& io = ImGui::GetIO();
+		const ImGuiIO& io = ImGui::GetIO();
 		unsigned char* pixels;
 		int width, height;
 		io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
@@ -716,13 +672,13 @@ protected:
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 
-		//store texture handle
+		//store the texture handle
 		io.Fonts->TexID = static_cast<ImTextureID>(imGUIFontTexture);
 
 		glBindTexture(GL_TEXTURE_2D, lastTexture);
 	}
 
-	virtual void ImGUINewFrame(tWindow* drawWindow)
+	virtual void ImGUINewFrame(const tWindow* drawWindow)
 	{
 		if (!imGUIFontTexture)
 		{
@@ -851,7 +807,7 @@ protected:
 		if (imGUIFontTexture)
 		{
 			glDeleteTextures(1, &imGUIFontTexture);
-			ImGui::GetIO().Fonts->TexID = 0;
+			ImGui::GetIO().Fonts->TexID = nullptr;
 			imGUIFontTexture = 0;
 		}
 	}

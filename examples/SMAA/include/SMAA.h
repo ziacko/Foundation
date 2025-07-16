@@ -9,11 +9,11 @@ struct SMAASettings_t
 	float			threshold;
 	float			contrastAdaptationFactor;
 
-	int				maxSearchSteps;
-	int				maxSearchStepsDiag;
-	int				cornerRounding;
+	int32_t				maxSearchSteps;
+	int32_t				maxSearchStepsDiag;
+	int32_t				cornerRounding;
 
-	explicit SMAASettings_t(const glm::ivec2& resolution = defaultWindowSize, const float threshold = 0.05, const float CAFactor = 2.0f, const unsigned int maxSearchSteps = 32, const unsigned int maxSearchStepsDiag = 16, const unsigned int cornerRounding = 25)
+	explicit SMAASettings_t(const glm::ivec2& resolution = defaultWindowSize, const float threshold = 0.05, const float CAFactor = 2.0f, const uint8_t maxSearchSteps = 32, const uint8_t maxSearchStepsDiag = 16, const uint8_t cornerRounding = 25)
 	{
 		this->rtMetrics = glm::vec4(1.0 / resolution.x, 1.0 / resolution.y, resolution.x, resolution.y);
 		this->threshold = threshold;
@@ -51,7 +51,7 @@ public:
 
 	~SMAAScene() override = default;
 
-	virtual void Initialize() override
+	void Initialize() override
 	{
 		scene3D::Initialize();
 
@@ -143,7 +143,7 @@ protected:
 	texture						SMAAArea;
 	texture						SMAASearch;
 
-	bufferHandler_t<SMAASettings_t>		SMAAsettings;
+	bufferHandler_t<SMAASettings_t>		SMAASettings;
 
 	tShaderProgram* geometryProgram = nullptr;
 	tShaderProgram* edgeDetectionProgram = nullptr;
@@ -173,7 +173,7 @@ protected:
 		defaultPayload.data.totalFrames++;
 		defaultPayload.data.resolution = camera.resolution;
 
-		SMAAsettings.Update(gl_uniform_buffer, gl_dynamic_draw);
+		SMAASettings.Update(gl_uniform_buffer, gl_dynamic_draw);
 	}
 
 	void UpdateDefaultBuffer()
@@ -329,19 +329,9 @@ protected:
 		}
 	
 		glDrawArrays(GL_TRIANGLES, 0, 6);
-
-		/*
-		//draw directly to backbuffer
-		tex1->SetActive(0);
-
-		glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
-		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
-		glUseProgram(finalProgram->handle);
-
-		glDrawArrays(GL_TRIANGLES, 0, 6);*/
 	}
 
-	virtual void BuildGUI(tWindow* window, const ImGuiIO io) override
+	void BuildGUI(tWindow* window, const ImGuiIO& io) override
 	{
 		scene3D::BuildGUI(window, io);
 
@@ -351,69 +341,52 @@ protected:
 
 	virtual void DrawBufferAttachments()
 	{
-		ImGui::Begin("framebuffers");
-		for (auto val : geometryBuffer.attachments | std::views::values)
+		if (ImGui::BeginTabItem("framebuffers"))
 		{
-			ImGui::Image((ImTextureID)val.GetHandle(), ImVec2(512, 288),
+			for (const auto& val : geometryBuffer.attachments | std::views::values)
+			{
+				ImGui::Image((ImTextureID)val.GetHandle(), ImVec2(512, 288),
+					ImVec2(0, 1), ImVec2(1, 0));
+				ImGui::SameLine();
+				ImGui::Text("%s\n", val.GetUniformName().c_str());
+			}
+
+			ImGui::Image((ImTextureID)edgesBuffer.attachments["edge"].GetHandle(), ImVec2(512, 288),
 				ImVec2(0, 1), ImVec2(1, 0));
 			ImGui::SameLine();
-			ImGui::Text("%s\n", val.GetUniformName().c_str());
+			ImGui::Text("%s\n", edgesBuffer.attachments["edge"].GetUniformName().c_str());
+
+			ImGui::Image((ImTextureID)weightsBuffer.attachments["blend"].GetHandle(), ImVec2(512, 288),
+				ImVec2(0, 1), ImVec2(1, 0));
+			ImGui::SameLine();
+			ImGui::Text("%s\n", weightsBuffer.attachments["blend"].GetUniformName().c_str());
+
+			ImGui::Image((ImTextureID)SMAABuffer.attachments["SMAA"].GetHandle(), ImVec2(512, 288),
+				ImVec2(0, 1), ImVec2(1, 0));
+			ImGui::SameLine();
+			ImGui::Text("%s\n", SMAABuffer.attachments["SMAA"].GetUniformName().c_str());
+			ImGui::EndTabItem();
 		}
-
-		ImGui::Image((ImTextureID)edgesBuffer.attachments["edge"].GetHandle(), ImVec2(512, 288),
-			ImVec2(0, 1), ImVec2(1, 0));
-		ImGui::SameLine();
-		ImGui::Text("%s\n", edgesBuffer.attachments["edge"].GetUniformName().c_str());
-
-		ImGui::Image((ImTextureID)weightsBuffer.attachments["blend"].GetHandle(), ImVec2(512, 288),
-			ImVec2(0, 1), ImVec2(1, 0));
-		ImGui::SameLine();
-		ImGui::Text("%s\n", weightsBuffer.attachments["blend"].GetUniformName().c_str());
-
-		ImGui::Image((ImTextureID)SMAABuffer.attachments["SMAA"].GetHandle(), ImVec2(512, 288),
-			ImVec2(0, 1), ImVec2(1, 0));
-		ImGui::SameLine();
-		ImGui::Text("%s\n", SMAABuffer.attachments["SMAA"].GetUniformName().c_str());
-		ImGui::End();
-	}
-
-	virtual void DrawCameraStats() override
-	{
-		//set up the view matrix
-		//set up the view matrix
-		ImGui::Begin("camera", &isGUIActive);
-
-		ImGui::SliderFloat("near plane", &camera.nearPlane, 0.00001f, 1.0f, "%.0f");
-		ImGui::SliderFloat("far plane", &camera.farPlane, 0, defaultFarPlane, "%.0f");
-		ImGui::SliderFloat("Field of view", &camera.fieldOfView, 0, 90, "%.0f");
-
-		ImGui::InputFloat("camera speed", &camera.speed, 0.01f);
-		ImGui::InputFloat("x sensitivity", &camera.xSensitivity, 0.f);
-		ImGui::InputFloat("y sensitivity", &camera.ySensitivity, 0.f);
-
-		ImGui::Text("local up %f %f %f %f", camera.up.x, camera.up.y, camera.up.z, camera.up.w);
-		ImGui::Text("local right %f %f %f %f", camera.right.x, camera.right.y, camera.right.z, camera.right.w);
-		ImGui::Text("local forward %f %f %f %f", camera.forward.x, camera.forward.y, camera.forward.z, camera.forward.w);
-		ImGui::End();
 	}
 
 	virtual void ClearBuffers()
 	{
+		//move clearColor into a float array
 		geometryBuffer.Bind();
-		frameBuffer::ClearTexture(geometryBuffer.attachments["color"], clearColor);
+		frameBuffer::ClearTexture(geometryBuffer.attachments["color"], value_ptr(clearColor));
 		glClear(GL_DEPTH_BUFFER_BIT);
 		frameBuffer::Unbind();
 
 		SMAABuffer.Bind();
-		frameBuffer::ClearTexture(SMAABuffer.attachments["SMAA"], clearColor2);
+		frameBuffer::ClearTexture(SMAABuffer.attachments["SMAA"], value_ptr(clearColor2));
 		frameBuffer::Unbind();
 
 		edgesBuffer.Bind();
-		frameBuffer::ClearTexture(edgesBuffer.attachments["edge"], clearColor2);
+		frameBuffer::ClearTexture(edgesBuffer.attachments["edge"], value_ptr(clearColor2));
 		frameBuffer::Unbind();
 
 		weightsBuffer.Bind();
-		frameBuffer::ClearTexture(weightsBuffer.attachments["blend"], clearColor2);
+		frameBuffer::ClearTexture(weightsBuffer.attachments["blend"], value_ptr(clearColor2));
 		frameBuffer::Unbind();
 	}
 
@@ -452,21 +425,22 @@ protected:
 		defaultPayload.data.view = camera.view;
 
 		defaultPayload.Initialize(0);
-		SMAAsettings.Initialize(1);
+		SMAASettings.Initialize(1);
 
 		SetupVertexBuffer();
 	}
 
 	void DrawSMAASettings()
 	{
-		ImGui::Begin("SMAA Settings");
-		ImGui::Checkbox("enable Compare", &enableCompare);
-		ImGui::InputFloat("threshold", &SMAAsettings.data.threshold, 0.001f, 0.1f);
-		ImGui::InputFloat("contrast adaption factor", &SMAAsettings.data.contrastAdaptationFactor, 0.001f, 0.1f);
-		ImGui::SliderInt("max search steps", &SMAAsettings.data.maxSearchSteps, 0, 255);
-		ImGui::SliderInt("max search steps diagonal", &SMAAsettings.data.maxSearchStepsDiag, 0, 255);
-		ImGui::SliderInt("corner rounding", &SMAAsettings.data.cornerRounding, 0, 255);
-
-		ImGui::End();
+		if (ImGui::BeginTabItem("SMAA Settings"))
+		{
+			ImGui::Checkbox("enable Compare", &enableCompare);
+			ImGui::InputFloat("threshold", &SMAASettings.data.threshold, 0.001f, 0.1f);
+			ImGui::InputFloat("contrast adaption factor", &SMAASettings.data.contrastAdaptationFactor, 0.001f, 0.1f);
+			ImGui::SliderInt("max search steps", &SMAASettings.data.maxSearchSteps, 0, 255);
+			ImGui::SliderInt("max search steps diagonal", &SMAASettings.data.maxSearchStepsDiag, 0, 255);
+			ImGui::SliderInt("corner rounding", &SMAASettings.data.cornerRounding, 0, 255);
+			ImGui::EndTabItem();
+		}
 	}
 };
