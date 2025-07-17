@@ -45,14 +45,14 @@ public:
 		const model_t& model = model_t("models/SoulSpear/SoulSpear.fbx"))
 		: scene3D(windowName, camera, shaderConfigPath, model)
 	{
-		//glDisable(GL_BLEND);
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LESS);
-		//glHint(gl_generate_mipmap_hint, GL_NICEST);
 
-		//camera.up = glm::vec4(0.0f, -0.2f, 1.0f, 1.0f);
-		//camera.right = glm::vec4(-1.0f, 0.0f, 0.0f, 1.0f);
-		//camera.forward = glm::vec4(0.0f, -1.0f, -0.3f, 1.0f);
+		//soulspear is loaded at an awkward angle
+		this->camera.Roll(glm::radians(180.0f));
+		this->camera.Pitch(glm::radians(270.0f));
+
+		this->camera.position.z -= 1.0f;
 
 
 		geometryBuffer = frameBuffer();

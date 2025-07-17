@@ -182,12 +182,12 @@ protected:
 		{
 			if (mouseDelta.x != 0)
 			{
-				camera.Yaw((float)((mouseDelta.x * camera.xSensitivity) * (1 - deltaTime)));
+				camera.Roll((-mouseDelta.x * camera.xSensitivity) * (1 - deltaTime));
 			}
 
 			if (mouseDelta.y != 0)
 			{
-				camera.Pitch((float)((mouseDelta.y * camera.ySensitivity) * (1 - deltaTime)));
+				camera.Pitch((mouseDelta.y * camera.ySensitivity) * (1 - deltaTime));
 			}
 		}
 	}

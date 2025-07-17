@@ -103,13 +103,11 @@ public:
 		manager->mouseWheelEvent = std::bind(&scene::HandleMouseWheel, this, _1, _2);
 		manager->maximizedEvent = std::bind(&scene::HandleMaximize, this, _1);
 		manager->keyEvent = std::bind(&scene::HandleKey, this, _1, _2, _3);
-		//manager->destroyedEvent = std::bind(&scene::ShutDown, this, _1);
 		manager->fileDropEvent = std::bind(&scene::HandleFileDrop, this, _1, _2, _3);
 	}
 
 	void ShutDown(tWindow* window)
 	{
-		//scene* thisScene = (scene*)window->userData;
 		ImGUIInvalidateDeviceObject();
 		shaderHandler->Shutdown();
 		manager->ShutDown();
@@ -123,7 +121,6 @@ protected:
 
 	shaderManager*									shaderHandler;
 
-	//std::vector<tShaderProgram>				shaderPrograms;
 	tsl::robin_map<std::string, tShaderProgram>		shaderProgramsMap;
 
 	tinyClock_t										clock;
@@ -187,7 +184,6 @@ protected:
 		defaultPayload.data.translation = camera.translation;
 
 		defaultPayload.Update(gl_uniform_buffer, gl_static_draw);
-		//UpdateBuffer(defaultUniform, defaultUniform->bufferHandle, sizeof(*defaultUniform), gl_uniform_buffer, gl_dynamic_draw);
 	}
 
 	virtual void Draw()

@@ -1377,7 +1377,7 @@ namespace TinyWindow
 				currentEvent.xclient.message_type = window->AtomState;
 				currentEvent.xclient.format		  = 32;
 				currentEvent.xclient.window		  = window->windowHandle;
-				currentEvent.xclient.data.l[0]	  = (window->settings.currentState == state_e::maximized);
+				currentEvent.xclient.data.l[0]	  = true;
 				currentEvent.xclient.data.l[1]	  = (long)window->AtomStateMaximizedVert;
 				currentEvent.xclient.data.l[2]	  = (long)window->AtomStateMaximizedVert;
 
@@ -1390,14 +1390,13 @@ namespace TinyWindow
 #if defined(TW_WINDOWS)
 				ShowWindow(window->windowHandle, SW_RESTORE);
 #elif defined(TW_LINUX)
-				XEvent currentEvent;
-				memset(&currentEvent, 0, sizeof(currentEvent));
+				XEvent currentEvent = {};
 
 				currentEvent.xany.type			  = ClientMessage;
 				currentEvent.xclient.message_type = window->AtomState;
 				currentEvent.xclient.format		  = 32;
 				currentEvent.xclient.window		  = window->windowHandle;
-				currentEvent.xclient.data.l[0]	  = (long)(window->settings.currentState == state_e::maximized);
+				currentEvent.xclient.data.l[0]	  = false;
 				currentEvent.xclient.data.l[1]	  = (long)window->AtomStateMaximizedVert;
 				currentEvent.xclient.data.l[2]	  = (long)window->AtomStateMaximizedVert;
 
@@ -1409,7 +1408,7 @@ namespace TinyWindow
 		/**
 		* Toggle the given window's full screen mode
 		*/
-		void SetFullScreen(tWindow* window, const bool newState /* need to add definition for which screen*/) const
+		void SetFullScreen(tWindow* window, const bool& newState /* need to add definition for which screen*/) const
 		{
 			window->settings.currentState = newState ? state_e::fullscreen : state_e::normal;
 
@@ -1442,11 +1441,11 @@ namespace TinyWindow
 		/**
 		* Toggles full-screen mode for a window by parsing in a monitor and a monitor setting index
 		*/
-		void ToggleFullscreen(tWindow* window, monitor_t* monitor, const uint16_t monitorSettingIndex)
+		void ToggleFullscreen(tWindow* window, monitor_t* monitor, const uint16_t& monitorSettingIndex)
 		{
-			// isFullscreen = !isFullscreen;
-			// monitor->previousSetting = monitor->currentSetting;
-			// monitor->currentSetting = monitor->settings[monitorSettingIndex];
+			window->isFullscreen = !window->isFullscreen;
+			 monitor->previousSetting = monitor->currentSetting;
+			 monitor->currentSetting = monitor->settings[monitorSettingIndex];
 #if defined(TW_WINDOWS)
 			Windows_ToggleFullscreen(window, monitor, monitorSettingIndex);
 #elif defined(TW_LINUX)
@@ -1823,6 +1822,7 @@ namespace TinyWindow
 			Windows_CreateDummyContext();
 #elif defined(TW_LINUX)
 			//return error_t::success;// TODO: flesh this out?
+			AddErrorLog(error_e::linuxFunctionNotImplemented);
 #endif
 		}
 
