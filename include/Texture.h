@@ -342,6 +342,12 @@ public:
 
 private:
 
+	enum class loadType_e
+	{
+		image,
+		texture
+	};
+
 	void stbLoad(const char* data, const bool& reload = false)
 	{
 		switch (texDesc.channels)
@@ -472,7 +478,7 @@ private:
 			glTexParameteri(texDesc.target, gl_texture_base_level, 0);
 			glTexParameteri(texDesc.target, gl_texture_max_level, static_cast<GLint>(tex.levels() - 1));
 			glTexParameteriv(texDesc.target, gl_texture_swizzle_rgba, &gliFormat.Swizzles[0]);
-			
+
 			for (unsigned int level = 0; level < tex.levels(); level++)
 			{
 				glm::tvec3<GLsizei> extents(tex.extent(level));
@@ -544,6 +550,30 @@ private:
 
 		UnbindTexture();
 	}
+
+	//are you a texture or an image?
+	void ThrowIntoGL(loadType_e& loadTYpe, const bool& compressed)
+	{
+
+		//do the common work first then alter per type
+
+		switch (loadTYpe)
+		{
+		case loadType_e::image:
+			{
+				break;
+			}
+
+		case loadType_e::texture:
+			{
+				break;
+			}
+		}
+
+
+
+	}
+
 
 	//ok let's maybe use a temp
 };

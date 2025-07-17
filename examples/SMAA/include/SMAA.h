@@ -214,13 +214,9 @@ protected:
 	{
 		camera.ChangeProjection(camera_t::projection_e::perspective);
 		camera.Update();
-
 		UpdateDefaultBuffer();
 
 		GeometryPass(); //render current scene with jitter
-
-		camera.ChangeProjection(camera_t::projection_e::orthographic);
-		UpdateDefaultBuffer();
 		
 		EdgeDetectionPass();
 		BlendingWeightsPass();

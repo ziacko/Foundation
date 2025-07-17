@@ -1444,8 +1444,8 @@ namespace TinyWindow
 		void ToggleFullscreen(tWindow* window, monitor_t* monitor, const uint16_t& monitorSettingIndex)
 		{
 			window->isFullscreen = !window->isFullscreen;
-			 monitor->previousSetting = monitor->currentSetting;
-			 monitor->currentSetting = monitor->settings[monitorSettingIndex];
+			monitor->previousSetting = monitor->currentSetting;
+			monitor->currentSetting = monitor->settings[monitorSettingIndex];
 #if defined(TW_WINDOWS)
 			Windows_ToggleFullscreen(window, monitor, monitorSettingIndex);
 #elif defined(TW_LINUX)

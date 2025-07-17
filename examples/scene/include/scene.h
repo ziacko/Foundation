@@ -221,13 +221,14 @@ protected:
 			ImGui::Text("Mouse coordinates: \t X: %.0f \t Y: %.0f", io.MousePos.x, io.MousePos.y);
 			ImGui::Text("Window size: \t Width: %i \t Height: %i", window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 
-			if(ImGui::Button("Toggle Fullscreen"))
+			/*if(ImGui::Button("Toggle Fullscreen"))
 			{
 				manager->SetStyle(window, style_e::popup);
 				manager->SetPosition(window, vec2_t<int16_t>::Zero());
 				manager->SetWindowSize(window, vec2_t<uint16_t>(manager->GetMonitors().back().GetResolution()->width, manager->GetMonitors().back().GetResolution()->height));
 				manager->ToggleFullscreen(window, &manager->GetMonitors()[0], 0);
-			}
+				glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
+			}*/
 
 			if (ImGui::InputInt("Swap Interval", &interval, 1))
 			{
@@ -255,7 +256,7 @@ protected:
 			default: {};
 			}
 
-			camera.resolution = glm::vec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
+			//camera.resolution = glm::vec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 			ImGui::Checkbox("wireframe", &wireframe);
 			ImGui::EndTabItem();
 		}
