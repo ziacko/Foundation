@@ -59,6 +59,7 @@ layout(std140, binding = 1) uniform SMAASettings
 	uint		maxSearchSteps;
 	uint		maxSearchStepsDiag;
 	uint		cornerRounding;
+	uint        edgeDetectionMode;
 };
 
 /**

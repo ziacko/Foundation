@@ -57,6 +57,7 @@ layout(std140, binding = 1) uniform SMAASettings
 	uint		maxSearchSteps;
 	uint		maxSearchStepsDiag;
 	uint		cornerRounding;
+    uint        edgeDetectionMode;
 };
 
 layout(binding = 0) uniform sampler2D colorTexture;
@@ -228,6 +229,20 @@ float2 SMAADepthEdgeDetectionPS(float2 texcoord,
 
 void main()
 {
-    outColor = vec4(SMAADepthEdgeDetectionPS(inBlock.uv, inEdge.offset, depthTexture).xy, 0, 1);
+    switch (edgeDetectionMode) {
+        case 0: // Luma Edge Detection
+            outColor = vec4(SMAALumaEdgeDetectionPS(inBlock.uv, inEdge.offset, colorTexture), 0, 1);
+            break;
+        case 1: // Color Edge Detection
+            outColor = vec4(SMAAColorEdgeDetectionPS(inBlock.uv, inEdge.offset, colorTexture), 0, 1);
+            break;
+        case 2: // Depth Edge Detection
+            outColor = vec4(SMAADepthEdgeDetectionPS(inBlock.uv, inEdge.offset, depthTexture), 0, 1);
+            break;
+        default:
+            discard; // Invalid edge detection mode
+    }
+
+    //outColor = vec4(SMAADepthEdgeDetectionPS(inBlock.uv, inEdge.offset, depthTexture).xy, 0, 1);
     //outColor = vec4(SMAAColorEdgeDetectionPS(inBlock.uv, inEdge.offset, colorTexture).xy, 0, 1);
 }

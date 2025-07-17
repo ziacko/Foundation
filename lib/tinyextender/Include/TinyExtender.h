@@ -15137,129 +15137,49 @@ namespace TinyExtender
 
 		const char* name() const throw() override
 		{
-		return "TinyExtender";
+			return "TinyExtender";
 		}
 
 		/** 
 		*	return the error message associated with the given error number
 		*/
-		virtual std::string message(int errorValue) const override
+		std::string message(int errorValue) const override
 		{
-		error_t err = (error_t)errorValue;
-		switch (err)
-		{
-			case error_t::loadFailed:
+			switch (error_t err = (error_t)errorValue)
 			{
-				return "Error: extension has failed to load";
+				case error_t::loadFailed: return "Error: extension has failed to load";
+				case error_t::versionLoadFailed: return "Error: Could not get OpenGL version";
+				case error_t::Unsupported1_2: return "Error: OpenGL 1.2 extensions unsupported. stopping loading here";
+				case error_t::Unsupported1_3: return "Error: OpenGL 1.3 extensions unsupported. stopping loading here";
+				case error_t::Unsupported1_4: return "Error: OpenGL 1.4 extensions unsupported. stopping loading here";
+				case error_t::Unsupported1_5: return "Error: OpenGL 1.5 extensions unsupported. stopping loading here";
+				case error_t::Unsupported2_0: return "Error: OpenGL 2.0 extensions unsupported. stopping loading here";
+				case error_t::Unsupported2_1: return "Error: OpenGL 2.1 extensions unsupported. stopping loading here";
+				case error_t::Unsupported3_0: return "Error: OpenGL 3.0 extensions unsupported. stopping loading here";
+				case error_t::Unsupported3_1: return "Error: OpenGL 3.1 extensions unsupported. stopping loading here";
+				case error_t::Unsupported3_2: return "Error: OpenGL 3.2 extensions unsupported. stopping loading here";
+				case error_t::Unsupported3_3: return "Error: OpenGL 3.3 extensions unsupported. stopping loading here";
+				case error_t::Unsupported4_0: return "Error: OpenGL 4.0 extensions unsupported. stopping loading here";
+				case error_t::Unsupported4_1: return "Error: OpenGL 4.1 extensions unsupported. stopping loading here";
+				case error_t::Unsupported4_2: return "Error: OpenGL 4.2 extensions unsupported. stopping loading here";
+				case error_t::Unsupported4_3: return "Error: OpenGL 4.3 extensions unsupported. stopping loading here";
+				case error_t::Unsupported4_4: return "Error: OpenGL 4.4 extensions unsupported. stopping loading here";
+				case error_t::Unsupported4_5: return "Error: OpenGL 4.5 extensions unsupported. stopping loading here";
+				case error_t::Unsupported4_6: return "Error: OpenGL 4.6 extensions unsupported. stopping loading here";
+				default: return "Error: unspecified error \n";
 			}
-
-			case error_t::versionLoadFailed:
-			{
-				return "Error: Could not get OpenGL version";
-			}
-
-			case error_t::Unsupported1_2:
-			{
-				return "Error: OpenGL 1.2 extensions unsupported. stopping loading here";
-			}
-
-			case error_t::Unsupported1_3:
-			{
-				return "Error: OpenGL 1.3 extensions unsupported. stopping loading here";
-			}
-
-			case error_t::Unsupported1_4:
-			{
-				return "Error: OpenGL 1.4 extensions unsupported. stopping loading here";
-			}
-
-			case error_t::Unsupported1_5:
-			{
-				return "Error: OpenGL 1.5 extensions unsupported. stopping loading here";
-			}
-
-			case error_t::Unsupported2_0:
-			{
-				return "Error: OpenGL 2.0 extensions unsupported. stopping loading here";
-			}
-
-			case error_t::Unsupported2_1:
-			{
-				return "Error: OpenGL 2.1 extensions unsupported. stopping loading here";
-			}
-
-			case error_t::Unsupported3_0:
-			{
-				return "Error: OpenGL 3.0 extensions unsupported. stopping loading here";
-			}
-
-			case error_t::Unsupported3_1:
-			{
-				return "Error: OpenGL 3.1 extensions unsupported. stopping loading here";
-			}
-
-			case error_t::Unsupported3_2:
-			{
-				return "Error: OpenGL 3.2 extensions unsupported. stopping loading here";
-			}
-
-			case error_t::Unsupported3_3:
-			{
-				return "Error: OpenGL 3.3 extensions unsupported. stopping loading here";
-			}
-
-			case error_t::Unsupported4_0:
-			{
-				return "Error: OpenGL 4.0 extensions unsupported. stopping loading here";
-			}
-
-			case error_t::Unsupported4_1:
-			{
-				return "Error: OpenGL 4.1 extensions unsupported. stopping loading here";
-			}
-
-			case error_t::Unsupported4_2:
-			{
-				return "Error: OpenGL 4.2 extensions unsupported. stopping loading here";
-			}
-
-			case error_t::Unsupported4_3:
-			{
-				return "Error: OpenGL 4.3 extensions unsupported. stopping loading here";
-			}
-
-			case error_t::Unsupported4_4:
-			{
-				return "Error: OpenGL 4.4 extensions unsupported. stopping loading here";
-			}
-
-			case error_t::Unsupported4_5:
-			{
-				return "Error: OpenGL 4.5 extensions unsupported. stopping loading here";
-			}
-
-			case error_t::Unsupported4_6:
-			{
-				return "Error: OpenGL 4.6 extensions unsupported. stopping loading here";
-			}
-
-			default:
-			{
-				return "Error: unspecified error \n";
-			}
-		}
 		}
 
 		error_category() {};
 
 		const static error_category& get()
 		{
-		const static error_category category;
-		return category;
+			const static error_category category;
+			return category;
 		}
 	};
 
-	std::error_code make_error_code(error_t errorCode)
+	inline std::error_code make_error_code(error_t errorCode)
 	{
 		return std::error_code(static_cast<int>(errorCode), error_category::get());
 	}
@@ -15272,8 +15192,8 @@ namespace std
 
 namespace TinyExtender
 {
-	GLuint glVersionMajor;
-	GLuint glVersionMinor;
+	inline GLuint glVersionMajor;
+	inline GLuint glVersionMinor;
 
 	//*< get OpenGL version
 	std::error_code InitializeGLVersion()
@@ -15294,7 +15214,7 @@ namespace TinyExtender
 	}
 
 	//*< load all Vendor Extensions
-	void LoadAllVendors()
+	inline void LoadAllVendors()
 	{
 		Load3DFXExtensions();
 		LoadAMDExtensions();
@@ -15335,7 +15255,7 @@ namespace TinyExtender
 	}
 
 	//*< load all applicable OpenGL extensions
-	std::error_code InitializeExtentions()
+	inline std::error_code InitializeExtentions()
 	{
 		std::error_code errCode = InitializeGLVersion();
 
@@ -15523,7 +15443,7 @@ namespace TinyExtender
 	}
 
 	//*< load specific OpenGL extensions via OpenGL versions
-	std::error_code InitializeExtensionsSpecific(unsigned int OpenGLVersions)
+	inline std::error_code InitializeExtensionsSpecific(const uint32_t& OpenGLVersions)
 	{
 		std::error_code errCode = error_t::success;
 
@@ -15876,123 +15796,48 @@ namespace TinyExtender
 		return errCode;
 	}
 
-	void InitializeVendorExtensions(vendor_t vendor)
+	inline void InitializeVendorExtensions(const vendor_t& vendor)
 	{
 		switch (vendor)
 		{
-		case TinyExtender::vendor_t::V3DFX:
-			Load3DFXExtensions();
-			break;
-		case TinyExtender::vendor_t::AMD:
-			LoadAMDExtensions();
-			break;
-		case TinyExtender::vendor_t::Android:
-			LoadAndroidExtensions();
-			break;
-		case TinyExtender::vendor_t::Angle:
-			LoadAngleExtensions();
-			break;
-		case TinyExtender::vendor_t::Apple:
-			LoadAppleExtensions();
-			break;
-		case TinyExtender::vendor_t::ARB:
-			LoadARBExtensions();
-			break;
-		case TinyExtender::vendor_t::ARM:
-			LoadARMExtensions();
-			break;
-		case TinyExtender::vendor_t::ATIX:
-			LoadATIXExtensions();
-			break;
-		case TinyExtender::vendor_t::ATI:
-			LoadATIExtensions();
-			break;
-		case TinyExtender::vendor_t::EGL_KHR:
-			LoadEGLKHRExtensions();
-			break;
-		case TinyExtender::vendor_t::EGL_NV:
-			LoadEGLNVExtensions();
-			break;
-		case TinyExtender::vendor_t::EXT:
-			LoadEXTExtensions();
-			break;
-		case TinyExtender::vendor_t::Gremedy:
-			LoadGremedyExtensions();
-			break;
-		case TinyExtender::vendor_t::HP:
-			LoadHPExtensions();
-			break;
-		case TinyExtender::vendor_t::IBM:
-			LoadIBMExtensions();
-			break;
-		case TinyExtender::vendor_t::INGR:
-			LoadINGRExtensions();
-			break;
-		case TinyExtender::vendor_t::Intel:
-			LoadIntelExtensions();
-			break;
-		case TinyExtender::vendor_t::KHR:
-			LoadKHRExtensions();
-			break;
-		case TinyExtender::vendor_t::KTX:
-			LoadKTXExtensions();
-			break;
-		case TinyExtender::vendor_t::MesaX:
-			LoadMESAXExtensions();
-			break;
-		case TinyExtender::vendor_t::Mesa:
-			LoadMESAExtensions();
-			break;
-		case TinyExtender::vendor_t::NVX:
-			LoadNVXExtensions();
-			break;
-		case TinyExtender::vendor_t::NV:
-			LoadNVExtensions();
-			break;
-		case TinyExtender::vendor_t::OES:
-			LoadOESExtensions();
-			break;
-		case TinyExtender::vendor_t::OML:
-			LoadOMLExtensions();
-			break;
-		case TinyExtender::vendor_t::OVR:
-			LoadOVRExtensions();
-			break;
-		case TinyExtender::vendor_t::PGI:
-			LoadPGIExtensions();
-			break;
-		case TinyExtender::vendor_t::QCOM:
-			LoadQCOMExtensions();
-			break;
-		case TinyExtender::vendor_t::Regal:
-			LoadRegalExtensions();
-			break;
-		case TinyExtender::vendor_t::REND:
-			LoadRENDExtensions();
-			break;
-		case TinyExtender::vendor_t::S3:
-			LoadS3Extensions();
-			break;
-		case TinyExtender::vendor_t::SGIS:
-			LoadSGISExtensions();
-			break;
-		case TinyExtender::vendor_t::SGIX:
-			LoadSGIXExtensions();
-			break;
-		case TinyExtender::vendor_t::SGI:
-			LoadSGIExtensions();
-			break;
-		case TinyExtender::vendor_t::SUNX:
-			LoadSUNXExtensions();
-			break;
-		case TinyExtender::vendor_t::SUN:
-			LoadSUNExtensions();
-			break;
-		case TinyExtender::vendor_t::WIN:
-			LoadWINExtensions();
-			break;
-		default:
-			break;
+			case vendor_t::V3DFX: Load3DFXExtensions(); break;
+			case vendor_t::AMD: LoadAMDExtensions(); break;
+			case vendor_t::Android: LoadAndroidExtensions(); break;
+			case vendor_t::Angle: LoadAngleExtensions(); break;
+			case vendor_t::Apple: LoadAppleExtensions(); break;
+			case vendor_t::ARB: LoadARBExtensions(); break;
+			case vendor_t::ARM: LoadARMExtensions(); break;
+			case vendor_t::ATIX: LoadATIXExtensions(); break;
+			case vendor_t::ATI: LoadATIExtensions(); break;
+			case vendor_t::EGL_KHR: LoadEGLKHRExtensions(); break;
+			case vendor_t::EGL_NV: LoadEGLNVExtensions(); break;
+			case vendor_t::EXT: LoadEXTExtensions(); break;
+			case vendor_t::Gremedy: LoadGremedyExtensions(); break;
+			case vendor_t::HP: LoadHPExtensions(); break;
+			case vendor_t::IBM: LoadIBMExtensions(); break;
+			case vendor_t::INGR: LoadINGRExtensions(); break;
+			case vendor_t::Intel: LoadIntelExtensions(); break;
+			case vendor_t::KHR: LoadKHRExtensions(); break;
+			case vendor_t::KTX: LoadKTXExtensions(); break;
+			case vendor_t::MesaX: LoadMESAXExtensions(); break;
+			case vendor_t::Mesa: LoadMESAExtensions(); break;
+			case vendor_t::NVX: LoadNVXExtensions(); break;
+			case vendor_t::NV: LoadNVExtensions(); break;
+			case vendor_t::OES: LoadOESExtensions(); break;
+			case vendor_t::OML: LoadOMLExtensions(); break;
+			case vendor_t::OVR: LoadOVRExtensions(); break;
+			case vendor_t::PGI: LoadPGIExtensions(); break;
+			case vendor_t::QCOM: LoadQCOMExtensions(); break;
+			case vendor_t::Regal: LoadRegalExtensions(); break;
+			case vendor_t::REND: LoadRENDExtensions(); break;
+			case vendor_t::S3: LoadS3Extensions(); break;
+			case vendor_t::SGIS: LoadSGISExtensions(); break;
+			case vendor_t::SGIX: LoadSGIXExtensions(); break;
+			case vendor_t::SGI: LoadSGIExtensions(); break;
+			case vendor_t::SUNX: LoadSUNXExtensions(); break;
+			case vendor_t::SUN: LoadSUNExtensions(); break;
+			case vendor_t::WIN: LoadWINExtensions(); break;
+			default: break;
 		}
 	}
 
@@ -16021,7 +15866,7 @@ namespace TinyExtender
 
 				allExtensions += (str + 1);
 			}
-		return false;
+			return false;
 		}
 		return false;
 	}

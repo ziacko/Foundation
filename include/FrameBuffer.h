@@ -95,6 +95,7 @@ public:
 				TinyExtender::glTexImage3D(this->FBODesc.target, this->FBODesc.currentMipmapLevel, this->FBODesc.internalFormat, this->FBODesc.dimensions.x, this->FBODesc.dimensions.y, this->FBODesc.dimensions.z, this->FBODesc.border, static_cast<GLenum>(this->FBODesc.format), static_cast<GLenum>(this->FBODesc.dataType), nullptr);
 				break;
 			}
+			default: break;
 			}
 
 			glTexParameteri(this->FBODesc.target, GL_TEXTURE_MIN_FILTER, this->FBODesc.minFilterSetting);
@@ -185,6 +186,7 @@ public:
 					UnbindTexture();
 					break;
 				}
+			default: break;
 			}
 		}
 
@@ -195,33 +197,34 @@ public:
 
 			switch (FBODesc.target)
 			{
-			case gl_texture_2d_multisample:
-			{
-				BindTexture();
-				glDeleteTextures(1, &handle);
-				glCreateTextures(FBODesc.target, 1, &handle);
-				BindTexture();
-				glTextureStorage2DMultisample(handle, this->FBODesc.sampleCount, this->FBODesc.internalFormat, this->FBODesc.dimensions.x, this->FBODesc.dimensions.y, true);
-				UnbindTexture();
-				break;
-			}
+				case gl_texture_2d_multisample:
+				{
+					BindTexture();
+					glDeleteTextures(1, &handle);
+					glCreateTextures(FBODesc.target, 1, &handle);
+					BindTexture();
+					glTextureStorage2DMultisample(handle, this->FBODesc.sampleCount, this->FBODesc.internalFormat, this->FBODesc.dimensions.x, this->FBODesc.dimensions.y, true);
+					UnbindTexture();
+					break;
+				}
 
-			case gl_texture_2d:
-			{
-				BindTexture();
-				glTexImage2D(FBODesc.target, FBODesc.currentMipmapLevel, FBODesc.internalFormat, FBODesc.dimensions.x, FBODesc.dimensions.y, FBODesc.border, FBODesc.format, FBODesc.dataType, nullptr);
-				UnbindTexture();
-				break;
-			}
+				case gl_texture_2d:
+				{
+					BindTexture();
+					glTexImage2D(FBODesc.target, FBODesc.currentMipmapLevel, FBODesc.internalFormat, FBODesc.dimensions.x, FBODesc.dimensions.y, FBODesc.border, FBODesc.format, FBODesc.dataType, nullptr);
+					UnbindTexture();
+					break;
+				}
 
-			case gl_texture_3d:
-			case gl_texture_2d_array:
-			{
-				BindTexture();
-				//glTexImage3D(this->FBODesc.target, this->FBODesc.currentMipmapLevel, this->FBODesc.internalFormat, this->FBODesc.dimensions.x, this->FBODesc.dimensions.y, this->FBODesc.dimensions.z, this->FBODesc.border, this->FBODesc.format, this->FBODesc.dataType, nullptr);
-				UnbindTexture();
-				break;
-			}
+				case gl_texture_3d:
+				case gl_texture_2d_array:
+				{
+					BindTexture();
+					//glTexImage3D(this->FBODesc.target, this->FBODesc.currentMipmapLevel, this->FBODesc.internalFormat, this->FBODesc.dimensions.x, this->FBODesc.dimensions.y, this->FBODesc.dimensions.z, this->FBODesc.border, this->FBODesc.format, this->FBODesc.dataType, nullptr);
+					UnbindTexture();
+					break;
+				}
+			default: break;
 			}
 		}
 
@@ -232,26 +235,25 @@ public:
 
 			switch (FBODesc.attachmentType)
 			{
-			case FBODescriptor::attachmentType_e::depth:
-			{
-				glTexParameteri(FBODesc.target, gl_depth_texture_mode, GL_LUMINANCE);
-			}
+				/*case FBODescriptor::attachmentType_e::depth:
+				{
+					glTexParameteri(FBODesc.target, gl_depth_texture_mode, GL_DEPTH_COMPONENT); //deprecated
+					break;
+				}*/
 
-			case FBODescriptor::attachmentType_e::stencil:
-			{
-				glTexParameteri(FBODesc.target, gl_depth_stencil_texture_mode, GL_STENCIL_INDEX);
-			}
-
-			case FBODescriptor::attachmentType_e::depthAndStencil:
-			{
-				glTexParameteri(FBODesc.target, gl_depth_stencil_texture_mode, GL_STENCIL_INDEX);
-			}
+				case FBODescriptor::attachmentType_e::stencil:
+				case FBODescriptor::attachmentType_e::depthAndStencil:
+				{
+					glTexParameteri(FBODesc.target, gl_depth_stencil_texture_mode, GL_STENCIL_INDEX);
+					break;
+				}
+			default: break;;
 			}
 			
 			UnbindTexture();
 		}
 
-		void Draw()
+		void Draw() const
 		{
 			//if the current framebuffer is not this one then bind it
 			switch (FBODesc.attachmentType)
@@ -496,6 +498,7 @@ public:
 				printf("framebuffer incomplete layer targets \n");
 				break;
 			}
+			default: break;;
 			}
 			return false;
 		}

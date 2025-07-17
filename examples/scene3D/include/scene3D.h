@@ -2,17 +2,14 @@
 #define SCENE3D_H
 
 #include "scene.h"
-#include "Texture.h"
-#include "Model.h"
-#include "OBJLoader.h"
 
 struct baseMaterialSettings_t
 {
-	glm::vec4								diffuse{};
-	glm::vec4								specular{};
-	glm::vec4								ambient{};
-	glm::vec4								emissive{};
-	glm::vec4								reflective{};
+	glm::vec4	diffuse;
+	glm::vec4	specular;
+	glm::vec4	ambient;
+	glm::vec4	emissive;
+	glm::vec4	reflective;
 
 	baseMaterialSettings_t()
 	{
@@ -27,11 +24,10 @@ struct baseMaterialSettings_t
 class scene3D : public scene
 {
 public:
-
-	scene3D(const char* windowName = "Ziyad Barakat's Portfolio(3D scene)",
-		const camera_t& camera3D = camera_t(defaultWindowSize, defaultCameraSpeed, camera_t::projection_e::perspective),
-		const char* shaderConfigPath = SHADER_CONFIG_DIR,
-		const model_t& model = model_t("models/SoulSpear/SoulSpear.fbx")) :
+	explicit scene3D(const char* windowName = "Ziyad Barakat's Portfolio(3D scene)",
+			const camera_t& camera3D = camera_t(defaultWindowSize, defaultCameraSpeed, camera_t::projection_e::perspective),
+	        const char* shaderConfigPath = SHADER_CONFIG_DIR,
+	        const model_t& model = model_t("models/SoulSpear/SoulSpear.fbx")) :
 		scene(windowName, camera3D, shaderConfigPath)
 	{
 		testModel = model;
@@ -67,7 +63,6 @@ public:
 protected:
 
 	model_t testModel;
-	OBJModel model;
 	bufferHandler_t<baseMaterialSettings_t>	materialBuffer;
 
 	unsigned int OGLProgram{};
@@ -175,13 +170,13 @@ protected:
 		scene::HandleMouseClick(window, button, state);
 	}
 
-	void HandleMouseMotion(const tWindow* window, vec2_t<int16_t> windowPosition, vec2_t<int16_t> screenPosition) override
+	void HandleMouseMotion(const tWindow* window, const vec2_t<int16_t>& windowPosition, const vec2_t<int16_t>& screenPosition) override
 	{
 		scene3D* thisScene = (scene3D*)window->GetSettings().userData;
 		scene::HandleMouseMotion(window, windowPosition, screenPosition);
 
-		glm::vec2 mouseDelta = glm::vec2(window->GetMousePosition().x - window->GetPreviousMousePosition().x, window->GetMousePosition().y - window->GetPreviousMousePosition().y);
-		float deltaTime = (float)thisScene->clock.GetDeltaTime();
+		const glm::vec2 mouseDelta = glm::vec2(window->GetMousePosition().x - window->GetPreviousMousePosition().x, window->GetMousePosition().y - window->GetPreviousMousePosition().y);
+		const float deltaTime = (float)thisScene->clock.GetDeltaTime();
 
 		if (window->GetMouseButtonState()[(int)mouseButton_e::right] == buttonState_e::down)
 		{
@@ -209,9 +204,8 @@ protected:
 		defaultPayload.Update(gl_uniform_buffer, gl_dynamic_draw);
 	}
 
-	void HandleWindowResize(const tWindow* window, TinyWindow::vec2_t<uint16_t> dimensions) override
+	void HandleWindowResize(const tWindow* window, const vec2_t<uint16_t>& dimensions) override
 	{
-		scene3D* thisScene = (scene3D*)window->GetSettings().userData;
 		glViewport(0, 0, dimensions.width, dimensions.height);
 		camera.resolution = glm::vec2(dimensions.width, dimensions.height);
 		defaultPayload.data.resolution = camera.resolution;
@@ -256,7 +250,7 @@ protected:
 			camSpeed = camera.speed;
 		}
 
-		float deltaTime = (float)clock.GetDeltaTime();
+		const float deltaTime = (float)clock.GetDeltaTime();
 
 		if (state == keyState_e::down) //instead of one key could we check multiple keys?
 		{
@@ -292,16 +286,15 @@ protected:
 
 			if (window->GetKeyState()['z'] == keyState_e::down)
 			{
-				camera.Roll(glm::radians((float)camera.zSensitivity * deltaTime));
+				camera.Roll(glm::radians(camera.zSensitivity * deltaTime));
 			}
 
 			if (window->GetKeyState()['x'] == keyState_e::down)
 			{
-				camera.Roll(glm::radians((float)-camera.zSensitivity * deltaTime));
+				camera.Roll(glm::radians(camera.zSensitivity * deltaTime));
 			}
 		}
 	}
-	
 };
 
 #endif

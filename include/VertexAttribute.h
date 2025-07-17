@@ -13,16 +13,12 @@ struct vertexAttribute_t
 	glm::vec2	uv;
 	glm::vec2	uv2;
 
-	vertexAttribute_t(glm::vec4 position, glm::vec4 normal, glm::vec4 tangent,
-		glm::vec4 biTangent, glm::vec2 uv)
+	vertexAttribute_t(const glm::vec4& position, const glm::vec4& normal, const glm::vec4& tangent,
+		const glm::vec4& biTangent, const glm::vec2& uv) : position(position), normal(normal), tangent(tangent), biNormal(biNormal), uv(uv)
 	{
-		this->position = position;
-		this->normal = normal;
-		this->tangent = tangent;
-		this->biNormal = biTangent;
-		this->uv = uv;
+		this->color = glm::vec4(0);
 		this->boneIndex = glm::ivec4(0);
-		this->weight = glm::vec4(0.0f);
+		this->weight = glm::vec4(0);
 		this->uv2 = glm::vec2(0);
 	}
 
@@ -34,7 +30,7 @@ struct vertexAttribute_t
 		tangent = glm::vec4(0);
 		biNormal = glm::vec4(0);
 		boneIndex = glm::ivec4(0);
-		weight = glm::vec4(0.0f);
+		weight = glm::vec4(0);
 		uv = glm::vec2(0);
 		uv2 = glm::vec2(0);
 	}

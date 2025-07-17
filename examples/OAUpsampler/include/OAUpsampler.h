@@ -8,21 +8,22 @@ struct resolutionSettings_t
 {
     glm::vec2 resolutionScale{defaultResScale};
 
-    explicit resolutionSettings_t(const glm::vec2& res = defaultResScale)
+    resolutionSettings_t(const glm::vec2& res = defaultResScale)
     {
         resolutionScale = res;
     }
 };
 
-class OAUpsamplerScene : public SMAAScene
+class OAUpsamplerScene final : public SMAAScene
 {
 public:
 
-    explicit OAUpsamplerScene(const char* windowName = "Ziyad Barakat's portfolio (OAUpsampler)",
+    OAUpsamplerScene(const char* windowName = "Ziyad Barakat's portfolio (OAUpsampler)",
         const camera_t& camera = camera_t(defaultWindowSize, defaultCameraSpeed, camera_t::projection_e::perspective),
-        const char* shaderConfigPath = SHADER_CONFIG_DIR,
-        model_t model = model_t("models/SoulSpear/SoulSpear.fbx")) : SMAAScene(windowName, camera, shaderConfigPath, std::move(model))
+        const char* shaderConfigPath = "SMAA",
+        const model_t& model = model_t("models/SoulSpear/SoulSpear.fbx")) : SMAAScene(windowName, camera, shaderConfigPath, model)
     {
+        resolutionSettings = resolutionSettings_t(defaultResScale);
         resScale = glm::vec2(defaultResScale);
         scaledResolution = camera.resolution * resScale;
     }
@@ -47,7 +48,7 @@ protected:
         //we just need the first LOd so only do the first 3 meshes
         for (auto& mesh : testModel.meshes)
         {
-            for (uint8_t texIter = 0; texIter < mesh.textures.size(); texIter++)
+            for (uint32_t texIter = 0; texIter < mesh.textures.size(); texIter++)
             {
                 mesh.textures[texIter].SetActive(texIter);
             }
@@ -185,7 +186,7 @@ protected:
         camera.resolution = resolution;
     }
 
-    void HandleWindowResize(const tWindow* window, const TinyWindow::vec2_t<uint16_t> dimensions) override
+    void HandleWindowResize(const tWindow* window, const vec2_t<uint16_t>& dimensions) override
     {
         UpdateResolution(glm::ivec2(dimensions.x, dimensions.y));
         ResizeBuffers(glm::ivec2(scaledResolution));

@@ -115,8 +115,8 @@ namespace TinyWindow
 	class tWindow;
 	class WindowManager;
 
-	constexpr unsigned short defaultWindowWidth	 = 1280;
-	constexpr unsigned short defaultWindowHeight = 720;
+	constexpr uint16_t defaultWindowWidth	 = 1280;
+	constexpr uint16_t defaultWindowHeight = 720;
 
 	template<typename type> struct vec2_t
 	{
@@ -212,7 +212,7 @@ namespace TinyWindow
 		RRCrtc crtc;
 #endif
 
-		explicit monitorSetting_t(const vec2_t<uint16_t>& inResolution = vec2_t<uint16_t>::Zero(), const uint16_t& inDisplayFrequency = 0): resolution(inResolution), displayFrequency(inDisplayFrequency)
+		explicit monitorSetting_t(const vec2_t<uint16_t>& inResolution = vec2_t<uint16_t>::Zero(), const uint16_t& inDisplayFrequency = 0) : resolution(inResolution), displayFrequency(inDisplayFrequency)
 		{
 #if defined(TW_WINDOWS)
 			displayFlags = 0;
@@ -294,20 +294,20 @@ namespace TinyWindow
 	{
 		friend class windowManager;
 
-		int redBits;
-		int greenBits;
-		int blueBits;
-		int alphaBits;
-		int depthBits;
-		int stencilBits;
+		int8_t redBits;
+		int8_t greenBits;
+		int8_t blueBits;
+		int8_t alphaBits;
+		int8_t depthBits;
+		int8_t stencilBits;
 
-		int accumRedBits;
-		int accumGreenBits;
-		int accumBlueBits;
-		int accumAlphaBits;
+		int8_t accumRedBits;
+		int8_t accumGreenBits;
+		int8_t accumBlueBits;
+		int8_t accumAlphaBits;
 
-		int auxBuffers;
-		int numSamples;
+		int8_t auxBuffers;
+		int8_t numSamples;
 
 		bool stereo;
 		bool doubleBuffer;
@@ -319,7 +319,9 @@ namespace TinyWindow
 #endif
 
 	public:
-		explicit formatSetting_t(int redBits = 8, int greenBits = 8, int blueBits = 8, int alphaBits = 8, int depthBits = 32, int stencilBits = 8, int accumRedBits = 8, int accumGreenBits = 8, int accumBlueBits = 8, int accumAlphaBits = 8, int auxBuffers = 0, int numSamples = 0, bool stereo = false, bool doubleBuffer = true)
+		explicit formatSetting_t(const int8_t& redBits = 8, const int8_t& greenBits = 8, const int8_t& blueBits = 8, const int8_t& alphaBits = 8,
+			const int8_t& depthBits = 32, const int8_t& stencilBits = 8, const int8_t& accumRedBits = 8, const int8_t& accumGreenBits = 8, const int8_t& accumBlueBits = 8, const int8_t& accumAlphaBits = 8,
+			const int8_t& auxBuffers = 0, const int8_t& numSamples = 0, const bool& stereo = false, const bool& doubleBuffer = true)
 		{
 			this->redBits	  = redBits;
 			this->greenBits	  = greenBits;
@@ -364,7 +366,9 @@ namespace TinyWindow
 		friend class windowManager;
 
 		//should i move this to a window descriptor system?
-		explicit windowSetting_t(const std::string& name = "window", void* userData = nullptr, const vec2_t<uint16_t>& resolution = vec2_t<uint16_t>(defaultWindowWidth, defaultWindowHeight), const int& versionMajor = 4, const int& versionMinor = 5, const uint16_t& colorBits = 8, const uint16_t& depthBits = 24, const uint16_t& stencilBits = 8, const uint16_t& accumBits = 8, const state_e& currentState = state_e::normal, const profile_e& profile = profile_e::core)
+		explicit windowSetting_t(const std::string& name = "window", void* userData = nullptr, const vec2_t<uint16_t>& resolution = vec2_t(defaultWindowWidth, defaultWindowHeight),
+			const int8_t& versionMajor = 4, const int8_t& versionMinor = 5, const int8_t& colorBits = 8, const int8_t& depthBits = 24, const int8_t& stencilBits = 8, const int8_t& accumBits = 8,
+			const state_e& currentState = state_e::normal, const profile_e& profile = profile_e::core)
 		{
 			this->name		   = name;
 			this->resolution   = resolution;
@@ -579,7 +583,7 @@ namespace TinyWindow
 	};
 
 	typedef std::pair<error_e, std::string> errorEntry;
-	const std::unordered_map<error_e, std::string> errorLUT =
+	const std::unordered_map errorLUT =
 	{
 		errorEntry(error_e::invalidWindowName, "Error: invalid window name"),
 		errorEntry(error_e::invalidIconPath, "Error: invalid icon path"),
@@ -968,7 +972,6 @@ namespace TinyWindow
 		*/
 		~windowManager()
 		{
-			// assert(windowList.empty());
 			ShutDown();
 		}
 
@@ -1061,7 +1064,7 @@ namespace TinyWindow
 		/**
 		* Return the total amount of windows the manager has
 		*/
-		int GetNumWindows() const { return static_cast<int16_t>(windowList.size()); }
+		int8_t GetNumWindows() const { return static_cast<int8_t>(windowList.size()); }
 
 		/**
 		* Return the mouse position in screen co-ordinates
@@ -1071,7 +1074,7 @@ namespace TinyWindow
 		/**
 		* Set the position of the mouse cursor relative to screen co-ordinates
 		*/
-		void SetMousePositionInScreen(vec2_t<int16_t> mousePosition)
+		void SetMousePositionInScreen(const vec2_t<int16_t> mousePosition)
 		{
 			screenMousePosition.x = mousePosition.x;
 			screenMousePosition.y = mousePosition.y;
@@ -1084,6 +1087,7 @@ namespace TinyWindow
 			screenResolution.x,
 			screenResolution.y,
 			screenMousePosition.x, screenMousePosition.y);*/
+			AddErrorLog(error_e::linuxFunctionNotImplemented);
 #endif
 		}
 
@@ -1152,7 +1156,6 @@ namespace TinyWindow
 			{
 				ShutdownWindow(window);
 			}
-
 			AddWindowErrorLog(window, error_e::windowInvalid, __LINE__, __func__);
 		}
 
@@ -1180,10 +1183,8 @@ namespace TinyWindow
 
 				glXMakeCurrent(window->currentDisplay, window->windowHandle, window->context);
 				int result = 0;
-				if (glxSwapIntervalMESA != nullptr)
-					result = glxSwapIntervalMESA(interval);
-				else if (glxSwapIntervalEXT != nullptr)
-					glxSwapIntervalEXT(window->currentDisplay, window->windowHandle, interval);
+				if (glxSwapIntervalMESA != nullptr) result = glxSwapIntervalMESA(interval);
+				else if (glxSwapIntervalEXT != nullptr) glxSwapIntervalEXT(window->currentDisplay, window->windowHandle, interval);
 
 				if (result != 0)
 				{
@@ -1221,8 +1222,7 @@ namespace TinyWindow
 			glXMakeCurrent(window->currentDisplay, window->windowHandle, window->context);
 			int interval = 0;
 
-			if (glXGetSwapIntervalMESA != nullptr)
-				interval = glXGetSwapIntervalMESA();
+			if (glXGetSwapIntervalMESA != nullptr) interval = glXGetSwapIntervalMESA();
 
 			glXMakeCurrent(previousDisplay, window->windowHandle, previousGLContext);
 			return interval;
@@ -1236,9 +1236,13 @@ namespace TinyWindow
 
 		void GetClipboardInfo()
 		{
-#if defined(TW_LINUX)
-			void Linux_GetClipboardInfo();
+#if defined(TW_WINDOWS)
+
 #endif
+#if defined(TW_LINUX)
+			//Linux_GetClipboardInfo();
+#endif
+			AddErrorLog(error_e::functionNotImplemented);
 		}
 
 		/**
@@ -1472,7 +1476,7 @@ namespace TinyWindow
 		void SetIcon(tWindow* window)
 		{
 			// const char* windowName, const char* icon, uint16_t width, uint16_t height
-			AddWindowErrorLog(window, error_e::functionNotImplemented, __LINE__, __func__);
+			AddWindowErrorLog(window, error_e::functionNotImplemented);
 		}
 
 		/**
@@ -1773,7 +1777,7 @@ namespace TinyWindow
 		std::vector<std::unique_ptr<tWindow>> windowList;// replace with unordered map?
 		std::vector<errorEntry> errorLog;
 
-		void AddWindowErrorLog(const tWindow* window, const error_e& newError, const uint16_t& fileLine, const std::string& functionName)
+		void AddWindowErrorLog(const tWindow* window, const error_e& newError, const uint16_t& fileLine = __LINE__, const std::string& functionName = __FUNCTION__)
 		{
 			auto newString = errorLUT.at(newError);
 
@@ -1818,8 +1822,8 @@ namespace TinyWindow
 #if defined(TW_WINDOWS)
 			Windows_CreateDummyContext();
 #elif defined(TW_LINUX)
-			//return error_t::success;// TODO: flesh this out
-#endif//
+			//return error_t::success;// TODO: flesh this out?
+#endif
 		}
 
 		void InitExtensions()
@@ -1871,6 +1875,10 @@ namespace TinyWindow
 				}
 			}
 #endif
+
+#if defined(TW_LINUX)
+			AddErrorLog(error_e::linuxFunctionNotImplemented);
+#endif
 		}
 
 		void ShutdownWindow(tWindow* window)
@@ -1920,6 +1928,7 @@ namespace TinyWindow
 			Windows_ShareContexts(sourceWindow, newWindow);
 #elif defined(TW_LINUX)
 			// TODO: need to implement shared context functionality
+			AddErrorLog(error_e::linuxFunctionNotImplemented);
 #endif
 		}
 
@@ -1928,7 +1937,7 @@ namespace TinyWindow
 #if defined(TW_WINDOWS)
 			Windows_ResetMonitors();
 #elif defined(TW_LINUX)
-
+			AddErrorLog(error_e::linuxFunctionNotImplemented);
 #endif
 		}
 
@@ -3684,10 +3693,9 @@ namespace TinyWindow
 			unsigned long status	  = 0;
 		};
 
-
 		tWindow* GetWindowByHandle(const Window& windowHandle) const
 		{
-			auto it = std::find_if(windowList.begin(), windowList.end(), [&](const std::unique_ptr<tWindow>& window) 
+			const auto it = std::ranges::find_if(windowList, [&](const std::unique_ptr<tWindow>& window)
 			{
 				return window->windowHandle == windowHandle;
 			});
@@ -4443,7 +4451,7 @@ namespace TinyWindow
 			}
 		}
 
-		void GetExtraMonitorData(const XRROutputInfo* inInfo, const RROutput& inOutput, monitor_t* inMonitor)
+		static void GetExtraMonitorData(const XRROutputInfo* inInfo, const RROutput& inOutput, monitor_t* inMonitor)
 		{
 			// throw in a vector of monitors and the output
 			std::string GPUName;
@@ -4620,10 +4628,10 @@ namespace TinyWindow
 		{
 			// set window position and change style to popup
 			window->currentMonitor = monitor;
-			auto rootDisplay	   = XOpenDisplay(nullptr);
+			const auto rootDisplay	   = XOpenDisplay(nullptr);
 
 			monitorSetting_t* monitorSetting = const_cast<monitorSetting_t*>(&monitor->GetMonitorSettings()->at(monitorSettingIndex));
-			Window root						 = RootWindow(rootDisplay, 0);
+			const Window root						 = RootWindow(rootDisplay, 0);
 
 			// Get screen resources
 			XRRScreenResources* screenResources = XRRGetScreenResources(rootDisplay, root);

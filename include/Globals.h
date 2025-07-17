@@ -22,10 +22,14 @@
 #include <utility>
 //external libs
 #include <TinyExtender.h>
-using namespace TinyExtender;
+namespace te = TinyExtender;
+using namespace te;
 #include <TinyShaders.h>
-using namespace TinyShaders;
+namespace ts = TinyShaders;
+using namespace ts;
 #include <TinyWindow.h>
+namespace tw = TinyWindow;
+using namespace tw;
 #include <TinyClock.h>
 #include <glm/fwd.hpp>
 #include <glm/glm.hpp>
@@ -65,16 +69,15 @@ constexpr glm::vec2 defaultViewportOrigin = glm::vec2(0);
 //could put all opf these into a namespace but what to call it? globdefaults? gDefs?
 
 //local headers
-using namespace TinyWindow;
 using namespace std::placeholders;
 //internal libs
 #include "Camera.h"
 #include "DefaultUniformBuffer.h"
 #include "GPUQuery.h"
-#include "Utilities.h"
 #include "VertexBuffer.h"
 #include "shaderLoader_t.h"
 #include "Texture.h"
 #include "FrameBuffer.h"
+#include "Model.h"
 
 

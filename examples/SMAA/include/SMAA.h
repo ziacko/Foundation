@@ -3,17 +3,26 @@
 #include "scene3D.h"
 #include "FrameBuffer.h"
 
+enum class EdgeDetectionMode_e
+{
+	luma = 0,
+	color = 1,
+	depth = 2
+};
+
 struct SMAASettings_t
 {
-	glm::vec4		rtMetrics;
-	float			threshold;
-	float			contrastAdaptationFactor;
+	glm::vec4	rtMetrics = glm::vec4(1.0 / defaultWindowSize.x, 1.0 / defaultWindowSize.y, defaultWindowSize.x, defaultWindowSize.y);
+	float		threshold;
+	float		contrastAdaptationFactor;
 
-	int32_t				maxSearchSteps;
-	int32_t				maxSearchStepsDiag;
-	int32_t				cornerRounding;
+	int32_t		maxSearchSteps;
+	int32_t		maxSearchStepsDiag;
+	int32_t		cornerRounding;
+	int32_t		edgeDetectionMode;
 
-	explicit SMAASettings_t(const glm::ivec2& resolution = defaultWindowSize, const float threshold = 0.05, const float CAFactor = 2.0f, const uint8_t maxSearchSteps = 32, const uint8_t maxSearchStepsDiag = 16, const uint8_t cornerRounding = 25)
+	explicit SMAASettings_t(const glm::ivec2& resolution = defaultWindowSize, const float threshold = 0.05, const float CAFactor = 2.0f,
+		const uint8_t maxSearchSteps = 32, const uint8_t maxSearchStepsDiag = 16, const uint8_t cornerRounding = 25)
 	{
 		this->rtMetrics = glm::vec4(1.0 / resolution.x, 1.0 / resolution.y, resolution.x, resolution.y);
 		this->threshold = threshold;
@@ -21,6 +30,7 @@ struct SMAASettings_t
 		this->maxSearchSteps = maxSearchSteps;
 		this->maxSearchStepsDiag = maxSearchStepsDiag;
 		this->cornerRounding = cornerRounding;
+		this->edgeDetectionMode = (int32_t)EdgeDetectionMode_e::depth;
 	}
 };
 
@@ -32,13 +42,18 @@ public:
 		const char* windowName = "Ziyad Barakat's portfolio (SMAA)",
 		const camera_t& camera = camera_t(defaultWindowSize, defaultCameraSpeed, camera_t::projection_e::perspective),
 		const char* shaderConfigPath = SHADER_CONFIG_DIR,
-		model_t model = model_t("models/SoulSpear/SoulSpear.fbx"))
-		: scene3D(windowName, camera, shaderConfigPath, std::move(model))
+		const model_t& model = model_t("models/SoulSpear/SoulSpear.fbx"))
+		: scene3D(windowName, camera, shaderConfigPath, model)
 	{
 		//glDisable(GL_BLEND);
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LESS);
 		//glHint(gl_generate_mipmap_hint, GL_NICEST);
+
+		//camera.up = glm::vec4(0.0f, -0.2f, 1.0f, 1.0f);
+		//camera.right = glm::vec4(-1.0f, 0.0f, 0.0f, 1.0f);
+		//camera.forward = glm::vec4(0.0f, -1.0f, -0.3f, 1.0f);
+
 
 		geometryBuffer = frameBuffer();
 		edgesBuffer = frameBuffer();
@@ -97,8 +112,6 @@ public:
 		edgeDesc.wrapRSetting = GL_CLAMP_TO_EDGE;
 		edgeDesc.wrapTSetting = GL_CLAMP_TO_EDGE;
 		edgeDesc.wrapSSetting = GL_CLAMP_TO_EDGE;
-		//edgeDesc.minFilterSetting = GL_NEAREST;
-		//edgeDesc.magFilterSetting = GL_NEAREST;
 
 		edgesBuffer.AddAttachment(frameBuffer::attachment_t("edge", edgeDesc));
 
@@ -112,8 +125,6 @@ public:
 		weightsDesc.wrapRSetting = GL_CLAMP_TO_EDGE;
 		weightsDesc.wrapTSetting = GL_CLAMP_TO_EDGE;
 		weightsDesc.wrapSSetting = GL_CLAMP_TO_EDGE;
-		//weightsDesc.minFilterSetting = GL_NEAREST;
-		//weightsDesc.magFilterSetting = GL_NEAREST;
 
 		weightsBuffer.AddAttachment(frameBuffer::attachment_t("blend", weightsDesc));
 
@@ -155,7 +166,7 @@ protected:
 	int currentTexture = 0;
 	bool enableCompare = true;
 
-	virtual void Update() override
+	void Update() override
 	{
 		manager->PollForEvents();
 		if (lockedFrameRate > 0)
@@ -199,7 +210,7 @@ protected:
 		//defaultVertexBuffer.UpdateBuffer(defaultPayload.data.resolution);
 	}
 
-	virtual void Draw() override
+	void Draw() override
 	{
 		camera.ChangeProjection(camera_t::projection_e::perspective);
 		camera.Update();
@@ -402,7 +413,7 @@ protected:
 		SMAABuffer.attachments["SMAA"].Resize(glm::ivec3(resolution, 1));
 	}
 
-	void HandleWindowResize(const tWindow* window, const TinyWindow::vec2_t<uint16_t> dimensions) override
+	void HandleWindowResize(const tWindow* window, const vec2_t<uint16_t>& dimensions) override
 	{
 		defaultPayload.data.resolution = glm::ivec2(dimensions.width, dimensions.height);
 		ResizeBuffers(glm::ivec2(dimensions.x, dimensions.y));
@@ -427,7 +438,7 @@ protected:
 		defaultPayload.Initialize(0);
 		SMAASettings.Initialize(1);
 
-		SetupVertexBuffer();
+		defaultVertexBuffer.SetupDefault();
 	}
 
 	void DrawSMAASettings()
@@ -440,6 +451,18 @@ protected:
 			ImGui::SliderInt("max search steps", &SMAASettings.data.maxSearchSteps, 0, 255);
 			ImGui::SliderInt("max search steps diagonal", &SMAASettings.data.maxSearchStepsDiag, 0, 255);
 			ImGui::SliderInt("corner rounding", &SMAASettings.data.cornerRounding, 0, 255);
+
+			//set a list box for edge detection modes
+			static int edgeDetectionPick = 0;
+			std::vector edgeDetectionSettings = { "luma", "color", "depth" };
+			ImGui::ListBox("Edge Detection Mode", &edgeDetectionPick, edgeDetectionSettings.data(), edgeDetectionSettings.size());
+			switch (edgeDetectionPick)
+			{
+				case 0: SMAASettings.data.edgeDetectionMode = (int32_t)EdgeDetectionMode_e::luma; break;
+				case 1: SMAASettings.data.edgeDetectionMode = (int32_t)EdgeDetectionMode_e::color; break;
+				case 2: SMAASettings.data.edgeDetectionMode = (int32_t)EdgeDetectionMode_e::depth; break;
+				default: break;
+			}
 			ImGui::EndTabItem();
 		}
 	}

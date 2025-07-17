@@ -63,7 +63,6 @@ namespace TinyShaders
 	typedef std::pair<const error_e,  const std::string> errorEntry;
 	const std::unordered_map<const error_e, const std::string> errorLUT =
 	{
-
 		errorEntry(error_e::invalidString, "Error: invalid string"),
 		errorEntry(error_e::shaderNotFound, "Error: shader not found"),
 		errorEntry(error_e::invalidFilePath, "Error: invalid file path"),
@@ -874,31 +873,13 @@ namespace TinyShaders
 	{
 		switch ( shaderType )
 		{
-		case shaderType_e::vertex:
-			{
-				return "vertex";
-			}
-		case shaderType_e::fragment:
-			{
-				return "fragment";
-			}
-		case shaderType_e::geometry:
-			{
-				return "geometry";
-			}
-		case shaderType_e::tessControl:
-			{
-				return "tessellation Control";
-			}
-		case shaderType_e::tessEval:
-			{
-				return "tessellation Evaluation";
-			}
-		case shaderType_e::compute:
-			{
-				return "compute";
-			}
-		default: return "invalidShaderType";
+			case shaderType_e::vertex: return "vertex";
+			case shaderType_e::fragment: return "fragment";
+			case shaderType_e::geometry: return "geometry";
+			case shaderType_e::tessControl: return "tessellation Control";
+			case shaderType_e::tessEval: return "tessellation Evaluation";
+			case shaderType_e::compute: return "compute";
+			default: return "invalidShaderType";
 		}
 	}
 }

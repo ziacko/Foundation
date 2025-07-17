@@ -1,9 +1,9 @@
-#ifndef UNIFORM_BUFFER_H
-#define UNIFORM_BUFFER_H
+#pragma once
 
 class uniformBuffer_t
 {
 public:
+
 	GLuint bufferHandle;
 	GLuint uniformHandle;
 
@@ -18,6 +18,8 @@ public:
 		data = CreateBaseBuffer();
 		//BuildBuffer();
 	}
+
+	virtual ~uniformBuffer_t() { Shutdown(); }
 
 	static void Update(const void* paramData, const GLuint paramBufferHandle, const GLintptr offset, const GLuint bufferSize, const GLenum target, const GLenum usage)
 	{
@@ -40,10 +42,6 @@ public:
 		return (void*)malloc(sizeof(*this) - (sizeof(GLuint) * 2));
 	}
 
-	virtual void* GetBuffer() = 0;
-
-	virtual void BuildBuffer() = 0;
-
 	template<typename t>
 	void AppendBuffer(t object, void*& buffer)
 	{
@@ -51,6 +49,9 @@ public:
 		buffer = static_cast<void*>(static_cast<char*>(buffer) + sizeof(object)); //i hate this eyesore
 		dataSize += sizeof(object);
 	}
-};
 
-#endif
+	void Shutdown() const
+	{
+		glDeleteBuffers(1, &bufferHandle);
+	}
+};

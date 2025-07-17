@@ -1,6 +1,4 @@
-#ifndef CAMERA_H
-#define CAMERA_H
-#include "Globals.h"
+#pragma once
 
 class camera_t
 {
@@ -52,9 +50,9 @@ public:
 	static const float		defaultPersNear;// = 15.0f;
 	static const float		defaultPersFar;//= 1000.0f;
 
-	explicit camera_t(glm::vec2 resolution = defaultWindowSize, float speed = defaultCameraSpeed,
-	                  projection_e type = projection_e::orthographic, float nearPlane = defaultNearPlane,
-	                  float farPlane = defaultFarPlane, float fieldOfView = defaultFieldOfView)
+	explicit camera_t(const glm::vec2& resolution = defaultWindowSize, const float& speed = defaultCameraSpeed,
+	                  const projection_e& type = projection_e::orthographic, const float& nearPlane = defaultNearPlane,
+	                  const float& farPlane = defaultFarPlane, const float& fieldOfView = defaultFieldOfView)
 	{
 		this->farPlane = farPlane;
 		this->nearPlane = nearPlane;
@@ -150,9 +148,8 @@ public:
 		}
 	}
 
-	glm::mat4 MakeProjection(projection_e projectionType)
+	glm::mat4 MakeProjection(const projection_e& projectionType) const
 	{
-		glm::mat4 outProj = glm::mat4(1.0f);
 		if (projectionType == projection_e::perspective)
 		{
 			return glm::perspective<float>(glm::radians(fieldOfView), resolution.x / resolution.y,
@@ -165,7 +162,7 @@ public:
 		}
 	}
 
-	glm::mat4 MakeView(projection_e projectionType)
+	glm::mat4 MakeView(const projection_e& projectionType)
 	{
 		glm::mat4 outView = glm::mat4(1.0f);
 		if (projectionType == projection_e::perspective)
@@ -215,47 +212,47 @@ public:
 		up = glm::conjugate(rotation) * globalUp;
 	}
 
-	void Pitch(float pitchRadians)
+	void Pitch(const float& pitchRadians)
 	{
 		rotator += glm::vec3(globalUp) * pitchRadians;
 	}
 
-	void Yaw(float yawRadians)
+	void Yaw(const float& yawRadians)
 	{
 		rotator += glm::vec3(globalRight) * yawRadians;
 	}
 
-	void Roll(float rollRadians)
+	void Roll(const float& rollRadians)
 	{
 		rotator += glm::vec3(globalForward) * rollRadians;
 	}
 
-	glm::vec3 GetForward()
+	glm::vec3 GetForward() const
 	{
 		return glm::conjugate(rotation) * glm::vec3(0.0f, 0.0f, -1.0f);
 	}
 
-	glm::vec3 GetRight()
+	glm::vec3 GetRight() const
 	{
 		return glm::conjugate(rotation) * glm::vec3(1.0f, 0.0f, 0.0f);
 	}
 
-	glm::vec3 GetUp()
+	glm::vec3 GetUp() const
 	{
 		return glm::conjugate(rotation) * glm::vec3(0.0f, 1.0f, 0.0f);
 	}
 
-	void MoveForward(float movement, float deltaTime)
+	void MoveForward(const float& movement, const float& deltaTime)
 	{
 		position += (GetForward() * movement) * (1 - deltaTime);
 	}
 
-	void MoveRight(float movement, float deltaTime)
+	void MoveRight(const float& movement, const float& deltaTime)
 	{
 		position += (GetRight() * movement) * (1 - deltaTime);
 	}
 
-	void MoveUp(float movement, float deltaTime)
+	void MoveUp(const float& movement, const float& deltaTime)
 	{
 		position += (GetUp() * movement) * (1 - deltaTime);
 	}
@@ -269,5 +266,3 @@ const float	camera_t::defaultOrthoNear = 0.01f;
 const float	camera_t::defaultOrthoFar = 100.0f;
 const float camera_t::defaultPersNear = 0.1f;
 const float camera_t::defaultPersFar = 1000.0f;
-
-#endif

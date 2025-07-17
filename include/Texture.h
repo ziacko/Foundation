@@ -3,13 +3,13 @@
 
 struct textureDescriptor
 {
-	explicit textureDescriptor(GLenum target = GL_TEXTURE_2D, GLenum dataType = GL_UNSIGNED_BYTE,
-		GLenum format = GL_RGBA, GLint internalFormat = GL_RGBA8,		
-		GLenum minFilterSetting = GL_LINEAR, GLenum magFilterSetting = GL_LINEAR,
-		GLenum wrapSSetting = GL_REPEAT, GLenum wrapTSetting = GL_REPEAT, GLenum wrapRSetting = gl_clamp_to_edge,
-		GLenum access = gl_read_write)
+	explicit textureDescriptor(const GLenum& target = GL_TEXTURE_2D, const GLenum& dataType = GL_UNSIGNED_BYTE,
+		const GLenum& format = GL_RGBA, const GLint& internalFormat = GL_RGBA8,
+		const GLenum& minFilterSetting = GL_LINEAR, const GLenum& magFilterSetting = GL_LINEAR,
+		const GLenum& wrapSSetting = GL_REPEAT, const GLenum& wrapTSetting = GL_REPEAT, const GLenum& wrapRSetting = gl_clamp_to_edge,
+		const GLenum& access = gl_read_write)
 	{
-		dimensions = glm::vec3(1280, 720, 1);
+		dimensions = glm::vec3(defaultWindowSize.x, defaultWindowSize.y, 1);
 		this->channels = 4;
 		this->format = format;
 		this->bitsPerPixel = 8;
@@ -79,8 +79,8 @@ public:
 		albedo
 	};
 
-	explicit texture(std::string path = "textures/earth_diffuse.tga", textureType_t texType = textureType_t::image,
-	                 std::string uniformName = "defaultTexture", textureDescriptor texDescriptor = textureDescriptor())
+	explicit texture(const std::string& path = "textures/earth_diffuse.tga", const textureType_t& texType = textureType_t::image,
+	                 const std::string& uniformName = "defaultTexture", const textureDescriptor& texDescriptor = textureDescriptor())
 	{
 		this->path = path;
 		this->uniformName = uniformName;
@@ -101,6 +101,11 @@ public:
 	{
 		glBindTextureUnit(handle, handle);
 	}
+
+	virtual void SetActive(const GLuint& texUnit) const
+	{
+		glBindTextureUnit(texUnit, handle);
+	}
 	
 	virtual void GetUniformLocation(const GLuint& programHandle)
 	{
@@ -110,19 +115,9 @@ public:
 		SetActive();
 	}
 
-	virtual void BindTexture()
+	virtual void BindTexture() const
 	{
 		glBindTexture(texDesc.target, handle);
-	}
-
-	virtual void SetActive()
-	{
-		glBindTextureUnit(handle, handle);
-	}
-	
-	virtual void SetActive(GLuint texUnit)
-	{
-		glBindTextureUnit(texUnit, handle);
 	}
 
 	void UnbindTexture() const
@@ -130,17 +125,17 @@ public:
 		glBindTexture(texDesc.target, 0);
 	}
 
-	static void UnbindTexture(GLenum target)
+	static void UnbindTexture(const GLenum& target)
 	{
 		glBindTexture(target, 0);
 	}
 
-	void BindAsImage(GLuint texUnit, GLenum access = gl_write_only, bool layered = false, GLint layer = 0)
+	void BindAsImage(const GLuint& texUnit, const GLenum& access = gl_write_only, const bool& layered = false, const GLint& layer = 0) const
 	{
 		glBindImageTexture(texUnit, handle, texDesc.currentMipmapLevel, layered, layer, access, texDesc.internalFormat);
 	}
 
-	virtual void OverloadTextureUnit(GLuint texUnit)
+	virtual void OverloadTextureUnit(const GLuint& texUnit) const
 	{
 		glActiveTexture(gl_texture0 + texUnit);
 		glBindTexture(texDesc.target, handle);
@@ -150,7 +145,7 @@ public:
 	{
 		stbi_set_flip_vertically_on_load(true);
 
-		auto fullPath = ASSET_DIR + path;
+		const auto fullPath = ASSET_DIR + path;
 		char* data = (char*)stbi_load(fullPath.c_str(), &texDesc.dimensions.x, &texDesc.dimensions.y, &texDesc.channels, 0);
 
 		//if stbi fails then use gli instead. if that fails give up
@@ -172,14 +167,12 @@ public:
 		{
 			stbLoad(data);
 		}
-
-		//residentHandle = glGetTextureHandleNV(handle);
 	}
 
-	virtual void ReloadTexture(std::string path)
+	virtual void ReloadTexture(const std::string& path)
 	{
 		stbi_set_flip_vertically_on_load(true);
-		auto fullPath = ASSET_DIR + path;
+		const auto fullPath = ASSET_DIR + path;
 
 		char* data = (char*)stbi_load(fullPath.c_str(), &texDesc.dimensions.x, &texDesc.dimensions.y, &texDesc.channels, 0);
 
@@ -191,7 +184,7 @@ public:
 		else
 		{
 
-			gli::texture tex = gli::load(path);
+			const gli::texture tex = gli::load(path);
 
 			if (tex.empty())
 			{
@@ -202,100 +195,34 @@ public:
 		SetPath(fullPath.c_str());
 	}
 
-	virtual void SetMinFilter(GLenum minFilterSetting)
+	virtual void SetMinFilter(const GLenum& minFilterSetting)
 	{
 		switch (minFilterSetting)
 		{
-			case 0:
-			{
-				texDesc.minFilterSetting = GL_LINEAR;
-				break;
-			}
-
-			case 1:
-			{
-				texDesc.minFilterSetting = GL_NEAREST;
-				break;
-			}
-
-			case 2:
-			{
-				texDesc.minFilterSetting = GL_NEAREST_MIPMAP_NEAREST;
-				break;
-			}
-
-			case 3:
-			{
-				texDesc.minFilterSetting = GL_NEAREST_MIPMAP_LINEAR;
-				break;
-			}
-
-			case 4:
-			{
-				texDesc.minFilterSetting = GL_LINEAR_MIPMAP_NEAREST;
-				break;
-			}
-
-			case 5:
-			{
-				texDesc.minFilterSetting = GL_LINEAR_MIPMAP_LINEAR;
-				break;
-			}
-
-			default:
-			{
-				break;
-			}
+			case 0: texDesc.minFilterSetting = GL_LINEAR; break;
+			case 1: texDesc.minFilterSetting = GL_NEAREST; break;
+			case 2: texDesc.minFilterSetting = GL_NEAREST_MIPMAP_NEAREST; break;
+			case 3: texDesc.minFilterSetting = GL_NEAREST_MIPMAP_LINEAR; break;
+			case 4: texDesc.minFilterSetting = GL_LINEAR_MIPMAP_NEAREST; break;
+			case 5: texDesc.minFilterSetting = GL_LINEAR_MIPMAP_LINEAR; break;
+			default: break;
 		}
 		BindTexture();
 		glTexParameteri(texDesc.target, GL_TEXTURE_MIN_FILTER, texDesc.minFilterSetting);
 		//UnbindTexture();
 	}
 
-	virtual void SetMagFilter(GLenum magFilterSetting)
+	virtual void SetMagFilter(const GLenum& magFilterSetting)
 	{
 		switch (magFilterSetting)
 		{
-			case 0:
-			{
-				texDesc.magFilterSetting = GL_LINEAR;
-				break;
-			}
-
-			case 1:
-			{
-				texDesc.magFilterSetting = GL_NEAREST;
-				break;
-			}
-
-			case 2:
-			{
-				texDesc.magFilterSetting = GL_NEAREST_MIPMAP_NEAREST;
-				break;
-			}
-
-			case 3:
-			{
-				texDesc.magFilterSetting = GL_NEAREST_MIPMAP_LINEAR;
-				break;
-			}
-
-			case 4:
-			{
-				texDesc.magFilterSetting = GL_LINEAR_MIPMAP_NEAREST;
-				break;
-			}
-
-			case 5:
-			{
-				texDesc.magFilterSetting = GL_LINEAR_MIPMAP_LINEAR;
-				break;
-			}
-
-			default:
-			{
-				break;
-			}
+			case 0: texDesc.magFilterSetting = GL_LINEAR; break;
+			case 1: texDesc.magFilterSetting = GL_NEAREST; break;
+			case 2: texDesc.magFilterSetting = GL_NEAREST_MIPMAP_NEAREST; break;
+			case 3: texDesc.magFilterSetting = GL_NEAREST_MIPMAP_LINEAR; break;
+			case 4: texDesc.magFilterSetting = GL_LINEAR_MIPMAP_NEAREST; break;
+			case 5: texDesc.magFilterSetting = GL_LINEAR_MIPMAP_LINEAR; break;
+			default: break;
 		}
 
 		BindTexture();
@@ -303,7 +230,7 @@ public:
 		//UnbindTexture();
 	}
 
-	virtual void SetWrapS(GLenum wrapSetting)
+	virtual void SetWrapS(const GLenum& wrapSetting)
 	{
 		texDesc.wrapSSetting = wrapSetting;
 		
@@ -313,82 +240,18 @@ public:
 		//UnbindTexture();
 	}
 
-	virtual void SetWrapT(GLenum wrapSetting)
+	virtual void SetWrapT(const GLenum& wrapSetting)
 	{
 		texDesc.wrapTSetting = wrapSetting;
-		/*switch (wrapSetting)
-		{
-			case 0:
-			{
-				this->wrapTSetting = gl_clamp_to_edge;
-				break;
-			}
-
-			case 1:
-			{
-				this->wrapTSetting = gl_mirror_clamp_to_edge;
-				break;
-			}
-
-			case 2:
-			{
-				this->wrapTSetting = gl_clamp_to_border;
-				break;
-			}
-
-			case 3:
-			{
-				this->wrapTSetting = GL_REPEAT;
-				break;
-			}
-
-			case 4:
-			{
-				this->wrapTSetting = gl_mirrored_repeat;
-				break;
-			}
-		}*/
 
 		BindTexture();
 		glTexParameteri(texDesc.target, GL_TEXTURE_WRAP_T, texDesc.wrapTSetting);
 		//UnbindTexture();
 	}
 
-	virtual void SetWrapR(GLenum wrapSetting)
+	virtual void SetWrapR(const GLenum& wrapSetting)
 	{
 		texDesc.wrapRSetting = wrapSetting;
-		/*switch (wrapSetting)
-		{
-			case 0:
-			{
-				this->wrapRSetting = gl_clamp_to_edge;
-				break;
-			}
-
-			case 1:
-			{
-				this->wrapRSetting = gl_mirror_clamp_to_edge;
-				break;
-			}
-
-			case 2:
-			{
-				this->wrapRSetting = gl_clamp_to_border;
-				break;
-			}
-
-			case 3:
-			{
-				this->wrapRSetting = GL_REPEAT;
-				break;
-			}
-
-			case 4:
-			{
-				this->wrapRSetting = gl_mirrored_repeat;
-				break;
-			}
-		}*/
 
 		BindTexture();
 		glTexParameteri(texDesc.target, gl_texture_wrap_r, texDesc.wrapRSetting);
@@ -400,7 +263,7 @@ public:
 		path = newPath;
 	}
 
-	virtual void SetTextureType(textureType_t newType)
+	virtual void SetTextureType(const textureType_t& newType)
 	{
 		this->texType = newType;
 	}
@@ -427,7 +290,7 @@ public:
 
 	std::vector<float> GetPixels() const
 	{
-		int bytes = texDesc.dimensions.x * texDesc.dimensions.y * 2;
+		const int bytes = texDesc.dimensions.x * texDesc.dimensions.y * 2;
 
 		GLfloat* pixels = new GLfloat[bytes];
 
@@ -463,11 +326,6 @@ public:
 
 	}
 
-	void Initialize() const
-	{
-		
-	}
-
 //protected:
 	GLuint				handle;
 	std::string			path;
@@ -484,39 +342,17 @@ public:
 
 private:
 
-	void stbLoad(const char* data, const bool reload = false)
+	void stbLoad(const char* data, const bool& reload = false)
 	{
 		switch (texDesc.channels)
 		{
-		case 1:
-		{
-			texDesc.format = GL_R;
-			break;
+			case 1: texDesc.format = GL_R; break;
+			case 2: texDesc.format = gl_rg; break;
+			case 3: texDesc.format = GL_RGB; break;
+			case 4: texDesc.format = GL_RGBA; break;
+			default: break;
 		}
 
-		case 2:
-		{
-			texDesc.format = gl_rg;
-			break;
-		}
-
-		case 3:
-		{
-			texDesc.format = GL_RGB;
-			break;
-		}
-
-		case 4:
-		{
-			texDesc.format = GL_RGBA;
-			break;
-		}
-
-		default:
-		{
-			break;
-		}
-		}
 		if(!reload)
 		{
 			glGenTextures(1, &handle);
@@ -529,6 +365,7 @@ private:
 			case GL_TEXTURE_1D:
 			case gl_texture_1d_array:
 			{
+				//TODO: implement 1D array init
 				break;
 			}
 
@@ -558,6 +395,7 @@ private:
 
 			case gl_texture_2d_array:
 			{
+					//TODO: implement 2D array system
 				break;
 			}
 
@@ -574,14 +412,8 @@ private:
 			case gl_texture_rectangle:
 			case gl_texture_cube_map:
 			case gl_texture_cube_map_array:
-			default:
-			{
-
-				break;
-			}
+			default: break;
 		}
-
-		
 
 		if (texDesc.mipmapLevels > 0)
 		{
@@ -616,11 +448,7 @@ private:
 		glm::vec3 res = tex.extent();
 		texDesc.dimensions = res;
 
-		//data = tex.data()
-		
 		bool compressed = gli::is_compressed(tex.format());
-
-		//assert(gli::is_compressed(tex.format()) && tex.target() == gli::TARGET_2D);
 
 		glGenTextures(1, &handle);
 		glBindTexture(texDesc.target, handle);
@@ -716,4 +544,6 @@ private:
 
 		UnbindTexture();
 	}
+
+	//ok let's maybe use a temp
 };

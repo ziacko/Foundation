@@ -1,6 +1,4 @@
-#ifndef DEFAULT_UNIFORM_BUFFER_H
-#define DEFAULT_UNIFORM_BUFFER_H
-#include "UniformBuffer.h"
+#pragma once
 
 //change this into a payload system using templates
 template<typename bufferType>
@@ -23,7 +21,7 @@ public:
 	}
 
 	//ok now we need functions to throw into this
-	void Initialize(GLuint uniformHandle, GLenum target = gl_uniform_buffer, GLenum usage = gl_dynamic_draw)
+	void Initialize(GLuint uniformHandle, const GLenum& target = gl_uniform_buffer, const GLenum& usage = gl_dynamic_draw)
 	{
 		this->uniformHandle = uniformHandle;
 		glGenBuffers(1, &bufferHandle);
@@ -31,13 +29,13 @@ public:
 		glBindBufferBase(target, uniformHandle, bufferHandle);
 	}
 
-	void SetupUniforms(GLuint programGLID, std::string name, GLuint blockBindingIndex)
+	void SetupUniforms(const GLuint& programHandle, const std::string& name, const GLuint& blockBindingIndex)
 	{
-		uniformHandle = glGetUniformBlockIndex(programGLID, name.c_str());
-		glUniformBlockBinding(programGLID, uniformHandle, blockBindingIndex);
+		uniformHandle = glGetUniformBlockIndex(programHandle, name.c_str());
+		glUniformBlockBinding(programHandle, uniformHandle, blockBindingIndex);
 	}
 
-	void Update(GLenum target = gl_uniform_buffer, GLenum usage = gl_dynamic_draw, size_t dataSize = 0, void* inData = nullptr)
+	void Update(const GLenum& target = gl_uniform_buffer, const GLenum& usage = gl_dynamic_draw, const size_t& dataSize = 0, const void* inData = nullptr)
 	{
 		glBindBuffer(target, bufferHandle);
 		if(dataSize > 0 && inData != nullptr)
@@ -52,7 +50,7 @@ public:
 		//printf("%i \n", sizeof(data));
 	}
 
-	void Override(unsigned int uniformHandle, GLenum target = gl_uniform_buffer, GLenum usage = gl_dynamic_draw, size_t dataSize = 0, void* inData = nullptr)
+	void Override(const uint16_t uniformHandle, const GLenum& target = gl_uniform_buffer, const GLenum& usage = gl_dynamic_draw, const size_t& dataSize = 0, const void* inData = nullptr) const
 	{
 		//ok so this is for overriding the data in existing shader storage buffers
 		//might have to look for a better system later
@@ -65,7 +63,7 @@ public:
 		}
 	}
 
-	void BindToSlot(unsigned int uniformHandle, GLenum target = gl_uniform_buffer)
+	void BindToSlot(const uint16_t& uniformHandle, const GLenum& target = gl_uniform_buffer)
 	{
 		//glBindBuffer(target, bufferHandle);
 		glBindBufferBase(target, uniformHandle, bufferHandle);
@@ -74,8 +72,8 @@ public:
 	}
 
 	bufferType data;
-	unsigned int bufferHandle;
-	unsigned int uniformHandle;
+	uint32_t bufferHandle;
+	uint32_t uniformHandle;
 };
 
 class defaultUniformBuffer// : public uniformBuffer_t
@@ -92,9 +90,13 @@ public:
 	GLfloat				framesPerSec;
 	GLuint				totalFrames;
 
-	defaultUniformBuffer( glm::mat4 projection, glm::mat4 view,
-			glm::mat4 translation = glm::mat4( 1 ), glm::ivec2 resolution = glm::ivec2(1280, 720) )
-		//: uniformBuffer_t()
+	defaultUniformBuffer(const glm::mat4& projection, const glm::mat4& view,
+			const glm::mat4& translation = glm::mat4( 1 ), const glm::ivec2 resolution = defaultWindowSize ):
+		mousePosition(),
+		deltaTime(0),
+		totalTime(0),
+		framesPerSec(0)
+	//: uniformBuffer_t()
 	{
 		//BuildBuffer();
 		//uniformBuffer_t();
@@ -105,7 +107,8 @@ public:
 		totalFrames = 1;
 	}
 
-	defaultUniformBuffer(const camera_t defaultCamera)// : uniformBuffer_t()
+	defaultUniformBuffer(const camera_t& defaultCamera)// : uniformBuffer_t()
+		: mousePosition(), deltaTime(0), totalTime(0), framesPerSec(0)
 	{
 		//uniformBuffer_t();
 		//BuildBuffer();
@@ -116,25 +119,10 @@ public:
 		totalFrames = 1;
 	}
 
-	defaultUniformBuffer(){};
-
-/*
-	virtual void* GetBuffer() override
+	defaultUniformBuffer(): projection(), view(), translation(), resolution(), mousePosition(), deltaTime(0),
+	                        totalTime(0),
+	                        framesPerSec(0),
+	                        totalFrames(0)
 	{
-		return data;
 	}
-
-	virtual void BuildBuffer() override
-	{
-		AppendBuffer<glm::mat4>(projection, data);
-		AppendBuffer<glm::mat4>(view, data);
-		AppendBuffer<glm::mat4>(translation, data);
-		AppendBuffer<glm::vec2>(resolution, data);
-		AppendBuffer<glm::vec2>(mousePosition, data);
-		AppendBuffer<float>(deltaTime, data);
-		AppendBuffer<float>(totalTime, data);
-		AppendBuffer<float>(framesPerSec, data);
-		printf("%i \n", dataSize);
-	}*/
 };
-#endif

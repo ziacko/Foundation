@@ -1,7 +1,3 @@
-//
-// Created by ziyad on 1/04/25.
-//
-
 #pragma once
 
 //ok here we just need a basic system to load snaders via JSON
@@ -11,7 +7,9 @@ static void LoadShaderProgramsFromConfigFile(shaderManager* manager, tsl::robin_
     std::vector<tShader*> localShaders;
 
     auto workingDire = std::filesystem::current_path();
+#if defined(DEBUG)
     printf("%s \n", workingDire.string().c_str());
+#endif
 
     //add the two string together
     auto fileName = std::string(PROJECT_NAME) + ".json";
@@ -64,7 +62,9 @@ static void LoadShaderProgramsFromConfigFile(shaderManager* manager, tsl::robin_
                         localProgram.name = yyjson_get_str(name);
                     }
 
+#if defined(DEBUG)
                     printf("loading shader program: %s \n", localProgram.name.c_str());
+#endif
 
                     // get outputs
                     yyjson_val* outputs = yyjson_obj_get(currentItem, "outputs");
@@ -117,9 +117,11 @@ static void LoadShaderProgramsFromConfigFile(shaderManager* manager, tsl::robin_
                             if (shaderPath != nullptr && yyjson_is_str(shaderPath))
                             if (shaderType != nullptr && yyjson_is_str(shaderType))
                             {
+#if defined(DEBUG)
 
                                 printf("loading shader: %s\n", yyjson_get_str(shaderName));
                                 printf("loading shader type: %s\n", yyjson_get_str(shaderType));
+#endif
 
                                 const std::string newPath = std::string( yyjson_get_str(shaderPath));
                                 const std::string localPath = shaderPathPart / PROJECT_NAME / newPath;

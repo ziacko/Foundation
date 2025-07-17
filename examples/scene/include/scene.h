@@ -72,7 +72,7 @@ public:
 
 	virtual void Initialize()
 	{
-		TinyExtender::InitializeExtentions();
+		te::InitializeExtentions();
 
 		if (glDebugMessageCallback == nullptr)
 		{
@@ -362,16 +362,6 @@ protected:
 		EndGUI(window);
 	}
 
-	virtual void SetupVertexBuffer()
-	{
-		defaultVertexBuffer = vertexBuffer_t(true);
-	}
-
-	virtual void SetupIndexBuffer()
-	{
-
-	}
-
 	void SetupBuffer(const GLenum target, const GLenum usage)
 	{
 		//TODO: get the currently bound buffer and rebind to that after this operation is done
@@ -391,7 +381,7 @@ protected:
 		defaultPayload.data.resolution = glm::vec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 		defaultPayload.data.projection = glm::ortho(0.0f, (GLfloat)window->GetSettings().resolution.width, (GLfloat)window->GetSettings().resolution.height, 0.0f, 0.01f, 10.0f);
 
-		SetupVertexBuffer();
+		defaultVertexBuffer.SetupDefault();
 		SetupBuffer(gl_uniform_buffer, gl_dynamic_draw);
 
 		SetupDefaultUniforms();
@@ -422,28 +412,14 @@ protected:
 
 		switch (button)
 		{
-			case mouseButton_e::left:
-			{
-				state == buttonState_e::down ? io.MouseDown[0] = true : io.MouseDown[0] = false;
-				break;
-			}
-
-			case mouseButton_e::right:
-			{
-				state == buttonState_e::down ? io.MouseDown[1] = true : io.MouseDown[1] = false;
-				break;
-			}
-
-			case mouseButton_e::middle:
-			{
-				state == buttonState_e::down ? io.MouseDown[2] = true : io.MouseDown[2] = false;
-				break;
-			}
-		default: {};
+			case mouseButton_e::left: state == buttonState_e::down ? io.MouseDown[0] = true : io.MouseDown[0] = false; break;
+			case mouseButton_e::right: state == buttonState_e::down ? io.MouseDown[1] = true : io.MouseDown[1] = false; break;
+			case mouseButton_e::middle: state == buttonState_e::down ? io.MouseDown[2] = true : io.MouseDown[2] = false; break;
+			default: break;;
 		}
 	}
 
-	virtual void HandleWindowResize(const tWindow* window, const TinyWindow::vec2_t<uint16_t> dimensions)
+	virtual void HandleWindowResize(const tWindow* window, const vec2_t<uint16_t>& dimensions)
 	{
 		Resize(window, glm::vec2(dimensions.x, dimensions.y));
 	}
@@ -453,7 +429,7 @@ protected:
 		Resize(window);
 	}
 
-	virtual void HandleMouseMotion(const tWindow* window, const vec2_t<int16_t> windowPosition, const vec2_t<int16_t> screenPosition)
+	virtual void HandleMouseMotion(const tWindow* window, const vec2_t<int16_t>& windowPosition, const vec2_t<int16_t>& screenPosition)
 	{
 		defaultPayload.data.mousePosition = glm::vec2(windowPosition.x, windowPosition.y);
 		UpdateBuffer(gl_uniform_buffer, gl_dynamic_draw);
@@ -483,20 +459,20 @@ protected:
 		switch (key)
 		{
 			case tab :			return ImGuiKey_Tab;			// VK_TAB
-			case arrowLeft :	return ImGuiKey_LeftArrow;   // VK_LEFT
-			case arrowRight :	return ImGuiKey_RightArrow;  // VK_RIGHT
-			case arrowUp :		return ImGuiKey_UpArrow;     // VK_UP
-			case arrowDown :	return ImGuiKey_DownArrow;   // VK_DOWN
-			case pageUp :		return ImGuiKey_PageUp;      // VK_PRIOR
-			case pageDown :		return ImGuiKey_PageDown;    // VK_NEXT
-			case home :			return ImGuiKey_Home;        // VK_HOME
-			case end :			return ImGuiKey_End;         // VK_END
-			case insert :		return ImGuiKey_Insert;      // VK_INSERT
-			case del :			return ImGuiKey_Delete;      // VK_DELETE
-			case backspace :	return ImGuiKey_Backspace;   // VK_BACK
-			case spacebar :		return ImGuiKey_Space;       // VK_SPACE
-			case enter :		return ImGuiKey_Enter;       // VK_RETURN
-			case escape :		return ImGuiKey_Escape;      // VK_ESCAPE
+			case arrowLeft :	return ImGuiKey_LeftArrow;		// VK_LEFT
+			case arrowRight :	return ImGuiKey_RightArrow;		// VK_RIGHT
+			case arrowUp :		return ImGuiKey_UpArrow;		// VK_UP
+			case arrowDown :	return ImGuiKey_DownArrow;		// VK_DOWN
+			case pageUp :		return ImGuiKey_PageUp;			// VK_PRIOR
+			case pageDown :		return ImGuiKey_PageDown;		// VK_NEXT
+			case home :			return ImGuiKey_Home;			// VK_HOME
+			case end :			return ImGuiKey_End;			// VK_END
+			case insert :		return ImGuiKey_Insert;			// VK_INSERT
+			case del :			return ImGuiKey_Delete;			// VK_DELETE
+			case backspace :	return ImGuiKey_Backspace;		// VK_BACK
+			case spacebar :		return ImGuiKey_Space;			// VK_SPACE
+			case enter :		return ImGuiKey_Enter;			// VK_RETURN
+			case escape :		return ImGuiKey_Escape;			// VK_ESCAPE
 			default: return ImGuiKey_None;
 		}
 	}
@@ -832,60 +808,16 @@ protected:
 		printf("type: ");
 		switch (type)
 		{
-		case gl_debug_type_error:
-		{
-			printf("error\n");
-			break;
-		}
-
-		case gl_debug_type_deprecated_behavior:
-		{
-			printf("deprecated behavior\n");
-			break;
-		}
-
-		case gl_debug_type_undefined_behavior:
-		{
-			printf("undefined behavior\n");
-			break;
-		}
-
-		case gl_debug_type_performance:
-		{
-			printf("performance\n");
-			break;
-		}
-
-		case gl_debug_type_portability:
-		{
-			printf("portability\n");
-			break;
-		}
-		
-		case gl_debug_type_marker:
-		{
-			printf("marker\n");
-			break;
-		}
-
-		case gl_debug_type_push_group:
-		{
-			printf("push group\n");
-			break;
-		}
-
-		case gl_debug_type_pop_group:
-		{
-			printf("pop group\n");
-			break;
-		}
-		
-		case gl_debug_type_other:
-		{
-			printf("other\n");
-			break;
-		}
-		default: {};
+			case gl_debug_type_error: printf("error\n"); break;
+			case gl_debug_type_deprecated_behavior: printf("deprecated behavior\n"); break;
+			case gl_debug_type_undefined_behavior: printf("undefined behavior\n"); break;
+			case gl_debug_type_performance: printf("performance\n"); break;
+			case gl_debug_type_portability: printf("portability\n"); break;
+			case gl_debug_type_marker: printf("marker\n"); break;
+			case gl_debug_type_push_group: printf("push group\n"); break;
+			case gl_debug_type_pop_group: printf("pop group\n"); break;
+			case gl_debug_type_other: printf("other\n"); break;
+			default: break;
 		}
 
 		printf("ID: %i\n", id);
@@ -893,70 +825,22 @@ protected:
 		printf("severity: ");
 		switch (severity)
 		{
-
-		case gl_debug_severity_low:
-		{
-			printf("low \n");
-			break;
-		}
-
-		case gl_debug_severity_medium:
-		{
-			printf("medium \n");
-			break;
-		}
-
-		case gl_debug_severity_high:
-		{
-			printf("high \n");
-			break;
-		}
-		default:
-		{
-			printf("\n");
-			break;
-		}
+			case gl_debug_severity_low: printf("low \n"); break;
+			case gl_debug_severity_medium: printf("medium \n"); break;
+			case gl_debug_severity_high: printf("high \n"); break;
+			default: printf("\n"); break;
 		}
 
 		printf("Source: ");
 		switch (source)
 		{
-		case gl_debug_source_api:
-		{
-			printf("API\n");
-			break;
-		}
-
-		case gl_debug_source_shader_compiler:
-		{
-			printf("shader compiler\n");
-			break;
-		}
-
-		case gl_debug_source_window_system:
-		{
-			printf("window system\n");
-			break;
-		}
-
-		case gl_debug_source_third_party:
-		{
-			printf("third party\n");
-			break;
-		}
-
-		case gl_debug_source_application:
-		{
-			printf("application\n");
-			break;
-		}
-
-		case gl_debug_source_other:
-		{
-			printf("other\n");
-			break;
-		}
-		default: {};
+			case gl_debug_source_api: printf("API\n"); break;
+			case gl_debug_source_shader_compiler: printf("shader compiler\n"); break;
+			case gl_debug_source_window_system: printf("window system\n"); break;
+			case gl_debug_source_third_party: printf("third party\n"); break;
+			case gl_debug_source_application: printf("application\n"); break;
+			case gl_debug_source_other: printf("other\n"); break;
+			default: break;
 		}
 
 		printf("Message: \n");
