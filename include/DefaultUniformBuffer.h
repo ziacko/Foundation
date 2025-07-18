@@ -21,7 +21,7 @@ public:
 	}
 
 	//ok now we need functions to throw into this
-	void Initialize(GLuint uniformHandle, const GLenum& target = gl_uniform_buffer, const GLenum& usage = gl_dynamic_draw)
+	void Initialize(GLuint uniformHandle, const GLenum& target = GL_UNIFORM_BUFFER, const GLenum& usage = GL_DYNAMIC_DRAW)
 	{
 		this->uniformHandle = uniformHandle;
 		glGenBuffers(1, &bufferHandle);
@@ -35,7 +35,7 @@ public:
 		glUniformBlockBinding(programHandle, uniformHandle, blockBindingIndex);
 	}
 
-	void Update(const GLenum& target = gl_uniform_buffer, const GLenum& usage = gl_dynamic_draw, const size_t& dataSize = 0, const void* inData = nullptr)
+	void Update(const GLenum& target = GL_UNIFORM_BUFFER, const GLenum& usage = GL_DYNAMIC_DRAW, const size_t& dataSize = 0, const void* inData = nullptr)
 	{
 		glBindBuffer(target, bufferHandle);
 		if(dataSize > 0 && inData != nullptr)
@@ -50,7 +50,7 @@ public:
 		//printf("%i \n", sizeof(data));
 	}
 
-	void Override(const uint16_t uniformHandle, const GLenum& target = gl_uniform_buffer, const GLenum& usage = gl_dynamic_draw, const size_t& dataSize = 0, const void* inData = nullptr) const
+	void Override(const uint16_t uniformHandle, const GLenum& target = GL_UNIFORM_BUFFER, const GLenum& usage = GL_DYNAMIC_DRAW, const size_t& dataSize = 0, const void* inData = nullptr) const
 	{
 		//ok so this is for overriding the data in existing shader storage buffers
 		//might have to look for a better system later
@@ -63,7 +63,7 @@ public:
 		}
 	}
 
-	void BindToSlot(const uint16_t& uniformHandle, const GLenum& target = gl_uniform_buffer)
+	void BindToSlot(const uint16_t& uniformHandle, const GLenum& target = GL_UNIFORM_BUFFER)
 	{
 		//glBindBuffer(target, bufferHandle);
 		glBindBufferBase(target, uniformHandle, bufferHandle);

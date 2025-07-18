@@ -119,7 +119,7 @@ protected:
 			defaultPayload.data.translation = camera.translation;
 		}
 
-		defaultPayload.Update(gl_uniform_buffer, gl_dynamic_draw);
+		defaultPayload.Update(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW);
 	}
 
 	void BuildGUI(tWindow* window, const ImGuiIO& io) override
@@ -201,7 +201,7 @@ protected:
 		defaultPayload.data.projection = camera.projection;
 
 		//bind the uniform buffer and refill it
-		defaultPayload.Update(gl_uniform_buffer, gl_dynamic_draw);
+		defaultPayload.Update(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW);
 	}
 
 	void HandleWindowResize(const tWindow* window, const vec2_t<uint16_t>& dimensions) override
@@ -215,7 +215,7 @@ protected:
 		defaultPayload.data.totalTime = (float)clock.GetTotalTime();
 		defaultPayload.data.framesPerSec = (float)(1.0 / clock.GetDeltaTime());
 
-		defaultPayload.Update(gl_uniform_buffer, gl_dynamic_draw);
+		defaultPayload.Update(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW);
 	}
 
 	void HandleKey(const tWindow* window, const int16_t& key, const keyState_e& state)	override

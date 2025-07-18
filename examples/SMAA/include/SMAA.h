@@ -80,7 +80,7 @@ public:
 		colorDesc.dimensions = glm::ivec3(window->GetSettings().resolution.width, window->GetSettings().resolution.height, 1);
 		colorDesc.dataType = GL_FLOAT;
 		colorDesc.format = GL_RGBA;
-		colorDesc.internalFormat = gl_rgb32f;
+		colorDesc.internalFormat = GL_RGBA32F;
 		colorDesc.wrapRSetting = GL_CLAMP_TO_EDGE;
 		colorDesc.wrapTSetting = GL_CLAMP_TO_EDGE;
 		colorDesc.wrapSSetting = GL_CLAMP_TO_EDGE;
@@ -91,7 +91,7 @@ public:
 		depthDesc.wrapRSetting = GL_CLAMP_TO_EDGE;
 		depthDesc.wrapTSetting = GL_CLAMP_TO_EDGE;
 		depthDesc.wrapSSetting = GL_CLAMP_TO_EDGE;
-		depthDesc.internalFormat = gl_depth_component32f;
+		depthDesc.internalFormat = GL_DEPTH_COMPONENT32F;
 		depthDesc.attachmentType = FBODescriptor::attachmentType_e::depth;
 		depthDesc.dimensions = glm::ivec3(window->GetSettings().resolution.width, window->GetSettings().resolution.height, 1);
 
@@ -105,9 +105,9 @@ public:
 		edgesBuffer.Bind();
 
 		FBODescriptor edgeDesc;
-		edgeDesc.format = gl_rg;
+		edgeDesc.format = GL_RG;
 		edgeDesc.dataType = GL_FLOAT;
-		edgeDesc.internalFormat = gl_rg32f;
+		edgeDesc.internalFormat = GL_RG32F;
 		edgeDesc.dimensions = glm::ivec3(window->GetSettings().resolution.width, window->GetSettings().resolution.height, 1);
 		edgeDesc.wrapRSetting = GL_CLAMP_TO_EDGE;
 		edgeDesc.wrapTSetting = GL_CLAMP_TO_EDGE;
@@ -121,7 +121,7 @@ public:
 		FBODescriptor weightsDesc;
 		weightsDesc = colorDesc;
 		weightsDesc.dataType = GL_FLOAT;
-		weightsDesc.internalFormat = gl_rgba32f;
+		weightsDesc.internalFormat = GL_RGBA32F;
 		weightsDesc.wrapRSetting = GL_CLAMP_TO_EDGE;
 		weightsDesc.wrapTSetting = GL_CLAMP_TO_EDGE;
 		weightsDesc.wrapSSetting = GL_CLAMP_TO_EDGE;
@@ -184,7 +184,7 @@ protected:
 		defaultPayload.data.totalFrames++;
 		defaultPayload.data.resolution = camera.resolution;
 
-		SMAASettings.Update(gl_uniform_buffer, gl_dynamic_draw);
+		SMAASettings.Update(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW);
 	}
 
 	void UpdateDefaultBuffer()

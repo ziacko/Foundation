@@ -6,8 +6,8 @@ struct textureDescriptor
 	explicit textureDescriptor(const GLenum& target = GL_TEXTURE_2D, const GLenum& dataType = GL_UNSIGNED_BYTE,
 		const GLenum& format = GL_RGBA, const GLint& internalFormat = GL_RGBA8,
 		const GLenum& minFilterSetting = GL_LINEAR, const GLenum& magFilterSetting = GL_LINEAR,
-		const GLenum& wrapSSetting = GL_REPEAT, const GLenum& wrapTSetting = GL_REPEAT, const GLenum& wrapRSetting = gl_clamp_to_edge,
-		const GLenum& access = gl_read_write)
+		const GLenum& wrapSSetting = GL_REPEAT, const GLenum& wrapTSetting = GL_REPEAT, const GLenum& wrapRSetting = GL_CLAMP_TO_EDGE,
+		const GLenum& access = GL_READ_WRITE)
 	{
 		dimensions = glm::vec3(defaultWindowSize.x, defaultWindowSize.y, 1);
 		this->channels = 4;
@@ -130,14 +130,14 @@ public:
 		glBindTexture(target, 0);
 	}
 
-	void BindAsImage(const GLuint& texUnit, const GLenum& access = gl_write_only, const bool& layered = false, const GLint& layer = 0) const
+	void BindAsImage(const GLuint& texUnit, const GLenum& access = GL_WRITE_ONLY, const bool& layered = false, const GLint& layer = 0) const
 	{
 		glBindImageTexture(texUnit, handle, texDesc.currentMipmapLevel, layered, layer, access, texDesc.internalFormat);
 	}
 
 	virtual void OverloadTextureUnit(const GLuint& texUnit) const
 	{
-		glActiveTexture(gl_texture0 + texUnit);
+		glActiveTexture(GL_TEXTURE0 + texUnit);
 		glBindTexture(texDesc.target, handle);
 	}
 
@@ -254,7 +254,7 @@ public:
 		texDesc.wrapRSetting = wrapSetting;
 
 		BindTexture();
-		glTexParameteri(texDesc.target, gl_texture_wrap_r, texDesc.wrapRSetting);
+		glTexParameteri(texDesc.target, GL_TEXTURE_WRAP_R, texDesc.wrapRSetting);
 		UnbindTexture();
 	}
 
@@ -353,7 +353,7 @@ private:
 		switch (texDesc.channels)
 		{
 			case 1: texDesc.format = GL_R; break;
-			case 2: texDesc.format = gl_rg; break;
+			case 2: texDesc.format = GL_RG; break;
 			case 3: texDesc.format = GL_RGB; break;
 			case 4: texDesc.format = GL_RGBA; break;
 			default: break;
@@ -369,7 +369,7 @@ private:
 		switch (texDesc.target)
 		{
 			case GL_TEXTURE_1D:
-			case gl_texture_1d_array:
+			case GL_TEXTURE_1D_ARRAY:
 			{
 				//TODO: implement 1D array init
 				break;
@@ -399,31 +399,31 @@ private:
 				break;
 			}
 
-			case gl_texture_2d_array:
+			case GL_TEXTURE_2D_ARRAY:
 			{
 					//TODO: implement 2D array system
 				break;
 			}
 
-			case gl_texture_2d_multisample:
+			case GL_TEXTURE_2D_MULTISAMPLE:
 			{
 				glTexParameteri(texDesc.target, GL_TEXTURE_WRAP_S, texDesc.wrapSSetting);
 				glTexParameteri(texDesc.target, GL_TEXTURE_WRAP_T, texDesc.wrapTSetting);
 				break;
 			}
 
-			case gl_texture_2d_multisample_array:
-			case gl_texture_3d:
-			case gl_texture_buffer:
-			case gl_texture_rectangle:
-			case gl_texture_cube_map:
-			case gl_texture_cube_map_array:
+			case GL_TEXTURE_2D_MULTISAMPLE_ARRAY:
+			case GL_TEXTURE_3D:
+			case GL_TEXTURE_BUFFER:
+			case GL_TEXTURE_RECTANGLE:
+			case GL_TEXTURE_CUBE_MAP:
+			case GL_TEXTURE_CUBE_MAP_ARRAY:
 			default: break;
 		}
 
 		if (texDesc.mipmapLevels > 0)
 		{
-			glTexParameteri(GL_TEXTURE_2D, gl_texture_max_level, texDesc.mipmapLevels);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, texDesc.mipmapLevels);
 			glTexParameteri(texDesc.target, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
 			glTexParameteri(texDesc.target, GL_TEXTURE_MAG_FILTER, GL_NEAREST_MIPMAP_NEAREST);
 		}
@@ -435,8 +435,8 @@ private:
 		}
 
 		float aniso = 0.0f;
-		glGetFloatv(gl_max_texture_max_anisotropy, &aniso); //throws out an openGL error but works anyway. not sure how to fix
-		glTexParameterf(GL_TEXTURE_2D, gl_texture_max_anisotropy, aniso);
+		glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &aniso); //throws out an openGL error but works anyway. not sure how to fix
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY, aniso);
 	}
 
 	void gliLoad(gli::texture tex)
@@ -466,7 +466,7 @@ private:
 			break;
 		}
 
-		case gl_texture_1d_array:
+		case GL_TEXTURE_1D_ARRAY:
 		{
 			break;
 		}
@@ -475,9 +475,9 @@ private:
 		{
 			glTexParameteri(texDesc.target, GL_TEXTURE_WRAP_S, texDesc.wrapSSetting);
 			glTexParameteri(texDesc.target, GL_TEXTURE_WRAP_T, texDesc.wrapTSetting);
-			glTexParameteri(texDesc.target, gl_texture_base_level, 0);
-			glTexParameteri(texDesc.target, gl_texture_max_level, static_cast<GLint>(tex.levels() - 1));
-			glTexParameteriv(texDesc.target, gl_texture_swizzle_rgba, &gliFormat.Swizzles[0]);
+			glTexParameteri(texDesc.target, GL_TEXTURE_BASE_LEVEL, 0);
+			glTexParameteri(texDesc.target, GL_TEXTURE_MAX_LEVEL, static_cast<GLint>(tex.levels() - 1));
+			glTexParameteriv(texDesc.target, GL_TEXTURE_SWIZZLE_RGBA, &gliFormat.Swizzles[0]);
 
 			for (unsigned int level = 0; level < tex.levels(); level++)
 			{
@@ -499,42 +499,42 @@ private:
 			break;
 		}
 
-		case gl_texture_2d_array:
+		case GL_TEXTURE_2D_ARRAY:
 		{
 			break;
 		}
 
-		case gl_texture_2d_multisample:
+		case GL_TEXTURE_2D_MULTISAMPLE:
 		{
 			break;
 		}
 
-		case gl_texture_2d_multisample_array:
+		case GL_TEXTURE_2D_MULTISAMPLE_ARRAY:
 		{
 			break;
 		}
 
-		case gl_texture_3d:
+		case GL_TEXTURE_3D:
 		{
 			break;
 		}
 
-		case gl_texture_buffer:
+		case GL_TEXTURE_BUFFER:
 		{
 			break;
 		}
 
-		case gl_texture_rectangle:
+		case GL_TEXTURE_RECTANGLE:
 		{
 			break;
 		}
 
-		case gl_texture_cube_map:
+		case GL_TEXTURE_CUBE_MAP:
 		{
 			break;
 		}
 
-		case gl_texture_cube_map_array:
+		case GL_TEXTURE_CUBE_MAP_ARRAY:
 		{
 			break;
 		}

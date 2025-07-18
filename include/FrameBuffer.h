@@ -75,22 +75,22 @@ public:
 			glBindTexture(this->FBODesc.target, handle);
 			switch (this->FBODesc.target)
 			{
-			case gl_texture_2d_multisample:
+			case GL_TEXTURE_2D_MULTISAMPLE:
 			{
 
 				glTextureStorage2DMultisample(handle, this->FBODesc.sampleCount, this->FBODesc.internalFormat, this->FBODesc.dimensions.x, this->FBODesc.dimensions.y, true);
 				break;
 			}
 
-			case gl_texture_2d:
+			case GL_TEXTURE_2D:
 			{
 				//parse internal format as bits per pixel
 				glTexImage2D(this->FBODesc.target, this->FBODesc.currentMipmapLevel, this->FBODesc.internalFormat, this->FBODesc.dimensions.x, this->FBODesc.dimensions.y, this->FBODesc.border, this->FBODesc.format, this->FBODesc.dataType, nullptr);
 				break;
 			}
 
-			case gl_texture_2d_array:
-			case gl_texture_3d:
+			case GL_TEXTURE_2D_ARRAY:
+			case GL_TEXTURE_3D:
 			{
 				TinyExtender::glTexImage3D(this->FBODesc.target, this->FBODesc.currentMipmapLevel, this->FBODesc.internalFormat, this->FBODesc.dimensions.x, this->FBODesc.dimensions.y, this->FBODesc.dimensions.z, this->FBODesc.border, static_cast<GLenum>(this->FBODesc.format), static_cast<GLenum>(this->FBODesc.dataType), nullptr);
 				break;
@@ -116,30 +116,30 @@ public:
 			{
 				for (size_t iter = 0; iter < FBODesc.layers; iter++)
 				{
-					glFramebufferTextureLayer(gl_framebuffer, gl_color_attachment0 + iter, handle, 0, (GLint)iter);
+					glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + iter, handle, 0, (GLint)iter);
 				}
 			}
 			else
 			{
 
-				glFramebufferTexture(gl_framebuffer, attachmentFormat, handle, FBODesc.currentMipmapLevel);
+				glFramebufferTexture(GL_FRAMEBUFFER, attachmentFormat, handle, FBODesc.currentMipmapLevel);
 			}
 
 			switch(attachmentFormat)
 			{
-			case gl_depth_attachment:
+			case GL_DEPTH_ATTACHMENT:
 			{
 				SetReadMode(FBODescriptor::attachmentType_e::depth);
 				break;
 			}
 			
-			case gl_stencil_attachment:
+			case GL_STENCIL_ATTACHMENT:
 			{
 				SetReadMode(FBODescriptor::attachmentType_e::stencil);
 				break;
 			}
 
-			case gl_depth_stencil_attachment:
+			case GL_DEPTH_STENCIL_ATTACHMENT:
 			{
 				SetReadMode(FBODescriptor::attachmentType_e::stencil);
 				break;
@@ -159,7 +159,7 @@ public:
 
 			switch (FBODesc.target)
 			{
-			case gl_texture_2d_multisample:
+			case GL_TEXTURE_2D_MULTISAMPLE:
 				{
 					BindTexture();
 					glDeleteTextures(1, &handle);
@@ -170,7 +170,7 @@ public:
 					break;
 				}
 
-			case gl_texture_2d:
+			case GL_TEXTURE_2D:
 				{
 					BindTexture();
 					glTexImage2D(FBODesc.target, FBODesc.currentMipmapLevel, FBODesc.internalFormat, FBODesc.dimensions.x, FBODesc.dimensions.y, FBODesc.border, FBODesc.format, FBODesc.dataType, nullptr);
@@ -178,8 +178,8 @@ public:
 					break;
 				}
 
-			case gl_texture_3d:
-			case gl_texture_2d_array:
+			case GL_TEXTURE_3D:
+			case GL_TEXTURE_2D_ARRAY:
 				{
 					BindTexture();
 					//glTexImage3D(this->FBODesc.target, this->FBODesc.currentMipmapLevel, this->FBODesc.internalFormat, this->FBODesc.dimensions.x, this->FBODesc.dimensions.y, this->FBODesc.dimensions.z, this->FBODesc.border, this->FBODesc.format, this->FBODesc.dataType, nullptr);
@@ -197,7 +197,7 @@ public:
 
 			switch (FBODesc.target)
 			{
-				case gl_texture_2d_multisample:
+				case GL_TEXTURE_2D_MULTISAMPLE:
 				{
 					BindTexture();
 					glDeleteTextures(1, &handle);
@@ -208,7 +208,7 @@ public:
 					break;
 				}
 
-				case gl_texture_2d:
+				case GL_TEXTURE_2D:
 				{
 					BindTexture();
 					glTexImage2D(FBODesc.target, FBODesc.currentMipmapLevel, FBODesc.internalFormat, FBODesc.dimensions.x, FBODesc.dimensions.y, FBODesc.border, FBODesc.format, FBODesc.dataType, nullptr);
@@ -216,8 +216,8 @@ public:
 					break;
 				}
 
-				case gl_texture_3d:
-				case gl_texture_2d_array:
+				case GL_TEXTURE_3D:
+				case GL_TEXTURE_2D_ARRAY:
 				{
 					BindTexture();
 					//glTexImage3D(this->FBODesc.target, this->FBODesc.currentMipmapLevel, this->FBODesc.internalFormat, this->FBODesc.dimensions.x, this->FBODesc.dimensions.y, this->FBODesc.dimensions.z, this->FBODesc.border, this->FBODesc.format, this->FBODesc.dataType, nullptr);
@@ -244,7 +244,7 @@ public:
 				case FBODescriptor::attachmentType_e::stencil:
 				case FBODescriptor::attachmentType_e::depthAndStencil:
 				{
-					glTexParameteri(FBODesc.target, gl_depth_stencil_texture_mode, GL_STENCIL_INDEX);
+					glTexParameteri(FBODesc.target, GL_DEPTH_STENCIL_TEXTURE_MODE, GL_STENCIL_INDEX);
 					break;
 				}
 			default: break;;
@@ -292,12 +292,12 @@ public:
 		//glBindFramebuffer(gl_framebuffer, bufferHandle);
 	}
 
-	void Bind(GLenum target = gl_framebuffer)
+	void Bind(GLenum target = GL_FRAMEBUFFER)
 	{
 		glBindFramebuffer(target, bufferHandle);
 	}
 
-	static void Unbind(GLenum target = gl_framebuffer)
+	static void Unbind(GLenum target = GL_FRAMEBUFFER)
 	{
 		glBindFramebuffer(target, 0);
 	}
@@ -331,7 +331,7 @@ public:
 
 	void DrawDepth()
 	{
-		GLuint test = gl_depth_attachment;
+		GLuint test = GL_DEPTH_ATTACHMENT;
 		glDrawBuffers(1, &test);
 	}
 
@@ -384,7 +384,7 @@ public:
 	{
 		//if the current framebuffer is not this one then bind it
 		int currentBuffer = 0;
-		glGetIntegerv(gl_framebuffer_binding, &currentBuffer);
+		glGetIntegerv(GL_FRAMEBUFFER_BINDING, &currentBuffer);
 		if (currentBuffer != bufferHandle)
 		{
 			Bind();
@@ -395,29 +395,29 @@ public:
 		case FBODescriptor::attachmentType_e::color:
 		{
 			attachment.attachmentHandle = colorAttachmentNum;
-			attachment.Initialize(gl_color_attachment0 + colorAttachmentNum);
+			attachment.Initialize(GL_COLOR_ATTACHMENT0 + colorAttachmentNum);
 			colorAttachmentNum++;
 			break;
 		}
 
 		case FBODescriptor::attachmentType_e::depth:
 		{
-			attachment.attachmentHandle = gl_depth_attachment;
-			attachment.Initialize(gl_depth_attachment);
+			attachment.attachmentHandle = GL_DEPTH_ATTACHMENT;
+			attachment.Initialize(GL_DEPTH_ATTACHMENT);
 			break;
 		}
 
 		case FBODescriptor::attachmentType_e::stencil:
 		{
-			attachment.attachmentHandle = gl_stencil_attachment;
-			attachment.Initialize(gl_stencil_attachment);
+			attachment.attachmentHandle = GL_STENCIL_ATTACHMENT;
+			attachment.Initialize(GL_STENCIL_ATTACHMENT);
 			break;
 		}
 
 		case FBODescriptor::attachmentType_e::depthAndStencil:
 		{
-			attachment.attachmentHandle = gl_depth_stencil_attachment;
-			attachment.Initialize(gl_depth_stencil_attachment);
+			attachment.attachmentHandle = GL_DEPTH_STENCIL_ATTACHMENT;
+			attachment.Initialize(GL_DEPTH_STENCIL_ATTACHMENT);
 			break;
 		}
 		}
@@ -441,59 +441,59 @@ public:
 		//if the current framebuffer is not this one then bind it
 		glFinish();
 		int currentBuffer = 0;
-		glGetIntegerv(gl_framebuffer_binding, &currentBuffer);
+		glGetIntegerv(GL_FRAMEBUFFER_BINDING, &currentBuffer);
 		if (currentBuffer != bufferHandle)
 		{
 			Bind();
 		}
-		GLenum err = glCheckFramebufferStatus(gl_draw_framebuffer);
-		if (err != gl_framebuffer_complete)
+		GLenum err = glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER);
+		if (err != GL_FRAMEBUFFER_COMPLETE)
 		{
 			switch (err)
 			{
-			case gl_framebuffer_undefined:
+			case GL_FRAMEBUFFER_UNDEFINED:
 			{
 				printf("framebuffer undefined \n");
 				break;
 			}
 
-			case gl_framebuffer_incomplete_attachment:
+			case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
 			{
 				printf("framebuffer incomplete attachment \n");
 				break;
 			}
 
-			case gl_framebuffer_incomplete_missing_attachment:
+			case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
 			{
 				printf("framebuffer missing attachment \n");
 				break;
 			}
 
-			case gl_framebuffer_incomplete_draw_buffer:
+			case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
 			{
 				printf("framebuffer incomplete draw buffer \n");
 				break;
 			}
 
-			case gl_framebuffer_incomplete_read_buffer:
+			case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
 			{
 				printf("framebuffer incomplete read buffer \n");
 				break;
 			}
 
-			case gl_framebuffer_unsupported:
+			case GL_FRAMEBUFFER_UNSUPPORTED:
 			{
 				printf("framebuffer unsupported \n");
 				break;
 			}
 
-			case gl_framebuffer_incomplete_multisample:
+			case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
 			{
 				printf("framebuffer incomplete multisample \n");
 				break;
 			}
 
-			case gl_framebuffer_incomplete_layer_targets:
+			case GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS:
 			{
 				printf("framebuffer incomplete layer targets \n");
 				break;

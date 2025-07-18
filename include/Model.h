@@ -411,8 +411,8 @@ public:
 		newMesh.textures = std::move(textures);
 
 		glBindVertexArray(0);
-		glBindBuffer(gl_array_buffer, 0);
-		glBindBuffer(gl_element_array_buffer, 0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 		meshes.push_back(newMesh);
 	}
@@ -442,11 +442,11 @@ public:
 		glGenVertexArrays(1, &mesh.vertexArrayHandle);
 
 		glBindVertexArray(mesh.vertexArrayHandle);
-		glBindBuffer(gl_array_buffer, mesh.vertexBufferHandle);
-		glBufferData(gl_array_buffer, sizeof(vertexAttribute_t) * mesh.vertices.size(), mesh.vertices.data(), gl_static_draw);
+		glBindBuffer(GL_ARRAY_BUFFER, mesh.vertexBufferHandle);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertexAttribute_t) * mesh.vertices.size(), mesh.vertices.data(), GL_STATIC_DRAW);
 
-		glBindBuffer(gl_element_array_buffer, mesh.indexBufferHandle);
-		glBufferData(gl_element_array_buffer, sizeof(unsigned int) * mesh.indices.size(), mesh.indices.data(), gl_static_draw);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.indexBufferHandle);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int) * mesh.indices.size(), mesh.indices.data(), GL_STATIC_DRAW);
 
 		//might cause more issues than prevent
 		unsigned int attribID = 0;

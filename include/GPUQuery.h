@@ -19,9 +19,9 @@ public:
 	void Begin()
 	{
 		if (started)
-			glEndQuery(gl_time_elapsed);
+			glEndQuery(GL_TIME_ELAPSED);
 
-		glBeginQuery(gl_time_elapsed, queryID);
+		glBeginQuery(GL_TIME_ELAPSED, queryID);
 		started = true;
 	}
 
@@ -30,7 +30,7 @@ public:
 		if (!started)
 			return;
 
-		glEndQuery(gl_time_elapsed);
+		glEndQuery(GL_TIME_ELAPSED);
 		started = false;
 	}
 
@@ -65,7 +65,7 @@ private:
 		}
 
 		//glGetInteger64v(gl_timestamp, &result);
-		glGetQueryObjectuiv(queryID, gl_query_result, &result);
+		glGetQueryObjectuiv(queryID, GL_QUERY_RESULT, &result);
 		hasResult = true;
 	}
 

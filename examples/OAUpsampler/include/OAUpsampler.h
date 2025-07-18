@@ -123,7 +123,7 @@ protected:
     void Update() override
     {
         SMAAScene::Update();
-        resolutionSettings.Update(gl_uniform_buffer, gl_dynamic_draw);
+        resolutionSettings.Update(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW);
     }
 
     void Draw() override

@@ -183,7 +183,7 @@ protected:
 		defaultPayload.data.view = camera.view;
 		defaultPayload.data.translation = camera.translation;
 
-		defaultPayload.Update(gl_uniform_buffer, gl_static_draw);
+		defaultPayload.Update(GL_UNIFORM_BUFFER, GL_STATIC_DRAW);
 	}
 
 	virtual void Draw()
@@ -320,7 +320,7 @@ protected:
 		}
 		ImGui::End();
 
-		defaultPayload.Update(gl_uniform_buffer, gl_dynamic_draw);
+		defaultPayload.Update(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW);
 		//UpdateBuffer(d, defaultUniform->bufferHandle, sizeof(defaultUniform), gl_uniform_buffer, gl_dynamic_draw);
 	}
 
@@ -379,7 +379,7 @@ protected:
 		defaultPayload.data.projection = glm::ortho(0.0f, (GLfloat)window->GetSettings().resolution.width, (GLfloat)window->GetSettings().resolution.height, 0.0f, 0.01f, 10.0f);
 
 		defaultVertexBuffer.SetupDefault();
-		SetupBuffer(gl_uniform_buffer, gl_dynamic_draw);
+		SetupBuffer(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW);
 
 		SetupDefaultUniforms();
 	}
@@ -400,7 +400,7 @@ protected:
 		defaultPayload.data.resolution = glm::ivec2(dimensions.x, dimensions.y);
 		defaultPayload.data.projection = glm::ortho(0.0f, (GLfloat)dimensions.x, (GLfloat)dimensions.y, 0.0f, 0.01f, 10.0f);
 
-		UpdateBuffer(gl_uniform_buffer, gl_dynamic_draw);
+		UpdateBuffer(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW);
 	}
 
 	virtual void HandleMouseClick(const tWindow* window, const mouseButton_e button, const buttonState_e state)
@@ -429,7 +429,7 @@ protected:
 	virtual void HandleMouseMotion(const tWindow* window, const vec2_t<int16_t>& windowPosition, const vec2_t<int16_t>& screenPosition)
 	{
 		defaultPayload.data.mousePosition = glm::vec2(windowPosition.x, windowPosition.y);
-		UpdateBuffer(gl_uniform_buffer, gl_dynamic_draw);
+		UpdateBuffer(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW);
 		ImGuiIO& io = ImGui::GetIO();
 		io.MousePos = ImVec2((float)windowPosition.x, (float)windowPosition.y); //why screen co-ordinates?
 	}
@@ -544,15 +544,15 @@ protected:
 		GLint lastBlendEquationAlpha;
 		GLint lastViewport[4];
 
-		glGetIntegerv(gl_current_program, &lastProgram);
+		glGetIntegerv(GL_CURRENT_PROGRAM, &lastProgram);
 		glGetIntegerv(GL_TEXTURE_BINDING_2D, &lastTexture);
-		glGetIntegerv(gl_array_buffer_binding, &lastArrayBuffer);
-		glGetIntegerv(gl_element_array_buffer_binding, &lastElementArrayBuffer);
-		glGetIntegerv(gl_vertex_array_binding, &lastVertexArray);
+		glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &lastArrayBuffer);
+		glGetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING, &lastElementArrayBuffer);
+		glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &lastVertexArray);
 		glGetIntegerv(GL_BLEND_SRC, &lastBlendSrc);
 		glGetIntegerv(GL_BLEND_DST, &lastBlendDst);
-		glGetIntegerv(gl_blend_equation_rgb, &lastBlendEquationRGB);
-		glGetIntegerv(gl_blend_equation_alpha, &lastBlendEquationAlpha);
+		glGetIntegerv(GL_BLEND_EQUATION_RGB, &lastBlendEquationRGB);
+		glGetIntegerv(GL_BLEND_EQUATION_ALPHA, &lastBlendEquationAlpha);
 		glGetIntegerv(GL_VIEWPORT, lastViewport);
 
 		GLboolean lastEnableBlend = glIsEnabled(GL_BLEND);
@@ -561,12 +561,12 @@ protected:
 		GLboolean lastEnableScissorTest = glIsEnabled(GL_SCISSOR_TEST);
 
 		glEnable(GL_BLEND);
-		glBlendEquation(gl_func_add);
+		glBlendEquation(GL_FUNC_ADD);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glDisable(GL_CULL_FACE);
 		glDisable(GL_DEPTH_TEST);
 		glEnable(GL_SCISSOR_TEST);
-		glActiveTexture(gl_texture0);
+		glActiveTexture(GL_TEXTURE0);
 
 		glm::vec2 resolution = glm::vec2(window->GetSettings().resolution.x, window->GetSettings().resolution.y);
 		glViewport(0, 0, (GLsizei)(io.DisplaySize.x * io.DisplayFramebufferScale.x),
@@ -591,11 +591,11 @@ protected:
 			const ImDrawList* commandList = drawData->CmdLists[numCommandLists];
 			const ImDrawIdx* indexBufferOffset = nullptr;
 
-			glBindBuffer(gl_array_buffer, imGUIVBOHandle);
-			glBufferData(gl_array_buffer, (GLsizeiptr)commandList->VtxBuffer.size() * sizeof(ImDrawVert), (GLvoid*)&commandList->VtxBuffer.front(), gl_stream_draw);
+			glBindBuffer(GL_ARRAY_BUFFER, imGUIVBOHandle);
+			glBufferData(GL_ARRAY_BUFFER, (GLsizeiptr)commandList->VtxBuffer.size() * sizeof(ImDrawVert), (GLvoid*)&commandList->VtxBuffer.front(), GL_STREAM_DRAW);
 
-			glBindBuffer(gl_element_array_buffer, imGUIIBOHandle);
-			glBufferData(gl_element_array_buffer, (GLsizeiptr)commandList->IdxBuffer.size() * sizeof(ImDrawIdx), (GLvoid*)&commandList->IdxBuffer.front(), gl_stream_draw);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, imGUIIBOHandle);
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER, (GLsizeiptr)commandList->IdxBuffer.size() * sizeof(ImDrawIdx), (GLvoid*)&commandList->IdxBuffer.front(), GL_STREAM_DRAW);
 
 			for (const ImDrawCmd* drawCommand = commandList->CmdBuffer.begin(); drawCommand != commandList->CmdBuffer.end(); drawCommand++)
 			{
@@ -619,8 +619,8 @@ protected:
 		//glActiveTexture(lastActiveTexture);
 		glBindTexture(GL_TEXTURE_2D, lastTexture);
 		glBindVertexArray(lastVertexArray);
-		glBindBuffer(gl_array_buffer, lastArrayBuffer);
-		glBindBuffer(gl_element_array_buffer, lastElementArrayBuffer);
+		glBindBuffer(GL_ARRAY_BUFFER, lastArrayBuffer);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, lastElementArrayBuffer);
 		glBlendEquationSeparate(lastBlendEquationRGB, lastBlendEquationAlpha);
 		glBlendFunc(lastBlendSrc, lastBlendDst);
 		lastEnableBlend ? glEnable(GL_BLEND) : glDisable(GL_BLEND);
@@ -676,8 +676,8 @@ protected:
 	{
 		GLint lastTexture, lastArrayBuffer, LastVertexArray;
 		glGetIntegerv(GL_TEXTURE_BINDING_2D, &lastTexture);
-		glGetIntegerv(gl_array_buffer_binding, &lastArrayBuffer);
-		glGetIntegerv(gl_vertex_array_binding, &LastVertexArray);
+		glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &lastArrayBuffer);
+		glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &LastVertexArray);
 
 		const char *vertex_shader =
 			"#version 330\n"
@@ -706,8 +706,8 @@ protected:
 			"}\n";
 
 		imGUIShaderhandle = glCreateProgram();
-		imGUIVertexHandle = glCreateShader(gl_vertex_shader);
-		imGUIFragmentHandle = glCreateShader(gl_fragment_shader);
+		imGUIVertexHandle = glCreateShader(GL_VERTEX_SHADER);
+		imGUIFragmentHandle = glCreateShader(GL_FRAGMENT_SHADER);
 		glShaderSource(imGUIVertexHandle, 1, &vertex_shader, nullptr);
 		glShaderSource(imGUIFragmentHandle, 1, &fragment_shader, nullptr);
 		glCompileShader(imGUIVertexHandle);
@@ -727,7 +727,7 @@ protected:
 
 		glGenVertexArrays(1, &imGUIVAOHandle);
 		glBindVertexArray(imGUIVAOHandle);
-		glBindBuffer(gl_array_buffer, imGUIVBOHandle);
+		glBindBuffer(GL_ARRAY_BUFFER, imGUIVBOHandle);
 		glEnableVertexAttribArray(imGUIPositionAttribLocation);
 		glEnableVertexAttribArray(imGUIUVAttribLocation);
 		glEnableVertexAttribArray(imGUIColorAttribLocation);
@@ -742,7 +742,7 @@ protected:
 
 		//restore GL state
 		glBindTexture(GL_TEXTURE_2D, lastTexture); //why do the values change?
-		glBindBuffer(gl_array_buffer, lastArrayBuffer);
+		glBindBuffer(GL_ARRAY_BUFFER, lastArrayBuffer);
 		glBindVertexArray(LastVertexArray);
 	}
 
@@ -793,9 +793,9 @@ protected:
 		const char* message,
 		const void* userParam)
 	{
-		if (severity != gl_debug_severity_low &&
-			severity != gl_debug_severity_medium &&
-			severity != gl_debug_severity_high)
+		if (severity != GL_DEBUG_SEVERITY_LOW &&
+			severity != GL_DEBUG_SEVERITY_MEDIUM &&
+			severity != GL_DEBUG_SEVERITY_HIGH)
 		{
 			//we can skip these for the time being
 			return;
@@ -805,15 +805,15 @@ protected:
 		printf("type: ");
 		switch (type)
 		{
-			case gl_debug_type_error: printf("error\n"); break;
-			case gl_debug_type_deprecated_behavior: printf("deprecated behavior\n"); break;
-			case gl_debug_type_undefined_behavior: printf("undefined behavior\n"); break;
-			case gl_debug_type_performance: printf("performance\n"); break;
-			case gl_debug_type_portability: printf("portability\n"); break;
-			case gl_debug_type_marker: printf("marker\n"); break;
-			case gl_debug_type_push_group: printf("push group\n"); break;
-			case gl_debug_type_pop_group: printf("pop group\n"); break;
-			case gl_debug_type_other: printf("other\n"); break;
+			case GL_DEBUG_TYPE_ERROR: printf("error\n"); break;
+			case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: printf("deprecated behavior\n"); break;
+			case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR: printf("undefined behavior\n"); break;
+			case GL_DEBUG_TYPE_PERFORMANCE: printf("performance\n"); break;
+			case GL_DEBUG_TYPE_PORTABILITY: printf("portability\n"); break;
+			case GL_DEBUG_TYPE_MARKER: printf("marker\n"); break;
+			case GL_DEBUG_TYPE_PUSH_GROUP: printf("push group\n"); break;
+			case GL_DEBUG_TYPE_POP_GROUP: printf("pop group\n"); break;
+			case GL_DEBUG_TYPE_OTHER: printf("other\n"); break;
 			default: break;
 		}
 
@@ -822,21 +822,21 @@ protected:
 		printf("severity: ");
 		switch (severity)
 		{
-			case gl_debug_severity_low: printf("low \n"); break;
-			case gl_debug_severity_medium: printf("medium \n"); break;
-			case gl_debug_severity_high: printf("high \n"); break;
+			case GL_DEBUG_SEVERITY_LOW: printf("low \n"); break;
+			case GL_DEBUG_SEVERITY_MEDIUM: printf("medium \n"); break;
+			case GL_DEBUG_SEVERITY_HIGH: printf("high \n"); break;
 			default: printf("\n"); break;
 		}
 
 		printf("Source: ");
 		switch (source)
 		{
-			case gl_debug_source_api: printf("API\n"); break;
-			case gl_debug_source_shader_compiler: printf("shader compiler\n"); break;
-			case gl_debug_source_window_system: printf("window system\n"); break;
-			case gl_debug_source_third_party: printf("third party\n"); break;
-			case gl_debug_source_application: printf("application\n"); break;
-			case gl_debug_source_other: printf("other\n"); break;
+			case GL_DEBUG_SOURCE_API: printf("API\n"); break;
+			case GL_DEBUG_SOURCE_SHADER_COMPILER: printf("shader compiler\n"); break;
+			case GL_DEBUG_SOURCE_WINDOW_SYSTEM: printf("window system\n"); break;
+			case GL_DEBUG_SOURCE_THIRD_PARTY: printf("third party\n"); break;
+			case GL_DEBUG_SOURCE_APPLICATION: printf("application\n"); break;
+			case GL_DEBUG_SOURCE_OTHER: printf("other\n"); break;
 			default: break;
 		}
 
