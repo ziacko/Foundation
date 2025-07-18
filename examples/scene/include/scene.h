@@ -72,7 +72,7 @@ public:
 
 	virtual void Initialize()
 	{
-		te::InitializeExtentions();
+		te::InitializeExtensions();
 
 		if (glDebugMessageCallback == nullptr)
 		{

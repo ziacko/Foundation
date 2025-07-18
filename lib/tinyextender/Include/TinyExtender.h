@@ -14490,6 +14490,7 @@ namespace TinyExtender
 		};
 		inline std::vector<errorEntry> errorLog;
 
+
 		inline void AddErrorLog(const error_e& newError, const uint16_t& fileLine = __LINE__, const std::string& functionName = __FUNCTION__)
 		{
 			auto newString = errorLUT.at(newError);
@@ -14509,13 +14510,21 @@ namespace TinyExtender
 				errorEvent(newEntry);
 			}
 		}
+
+		inline GLuint glVersionMajor;
+		inline GLuint glVersionMinor;
 }
 
 
+	inline GLuint GetGLVersionMajor()
+	{
+		return glVersionMajor;
+	}
 
-
-	inline GLuint glVersionMajor;
-	inline GLuint glVersionMinor;
+	inline GLuint GetGLVersionMinor()
+	{
+		return glVersionMinor;
+	}
 
 	//*< get OpenGL version
 	inline void InitializeGLVersion()
@@ -14576,7 +14585,7 @@ namespace TinyExtender
 	}
 
 	//*< load all applicable OpenGL extensions
-	inline void InitializeExtentions()
+	inline void InitializeExtensions()
 	{
 		InitializeGLVersion();
 

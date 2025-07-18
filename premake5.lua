@@ -111,6 +111,11 @@ function scene_project(name, parents)
             optimize "on"
             symbols "off"
             targetdir (_SCRIPT_DIR .. "/bin/Release")
+
+        filter { "toolset:clang"}
+            configurations { "Debug", "Release" }
+            buildoptions { "-Wno-missing-template-arg-list-after-template-kw",
+                    "-Wno-deprecated-enum-enum-conversion", "-Wno-macro-redefined"}
 end
 
 if os.host() == "linux" then
@@ -138,11 +143,6 @@ workspace "Portfolio"
             
     filter "configurations:Release"
         defines { "ABSL_HARDENED" }
-
-    filter { "toolset:clang"}
-        configurations { "Debug", "Release" }
-        buildoptions { "-Wno-missing-template-arg-list-after-template-kw",
-                    "-Wno-deprecated-enum-enum-conversion"}
             
     filter {}  -- Reset filter
 
