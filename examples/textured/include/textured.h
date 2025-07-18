@@ -63,6 +63,5 @@ protected:
 
 	texture								defaultTexture;
 	std::vector<std::string>			textureDirs;
-	int									currentTextureIndex;
 	bool								isGUIActive;
 };

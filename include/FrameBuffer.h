@@ -447,6 +447,7 @@ public:
 			Bind();
 		}
 		GLenum err = glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER);
+		//TODO use a lookup table to speed this up
 		if (err != GL_FRAMEBUFFER_COMPLETE)
 		{
 			switch (err)

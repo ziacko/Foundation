@@ -162,6 +162,18 @@ protected:
 	std::string					defaultDockName = "Default";
 	ImGuiID left_node, central_node;
 
+	typedef std::pair<int32_t, std::string> debugTypeEntry;
+	static tsl::robin_map<int32_t, std::string> debugTypeLUT;
+
+	typedef std::pair<int32_t, std::string> severityEntry;
+	static tsl::robin_map<int32_t, std::string> severityLUT;
+
+	typedef std::pair<int32_t, std::string> sourceTypeEntry;
+	static tsl::robin_map<int32_t, std::string> sourceTypeLUT;
+
+	typedef std::pair<int16_t, ImGuiKey> keyMapEntry;
+	static tsl::robin_map<int16_t, ImGuiKey> keyMapLUT;
+
 	virtual void Update()
 	{
 		manager->PollForEvents();
@@ -361,13 +373,11 @@ protected:
 
 	void SetupBuffer(const GLenum target, const GLenum usage)
 	{
-		//TODO: get the currently bound buffer and rebind to that after this operation is done
 		defaultPayload.Initialize(0, target, usage);
 	}
 
 	void UpdateBuffer(const GLenum target, const GLenum usage)
 	{
-		//TODO: get the currently bound buffer and rebind to that after this operation is done
 		defaultPayload.Update(target, usage);
 	}
 
@@ -453,24 +463,14 @@ protected:
 			return static_cast<ImGuiKey>(ImGuiKey_0 + (key - '0'));
 		}
 		// Map special keys using Windows virtual key codes
-		switch (key)
+
+		if (keyMapLUT.contains(key))
 		{
-			case tab :			return ImGuiKey_Tab;			// VK_TAB
-			case arrowLeft :	return ImGuiKey_LeftArrow;		// VK_LEFT
-			case arrowRight :	return ImGuiKey_RightArrow;		// VK_RIGHT
-			case arrowUp :		return ImGuiKey_UpArrow;		// VK_UP
-			case arrowDown :	return ImGuiKey_DownArrow;		// VK_DOWN
-			case pageUp :		return ImGuiKey_PageUp;			// VK_PRIOR
-			case pageDown :		return ImGuiKey_PageDown;		// VK_NEXT
-			case home :			return ImGuiKey_Home;			// VK_HOME
-			case end :			return ImGuiKey_End;			// VK_END
-			case insert :		return ImGuiKey_Insert;			// VK_INSERT
-			case del :			return ImGuiKey_Delete;			// VK_DELETE
-			case backspace :	return ImGuiKey_Backspace;		// VK_BACK
-			case spacebar :		return ImGuiKey_Space;			// VK_SPACE
-			case enter :		return ImGuiKey_Enter;			// VK_RETURN
-			case escape :		return ImGuiKey_Escape;			// VK_ESCAPE
-			default: return ImGuiKey_None;
+			return keyMapLUT.at(key);
+		}
+		else
+		{
+			return ImGuiKey_None;
 		}
 	}
 
@@ -568,7 +568,7 @@ protected:
 		glEnable(GL_SCISSOR_TEST);
 		glActiveTexture(GL_TEXTURE0);
 
-		glm::vec2 resolution = glm::vec2(window->GetSettings().resolution.x, window->GetSettings().resolution.y);
+		const glm::vec2 resolution = glm::vec2(window->GetSettings().resolution.x, window->GetSettings().resolution.y);
 		glViewport(0, 0, (GLsizei)(io.DisplaySize.x * io.DisplayFramebufferScale.x),
                  (GLsizei)(io.DisplaySize.y * io.DisplayFramebufferScale.y));
 
@@ -802,43 +802,19 @@ protected:
 		}
 
 		printf("---------------------opengl-callback-start------------\n");
+		//print debug type
 		printf("type: ");
-		switch (type)
-		{
-			case GL_DEBUG_TYPE_ERROR: printf("error\n"); break;
-			case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: printf("deprecated behavior\n"); break;
-			case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR: printf("undefined behavior\n"); break;
-			case GL_DEBUG_TYPE_PERFORMANCE: printf("performance\n"); break;
-			case GL_DEBUG_TYPE_PORTABILITY: printf("portability\n"); break;
-			case GL_DEBUG_TYPE_MARKER: printf("marker\n"); break;
-			case GL_DEBUG_TYPE_PUSH_GROUP: printf("push group\n"); break;
-			case GL_DEBUG_TYPE_POP_GROUP: printf("pop group\n"); break;
-			case GL_DEBUG_TYPE_OTHER: printf("other\n"); break;
-			default: break;
-		}
+		printf("%s\n", debugTypeLUT.at(type).c_str());
 
 		printf("ID: %i\n", id);
 
+		//severity
 		printf("severity: ");
-		switch (severity)
-		{
-			case GL_DEBUG_SEVERITY_LOW: printf("low \n"); break;
-			case GL_DEBUG_SEVERITY_MEDIUM: printf("medium \n"); break;
-			case GL_DEBUG_SEVERITY_HIGH: printf("high \n"); break;
-			default: printf("\n"); break;
-		}
+		printf("%s\n", severityLUT.at(severity).c_str());
 
+		//source
 		printf("Source: ");
-		switch (source)
-		{
-			case GL_DEBUG_SOURCE_API: printf("API\n"); break;
-			case GL_DEBUG_SOURCE_SHADER_COMPILER: printf("shader compiler\n"); break;
-			case GL_DEBUG_SOURCE_WINDOW_SYSTEM: printf("window system\n"); break;
-			case GL_DEBUG_SOURCE_THIRD_PARTY: printf("third party\n"); break;
-			case GL_DEBUG_SOURCE_APPLICATION: printf("application\n"); break;
-			case GL_DEBUG_SOURCE_OTHER: printf("other\n"); break;
-			default: break;
-		}
+		printf("%s\n", sourceTypeLUT.at(source).c_str());
 
 		printf("Message: \n");
 		printf("%s \n", message);
@@ -846,4 +822,54 @@ protected:
 		printf("---------------------opengl-callback-end--------------\n");
 	}
 };
+
+tsl::robin_map<int32_t, std::string> scene::debugTypeLUT =
+{
+	debugTypeEntry(GL_DEBUG_TYPE_ERROR, "error"),
+	debugTypeEntry(GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR, "deprecated behavior"),
+	debugTypeEntry(GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR, "undefined behavior"),
+	debugTypeEntry(GL_DEBUG_TYPE_PERFORMANCE, "performance"),
+	debugTypeEntry(GL_DEBUG_TYPE_PORTABILITY, "portability"),
+	debugTypeEntry(GL_DEBUG_TYPE_MARKER, "marker"),
+	debugTypeEntry(GL_DEBUG_TYPE_PUSH_GROUP, "push group"),
+	debugTypeEntry(GL_DEBUG_TYPE_POP_GROUP, "pop group"),
+	debugTypeEntry(GL_DEBUG_TYPE_OTHER, "other"),
+};
+
+tsl::robin_map<int32_t, std::string> scene::severityLUT =
+{
+	severityEntry(GL_DEBUG_SEVERITY_LOW, "low"),
+	severityEntry(GL_DEBUG_SEVERITY_MEDIUM, "medium"),
+	severityEntry(GL_DEBUG_SEVERITY_HIGH, "high"),
+};
+
+tsl::robin_map<int32_t, std::string> scene::sourceTypeLUT =
+{
+	sourceTypeEntry(GL_DEBUG_SOURCE_API, "API"),
+	sourceTypeEntry(GL_DEBUG_SOURCE_SHADER_COMPILER, "shader compiler"),
+	sourceTypeEntry(GL_DEBUG_SOURCE_WINDOW_SYSTEM, "window system"),
+	sourceTypeEntry(GL_DEBUG_SOURCE_THIRD_PARTY, "third party"),
+	sourceTypeEntry(GL_DEBUG_SOURCE_APPLICATION, "application"),
+	sourceTypeEntry(GL_DEBUG_SOURCE_OTHER, "other"),
+};
+
+tsl::robin_map<int16_t, ImGuiKey> scene::keyMapLUT =
+{
+	keyMapEntry(tab, ImGuiKey_Tab),					// VK_TAB
+	keyMapEntry(arrowLeft, ImGuiKey_LeftArrow),		// VK_LEFT
+	keyMapEntry(arrowRight, ImGuiKey_RightArrow),	// VK_RIGHT
+	keyMapEntry(arrowUp , ImGuiKey_UpArrow),		// VK_UP
+	keyMapEntry(arrowDown, ImGuiKey_DownArrow),		// VK_DOWN
+	keyMapEntry(pageUp, ImGuiKey_PageUp),			// VK_PRIOR
+	keyMapEntry(pageDown, ImGuiKey_PageDown),		// VK_NEXT
+	keyMapEntry(home, ImGuiKey_Home),				// VK_HOME
+	keyMapEntry(end, ImGuiKey_End),					// VK_END
+	keyMapEntry(insert, ImGuiKey_Insert),			// VK_INSERT
+	keyMapEntry(del, ImGuiKey_Delete),				// VK_DELETE
+	keyMapEntry(backspace, ImGuiKey_Backspace),		// VK_BACK
+	keyMapEntry(spacebar, ImGuiKey_Space),			// VK_SPACE
+	keyMapEntry(enter, ImGuiKey_Enter),				// VK_RETURN
+	keyMapEntry(escape, ImGuiKey_Escape),			// VK_ESCAPE
+};
+
 #endif

@@ -125,8 +125,7 @@ static void LoadShaderProgramsFromConfigFile(shaderManager* manager, tsl::robin_
 
                                 const std::string newPath = std::string( yyjson_get_str(shaderPath));
                                 const std::string localPath = shaderPathPart / PROJECT_NAME / newPath;
-                                shaderType_e localType;
-                                StringToShaderType(std::string(yyjson_get_str(shaderType)), localType);
+                                shaderType_e localType = StringToShaderType(std::string(yyjson_get_str(shaderType)));
 
                                 //prepend the working directory to path
                                 manager->LoadShader(yyjson_get_str(shaderName), localPath, localType);

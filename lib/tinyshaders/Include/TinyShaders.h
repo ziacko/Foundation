@@ -33,196 +33,213 @@ namespace TinyShaders
 	class tShader;
 	class tShaderProgram;
 	class shaderManager;
-	using parseUniformBlockEvent_t = std::function<void(GLuint errorNumber, std::string errorMessage)>;
 
 	inline std::string defaultProgramBinaryExtension = ".glbin";
 	inline std::string defaultBinaryPath = "./Shaders/";
 
-	enum class error_e
+	namespace
 	{
-		success,
-		invalidString,
-		invalidShaderProgramName,
-		invalidShaderProgramIndex,
-		invalidShaderName,
-		invalidShaderIndex,
-		invalidFilePath,
-		shaderProgramNotFound,
-		shaderNotFound,
-		invalidShaderType,
-		shaderLoadFailed,
-		shaderProgramLoadFailed,
-		shaderProgramLinkFailed,
-		shaderAlreadyLoaded,
-		shaderProgramAlreadyExists,
-		invalidSourceFile,
-		shaderCompileFailed,
-		shaderProgramCompileFailed
-	};
+		enum class error_e
+		{
+			invalidString,
+			invalidShaderProgramName,
+			invalidShaderProgramIndex,
+			invalidShaderName,
+			invalidShaderIndex,
+			invalidFilePath,
+			shaderProgramNotFound,
+			shaderNotFound,
+			invalidShaderType,
+			shaderLoadFailed,
+			shaderProgramLoadFailed,
+			shaderProgramLinkFailed,
+			shaderAlreadyLoaded,
+			shaderProgramAlreadyExists,
+			invalidSourceFile,
+			shaderCompileFailed,
+			shaderProgramCompileFailed
+		};
 
-	typedef std::pair<const error_e,  const std::string> errorEntry;
-	const std::unordered_map<const error_e, const std::string> errorLUT =
-	{
-		errorEntry(error_e::invalidString, "Error: invalid string"),
-		errorEntry(error_e::shaderNotFound, "Error: shader not found"),
-		errorEntry(error_e::invalidFilePath, "Error: invalid file path"),
-		errorEntry(error_e::invalidShaderName, "Error: invalid shader name"),
-		errorEntry(error_e::invalidShaderType, "Error: invalid shader type"),
-		errorEntry(error_e::invalidShaderIndex, "Error: invalid shader index"),
-		errorEntry(error_e::invalidSourceFile, "Error: source file is invalid"),
-		errorEntry(error_e::shaderLoadFailed, "Error: shader has failed to load"),
-		errorEntry(error_e::shaderProgramNotFound, "Error: shader program not found"),
-		errorEntry(error_e::shaderProgramLoadFailed, "Error: shader program load failed"),
-		errorEntry(error_e::shaderAlreadyLoaded, "Error: shader has already been loaded"),
-		errorEntry(error_e::shaderCompileFailed, "Error: the shader has failed to compile"),
-		errorEntry(error_e::invalidShaderProgramName, "Error: invalid shader program name"),
-		errorEntry(error_e::shaderProgramLinkFailed, "Error: shader program linking failed"),
-		errorEntry(error_e::invalidShaderProgramIndex, "Error: invalid shader program index"),
-		errorEntry(error_e::shaderProgramAlreadyExists, "Error: shader program already exists"),
-		errorEntry(error_e::shaderProgramCompileFailed, "Error: the shader program has failed to compile"),
-	};
+		typedef std::pair<const error_e,  const std::string> errorEntry;
+		const std::unordered_map<const error_e, const std::string> errorLUT =
+		{
+			errorEntry(error_e::invalidString, "Error: invalid string"),
+			errorEntry(error_e::shaderNotFound, "Error: shader not found"),
+			errorEntry(error_e::invalidFilePath, "Error: invalid file path"),
+			errorEntry(error_e::invalidShaderName, "Error: invalid shader name"),
+			errorEntry(error_e::invalidShaderType, "Error: invalid shader type"),
+			errorEntry(error_e::invalidShaderIndex, "Error: invalid shader index"),
+			errorEntry(error_e::invalidSourceFile, "Error: source file is invalid"),
+			errorEntry(error_e::shaderLoadFailed, "Error: shader has failed to load"),
+			errorEntry(error_e::shaderProgramNotFound, "Error: shader program not found"),
+			errorEntry(error_e::shaderProgramLoadFailed, "Error: shader program load failed"),
+			errorEntry(error_e::shaderAlreadyLoaded, "Error: shader has already been loaded"),
+			errorEntry(error_e::shaderCompileFailed, "Error: the shader has failed to compile"),
+			errorEntry(error_e::invalidShaderProgramName, "Error: invalid shader program name"),
+			errorEntry(error_e::shaderProgramLinkFailed, "Error: shader program linking failed"),
+			errorEntry(error_e::invalidShaderProgramIndex, "Error: invalid shader program index"),
+			errorEntry(error_e::shaderProgramAlreadyExists, "Error: shader program already exists"),
+			errorEntry(error_e::shaderProgramCompileFailed, "Error: the shader program has failed to compile"),
+		};
+
+		inline std::vector<GLenum> interfaces = { GL_UNIFORM, GL_UNIFORM_BLOCK, GL_ATOMIC_COUNTER_BUFFER, GL_PROGRAM_INPUT, GL_PROGRAM_OUTPUT,
+			GL_TRANSFORM_FEEDBACK_VARYING, GL_BUFFER_VARIABLE, GL_SHADER_STORAGE_BLOCK, GL_TRANSFORM_FEEDBACK_BUFFER,
+			GL_VERTEX_SUBROUTINE, GL_FRAGMENT_SUBROUTINE, GL_GEOMETRY_SUBROUTINE, GL_TESS_CONTROL_SUBROUTINE, GL_TESS_EVALUATION_SUBROUTINE, GL_COMPUTE_SUBROUTINE,
+			GL_VERTEX_SUBROUTINE_UNIFORM, GL_FRAGMENT_SUBROUTINE_UNIFORM, GL_GEOMETRY_SUBROUTINE_UNIFORM, GL_TESS_CONTROL_SUBROUTINE_UNIFORM,
+			GL_TESS_EVALUATION_SUBROUTINE_UNIFORM, GL_COMPUTE_SUBROUTINE_UNIFORM
+		};
+
+		typedef std::pair<uint32_t, const std::string> typeEntry;
+		const std::unordered_map<uint32_t, const std::string> typeLUT =
+		{
+			typeEntry(GL_FLOAT, "float"),
+			typeEntry(GL_FLOAT_VEC2, "vec2"),
+			typeEntry(GL_FLOAT_VEC2,  "vec2"),
+			typeEntry(GL_FLOAT_VEC3, "vec3"),
+			typeEntry(GL_FLOAT_VEC4, "vec4"),
+			typeEntry(GL_DOUBLE, "double"),
+			typeEntry(GL_DOUBLE_VEC2, "dvec2"),
+			typeEntry(GL_DOUBLE_VEC3, "dvec3"),
+			typeEntry(GL_DOUBLE_VEC4, "dvec4"),
+			typeEntry(GL_INT, "int"),
+			typeEntry(GL_INT_VEC2, "ivec2"),
+			typeEntry(GL_INT_VEC3, "ivec3"),
+			typeEntry(GL_INT_VEC4, "ivec4"),
+			typeEntry(GL_UNSIGNED_INT, "uint"),
+			typeEntry(GL_UNSIGNED_INT_VEC2, "uvec2"),
+			typeEntry(GL_UNSIGNED_INT_VEC3, "uvec3"),
+			typeEntry(GL_UNSIGNED_INT_VEC4, "uvec4"),
+			typeEntry(GL_BOOL, "bool"),
+			typeEntry(GL_BOOL_VEC2, "bvec2"),
+			typeEntry(GL_BOOL_VEC3, "bvec3"),
+			typeEntry(GL_BOOL_VEC4, "bvec4"),
+			typeEntry(GL_FLOAT_MAT2, "mat2"),
+			typeEntry(GL_FLOAT_MAT3, "mat3"),
+			typeEntry(GL_FLOAT_MAT4, "mat4"),
+			typeEntry(GL_DOUBLE_MAT2,"dmat2"),
+			typeEntry(GL_DOUBLE_MAT3,"dmat3"),
+			typeEntry(GL_DOUBLE_MAT2X3,"dmat2x3"),
+			typeEntry(GL_DOUBLE_MAT2X4,"dmat2x4"),
+			typeEntry(GL_DOUBLE_MAT3X2,"dmat3x2"),
+			typeEntry(GL_DOUBLE_MAT3X4,"dmat3x4"),
+			typeEntry(GL_DOUBLE_MAT4X2,"dmat4x2"),
+			typeEntry(GL_DOUBLE_MAT4X3,"dmat4x3"),
+			typeEntry(GL_SAMPLER_1D,"sampler1D"),
+			typeEntry(GL_SAMPLER_2D,"sampler2D"),
+			typeEntry(GL_SAMPLER_3D,"sampler3D"),
+			typeEntry(GL_SAMPLER_CUBE,"samplerCube"),
+			typeEntry(GL_SAMPLER_1D_SHADOW,"sampler1DShadow"),
+			typeEntry(GL_SAMPLER_2D_SHADOW,"sampler2DShadow"),
+			typeEntry(GL_SAMPLER_1D_ARRAY,"sampler1DArray"),
+			typeEntry(GL_SAMPLER_2D_ARRAY,"sampler2DArray"),
+			typeEntry(GL_SAMPLER_CUBE_MAP_ARRAY,"samplerCubeArray"),
+			typeEntry(GL_SAMPLER_1D_ARRAY_SHADOW,"sampler1DArrayShadow"),
+			typeEntry(GL_SAMPLER_2D_ARRAY_SHADOW,"sampler2DArrayShadow"),
+			typeEntry(GL_SAMPLER_2D_MULTISAMPLE,"sampler2DMS"),
+			typeEntry(GL_SAMPLER_2D_MULTISAMPLE_ARRAY,"sampler2DMSArray"),
+			typeEntry(GL_SAMPLER_CUBE_SHADOW,"samplerCubeShadow"),
+			typeEntry(GL_SAMPLER_CUBE_MAP_ARRAY_SHADOW,"samplerCubeArrayShadow"),
+			typeEntry(GL_SAMPLER_BUFFER,"samplerBuffer"),
+			typeEntry(GL_SAMPLER_2D_RECT,"sampler2DRect"),
+			typeEntry(GL_SAMPLER_2D_RECT_SHADOW,"sampler2DRectShadow"),
+			typeEntry(GL_INT_SAMPLER_1D,"isampler1D"),
+			typeEntry(GL_INT_SAMPLER_2D,"isampler2D"),
+			typeEntry(GL_INT_SAMPLER_3D,"isampler3D"),
+			typeEntry(GL_INT_SAMPLER_CUBE,"isamplerCube"),
+			typeEntry(GL_INT_SAMPLER_1D_ARRAY,"isampler1DArray"),
+			typeEntry(GL_INT_SAMPLER_2D_ARRAY,"isampler2DArray"),
+			typeEntry(GL_INT_SAMPLER_CUBE_MAP_ARRAY,"isamplerCubeArray"),
+			typeEntry(GL_INT_SAMPLER_2D_MULTISAMPLE,"isampler2DMS"),
+			typeEntry(GL_INT_SAMPLER_2D_MULTISAMPLE_ARRAY,"isampler2DMSArray"),
+			typeEntry(GL_INT_SAMPLER_BUFFER,"isamplerBuffer"),
+			typeEntry(GL_INT_SAMPLER_2D_RECT,"isampler2DRect"),
+			typeEntry(GL_UNSIGNED_INT_SAMPLER_1D,"usampler1D"),
+			typeEntry(GL_UNSIGNED_INT_SAMPLER_2D,"usampler2D"),
+			typeEntry(GL_UNSIGNED_INT_SAMPLER_3D,"usampler3D"),
+			typeEntry(GL_UNSIGNED_INT_SAMPLER_CUBE,"usamplerCube"),
+			typeEntry(GL_UNSIGNED_INT_SAMPLER_1D_ARRAY,"usampler1DArray"),
+			typeEntry(GL_UNSIGNED_INT_SAMPLER_2D_ARRAY,"usampler2DArray"),
+			typeEntry(GL_UNSIGNED_INT_SAMPLER_CUBE_MAP_ARRAY,"usamplerCubeArray"),
+			typeEntry(GL_UNSIGNED_INT_SAMPLER_2D_MULTISAMPLE,"usampler2DMS"),
+			typeEntry(GL_UNSIGNED_INT_SAMPLER_2D_MULTISAMPLE_ARRAY,"usampler2DMSArray"),
+			typeEntry(GL_UNSIGNED_INT_SAMPLER_BUFFER,"usamplerBuffer"),
+			typeEntry(GL_UNSIGNED_INT_SAMPLER_2D_RECT,"usampler2DRect"),
+			typeEntry(GL_IMAGE_1D,"image1D"),
+			typeEntry(GL_IMAGE_2D,"image2D"),
+			typeEntry(GL_IMAGE_3D,"image3D"),
+			typeEntry(GL_IMAGE_2D_RECT,"image2DRect"),
+			typeEntry(GL_IMAGE_CUBE,"imageCube"),
+			typeEntry(GL_IMAGE_BUFFER,"imageBuffer"),
+			typeEntry(GL_IMAGE_1D_ARRAY,"image1DArray"),
+			typeEntry(GL_IMAGE_2D_ARRAY,"image2DArray"),
+			typeEntry(GL_IMAGE_CUBE_MAP_ARRAY,"imageCubeArray"),
+			typeEntry(GL_IMAGE_2D_MULTISAMPLE,"image2DMS"),
+			typeEntry(GL_IMAGE_2D_MULTISAMPLE_ARRAY,"image2DMSArray"),
+			typeEntry(GL_INT_IMAGE_1D,"iimage1D"),
+			typeEntry(GL_INT_IMAGE_2D,"iimage2D"),
+			typeEntry(GL_INT_IMAGE_3D,"iimage3D"),
+			typeEntry(GL_INT_IMAGE_2D_RECT,"iimage2DRect"),
+			typeEntry(GL_INT_IMAGE_CUBE,"iimageCube"),
+			typeEntry(GL_INT_IMAGE_BUFFER,"iimageBuffer"),
+			typeEntry(GL_INT_IMAGE_1D_ARRAY,"iimage1DArray"),
+			typeEntry(GL_INT_IMAGE_2D_ARRAY,"iimage2DArray"),
+			typeEntry(GL_INT_IMAGE_CUBE_MAP_ARRAY,"iimageCubeArray"),
+			typeEntry(GL_INT_IMAGE_2D_MULTISAMPLE,"iimage2DMS"),
+			typeEntry(GL_INT_IMAGE_2D_MULTISAMPLE_ARRAY,"iimage2DMSArray"),
+			typeEntry(GL_UNSIGNED_INT_IMAGE_1D,"uimage1D"),
+			typeEntry(GL_UNSIGNED_INT_IMAGE_2D,"uimage2D"),
+			typeEntry(GL_UNSIGNED_INT_IMAGE_3D,"uimage3D"),
+			typeEntry(GL_UNSIGNED_INT_IMAGE_2D_RECT,"uimage2DRect"),
+			typeEntry(GL_UNSIGNED_INT_IMAGE_CUBE,"uimageCube"),
+			typeEntry(GL_UNSIGNED_INT_IMAGE_BUFFER,"uimageBuffer"),
+			typeEntry(GL_UNSIGNED_INT_IMAGE_1D_ARRAY,"uimage1DArray"),
+			typeEntry(GL_UNSIGNED_INT_IMAGE_2D_ARRAY,"uimage2DArray"),
+			typeEntry(GL_UNSIGNED_INT_IMAGE_CUBE_MAP_ARRAY,"uimageCubeArray"),
+			typeEntry(GL_UNSIGNED_INT_IMAGE_2D_MULTISAMPLE,"uimage2DMS"),
+			typeEntry(GL_UNSIGNED_INT_IMAGE_2D_MULTISAMPLE_ARRAY,"uimage2DMSArray"),
+			typeEntry(GL_UNSIGNED_INT_ATOMIC_COUNTER,"atomic_uint"),
+		};
+
+		enum class shaderType_e
+		{
+			vertex = GL_VERTEX_SHADER,
+			fragment = GL_FRAGMENT_SHADER,
+			geometry = GL_GEOMETRY_SHADER,
+			tessControl =  GL_TESS_CONTROL_SHADER,
+			tessEval = GL_TESS_EVALUATION_SHADER,
+			compute = GL_COMPUTE_SHADER,
+			invalid = -1,
+		};
+
+		typedef std::pair<const shaderType_e, const std::string> shaderTypeEntry;
+		const std::unordered_map<const shaderType_e, const std::string> shaderTypeLUT =
+		{
+			shaderTypeEntry(shaderType_e::vertex, "vertex"),
+			shaderTypeEntry(shaderType_e::fragment, "fragment"),
+			shaderTypeEntry(shaderType_e::geometry, "geometry"),
+			shaderTypeEntry(shaderType_e::tessControl, "tesselation control"),
+			shaderTypeEntry(shaderType_e::tessEval, "tesselation evaluation"),
+			shaderTypeEntry(shaderType_e::compute, "compute"),
+			shaderTypeEntry(shaderType_e::invalid, "invalid"),
+		};
+
+		//lol this is some hack bullshit. lmao, even
+		typedef std::pair<std::string, shaderType_e> shaderTypeEntryRev;
+		const std::unordered_map<std::string, shaderType_e> shaderTypeRev =
+		{
+			shaderTypeEntryRev("vertex", shaderType_e::vertex),
+			shaderTypeEntryRev("fragment", shaderType_e::fragment),
+			shaderTypeEntryRev("geometry", shaderType_e::geometry),
+			shaderTypeEntryRev("tesselation control", shaderType_e::tessControl),
+			shaderTypeEntryRev("tesselation evaluation", shaderType_e::tessEval),
+			shaderTypeEntryRev("compute", shaderType_e::compute),
+			shaderTypeEntryRev("invalid", shaderType_e::invalid),
+		};
+	}
+
 	using managerErrorEvent_t = std::function<void(const errorEntry& entry)>;
 	using shaderErrorEvent_t  = std::function<void(const tShader* shader, const errorEntry& entry)>;
 	using shaderProgramErrorEvent_t  = std::function<void(const tShaderProgram* shaderProgram, const errorEntry& entry)>;
-
-	enum class shaderType_e
-	{
-		vertex = GL_VERTEX_SHADER,
-		fragment = GL_FRAGMENT_SHADER,
-		geometry = GL_GEOMETRY_SHADER,
-		tessControl =  GL_TESS_CONTROL_SHADER,
-		tessEval = GL_TESS_EVALUATION_SHADER,
-		compute = GL_COMPUTE_SHADER,
-		invalid = -1,
-	};
-
-	inline std::vector<GLenum> interfaces = { GL_UNIFORM, GL_UNIFORM_BLOCK, GL_ATOMIC_COUNTER_BUFFER, GL_PROGRAM_INPUT, GL_PROGRAM_OUTPUT,
-		GL_TRANSFORM_FEEDBACK_VARYING, GL_BUFFER_VARIABLE, GL_SHADER_STORAGE_BLOCK, GL_TRANSFORM_FEEDBACK_BUFFER,
-		GL_VERTEX_SUBROUTINE, GL_FRAGMENT_SUBROUTINE, GL_GEOMETRY_SUBROUTINE, GL_TESS_CONTROL_SUBROUTINE, GL_TESS_EVALUATION_SUBROUTINE, GL_COMPUTE_SUBROUTINE,
-		GL_VERTEX_SUBROUTINE_UNIFORM, GL_FRAGMENT_SUBROUTINE_UNIFORM, GL_GEOMETRY_SUBROUTINE_UNIFORM, GL_TESS_CONTROL_SUBROUTINE_UNIFORM, GL_TESS_EVALUATION_SUBROUTINE_UNIFORM, GL_COMPUTE_SUBROUTINE_UNIFORM
-	};
-
-	inline std::string TypeToString(const GLenum& type)
-	{
-		switch (type)
-		{
-			case GL_FLOAT: return "float";
-			case GL_FLOAT_VEC2: return "vec2";
-			case GL_FLOAT_VEC3: return "vec3";
-			case GL_FLOAT_VEC4: return "vec4";
-			case GL_DOUBLE: return "double";
-			case GL_DOUBLE_VEC2: return "dvec2";
-			case GL_DOUBLE_VEC3: return "dvec3";
-			case GL_DOUBLE_VEC4: return "dvec4";
-			case GL_INT: return "int";
-			case GL_INT_VEC2: return "ivec2";
-			case GL_INT_VEC3: return "ivec3";
-			case GL_INT_VEC4: return "ivec4";
-			case GL_UNSIGNED_INT: return "uint";
-			case GL_UNSIGNED_INT_VEC2: return "uvec2";
-			case GL_UNSIGNED_INT_VEC3: return "uvec3";
-			case GL_UNSIGNED_INT_VEC4: return "uvec4";
-			case GL_BOOL: return "bool";
-			case GL_BOOL_VEC2: return "bvec2";
-			case GL_BOOL_VEC3: return "bvec3";
-			case GL_BOOL_VEC4: return "bvec4";
-			case GL_FLOAT_MAT2: return "mat2";
-			case GL_FLOAT_MAT3: return "mat3";
-			case GL_FLOAT_MAT4: return "mat4";
-			//case GL_FLOAT_MAT2X3: return "mat2x3";
-			//case GL_FLOAT_MAT2X4: return "mat2x4";
-			//case GL_FLOAT_MAT3X2: return "mat3x2";
-			//case GL_FLOAT_MAT3X4: return "mat3x4";
-			//case GL_FLOAT_MAT4X2: return "mat4x2";
-			//case GL_FLOAT_MAT4X3: return "mat4x3";
-			case GL_DOUBLE_MAT2: return "dmat2";
-			case GL_DOUBLE_MAT3: return "dmat3";
-			case GL_DOUBLE_MAT2X3: return "dmat2x3";
-			case GL_DOUBLE_MAT2X4: return "dmat2x4";
-			case GL_DOUBLE_MAT3X2: return "dmat3x2";
-			case GL_DOUBLE_MAT3X4: return "dmat3x4";
-			case GL_DOUBLE_MAT4X2: return "dmat4x2";
-			case GL_DOUBLE_MAT4X3: return "dmat4x3";
-			case GL_SAMPLER_1D: return "sampler1D";
-			case GL_SAMPLER_2D: return "sampler2D";
-			case GL_SAMPLER_3D: return "sampler3D";
-			case GL_SAMPLER_CUBE: return "samplerCube";
-			case GL_SAMPLER_1D_SHADOW: return "sampler1DShadow";
-			case GL_SAMPLER_2D_SHADOW: return "sampler2DShadow";
-			case GL_SAMPLER_1D_ARRAY: return "sampler1DArray";
-			case GL_SAMPLER_2D_ARRAY: return "sampler2DArray";
-			case GL_SAMPLER_CUBE_MAP_ARRAY: return "samplerCubeArray";
-			case GL_SAMPLER_1D_ARRAY_SHADOW: return "sampler1DArrayShadow";
-			case GL_SAMPLER_2D_ARRAY_SHADOW: return "sampler2DArrayShadow";
-			case GL_SAMPLER_2D_MULTISAMPLE: return "sampler2DMS";
-			case GL_SAMPLER_2D_MULTISAMPLE_ARRAY: return "sampler2DMSArray";
-			case GL_SAMPLER_CUBE_SHADOW: return "samplerCubeShadow";
-			case GL_SAMPLER_CUBE_MAP_ARRAY_SHADOW: return "samplerCubeArrayShadow";
-			case GL_SAMPLER_BUFFER: return "samplerBuffer";
-			case GL_SAMPLER_2D_RECT: return "sampler2DRect";
-			case GL_SAMPLER_2D_RECT_SHADOW: return "sampler2DRectShadow";
-			case GL_INT_SAMPLER_1D: return "isampler1D";
-			case GL_INT_SAMPLER_2D: return "isampler2D";
-			case GL_INT_SAMPLER_3D: return "isampler3D";
-			case GL_INT_SAMPLER_CUBE: return "isamplerCube";
-			case GL_INT_SAMPLER_1D_ARRAY: return "isampler1DArray";
-			case GL_INT_SAMPLER_2D_ARRAY: return "isampler2DArray";
-			case GL_INT_SAMPLER_CUBE_MAP_ARRAY: return "isamplerCubeArray";
-			case GL_INT_SAMPLER_2D_MULTISAMPLE: return "isampler2DMS";
-			case GL_INT_SAMPLER_2D_MULTISAMPLE_ARRAY: return "isampler2DMSArray";
-			case GL_INT_SAMPLER_BUFFER: return "isamplerBuffer";
-			case GL_INT_SAMPLER_2D_RECT: return "isampler2DRect";
-			case GL_UNSIGNED_INT_SAMPLER_1D: return "usampler1D";
-			case GL_UNSIGNED_INT_SAMPLER_2D: return "usampler2D";
-			case GL_UNSIGNED_INT_SAMPLER_3D: return "usampler3D";
-			case GL_UNSIGNED_INT_SAMPLER_CUBE: return "usamplerCube";
-			case GL_UNSIGNED_INT_SAMPLER_1D_ARRAY: return "usampler1DArray";
-			case GL_UNSIGNED_INT_SAMPLER_2D_ARRAY: return "usampler2DArray";
-			case GL_UNSIGNED_INT_SAMPLER_CUBE_MAP_ARRAY: return "usamplerCubeArray";
-			case GL_UNSIGNED_INT_SAMPLER_2D_MULTISAMPLE: return "usampler2DMS";
-			case GL_UNSIGNED_INT_SAMPLER_2D_MULTISAMPLE_ARRAY: return "usampler2DMSArray";
-			case GL_UNSIGNED_INT_SAMPLER_BUFFER: return "usamplerBuffer";
-			case GL_UNSIGNED_INT_SAMPLER_2D_RECT: return "usampler2DRect";
-			case GL_IMAGE_1D: return "image1D";
-			case GL_IMAGE_2D: return "image2D";
-			case GL_IMAGE_3D: return "image3D";
-			case GL_IMAGE_2D_RECT: return "image2DRect";
-			case GL_IMAGE_CUBE: return "imageCube";
-			case GL_IMAGE_BUFFER: return "imageBuffer";
-			case GL_IMAGE_1D_ARRAY: return "image1DArray";
-			case GL_IMAGE_2D_ARRAY: return "image2DArray";
-			case GL_IMAGE_CUBE_MAP_ARRAY: return "imageCubeArray";
-			case GL_IMAGE_2D_MULTISAMPLE: return "image2DMS";
-			case GL_IMAGE_2D_MULTISAMPLE_ARRAY: return "image2DMSArray";
-			case GL_INT_IMAGE_1D: return "iimage1D";
-			case GL_INT_IMAGE_2D: return "iimage2D";
-			case GL_INT_IMAGE_3D: return "iimage3D";
-			case GL_INT_IMAGE_2D_RECT: return "iimage2DRect";
-			case GL_INT_IMAGE_CUBE: return "iimageCube";
-			case GL_INT_IMAGE_BUFFER: return "iimageBuffer";
-			case GL_INT_IMAGE_1D_ARRAY: return "iimage1DArray";
-			case GL_INT_IMAGE_2D_ARRAY: return "iimage2DArray";
-			case GL_INT_IMAGE_CUBE_MAP_ARRAY: return "iimageCubeArray";
-			case GL_INT_IMAGE_2D_MULTISAMPLE: return "iimage2DMS";
-			case GL_INT_IMAGE_2D_MULTISAMPLE_ARRAY: return "iimage2DMSArray";
-			case GL_UNSIGNED_INT_IMAGE_1D: return "uimage1D";
-			case GL_UNSIGNED_INT_IMAGE_2D: return "uimage2D";
-			case GL_UNSIGNED_INT_IMAGE_3D: return "uimage3D";
-			case GL_UNSIGNED_INT_IMAGE_2D_RECT: return "uimage2DRect";
-			case GL_UNSIGNED_INT_IMAGE_CUBE: return "uimageCube";
-			case GL_UNSIGNED_INT_IMAGE_BUFFER: return "uimageBuffer";
-			case GL_UNSIGNED_INT_IMAGE_1D_ARRAY: return "uimage1DArray";
-			case GL_UNSIGNED_INT_IMAGE_2D_ARRAY: return "uimage2DArray";
-			case GL_UNSIGNED_INT_IMAGE_CUBE_MAP_ARRAY: return "uimageCubeArray";
-			case GL_UNSIGNED_INT_IMAGE_2D_MULTISAMPLE: return "uimage2DMS";
-			case GL_UNSIGNED_INT_IMAGE_2D_MULTISAMPLE_ARRAY: return "uimage2DMSArray";
-			case GL_UNSIGNED_INT_ATOMIC_COUNTER: return "atomic_uint";
-			default:
-			{
-				return "none";
-			}
-		}
-	}
 
 	/*
 	* a TShader is a wrapper for an OpenGL shader
@@ -327,7 +344,7 @@ namespace TinyShaders
 	{
 		public:
 
-		parseUniformBlockEvent_t parseUniformBlockEvent;
+		//parseUniformBlockEvent_t parseUniformBlockEvent;
 		managerErrorEvent_t managerErrorEvent; /**< This is the callback to be used when a manager specific error has occurred */
 		shaderErrorEvent_t shaderErrorEvent;
 		shaderProgramErrorEvent_t shaderProgramErrorEvent;
@@ -487,7 +504,7 @@ namespace TinyShaders
 
 		std::vector<errorEntry> errorLog;
 		std::unordered_map< std::string, std::unique_ptr<tShaderProgram>>	shaderPrograms;		/**< All loaded shader programs */
-		std::unordered_map< std::string, std::unique_ptr<tShader>>			shaders;			/**< All loaded shaders*/
+		std::unordered_map< std::string, std::unique_ptr<tShader>>			shaders;			/**< All loaded shaders */
 
 		/*
 		* compile the shader from a given text file
@@ -726,7 +743,7 @@ namespace TinyShaders
 					glGetProgramResourceName(shader->pipelineHandle, interfaceIter, iter, nameData.size(), NULL, &nameData[0]);
 					std::string name((char*)&nameData[0], nameData.size() - 1);
 
-					printf("index %d: %s %s @ location %d.\n", iter, TypeToString(values[1]).c_str(), name.c_str(), values[3]);
+					printf("index %d: %s %s @ location %d.\n", iter, typeLUT.at(values[1]).c_str(), name.c_str(), values[3]);
 				}
 			}
 		}
@@ -828,42 +845,9 @@ namespace TinyShaders
 	/*
 	* convert the given string to a shader type
 	*/
-	inline void StringToShaderType( const std::string& typeString, shaderType_e& shaderTypeOut )
+	inline shaderType_e StringToShaderType(const std::string& typeString)
 	{
-		if( !typeString.empty() )
-		{
-			if(typeString == "vertex")
-			{
-				shaderTypeOut = shaderType_e::vertex;
-				return;
-			}
-			if(typeString == "fragment")
-			{
-				shaderTypeOut = shaderType_e::fragment;
-				return;
-			}
-			if(typeString == "geometry")
-			{
-				shaderTypeOut = shaderType_e::geometry;
-				return;
-			}
-			if(typeString == "tessellation_control")
-			{
-				shaderTypeOut = shaderType_e::tessControl;
-				return;
-			}
-			if(typeString == "tessellation_evaluation")
-			{
-				shaderTypeOut = shaderType_e::tessControl;
-				return;
-			}
-			if(typeString == "compute")
-			{
-				shaderTypeOut = shaderType_e::compute;
-				return;
-			}
-			shaderTypeOut = shaderType_e::invalid;
-		}
+		return shaderTypeRev.at(typeString);
 	}
 
 	/*
@@ -871,16 +855,7 @@ namespace TinyShaders
 	*/
 	inline std::string ShaderTypeToString( const shaderType_e& shaderType )
 	{
-		switch ( shaderType )
-		{
-			case shaderType_e::vertex: return "vertex";
-			case shaderType_e::fragment: return "fragment";
-			case shaderType_e::geometry: return "geometry";
-			case shaderType_e::tessControl: return "tessellation Control";
-			case shaderType_e::tessEval: return "tessellation Evaluation";
-			case shaderType_e::compute: return "compute";
-			default: return "invalidShaderType";
-		}
+		return shaderTypeLUT.at(shaderType);
 	}
 }
 #endif
