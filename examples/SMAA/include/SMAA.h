@@ -22,7 +22,8 @@ struct SMAASettings_t
 	int32_t		edgeDetectionMode;
 
 	explicit SMAASettings_t(const glm::ivec2& resolution = defaultWindowSize, const float threshold = 0.05, const float CAFactor = 2.0f,
-		const uint8_t maxSearchSteps = 32, const uint8_t maxSearchStepsDiag = 16, const uint8_t cornerRounding = 25)
+		const uint8_t maxSearchSteps = 32, const uint8_t maxSearchStepsDiag = 16, const uint8_t cornerRounding = 25,
+		const EdgeDetectionMode_e& edgeDetectionMode = EdgeDetectionMode_e::color)
 	{
 		this->rtMetrics = glm::vec4(1.0 / resolution.x, 1.0 / resolution.y, resolution.x, resolution.y);
 		this->threshold = threshold;
@@ -30,7 +31,7 @@ struct SMAASettings_t
 		this->maxSearchSteps = maxSearchSteps;
 		this->maxSearchStepsDiag = maxSearchStepsDiag;
 		this->cornerRounding = cornerRounding;
-		this->edgeDetectionMode = (int32_t)EdgeDetectionMode_e::depth;
+		this->edgeDetectionMode = (int32_t)edgeDetectionMode;
 	}
 };
 
@@ -48,12 +49,11 @@ public:
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LESS);
 
-		//soulspear is loaded at an awkward angle
+		//soulspear is loaded at an awkward angle so let's hack this
 		this->camera.Roll(glm::radians(180.0f));
 		this->camera.Pitch(glm::radians(270.0f));
 
 		this->camera.position.z -= 1.0f;
-
 
 		geometryBuffer = frameBuffer();
 		edgesBuffer = frameBuffer();
@@ -317,7 +317,7 @@ protected:
 		frameBuffer::Unbind();
 	}
 
-	void FinalPass(texture* tex1, texture* tex2) const
+	void FinalPass(const texture* tex1, const texture* tex2) const
 	{
 		//draw directly to backbuffer
 		tex1->SetActive(0);
@@ -442,15 +442,15 @@ protected:
 		if (ImGui::BeginTabItem("SMAA Settings"))
 		{
 			ImGui::Checkbox("enable Compare", &enableCompare);
-			ImGui::InputFloat("threshold", &SMAASettings.data.threshold, 0.001f, 0.1f);
-			ImGui::InputFloat("contrast adaption factor", &SMAASettings.data.contrastAdaptationFactor, 0.001f, 0.1f);
+			ImGui::SliderFloat("threshold", &SMAASettings.data.threshold, 0.001f, 1.0f, "%0.5f");
+			ImGui::SliderFloat("contrast adaption factor", &SMAASettings.data.contrastAdaptationFactor, 0.1f, 5.0f, "0.5f");
 			ImGui::SliderInt("max search steps", &SMAASettings.data.maxSearchSteps, 0, 255);
 			ImGui::SliderInt("max search steps diagonal", &SMAASettings.data.maxSearchStepsDiag, 0, 255);
 			ImGui::SliderInt("corner rounding", &SMAASettings.data.cornerRounding, 0, 255);
 
 			//set a list box for edge detection modes
-			static int edgeDetectionPick = 0;
-			std::vector edgeDetectionSettings = { "luma", "color", "depth" };
+			static int edgeDetectionPick = (int32_t)SMAASettings.data.edgeDetectionMode;
+			const std::vector edgeDetectionSettings = { "luma", "color", "depth" };
 			ImGui::ListBox("Edge Detection Mode", &edgeDetectionPick, edgeDetectionSettings.data(), edgeDetectionSettings.size());
 			switch (edgeDetectionPick)
 			{

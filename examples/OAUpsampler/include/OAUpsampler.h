@@ -202,8 +202,8 @@ protected:
     {
         if (ImGui::BeginTabItem("resolution scale"))
         {
-            if (ImGui::DragFloat("scaleX", &resolutionSettings.data.resolutionScale.x, 0.01f) ||
-                ImGui::DragFloat("scaleY", &resolutionSettings.data.resolutionScale.y, 0.01f))
+            if (ImGui::DragFloat("scaleX", &resolutionSettings.data.resolutionScale.x, 0.01f, 0.1f, 2.0f) ||
+                ImGui::DragFloat("scaleY", &resolutionSettings.data.resolutionScale.y, 0.01f, 0.1f, 2.0f))
             {
                 UpdateResolutionScale(resolutionSettings.data.resolutionScale);
                 ResizeBuffers(scaledResolution);

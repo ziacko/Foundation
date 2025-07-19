@@ -171,8 +171,8 @@ protected:
 	typedef std::pair<int32_t, std::string> sourceTypeEntry;
 	static tsl::robin_map<int32_t, std::string> sourceTypeLUT;
 
-	typedef std::pair<int16_t, ImGuiKey> keyMapEntry;
-	static tsl::robin_map<int16_t, ImGuiKey> keyMapLUT;
+	typedef std::pair<int32_t, ImGuiKey> keyMapEntry;
+	static tsl::robin_map<int32_t, ImGuiKey> keyMapLUT;
 
 	virtual void Update()
 	{
@@ -366,7 +366,7 @@ protected:
 	virtual void DrawGUI(tWindow* window)
 	{
 		BeginGUI(window);
-		ImGuiIO io = ImGui::GetIO();
+		const ImGuiIO io = ImGui::GetIO();
 		BuildGUI(window, io);
 		EndGUI(window);
 	}
@@ -384,7 +384,7 @@ protected:
 	virtual void InitializeUniforms()
 	{
 		defaultPayload.data = defaultUniformBuffer(this->camera);
-		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
+		glViewport(defaultViewportOrigin.x, defaultViewportOrigin.y, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 		defaultPayload.data.resolution = glm::vec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 		defaultPayload.data.projection = glm::ortho(0.0f, (GLfloat)window->GetSettings().resolution.width, (GLfloat)window->GetSettings().resolution.height, 0.0f, 0.01f, 10.0f);
 
@@ -399,16 +399,16 @@ protected:
 		defaultPayload.SetupUniforms(defProgram.handle, "defaultSettings", 0);
 	}
 
-	virtual void Resize(const tWindow* window, glm::ivec2 dimensions = glm::ivec2(0))
+	virtual void Resize(const tWindow* window, glm::ivec2 dimensions)
 	{
 		if (dimensions == glm::ivec2(0))
 		{
 			dimensions = glm::ivec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 		}
-		glViewport(0, 0, dimensions.x, dimensions.y);
+		glViewport(defaultViewportOrigin.x, defaultViewportOrigin.y, dimensions.x, dimensions.y);
 		
 		defaultPayload.data.resolution = glm::ivec2(dimensions.x, dimensions.y);
-		defaultPayload.data.projection = glm::ortho(0.0f, (GLfloat)dimensions.x, (GLfloat)dimensions.y, 0.0f, 0.01f, 10.0f);
+		defaultPayload.data.projection = glm::ortho(0.0f, (GLfloat)dimensions.x, (GLfloat)dimensions.y, 0.0f, defaultNearPlane, defaultFarPlane);
 
 		UpdateBuffer(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW);
 	}
@@ -433,7 +433,8 @@ protected:
 
 	virtual void HandleMaximize(const tWindow* window)
 	{
-		Resize(window);
+		//thrown in new window size
+		Resize(window, glm::ivec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height));
 	}
 
 	virtual void HandleMouseMotion(const tWindow* window, const vec2_t<int16_t>& windowPosition, const vec2_t<int16_t>& screenPosition)
@@ -804,17 +805,17 @@ protected:
 		printf("---------------------opengl-callback-start------------\n");
 		//print debug type
 		printf("type: ");
-		printf("%s\n", debugTypeLUT.at(type).c_str());
+		printf("%s\n", debugTypeLUT.at((int32_t)type).c_str());
 
 		printf("ID: %i\n", id);
 
 		//severity
 		printf("severity: ");
-		printf("%s\n", severityLUT.at(severity).c_str());
+		printf("%s\n", severityLUT.at((int32_t)severity).c_str());
 
 		//source
 		printf("Source: ");
-		printf("%s\n", sourceTypeLUT.at(source).c_str());
+		printf("%s\n", sourceTypeLUT.at((int32_t)source).c_str());
 
 		printf("Message: \n");
 		printf("%s \n", message);
@@ -853,7 +854,7 @@ tsl::robin_map<int32_t, std::string> scene::sourceTypeLUT =
 	sourceTypeEntry(GL_DEBUG_SOURCE_OTHER, "other"),
 };
 
-tsl::robin_map<int16_t, ImGuiKey> scene::keyMapLUT =
+tsl::robin_map<int32_t, ImGuiKey> scene::keyMapLUT =
 {
 	keyMapEntry(tab, ImGuiKey_Tab),					// VK_TAB
 	keyMapEntry(arrowLeft, ImGuiKey_LeftArrow),		// VK_LEFT

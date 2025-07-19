@@ -57,14 +57,14 @@ using namespace tw;
 constexpr glm::vec4 clearColor = {0.33f, 0.33f, 0.33f, 1.0f};
 constexpr glm::vec4 clearColor2 = { 0.0f, 0.0f, 0.0f, 1.0f };
 
-constexpr glm::vec2 defaultWindowSize = glm::vec2(1280, 720);
+constexpr glm::ivec2 defaultWindowSize = glm::ivec2(1280, 720);
 
 constexpr float defaultNearPlane = 0.01f;
 constexpr float defaultFarPlane = 100.0f;
 constexpr float defaultFieldOfView = 90.0f;
 constexpr float defaultCameraSpeed = PI * 0.1;
 
-constexpr glm::vec2 defaultViewportOrigin = glm::vec2(0);
+constexpr glm::ivec2 defaultViewportOrigin = glm::ivec2(0);
 
 //could put all opf these into a namespace but what to call it? globdefaults? gDefs?
 
