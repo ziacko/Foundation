@@ -109,7 +109,7 @@ public:
 	{
 		for (auto val : shaderProgramsMap | std::views::values)
 		{
-			ShutdownShaderProgram(&val);
+			ShutdownShaderProgram(val);
 		}
 
 		ImGUIInvalidateDeviceObject();
@@ -496,7 +496,6 @@ protected:
 	{
 		printf(errorMessage.c_str());
 	}
-
 
 	virtual void InitImGUI(tWindow* window)
 	{

@@ -42,6 +42,7 @@ public:
 		manager->maximizedEvent = std::bind(&scene3D::HandleMaximize, this, _1);
 		//manager->destroyedEvent = std::bind(&scene::ShutDown, this, _1);
 
+		manager->mouseWheelEvent = std::bind(&scene3D::HandleMouseWheel, this, _1, _2);
 		manager->mouseButtonEvent = std::bind(&scene3D::HandleMouseClick, this, _1, _2, _3);
 		manager->mouseMoveEvent = std::bind(&scene3D::HandleMouseMotion, this, _1, _2, _3);
 		manager->keyEvent = std::bind(&scene3D::HandleKey, this, _1, _2, _3);

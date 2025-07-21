@@ -76,7 +76,6 @@ static void LoadShaderProgramsFromConfigFile(tsl::robin_map<std::string, ShaderP
                             std::string outputName = yyjson_get_str(currentOutput);
                             if (outputName.empty() == false)
                             {
-                                // TODO: extend this later for types as well :)
                                 localProgram.outputs.emplace_back(outputName);
                             }
                         }
@@ -93,7 +92,6 @@ static void LoadShaderProgramsFromConfigFile(tsl::robin_map<std::string, ShaderP
                             std::string attribName = yyjson_get_str(currentAttrib);
                             if (attribName.empty() == false)
                             {
-                                //TODO: also add types here
                                 localProgram.inputs.emplace_back(attribName);
                             }
                         }
@@ -124,7 +122,7 @@ static void LoadShaderProgramsFromConfigFile(tsl::robin_map<std::string, ShaderP
                                 shaderType_e localType = StringToShaderType(std::string(yyjson_get_str(shaderType)));
 
                                 //prepend the working directory to path
-                                TinyShaders::LoadShader(&localShader, yyjson_get_str(shaderName), localPath, localType);
+                                TinyShaders::LoadShader(localShader, yyjson_get_str(shaderName), localPath, localType);
                             }
 
                             if (localShader.isCompiled == true)
@@ -134,7 +132,7 @@ static void LoadShaderProgramsFromConfigFile(tsl::robin_map<std::string, ShaderP
                         }
                     }
                     //ok now lets put it all together
-                    TinyShaders::BuildProgramFromShaders(&localProgram, localProgram.name, localProgram.inputs, localProgram.outputs, localProgram.shaders);
+                    TinyShaders::BuildProgramFromShaders(localProgram, localProgram.name, localProgram.inputs, localProgram.outputs, localProgram.shaders);
                     outPrograms->emplace(localProgram.name, localProgram);
                 }
             }

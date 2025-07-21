@@ -3903,16 +3903,16 @@ namespace TinyWindow
 
 							case 4:
 								{
-									window->mouseButton[(uint16_t)mouseScroll_e::up] = buttonState_e::down;
+									//window->mouseButton[(uint16_t)mouseScroll_e::up] = buttonState_e::down;
 
 									if (mouseWheelEvent != nullptr)
-										mouseWheelEvent(window, mouseScroll_e::down);
+										mouseWheelEvent(window, mouseScroll_e::up);
 									break;
 								}
 
 							case 5:
 								{
-									window->mouseButton[(uint16_t)mouseScroll_e::down] = buttonState_e::down;
+									//window->mouseButton[(uint16_t)mouseScroll_e::down] = buttonState_e::down;
 
 									if (mouseWheelEvent != nullptr)
 										mouseWheelEvent(window, mouseScroll_e::down);
@@ -3963,20 +3963,6 @@ namespace TinyWindow
 									break;
 								}
 
-							case 4:
-								{
-									// the mouse wheel was scrolled up
-									window->mouseButton[(uint16_t)mouseScroll_e::up] = buttonState_e::down;
-									break;
-								}
-
-							case 5:
-								{
-									// the mouse wheel was scrolled down
-									window->mouseButton[(uint16_t)mouseScroll_e::down] = buttonState_e::down;
-									break;
-								}
-
 							default:
 								{
 									// need to add more mouse buttons
@@ -3989,7 +3975,7 @@ namespace TinyWindow
 				// when the mouse/pointer device is moved
 				case MotionNotify:
 					{
-						//setup previous mouse posiitons
+						//setup previous mouse positons
 						window->previousMousePosition = window->mousePosition;
 
 						// set the windows mouse position to match the event
