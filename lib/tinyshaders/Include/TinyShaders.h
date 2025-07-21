@@ -30,9 +30,8 @@
 
 namespace TinyShaders
 {
-	class tShader;
-	class tShaderProgram;
-	class shaderManager;
+	struct shader_t;
+	struct ShaderProgram_t;
 
 	inline std::string defaultProgramBinaryExtension = ".glbin";
 	inline std::string defaultBinaryPath = "./Shaders/";
@@ -235,418 +234,16 @@ namespace TinyShaders
 			shaderTypeEntryRev("compute", shaderType_e::compute),
 			shaderTypeEntryRev("invalid", shaderType_e::invalid),
 		};
-	}
 
-	using managerErrorEvent_t = std::function<void(const errorEntry& entry)>;
-	using shaderErrorEvent_t  = std::function<void(const tShader* shader, const errorEntry& entry)>;
-	using shaderProgramErrorEvent_t  = std::function<void(const tShaderProgram* shaderProgram, const errorEntry& entry)>;
+		using managerErrorEvent_t = std::function<void(const std::string& entry)>;
+		using shaderErrorEvent_t  = std::function<void(const shader_t* shader, const std::string& entry)>;
+		using shaderProgramErrorEvent_t  = std::function<void(const ShaderProgram_t* shaderProgram, const std::string& entry)>;
 
-	/*
-	* a TShader is a wrapper for an OpenGL shader
-	*/
-	class tShader
-	{
-		friend class shaderManager;
-
-	public:
-
-		std::string			name;			/**< The name of the shader component */
-		std::string			filePath;		/**< The FilePath of the component */
-		std::string			buffer;			/**< keep a hold of the shader code for debugging */
-		GLuint				handle;			/**< The handle to the shader in OpenGL */
-		shaderType_e		type;			/**< The type of shader (Vertex, Fragment, etc.) */
-		GLboolean			isCompiled;		/**< Whether the shader has been compiled */
-		GLuint				pipelineHandle;
-		GLboolean			separable;
-
-		explicit tShader(std::string  shaderName, const shaderType_e& shaderType, std::string  shaderFilePath, const bool& separable = true) :
-			name(std::move(shaderName)), filePath(std::move(shaderFilePath)), type(shaderType), isCompiled(false), separable(separable)
-		{
-			pipelineHandle = 0;
-			handle = 0;
-		}
-
-		explicit tShader(std::string  shaderName, std::string  buffer, const shaderType_e& shaderType, const bool& separable = true)
-			: name(std::move(shaderName)), buffer(std::move(buffer)), type(shaderType), separable(separable)
-		{
-			type = shaderType;
-			pipelineHandle = 0;
-			handle = 0;
-			isCompiled = GL_FALSE;
-			filePath = std::string("");
-		}
-		
-		tShader() :
-		handle(0), type(shaderType_e::vertex), isCompiled(false), pipelineHandle(0), separable(false) {}
-
-		~tShader() = default;
-	};
-
-	/*
-	* a tShaderProgram is a wrapper for an OpenGL shader program
-	*/
-	class tShaderProgram
-	{
-		friend class shaderManager;
-
-	public:
-
-		std::string						name;				/**< The name of the shader program */
-		GLuint							handle;				/**< The OpenGL handle to the shader program */
-		GLboolean						isCompiled;			/**< Whether the shader program has been linked successfully */
-		std::vector< std::string >		inputs;				/**< The inputs of the shader program as a vector of strings */
-		std::vector< std::string >		outputs;			/**< The outputs of the shader program as a vector of strings */
-		std::vector< tShader >			shaders;			/**< The components that the shader program comprises as a vector */
-		GLuint							pipelineID;			/**< The GL pipeline ID for building modular shader programs */
-
-
-		/*
-		* basic constructor
-		*/
-		tShaderProgram() : 
-		handle(0), isCompiled(false), pipelineID(0) {}
-
-		/*
-		* uses the given values to create an OpenGL shader program
-		*/
-		tShaderProgram(std::string  programName,
-			const std::vector< std::string >& programInputs,
-			const std::vector< std::string >& programOutputs,
-			const std::vector< tShader >& programShaders,
-			bool saveBinary = false) :
-			name(std::move(programName)), handle(0),
-			inputs(programInputs), outputs(programOutputs),
-			shaders(programShaders), pipelineID(0)
-		{
-			isCompiled = false;
-		};
-
-		/*
-		* another bare-bones constructor
-		*/
-		explicit tShaderProgram(std::string  programName) :
-			name(std::move(programName)), handle(0), isCompiled(false), pipelineID(0) {};
-
-		tShaderProgram(std::string  programName, const GLuint programHandle) :
-			name(std::move(programName)), handle(programHandle), isCompiled(false), pipelineID(0) {}
-
-		tShaderProgram(std::string  programName, const tShader& computeShader)
-			: name(std::move(programName)), handle(0), pipelineID(0)
-		{
-			shaders.push_back(computeShader);
-			isCompiled = false;
-		}
-
-		~tShaderProgram() = default;
-	};
-
-	class shaderManager
-	{
-		public:
-
-		//parseUniformBlockEvent_t parseUniformBlockEvent;
 		managerErrorEvent_t managerErrorEvent; /**< This is the callback to be used when a manager specific error has occurred */
 		shaderErrorEvent_t shaderErrorEvent;
 		shaderProgramErrorEvent_t shaderProgramErrorEvent;
 
-		shaderManager() = default;
-		~shaderManager() { Shutdown(); }
-
-		tShader* GetShader(const std::string& name)
-		{
-			return shaders[name].get();
-		}
-
-		tShaderProgram* GetShaderProgram(const std::string& name)
-		{
-			return shaderPrograms[name].get();
-		}
-
-		/*
-		* shuts down TinyShaders. deletes all OpenGL shaders and shader programs
-		* as well as calling shutdown on all shader and programs and clears all vectors.
-		*/
-		void Shutdown()
-		{
-			for (auto & program : shaderPrograms | std::views::values)
-			{
-				ShutdownShaderProgram(program.get());
-				const auto data = program.release();
-				delete data;
-			}
-
-			for (auto& shader : shaders | std::views::values)
-			{
-				ShutdownShader(shader.get());
-				const auto data = shader.release();
-				delete data;
-			}
-			shaders.clear();
-			shaderPrograms.clear();
-		}
-
-		/*
-		* load an OpenGL shader
-		*/
-		void LoadShader( const std::string& name, const std::string& shaderFile, const shaderType_e& shaderType)
-		{
-			if (!name.empty())
-			{
-				std::unique_ptr<tShader> newShader(new tShader(name, shaderType, shaderFile));
-				FileToBuffer(shaderFile, newShader->buffer);
-				CompileShader(newShader.get());
-
-				if (newShader->isCompiled)
-				{
-					shaders.emplace(name, std::move(newShader));
-				}
-				AddShaderErrorLog(newShader.get(), error_e::shaderCompileFailed);
-			}
-			AddErrorLog(error_e::invalidString);
-		}
-
-		/*
-		* builds a new OpenGL shader program from already loaded shaders
-		*/
-		void BuildProgramFromShaders( const std::string& programName,
-			const std::vector< std::string >& inputs,
-			const std::vector< std::string >& outputs,
-			const std::string& vertexShaderName,
-			const std::string& fragmentShaderName,
-			const std::string& geometryShaderName,
-			const std::string& tessContShaderName,
-			const std::string& tessEvalShaderName,
-			const bool& saveBinary = false )
-		{
-			std::vector< tShader > shaderList;
-			tShader vertexShader = *shaders[vertexShaderName].get();
-			tShader fragmentShader = *shaders[fragmentShaderName].get();
-			tShader geometryShader = *shaders[geometryShaderName].get();
-			tShader tessControlShader = *shaders[tessContShaderName].get();
-			tShader tessEvalShader = *shaders[tessEvalShaderName].get();
-
-			shaderList.push_back( vertexShader );
-			shaderList.push_back( fragmentShader );
-			shaderList.push_back( geometryShader );
-			shaderList.push_back( tessControlShader );
-			shaderList.push_back( tessEvalShader );
-
-			std::unique_ptr<tShaderProgram> newShaderProgram(new tShaderProgram( programName, inputs, outputs, shaderList, saveBinary ));
-			CompileShaderProgram(newShaderProgram.get(), saveBinary);
-			if (newShaderProgram->isCompiled)
-			{
-				shaderPrograms.emplace(programName, std::move(newShaderProgram));
-			}
-			AddShaderProgramErrorLog(newShaderProgram.get(), error_e::shaderProgramLoadFailed);
-		}
-
-		void BuildProgramFromShaders( const std::string& programName,
-			const std::vector< std::string >& inputs,
-			const std::vector< std::string >& outputs,
-			const std::vector<tShader>& shaderList,
-			const bool& saveBinary = false)
-			{
-				std::unique_ptr<tShaderProgram> newShaderProgram(new tShaderProgram( programName, inputs, outputs, shaderList, saveBinary ));
-				CompileShaderProgram(newShaderProgram.get(), saveBinary);
-				if (newShaderProgram->isCompiled)
-				{
-					shaderPrograms.emplace(programName, std::move(newShaderProgram));
-				}
-				else
-				{
-					AddShaderProgramErrorLog(newShaderProgram.get(), error_e::shaderProgramLoadFailed);
-				}
-			}
-
-		void BuildProgramFromShaders(const std::string& shaderName,
-			const std::string& computeShaderName,
-			const bool saveBinary = false)
-		{
-			std::vector< tShader > shaderList;
-			const tShader computeShader = *shaders[computeShaderName].get();
-
-			shaderList.push_back(computeShader);
-			std::unique_ptr<tShaderProgram> newShaderProgram(new tShaderProgram(shaderName, shaderList[0]));
-			CompileShaderProgram(newShaderProgram.get(), saveBinary);
-			if (newShaderProgram->isCompiled)
-			{
-				shaderPrograms.emplace(shaderName, std::move(newShaderProgram));
-			}
-			AddShaderProgramErrorLog(newShaderProgram.get(), error_e::shaderProgramLoadFailed);
-		}
-
-		void LoadShaderFromBuffer( const std::string& name, const std::string& buffer, const shaderType_e& shaderType )
-		{
-			if ( !buffer.empty() )
-			{
-				if ( name.empty() )
-				{
-					if (!shaders.contains(name))
-					{
-						std::unique_ptr<tShader> newShader(new tShader(name, buffer, shaderType));
-						if (newShader->isCompiled)
-						{
-							shaders.emplace(name, std::move(newShader));
-						}
-						else
-						{
-							AddShaderErrorLog(newShader.get(), error_e::shaderCompileFailed);
-						}
-					}
-					AddErrorLog(error_e::shaderAlreadyLoaded);
-				}
-				AddErrorLog(error_e::invalidShaderName);
-			}
-			AddErrorLog(error_e::invalidString);
-		}
-
-		private:
-
 		std::vector<errorEntry> errorLog;
-		std::unordered_map< std::string, std::unique_ptr<tShaderProgram>>	shaderPrograms;		/**< All loaded shader programs */
-		std::unordered_map< std::string, std::unique_ptr<tShader>>			shaders;			/**< All loaded shaders */
-
-		/*
-		* compile the shader from a given text file
-		*/
-		void CompileShader(tShader* shader)
-			{
-				//if the component hasn't been compiled yet
-				if (!shader->isCompiled)
-				{
-					char errorLog[512];
-					GLint successful;
-
-					if (!shader->buffer.empty())
-					{
-						shader->handle = glCreateShader(static_cast<unsigned int>(shader->type));
-						const char* str = shader->buffer.c_str();
-						glShaderSource(shader->handle, 1, (const char**)&str, nullptr);
-						glCompileShader(shader->handle);
-
-						glGetShaderiv(shader->handle, GL_COMPILE_STATUS, &successful);
-						glGetShaderInfoLog(shader->handle, sizeof(errorLog), nullptr, errorLog);
-
-						if (shader->separable)
-						{
-							shader->pipelineHandle = glCreateProgram();
-							glAttachShader(shader->pipelineHandle, shader->handle);
-
-							glProgramParameteri(shader->pipelineHandle, GL_PROGRAM_SEPARABLE, GL_TRUE);
-							glLinkProgram(shader->pipelineHandle);
-						}
-
-						if (successful != GL_TRUE)
-						{
-							//AddShader
-#if defined(DEBUG)
-							printf("%s \n", errorLog);
-#endif
-							AddShaderErrorLog(shader, error_e::shaderCompileFailed);
-						}
-
-						else
-						{
-							//ProcessInterfaces();
-							shader->isCompiled = GL_TRUE;
-						}
-					}
-					else
-					{
-						AddShaderErrorLog(shader, error_e::invalidSourceFile);
-					}
-				}
-				else
-				{
-					//either the file name doesn't exist or the component has already been loaded
-					AddShaderErrorLog(shader, error_e::invalidFilePath);
-				}
-			}
-
-		/*
-		* compile the OpenGL shader program with the given information
-		*/
-		void CompileShaderProgram(tShaderProgram* program, const bool saveBinary = true)
-		{
-			program->handle = glCreateProgram();
-			char errorLog[512];
-			GLint successful = GL_FALSE;
-			if (!program->isCompiled)
-			{
-				for (const auto& shader : program->shaders)
-				{
-					//if (shader != nullptr)
-					{
-						glAttachShader(program->handle, shader.handle);
-					}
-				}
-
-				// specify vertex input attributes
-				for (size_t i = 0; i < program->inputs.size(); ++i)
-				{
-					glBindAttribLocation(program->handle, (GLuint)i, program->inputs[i].c_str());
-				}
-
-				// specify pixel shader outputs
-				for (size_t i = 0; i < program->outputs.size(); ++i)
-				{
-					glBindFragDataLocation(program->handle, (GLuint)i, program->outputs[i].c_str());
-				}
-
-				if (saveBinary)
-				{
-					glProgramParameteri(program->handle, GL_PROGRAM_BINARY_RETRIEVABLE_HINT, GL_TRUE);
-				}
-
-				glLinkProgram(program->handle);
-				glGetProgramiv(program->handle, GL_LINK_STATUS, &successful);
-
-				if (successful != 1)
-				{
-					glGetProgramInfoLog(program->handle, sizeof(errorLog), nullptr, errorLog);
-#if defined(DEBUG)
-					printf("%s \n", errorLog);
-					AddShaderProgramErrorLog(program, error_e::shaderProgramCompileFailed);
-#endif
-				}
-
-				program->isCompiled = GL_TRUE;
-				//ProcessInterfaces(program);
-
-				if (saveBinary)
-				{
-					GLint binarySize = 0;
-					glGetProgramiv(program->handle, GL_PROGRAM_BINARY_LENGTH, &binarySize);
-
-					auto* buffer = (void*)malloc(binarySize);
-
-					if (buffer == nullptr)
-					{
-						AddShaderProgramErrorLog(program, error_e::shaderProgramCompileFailed);
-						return;
-					}
-
-					GLenum binaryFormat = GL_NONE;
-
-					glGetProgramBinary(program->handle, binarySize, nullptr, &binaryFormat, buffer);
-
-					std::string path;
-
-					path += defaultBinaryPath;
-					path += program->name;
-					path += defaultProgramBinaryExtension;
-
-					FILE* file = fopen(path.c_str(), "wb");
-					fprintf(file, "%s\n", program->name.c_str());
-					fprintf(file, "%i\n", binarySize);
-					fprintf(file, "%i\n", binaryFormat);
-					fwrite(buffer, binarySize, 1, file);
-					fclose(file);
-					path.clear();
-				}
-			}
-				AddShaderProgramErrorLog(program, error_e::shaderProgramAlreadyExists);
-		}
 
 		void AddErrorLog(error_e newError, const uint16_t& fileLine = __LINE__, const std::string& functionName = __FUNCTION__)
 		{
@@ -658,17 +255,17 @@ namespace TinyShaders
 			newString.append("at line %i \n");
 			newString.append(std::to_string(fileLine));
 
-			const auto newEntry = errorEntry(newError, newString);
+			errorEntry newEntry = errorEntry(newError, newString);
 
 			errorLog.push_back(newEntry);
 
 			if (managerErrorEvent != nullptr)
 			{
-				managerErrorEvent(newEntry);
+				managerErrorEvent(newString);
 			}
 		}
 
-		void AddShaderErrorLog(const tShader* shader, error_e newError, const uint16_t& fileLine = __LINE__, const std::string& functionName = __FUNCTION__)
+		void AddShaderErrorLog(const shader_t* shader, error_e newError, const uint16_t& fileLine = __LINE__, const std::string& functionName = __FUNCTION__)
 		{
 			auto newString = errorLUT.at(newError);
 
@@ -684,11 +281,11 @@ namespace TinyShaders
 
 			if (shaderErrorEvent != nullptr)
 			{
-				shaderErrorEvent(shader, newEntry);
+				shaderErrorEvent(shader, newString);
 			}
 		}
 
-		void AddShaderProgramErrorLog(const tShaderProgram* program, error_e newError, const uint16_t& fileLine = __LINE__, const std::string& functionName = __FUNCTION__)
+		void AddShaderProgramErrorLog(const ShaderProgram_t* program, error_e newError, const uint16_t& fileLine = __LINE__, const std::string& functionName = __FUNCTION__)
 		{
 			auto newString = errorLUT.at(newError);
 
@@ -704,143 +301,475 @@ namespace TinyShaders
 
 			if (shaderProgramErrorEvent != nullptr)
 			{
-				shaderProgramErrorEvent(program, newEntry);
+				shaderProgramErrorEvent(program, newString);
 			}
 		}
 
-		void ProcessInterfaces(const tShader* shader) const
+	}
+
+	/*
+	* a TShader is a wrapper for an OpenGL shader
+	*/
+	struct shader_t
+	{
+		std::string			name;			/**< The name of the shader component */
+		std::string			filePath;		/**< The FilePath of the component */
+		std::string			buffer;			/**< keep a hold of the shader code for debugging */
+		GLuint				handle;			/**< The handle to the shader in OpenGL */
+		shaderType_e		type;			/**< The type of shader (Vertex, Fragment, etc.) */
+		GLboolean			isCompiled;		/**< Whether the shader has been compiled */
+		GLuint				pipelineHandle;
+		GLboolean			separable;
+
+		explicit shader_t(std::string  shaderName, const shaderType_e& shaderType, std::string  shaderFilePath, const bool& separable = true) :
+			name(std::move(shaderName)), filePath(std::move(shaderFilePath)), type(shaderType), isCompiled(false), separable(separable)
 		{
-			//get all interfaces and resources
-
-			//uniforms
-			GLint numResources = 0;
-			GLint resource = 0;
-
-			std::vector<GLenum> supportedInterfaces = {};
-
-			for (auto interfaceIter : interfaces)
-			{
-				glGetProgramInterfaceiv(shader->pipelineHandle, interfaceIter, GL_ACTIVE_RESOURCES, &numResources);
-
-				std::vector<GLchar> nameData(256);
-				std::vector<GLenum> properties;
-				properties.push_back(GL_NAME_LENGTH);
-				properties.push_back(GL_TYPE);
-				properties.push_back(GL_ARRAY_SIZE);
-				properties.push_back(GL_LOCATION);
-
-
-				std::vector<GLint> values(properties.size());
-				for (GLenum iter = 0; iter < (GLenum)numResources; iter++)
-				{
-					//for each uniform grab num resources
-					glGetProgramInterfaceiv(shader->pipelineHandle, interfaceIter, iter, &resource);
-
-					GLint valueLength = 0;
-					glGetProgramResourceiv(shader->pipelineHandle, interfaceIter, iter, properties.size(), &properties[0], values.size(), &valueLength, &values[0]);
-
-					nameData.resize(values[0]);
-					glGetProgramResourceName(shader->pipelineHandle, interfaceIter, iter, nameData.size(), NULL, &nameData[0]);
-					std::string name((char*)&nameData[0], nameData.size() - 1);
-
-					printf("index %d: %s %s @ location %d.\n", iter, typeLUT.at(values[1]).c_str(), name.c_str(), values[3]);
-				}
-			}
+			pipelineHandle = 0;
+			handle = 0;
 		}
 
-		void ProcessInterfaces(const tShaderProgram* shaderProgram)
+		explicit shader_t(std::string  shaderName, std::string  buffer, const shaderType_e& shaderType, const bool& separable = true)
+			: name(std::move(shaderName)), buffer(std::move(buffer)), type(shaderType), separable(separable)
 		{
-			//get all interfaces and resources
-
-			//uniforms
-			GLint numResources = 0;
-			GLint resource = 0;
-			GLint maxNumResources = 0;
-			GLint numActiveBlocks = 0;
-
-			std::vector<GLenum> supportedInterfaces = {};
-
-			for (auto interfaceIter : interfaces)
-			{
-				//glGetProgramInterfaceiv(handle, interfaceIter, gl_active_uniform_blocks, &numActiveBlocks);
-				glGetProgramInterfaceiv(shaderProgram->handle, interfaceIter, GL_ACTIVE_RESOURCES, &numResources);
-				const GLenum blockProperties[1] = { GL_NUM_ACTIVE_VARIABLES };
-				const GLenum activeUnifProp[1] = { GL_ACTIVE_VARIABLES };
-				const GLenum unifProperties[3] = { GL_NAME_LENGTH, GL_TYPE, GL_LOCATION };
-
-				for (int blockIter = 0; blockIter < numResources; blockIter++)
-				{
-					int numActiveUniforms = 0;
-					glGetProgramResourceiv(shaderProgram->handle, GL_UNIFORM_BLOCK, blockIter, 1, blockProperties, 1, NULL, &numActiveUniforms);
-					if (numActiveUniforms == 0)
-					{
-						return;
-					}
-
-					std::vector<int>	blockUniforms(numActiveUniforms);
-					glGetProgramResourceiv(shaderProgram->handle, GL_UNIFORM_BLOCK, blockIter, 1, activeUnifProp, numActiveUniforms, NULL, &blockUniforms[0]);
-
-					for (size_t uniformIter = 0; uniformIter < numActiveUniforms; uniformIter++)
-					{
-						int values[3];
-						glGetProgramResourceiv(shaderProgram->handle, GL_UNIFORM, blockUniforms[uniformIter], 3, unifProperties, 3, NULL, values);
-
-						std::vector<char> nameData(values[0]);
-						glGetProgramResourceName(shaderProgram->handle, GL_UNIFORM, blockUniforms[uniformIter], nameData.size(), NULL, &nameData[0]);
-						std::string name(nameData.begin(), nameData.end() - 1);
-						printf("%s \n", name.c_str());
-					}
-				}
-			}
+			type = shaderType;
+			pipelineHandle = 0;
+			handle = 0;
+			isCompiled = GL_FALSE;
+			filePath = std::string("");
 		}
+		
+		shader_t() :
+		handle(0), type(shaderType_e::vertex), isCompiled(false), pipelineHandle(0), separable(false) {}
 
-		/*
-		* remove the shader from OpenGL
-		*/
-		static void ShutdownShader(tShader* shader)
-		{
-			glDeleteShader(shader->handle);
-			shader->isCompiled = GL_FALSE;
-		}
-
-		/*
-		* shut down the shader program. delete it from OpenGL
-		*/
-		static void ShutdownShaderProgram(const tShaderProgram* shaderProgram)
-		{
-			glDeleteProgram(shaderProgram->handle);
-			//get every shader inside and shut it down
-			for (auto shader : shaderProgram->shaders)
-			{
-				ShutdownShader(&shader);
-			}
-		}
-
-		/*
-		* convert the given file to a single dimension c-string buffer
-		*/
-		void FileToBuffer(const std::string& path, std::string& bufferToFill)
-		{
-			FILE* file = fopen(path.c_str(), "rt");
-
-			if (file == nullptr)
-			{
-				AddErrorLog(error_e::invalidFilePath);
-			}
-
-			//get total byte in given file
-			fseek(file, 0, SEEK_END);
-			const GLuint FileLength = ftell(file);
-			fseek(file, 0, SEEK_SET);
-
-			//allocate a file buffer and read the contents of the file
-			std::string buffer(FileLength, '\0');
-			fread(&buffer[0], sizeof(char), FileLength, file);
-
-			fclose(file);
-			bufferToFill = buffer;
-		}
+		~shader_t() = default;
 	};
+
+	/*
+	* a tShaderProgram is a wrapper for an OpenGL shader program
+	*/
+	struct ShaderProgram_t
+	{
+		std::string						name;				/**< The name of the shader program */
+		GLuint							handle;				/**< The OpenGL handle to the shader program */
+		GLboolean						isCompiled;			/**< Whether the shader program has been linked successfully */
+		std::vector< std::string >		inputs;				/**< The inputs of the shader program as a vector of strings */
+		std::vector< std::string >		outputs;			/**< The outputs of the shader program as a vector of strings */
+		std::vector< shader_t >			shaders;			/**< The components that the shader program comprises as a vector */
+		GLuint							pipelineID;			/**< The GL pipeline ID for building modular shader programs */
+
+		/*
+		* basic constructor
+		*/
+		ShaderProgram_t() :
+		handle(0), isCompiled(false), pipelineID(0) {}
+
+		/*
+		* uses the given values to create an OpenGL shader program
+		*/
+		ShaderProgram_t(std::string  programName,
+			const std::vector< std::string >& programInputs,
+			const std::vector< std::string >& programOutputs,
+			const std::vector< shader_t >& programShaders,
+			bool saveBinary = false) :
+			name(std::move(programName)), handle(0),
+			inputs(programInputs), outputs(programOutputs),
+			shaders(programShaders), pipelineID(0)
+		{
+			isCompiled = false;
+		};
+
+		/*
+		* another bare-bones constructor
+		*/
+		explicit ShaderProgram_t(std::string  programName) :
+			name(std::move(programName)), handle(0), isCompiled(false), pipelineID(0) {};
+
+		ShaderProgram_t(std::string  programName, const GLuint programHandle) :
+			name(std::move(programName)), handle(programHandle), isCompiled(false), pipelineID(0) {}
+
+		ShaderProgram_t(std::string  programName, const shader_t& computeShader)
+			: name(std::move(programName)), handle(0), pipelineID(0)
+		{
+			shaders.push_back(computeShader);
+			isCompiled = false;
+		}
+
+		~ShaderProgram_t() = default;
+	};
+
+	/*
+	* convert the given file to a single dimension c-string buffer
+	*/
+	inline void FileToBuffer(const std::string& path, std::string& bufferToFill)
+	{
+		FILE* file = fopen(path.c_str(), "rt");
+
+		if (file == nullptr)
+		{
+			AddErrorLog(error_e::invalidFilePath);
+		}
+
+		//get total byte in given file
+		fseek(file, 0, SEEK_END);
+		const GLuint FileLength = ftell(file);
+		fseek(file, 0, SEEK_SET);
+
+		//allocate a file buffer and read the contents of the file
+		std::string buffer(FileLength, '\0');
+		fread(&buffer[0], sizeof(char), FileLength, file);
+
+		fclose(file);
+		bufferToFill = buffer;
+	}
+
+	/*
+	* compile the shader from a given text file
+	*/
+	inline void CompileShader(shader_t* shader)
+	{
+		//if the component hasn't been compiled yet
+		if (!shader->isCompiled)
+		{
+			char errorLog[512];
+			GLint successful;
+
+			if (!shader->buffer.empty())
+			{
+				shader->handle = glCreateShader(static_cast<unsigned int>(shader->type));
+				const char* str = shader->buffer.c_str();
+				glShaderSource(shader->handle, 1, (const char**)&str, nullptr);
+				glCompileShader(shader->handle);
+
+				glGetShaderiv(shader->handle, GL_COMPILE_STATUS, &successful);
+				glGetShaderInfoLog(shader->handle, sizeof(errorLog), nullptr, errorLog);
+
+				if (shader->separable)
+				{
+					shader->pipelineHandle = glCreateProgram();
+					glAttachShader(shader->pipelineHandle, shader->handle);
+
+					glProgramParameteri(shader->pipelineHandle, GL_PROGRAM_SEPARABLE, GL_TRUE);
+					glLinkProgram(shader->pipelineHandle);
+				}
+
+				if (successful != GL_TRUE)
+				{
+					//AddShader
+#if defined(DEBUG)
+					printf("%s \n", errorLog);
+#endif
+					AddShaderErrorLog(shader, error_e::shaderCompileFailed);
+				}
+
+				else
+				{
+					//ProcessInterfaces();
+					shader->isCompiled = GL_TRUE;
+				}
+			}
+			else
+			{
+				AddShaderErrorLog(shader, error_e::invalidSourceFile);
+			}
+		}
+		else
+		{
+			//either the file name doesn't exist or the component has already been loaded
+			AddShaderErrorLog(shader, error_e::invalidFilePath);
+		}
+	}
+
+	/*
+	* compile the OpenGL shader program with the given information
+	*/
+	inline void CompileShaderProgram(ShaderProgram_t* program, const bool saveBinary = true)
+	{
+		program->handle = glCreateProgram();
+		char errorLog[512];
+		GLint successful = GL_FALSE;
+		if (!program->isCompiled)
+		{
+			for (const auto& shader : program->shaders)
+			{
+				//if (shader != nullptr)
+				{
+					glAttachShader(program->handle, shader.handle);
+				}
+			}
+
+			// specify vertex input attributes
+			for (size_t i = 0; i < program->inputs.size(); ++i)
+			{
+				glBindAttribLocation(program->handle, (GLuint)i, program->inputs[i].c_str());
+			}
+
+			// specify pixel shader outputs
+			for (size_t i = 0; i < program->outputs.size(); ++i)
+			{
+				glBindFragDataLocation(program->handle, (GLuint)i, program->outputs[i].c_str());
+			}
+
+			if (saveBinary)
+			{
+				glProgramParameteri(program->handle, GL_PROGRAM_BINARY_RETRIEVABLE_HINT, GL_TRUE);
+			}
+
+			glLinkProgram(program->handle);
+			glGetProgramiv(program->handle, GL_LINK_STATUS, &successful);
+
+			if (successful != 1)
+			{
+				glGetProgramInfoLog(program->handle, sizeof(errorLog), nullptr, errorLog);
+#if defined(DEBUG)
+				printf("%s \n", errorLog);
+				AddShaderProgramErrorLog(program, error_e::shaderProgramCompileFailed);
+#endif
+			}
+
+			program->isCompiled = GL_TRUE;
+			//ProcessInterfaces(program);
+
+			if (saveBinary)
+			{
+				GLint binarySize = 0;
+				glGetProgramiv(program->handle, GL_PROGRAM_BINARY_LENGTH, &binarySize);
+
+				auto* buffer = (void*)malloc(binarySize);
+
+				if (buffer == nullptr)
+				{
+					AddShaderProgramErrorLog(program, error_e::shaderProgramCompileFailed);
+					return;
+				}
+
+				GLenum binaryFormat = GL_NONE;
+
+				glGetProgramBinary(program->handle, binarySize, nullptr, &binaryFormat, buffer);
+
+				std::string path;
+
+				path += defaultBinaryPath;
+				path += program->name;
+				path += defaultProgramBinaryExtension;
+
+				FILE* file = fopen(path.c_str(), "wb");
+				fprintf(file, "%s\n", program->name.c_str());
+				fprintf(file, "%i\n", binarySize);
+				fprintf(file, "%i\n", binaryFormat);
+				fwrite(buffer, binarySize, 1, file);
+				fclose(file);
+				path.clear();
+			}
+		}
+		AddShaderProgramErrorLog(program, error_e::shaderProgramAlreadyExists);
+	}
+
+	/*
+	* load an OpenGL shader
+	*/
+	inline void LoadShader(shader_t* outShader, const std::string& name, const std::string& shaderFile, const shaderType_e& shaderType)
+	{
+		if (!name.empty())
+		{
+			shader_t newShader = shader_t(name, shaderType, shaderFile);
+			FileToBuffer(shaderFile, newShader.buffer);
+			CompileShader(&newShader);
+
+			if (newShader.isCompiled)
+			{
+				//copy data over
+				*outShader = newShader;
+				return;
+			}
+			AddShaderErrorLog(&newShader, error_e::shaderCompileFailed);
+			return;
+		}
+		AddErrorLog(error_e::invalidString);
+	}
+
+	/*
+	* builds a new OpenGL shader program from already loaded shaders
+	*/
+	inline void BuildProgramFromShaders(ShaderProgram_t* outProgram,  const std::string& programName,
+		const std::vector< std::string >& inputs,
+		const std::vector< std::string >& outputs,
+		const shader_t& vertexShader,
+		const shader_t& fragmentShader,
+		const shader_t& geometryShader,
+		const shader_t& tessControlShader,
+		const shader_t& tessEvalShader,
+		const bool& saveBinary = false )
+	{
+		std::vector< shader_t > shaderList;
+
+		shaderList.push_back( vertexShader );
+		shaderList.push_back( fragmentShader );
+		shaderList.push_back( geometryShader );
+		shaderList.push_back( tessControlShader );
+		shaderList.push_back( tessEvalShader );
+
+		ShaderProgram_t newShaderProgram = ShaderProgram_t( programName, inputs, outputs, shaderList, saveBinary );
+		CompileShaderProgram(&newShaderProgram, saveBinary);
+		if (newShaderProgram.isCompiled == true)
+		{
+			*outProgram = newShaderProgram;
+		}
+		else
+		{
+			AddShaderProgramErrorLog(&newShaderProgram, error_e::shaderProgramLoadFailed);
+		}
+	}
+
+	inline void BuildProgramFromShaders(ShaderProgram_t* outProgram, const std::string& programName,
+		const std::vector< std::string >& inputs,
+		const std::vector< std::string >& outputs,
+		const std::vector<shader_t>& shaderList,
+		const bool& saveBinary = false)
+	{
+		ShaderProgram_t newShaderProgram = ShaderProgram_t( programName, inputs, outputs, shaderList, saveBinary);
+		CompileShaderProgram(&newShaderProgram, saveBinary);
+		if (newShaderProgram.isCompiled)
+		{
+			*outProgram = newShaderProgram;
+		}
+		else
+		{
+			AddShaderProgramErrorLog(&newShaderProgram, error_e::shaderProgramLoadFailed);
+		}
+	}
+
+	inline void LoadShaderFromBuffer( shader_t* outShader, const std::string& name, const std::string& buffer, const shaderType_e& shaderType )
+	{
+		if ( buffer.empty() == false )
+		{
+			if ( name.empty() == false )
+			{
+				shader_t newShader = shader_t(name, buffer, shaderType);
+				CompileShader(&newShader);
+				if (newShader.isCompiled)
+				{
+					*outShader = newShader;
+					return;
+				}
+				else
+				{
+					AddShaderErrorLog(&newShader, error_e::shaderCompileFailed);
+					return;
+				}
+			}
+			AddErrorLog(error_e::shaderAlreadyLoaded);
+			return;
+		}
+		AddErrorLog(error_e::invalidShaderName);
+	}
+
+	inline void ProcessInterfaces(const shader_t* shader)
+	{
+		//get all interfaces and resources
+
+		//uniforms
+		GLint numResources = 0;
+		GLint resource = 0;
+
+		std::vector<GLenum> supportedInterfaces = {};
+
+		for (auto interfaceIter : interfaces)
+		{
+			glGetProgramInterfaceiv(shader->pipelineHandle, interfaceIter, GL_ACTIVE_RESOURCES, &numResources);
+
+			std::vector<GLchar> nameData(256);
+			std::vector<GLenum> properties;
+			properties.push_back(GL_NAME_LENGTH);
+			properties.push_back(GL_TYPE);
+			properties.push_back(GL_ARRAY_SIZE);
+			properties.push_back(GL_LOCATION);
+
+
+			std::vector<GLint> values(properties.size());
+			for (GLenum iter = 0; iter < (GLenum)numResources; iter++)
+			{
+				//for each uniform grab num resources
+				glGetProgramInterfaceiv(shader->pipelineHandle, interfaceIter, iter, &resource);
+
+				GLint valueLength = 0;
+				glGetProgramResourceiv(shader->pipelineHandle, interfaceIter, iter, properties.size(), &properties[0], values.size(), &valueLength, &values[0]);
+
+				nameData.resize(values[0]);
+				glGetProgramResourceName(shader->pipelineHandle, interfaceIter, iter, nameData.size(), NULL, &nameData[0]);
+				std::string name((char*)&nameData[0], nameData.size() - 1);
+
+				printf("index %d: %s %s @ location %d.\n", iter, typeLUT.at(values[1]).c_str(), name.c_str(), values[3]);
+			}
+		}
+	}
+
+	inline void ProcessInterfaces(const ShaderProgram_t* shaderProgram)
+	{
+		//get all interfaces and resources
+
+		//uniforms
+		GLint numResources = 0;
+		GLint resource = 0;
+		GLint maxNumResources = 0;
+		GLint numActiveBlocks = 0;
+
+		std::vector<GLenum> supportedInterfaces = {};
+
+		for (auto interfaceIter : interfaces)
+		{
+			//glGetProgramInterfaceiv(handle, interfaceIter, gl_active_uniform_blocks, &numActiveBlocks);
+			glGetProgramInterfaceiv(shaderProgram->handle, interfaceIter, GL_ACTIVE_RESOURCES, &numResources);
+			const GLenum blockProperties[1] = { GL_NUM_ACTIVE_VARIABLES };
+			const GLenum activeUnifProp[1] = { GL_ACTIVE_VARIABLES };
+			const GLenum unifProperties[3] = { GL_NAME_LENGTH, GL_TYPE, GL_LOCATION };
+
+			for (int blockIter = 0; blockIter < numResources; blockIter++)
+			{
+				int numActiveUniforms = 0;
+				glGetProgramResourceiv(shaderProgram->handle, GL_UNIFORM_BLOCK, blockIter, 1, blockProperties, 1, NULL, &numActiveUniforms);
+				if (numActiveUniforms == 0)
+				{
+					return;
+				}
+
+				std::vector<int>	blockUniforms(numActiveUniforms);
+				glGetProgramResourceiv(shaderProgram->handle, GL_UNIFORM_BLOCK, blockIter, 1, activeUnifProp, numActiveUniforms, NULL, &blockUniforms[0]);
+
+				for (size_t uniformIter = 0; uniformIter < numActiveUniforms; uniformIter++)
+				{
+					int values[3];
+					glGetProgramResourceiv(shaderProgram->handle, GL_UNIFORM, blockUniforms[uniformIter], 3, unifProperties, 3, NULL, values);
+
+					std::vector<char> nameData(values[0]);
+					glGetProgramResourceName(shaderProgram->handle, GL_UNIFORM, blockUniforms[uniformIter], nameData.size(), NULL, &nameData[0]);
+					std::string name(nameData.begin(), nameData.end() - 1);
+					printf("%s \n", name.c_str());
+				}
+			}
+		}
+	}
+
+	/*
+	* remove the shader from OpenGL
+	*/
+	inline void ShutdownShader(shader_t* shader)
+	{
+		glDeleteShader(shader->handle);
+		shader->isCompiled = GL_FALSE;
+	}
+
+	/*
+	* shut down the shader program. delete it from OpenGL
+	*/
+	inline void ShutdownShaderProgram(const ShaderProgram_t* shaderProgram)
+	{
+		glDeleteProgram(shaderProgram->handle);
+		//get every shader inside and shut it down
+		for (auto shader : shaderProgram->shaders)
+		{
+			ShutdownShader(&shader);
+		}
+	}
 
 	/*
 	* convert the given string to a shader type
@@ -853,7 +782,7 @@ namespace TinyShaders
 	/*
 	* convert the given shader type to a string
 	*/
-	inline std::string ShaderTypeToString( const shaderType_e& shaderType )
+	inline std::string ShaderTypeToString(const shaderType_e& shaderType)
 	{
 		return shaderTypeLUT.at(shaderType);
 	}

@@ -156,12 +156,12 @@ protected:
 
 	bufferHandler_t<SMAASettings_t>		SMAASettings;
 
-	tShaderProgram* geometryProgram = nullptr;
-	tShaderProgram* edgeDetectionProgram = nullptr;
-	tShaderProgram* blendingWeightProgram = nullptr;
-	tShaderProgram* SMAAProgram = nullptr;
-	tShaderProgram* compareProgram = nullptr;
-	tShaderProgram* finalProgram = nullptr;
+	ShaderProgram_t* geometryProgram = nullptr;
+	ShaderProgram_t* edgeDetectionProgram = nullptr;
+	ShaderProgram_t* blendingWeightProgram = nullptr;
+	ShaderProgram_t* SMAAProgram = nullptr;
+	ShaderProgram_t* compareProgram = nullptr;
+	ShaderProgram_t* finalProgram = nullptr;
 
 	int currentTexture = 0;
 	bool enableCompare = true;

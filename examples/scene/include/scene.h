@@ -39,9 +39,6 @@ public:
 
 		window = manager->AddWindow(setting);
 		assert(window != nullptr);
-
-		shaderHandler = new shaderManager();
-
 		scene::InitImGUI(window);
 
 		glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
@@ -56,7 +53,6 @@ public:
 		windowContextMap.clear(); // Clear the map
 		//delete this->sceneCamera;		this->sceneCamera = nullptr;
 		delete manager;					manager = nullptr;
-		delete shaderHandler;			shaderHandler = nullptr;
 		//delete sceneClock;				sceneClock = nullptr;
 		delete defaultTimer;			defaultTimer = nullptr;
 	}
@@ -84,7 +80,7 @@ public:
 		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 		glDebugMessageCallback(&OpenGLDebugCallback, nullptr);
 
-		LoadShaderProgramsFromConfigFile(shaderHandler, &shaderProgramsMap);
+		LoadShaderProgramsFromConfigFile(&shaderProgramsMap);
 
 		defProgram = shaderProgramsMap[PROJECT_NAME]; //need a better way to automate this
 
@@ -104,12 +100,19 @@ public:
 		manager->maximizedEvent = std::bind(&scene::HandleMaximize, this, _1);
 		manager->keyEvent = std::bind(&scene::HandleKey, this, _1, _2, _3);
 		manager->fileDropEvent = std::bind(&scene::HandleFileDrop, this, _1, _2, _3);
+
+		TinyShaders::managerErrorEvent = std::bind(&scene::HandleShaderManagerError, this, _1);
+
 	}
 
 	void ShutDown(tWindow* window)
 	{
+		for (auto val : shaderProgramsMap | std::views::values)
+		{
+			ShutdownShaderProgram(&val);
+		}
+
 		ImGUIInvalidateDeviceObject();
-		shaderHandler->Shutdown();
 		manager->ShutDown();
 	}
 	
@@ -119,9 +122,7 @@ protected:
 	std::map<tWindow*, ImGuiContext*>				windowContextMap;
 	tWindow*										window;
 
-	shaderManager*									shaderHandler;
-
-	tsl::robin_map<std::string, tShaderProgram>		shaderProgramsMap;
+	tsl::robin_map<std::string, ShaderProgram_t>	shaderProgramsMap;
 
 	tinyClock_t										clock;
 	vertexBuffer_t									defaultVertexBuffer;
@@ -130,7 +131,7 @@ protected:
 
 	camera_t					camera;
 	const char*					windowName;
-	tShaderProgram				defProgram;
+	ShaderProgram_t				defProgram;
 	const char*					shaderConfigPath;
 
 	ImGuiContext*				imGUIContext;
@@ -490,6 +491,12 @@ protected:
 		//make sure it's a texture
 		//and load up a new window for each one?
 	}
+
+	virtual void HandleShaderManagerError(const std::string& errorMessage)
+	{
+		printf(errorMessage.c_str());
+	}
+
 
 	virtual void InitImGUI(tWindow* window)
 	{

@@ -1,10 +1,10 @@
 #pragma once
 
 //ok here we just need a basic system to load snaders via JSON
-static void LoadShaderProgramsFromConfigFile(shaderManager* manager, tsl::robin_map<std::string, tShaderProgram>* outPrograms = nullptr )
+static void LoadShaderProgramsFromConfigFile(tsl::robin_map<std::string, ShaderProgram_t>* outPrograms = nullptr )
 {
     auto currentDir = std::filesystem::current_path();
-    std::vector<tShader*> localShaders;
+    std::vector<shader_t*> localShaders;
 
     auto workingDire = std::filesystem::current_path();
 #if defined(DEBUG)
@@ -52,7 +52,7 @@ static void LoadShaderProgramsFromConfigFile(shaderManager* manager, tsl::robin_
                 //for every program
                 yyjson_arr_foreach(root, index, max, currentItem)
                 {
-                    tShaderProgram localProgram;
+                    ShaderProgram_t localProgram;
                     //now break it down per program
 
                     //get name as string
@@ -61,11 +61,9 @@ static void LoadShaderProgramsFromConfigFile(shaderManager* manager, tsl::robin_
                     {
                         localProgram.name = yyjson_get_str(name);
                     }
-
 #if defined(DEBUG)
                     printf("loading shader program: %s \n", localProgram.name.c_str());
 #endif
-
                     // get outputs
                     yyjson_val* outputs = yyjson_obj_get(currentItem, "outputs");
                     if (outputs != nullptr && yyjson_is_arr(outputs))
@@ -109,7 +107,7 @@ static void LoadShaderProgramsFromConfigFile(shaderManager* manager, tsl::robin_
                         yyjson_val* currentShader;
                         yyjson_arr_foreach(shaders, shaderIndex, shaderMax, currentShader)
                         {
-                            tShader localShader;
+                            shader_t localShader;
                             yyjson_val* shaderName = yyjson_obj_get(currentShader, "name");
                             yyjson_val* shaderPath = yyjson_obj_get(currentShader, "path");
                             yyjson_val* shaderType = yyjson_obj_get(currentShader, "type");
@@ -118,28 +116,26 @@ static void LoadShaderProgramsFromConfigFile(shaderManager* manager, tsl::robin_
                             if (shaderType != nullptr && yyjson_is_str(shaderType))
                             {
 #if defined(DEBUG)
-
                                 printf("loading shader: %s\n", yyjson_get_str(shaderName));
                                 printf("loading shader type: %s\n", yyjson_get_str(shaderType));
 #endif
-
                                 const std::string newPath = std::string( yyjson_get_str(shaderPath));
                                 const std::string localPath = shaderPathPart / PROJECT_NAME / newPath;
                                 shaderType_e localType = StringToShaderType(std::string(yyjson_get_str(shaderType)));
 
                                 //prepend the working directory to path
-                                manager->LoadShader(yyjson_get_str(shaderName), localPath, localType);
+                                TinyShaders::LoadShader(&localShader, yyjson_get_str(shaderName), localPath, localType);
                             }
 
-                            if (manager->GetShader(yyjson_get_str(shaderName))->isCompiled == true)
+                            if (localShader.isCompiled == true)
                             {
-                                localProgram.shaders.push_back(*manager->GetShader(yyjson_get_str(shaderName)));
+                                localProgram.shaders.push_back(localShader);
                             }
                         }
                     }
                     //ok now lets put it all together
-                    manager->BuildProgramFromShaders(localProgram.name, localProgram.inputs, localProgram.outputs, localProgram.shaders);
-                    outPrograms->emplace(localProgram.name, *manager->GetShaderProgram(localProgram.name));
+                    TinyShaders::BuildProgramFromShaders(&localProgram, localProgram.name, localProgram.inputs, localProgram.outputs, localProgram.shaders);
+                    outPrograms->emplace(localProgram.name, localProgram);
                 }
             }
         }
