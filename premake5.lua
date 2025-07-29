@@ -55,6 +55,8 @@ function scene_project(name, parents)
             "lib/tinyextender/Include",
             "lib/tinyshaders/Include",
             "lib/tinyclock/Include",
+            "lib/gl/",
+            "lib/EGL-Registry/api/",
             "lib/glm/",
             "lib/gli/",
             "lib/stb/",

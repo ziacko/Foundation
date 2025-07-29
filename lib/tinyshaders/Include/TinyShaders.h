@@ -12,6 +12,8 @@
 //this automatically loads the OpenGL library if you are using Visual Studio
 //comment this out if you have your own method 
 //#pragma comment (lib, "opengl32.lib")
+
+#define _CRT_SECURE_NO_WARNINGS 1 //fuck off Visual studio
 #endif
 
 #if defined(__linux__) 
@@ -27,7 +29,7 @@
 namespace TinyShaders
 {
 	struct shader_t;
-	struct ShaderProgram_t;
+	struct shaderProgram_t;
 
 	inline std::string defaultProgramBinaryExtension = ".glbin";
 	inline std::string defaultBinaryPath = "./Shaders/";
@@ -55,8 +57,8 @@ namespace TinyShaders
 			shaderProgramCompileFailed
 		};
 
-		typedef std::pair<const error_e,  const std::string> errorEntry;
-		const std::unordered_map<const error_e, const std::string> errorLUT =
+		typedef std::pair<error_e,  std::string> errorEntry;
+		const std::unordered_map<error_e, std::string> errorLUT =
 		{
 			errorEntry(error_e::invalidString, "Error: invalid string"),
 			errorEntry(error_e::shaderNotFound, "Error: shader not found"),
@@ -84,8 +86,8 @@ namespace TinyShaders
 			GL_TESS_EVALUATION_SUBROUTINE_UNIFORM, GL_COMPUTE_SUBROUTINE_UNIFORM
 		};
 
-		typedef std::pair<uint32_t, const std::string> typeEntry;
-		const std::unordered_map<uint32_t, const std::string> typeLUT =
+		typedef std::pair<uint32_t, std::string> typeEntry;
+		const std::unordered_map<uint32_t, std::string> typeLUT =
 		{
 			typeEntry(GL_FLOAT, "float"),
 			typeEntry(GL_FLOAT_VEC2, "vec2"),
@@ -206,8 +208,8 @@ namespace TinyShaders
 			invalid = -1,
 		};
 
-		typedef std::pair<const shaderType_e, const std::string> shaderTypeEntry;
-		const std::unordered_map<const shaderType_e, const std::string> shaderTypeLUT =
+		typedef std::pair<shaderType_e, std::string> shaderTypeEntry;
+		const std::unordered_map<shaderType_e, std::string> shaderTypeLUT =
 		{
 			shaderTypeEntry(shaderType_e::vertex, "vertex"),
 			shaderTypeEntry(shaderType_e::fragment, "fragment"),
@@ -231,13 +233,13 @@ namespace TinyShaders
 			shaderTypeEntryRev("invalid", shaderType_e::invalid),
 		};
 
-		using managerErrorEvent_t = std::function<void(const std::string& entry)>;
-		using shaderErrorEvent_t  = std::function<void(const shader_t* shader, const std::string& entry)>;
-		using shaderProgramErrorEvent_t  = std::function<void(const ShaderProgram_t* shaderProgram, const std::string& entry)>;
+		using managerError_c = std::function<void(const std::string& entry)>;
+		using shaderError_c  = std::function<void(const shader_t* shader, std::string& entry)>;
+		using shaderProgramError_c  = std::function<void(const shaderProgram_t* shaderProgram, std::string& entry)>;
 
-		managerErrorEvent_t managerErrorEvent; /**< This is the callback to be used when a manager specific error has occurred */
-		shaderErrorEvent_t shaderErrorEvent;
-		shaderProgramErrorEvent_t shaderProgramErrorEvent;
+		managerError_c managerErrorEvent; /**< This is the callback to be used when a manager specific error has occurred */
+		shaderError_c shaderErrorEvent;
+		shaderProgramError_c shaderProgramErrorEvent;
 
 		std::vector<errorEntry> errorLog;
 
@@ -250,7 +252,7 @@ namespace TinyShaders
 			{
 				if (shaderErrorEvent) shaderErrorEvent(obj, newString);
 			}
-			else if constexpr (std::is_same_v<T, ShaderProgram_t>) //if shader program, use this path
+			else if constexpr (std::is_same_v<T, shaderProgram_t>) //if shader program, use this path
 			{
 				if (shaderProgramErrorEvent) shaderProgramErrorEvent(obj, newString);
 			}
@@ -301,29 +303,29 @@ namespace TinyShaders
 	/*
 	* a tShaderProgram is a wrapper for an OpenGL shader program
 	*/
-	struct ShaderProgram_t
+	struct shaderProgram_t
 	{
 		std::string						name;				/**< The name of the shader program */
 		GLuint							handle;				/**< The OpenGL handle to the shader program */
 		GLboolean						isCompiled;			/**< Whether the shader program has been linked successfully */
-		std::vector< std::string >		inputs;				/**< The inputs of the shader program as a vector of strings */
-		std::vector< std::string >		outputs;			/**< The outputs of the shader program as a vector of strings */
-		std::vector< shader_t >			shaders;			/**< The components that the shader program comprises as a vector */
+		std::vector<std::string>		inputs;				/**< The inputs of the shader program as a vector of strings */
+		std::vector<std::string>		outputs;			/**< The outputs of the shader program as a vector of strings */
+		std::vector<shader_t>			shaders;			/**< The components that the shader program comprises as a vector */
 		GLuint							pipelineID;			/**< The GL pipeline ID for building modular shader programs */
 
 		/*
 		* basic constructor
 		*/
-		ShaderProgram_t() :
+		shaderProgram_t() :
 		handle(0), isCompiled(false), pipelineID(0) {}
 
 		/*
 		* uses the given values to create an OpenGL shader program
 		*/
-		ShaderProgram_t(std::string  programName,
-			const std::vector< std::string >& programInputs,
-			const std::vector< std::string >& programOutputs,
-			const std::vector< shader_t >& programShaders,
+		shaderProgram_t(std::string  programName,
+			const std::vector<std::string>& programInputs,
+			const std::vector<std::string>& programOutputs,
+			const std::vector<shader_t>& programShaders,
 			bool saveBinary = false) :
 			name(std::move(programName)), handle(0),
 			inputs(programInputs), outputs(programOutputs),
@@ -333,22 +335,22 @@ namespace TinyShaders
 		};
 
 		/*
-		* another bare-bones constructor
+		* bare-bones constructors
 		*/
-		explicit ShaderProgram_t(std::string  programName) :
+		explicit shaderProgram_t(std::string programName) :
 			name(std::move(programName)), handle(0), isCompiled(false), pipelineID(0) {};
 
-		ShaderProgram_t(std::string  programName, const GLuint programHandle) :
+		shaderProgram_t(std::string programName, const GLuint programHandle) :
 			name(std::move(programName)), handle(programHandle), isCompiled(false), pipelineID(0) {}
 
-		ShaderProgram_t(std::string  programName, const shader_t& computeShader)
+		shaderProgram_t(std::string programName, const shader_t& computeShader)
 			: name(std::move(programName)), handle(0), pipelineID(0)
 		{
 			shaders.push_back(computeShader);
 			isCompiled = false;
 		}
 
-		~ShaderProgram_t() = default;
+		~shaderProgram_t() = default;
 	};
 
 	/*
@@ -437,7 +439,7 @@ namespace TinyShaders
 	/*
 	* compile the OpenGL shader program with the given information
 	*/
-	inline void CompileShaderProgram(ShaderProgram_t& program, const bool saveBinary = true, const std::filesystem::path& binaryPath = defaultBinaryPath)
+	inline void CompileShaderProgram(shaderProgram_t& program, const bool saveBinary = true, const std::filesystem::path& binaryPath = defaultBinaryPath)
 	{
 		program.handle = glCreateProgram();
 		char errorLog[512];
@@ -501,7 +503,7 @@ namespace TinyShaders
 
 				glGetProgramBinary(program.handle, binarySize, nullptr, &binaryFormat, buffer);
 
-				std::filesystem::path path = binaryPath / (program.name + defaultProgramBinaryExtension);
+				std::string path = (binaryPath / (program.name + defaultProgramBinaryExtension)).string();
 				FILE* file = fopen(path.c_str(), "wb");
 				if (file)
 				{
@@ -543,7 +545,7 @@ namespace TinyShaders
 	/*
 	* builds a new OpenGL shader program from already loaded shaders
 	*/
-	inline void BuildProgramFromShaders(ShaderProgram_t& outProgram,  const std::string& programName,
+	inline void BuildProgramFromShaders(shaderProgram_t& outProgram,  const std::string& programName,
 		const std::vector< std::string >& inputs,
 		const std::vector< std::string >& outputs,
 		const shader_t& vertexShader,
@@ -561,7 +563,7 @@ namespace TinyShaders
 		shaderList.push_back( tessControlShader );
 		shaderList.push_back( tessEvalShader );
 
-		ShaderProgram_t newShaderProgram = ShaderProgram_t( programName, inputs, outputs, shaderList, saveBinary );
+		shaderProgram_t newShaderProgram = shaderProgram_t( programName, inputs, outputs, shaderList, saveBinary );
 		CompileShaderProgram(newShaderProgram, saveBinary);
 		if (newShaderProgram.isCompiled == true)
 		{
@@ -573,13 +575,13 @@ namespace TinyShaders
 		}
 	}
 
-	inline void BuildProgramFromShaders(ShaderProgram_t& outProgram, const std::string& programName,
+	inline void BuildProgramFromShaders(shaderProgram_t& outProgram, const std::string& programName,
 		const std::vector< std::string >& inputs,
 		const std::vector< std::string >& outputs,
 		const std::vector<shader_t>& shaderList,
 		const bool& saveBinary = false)
 	{
-		ShaderProgram_t newShaderProgram = ShaderProgram_t( programName, inputs, outputs, shaderList, saveBinary);
+		shaderProgram_t newShaderProgram = shaderProgram_t( programName, inputs, outputs, shaderList, saveBinary);
 		CompileShaderProgram(newShaderProgram, saveBinary);
 		if (newShaderProgram.isCompiled)
 		{
@@ -656,7 +658,7 @@ namespace TinyShaders
 		}
 	}
 
-	inline void ProcessInterfaces(const ShaderProgram_t& shaderProgram)
+	inline void ProcessInterfaces(const shaderProgram_t& shaderProgram)
 	{
 		//get all interfaces and resources
 
@@ -714,7 +716,7 @@ namespace TinyShaders
 	/*
 	* shut down the shader program. delete it from OpenGL
 	*/
-	inline void ShutdownShaderProgram(const ShaderProgram_t& shaderProgram)
+	inline void ShutdownShaderProgram(const shaderProgram_t& shaderProgram)
 	{
 		glDeleteProgram(shaderProgram.handle);
 		//get every shader inside and shut it down

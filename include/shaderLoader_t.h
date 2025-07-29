@@ -1,7 +1,7 @@
 #pragma once
 
 //ok here we just need a basic system to load snaders via JSON
-static void LoadShaderProgramsFromConfigFile(tsl::robin_map<std::string, ShaderProgram_t>* outPrograms = nullptr )
+static void LoadShaderProgramsFromConfigFile(tsl::robin_map<std::string, shaderProgram_t>* outPrograms = nullptr )
 {
     auto currentDir = std::filesystem::current_path();
     std::vector<shader_t*> localShaders;
@@ -52,7 +52,7 @@ static void LoadShaderProgramsFromConfigFile(tsl::robin_map<std::string, ShaderP
                 //for every program
                 yyjson_arr_foreach(root, index, max, currentItem)
                 {
-                    ShaderProgram_t localProgram;
+                    shaderProgram_t localProgram;
                     //now break it down per program
 
                     //get name as string
@@ -118,7 +118,7 @@ static void LoadShaderProgramsFromConfigFile(tsl::robin_map<std::string, ShaderP
                                 printf("loading shader type: %s\n", yyjson_get_str(shaderType));
 #endif
                                 const std::string newPath = std::string( yyjson_get_str(shaderPath));
-                                const std::string localPath = shaderPathPart / PROJECT_NAME / newPath;
+                                const std::string localPath = (shaderPathPart / PROJECT_NAME / newPath).string();
                                 shaderType_e localType = StringToShaderType(std::string(yyjson_get_str(shaderType)));
 
                                 //prepend the working directory to path

@@ -4,8 +4,6 @@
 //#include <utility>
 
 #include "Globals.h"
-#include "imgui_internal.h"
-#include <GL/glext.h>
 
 using frameRates_t = enum {UNCAPPED = 0, THIRTY = 30, SIXTY = 60, NINETY = 90, ONETWENTY = 120, ONEFOURTYFOUR = 144};
 
@@ -101,7 +99,15 @@ public:
 		manager->keyEvent = std::bind(&scene::HandleKey, this, _1, _2, _3);
 		manager->fileDropEvent = std::bind(&scene::HandleFileDrop, this, _1, _2, _3);
 
+		//tinywindow
+		manager->managerErrorEvent = std::bind(&scene::HandleTWErrors, this, _1);
+		manager->windowErrorEvent = std::bind(&scene::HandleTWWindowErrors, this, _1, _2);
+		//tinyextender
+		TinyExtender::errorEvent = std::bind(&scene::HandleTEError, this, _1);
+		//tinyshaders
 		TinyShaders::managerErrorEvent = std::bind(&scene::HandleShaderManagerError, this, _1);
+		TinyShaders::shaderErrorEvent = std::bind(&scene::HandleShaderError, this, _1, _2);
+		TinyShaders::shaderProgramErrorEvent = std::bind(&scene::HandleShaderProgramError, this, _1, _2);
 
 	}
 
@@ -122,7 +128,7 @@ protected:
 	std::map<tWindow*, ImGuiContext*>				windowContextMap;
 	tWindow*										window;
 
-	tsl::robin_map<std::string, ShaderProgram_t>	shaderProgramsMap;
+	tsl::robin_map<std::string, shaderProgram_t>	shaderProgramsMap;
 
 	tinyClock_t										clock;
 	vertexBuffer_t									defaultVertexBuffer;
@@ -131,7 +137,7 @@ protected:
 
 	camera_t					camera;
 	const char*					windowName;
-	ShaderProgram_t				defProgram;
+	shaderProgram_t				defProgram;
 	const char*					shaderConfigPath;
 
 	ImGuiContext*				imGUIContext;
@@ -492,10 +498,36 @@ protected:
 		//and load up a new window for each one?
 	}
 
-	virtual void HandleShaderManagerError(const std::string& errorMessage)
+	virtual void HandleTEError(const std::string& message)
 	{
-		printf(errorMessage.c_str());
+		printf("%s\n", message.c_str());
 	}
+
+	virtual void HandleTWErrors(const std::string message)
+	{
+		printf("%s\n", message.c_str());
+	}
+
+	virtual void HandleTWWindowErrors(const tWindow* window,  const std::string message)
+	{
+		printf("window: %s error %s\n", window->GetSettings().name.c_str(), message.c_str());
+	}
+
+	virtual void HandleShaderManagerError(const std::string& message)
+	{
+		printf(message.c_str());
+	}
+
+	virtual void HandleShaderError(const shader_t* shader, const std::string& message)
+	{
+		printf("shader: %s error %s\n", shader->name.c_str(), message.c_str());
+	}
+
+	virtual void HandleShaderProgramError(const shaderProgram_t* program, const std::string& message)
+	{
+		printf("shader program: %s error %s\n", program->name.c_str(), message.c_str());
+	}
+
 
 	virtual void InitImGUI(tWindow* window)
 	{
@@ -636,6 +668,8 @@ protected:
 		lastEnableScissorTest ? glEnable(GL_SCISSOR_TEST) : glDisable(GL_SCISSOR_TEST);
 		glViewport(lastViewport[0], lastViewport[1], (GLsizei)lastViewport[2], (GLsizei)lastViewport[3]);
 	}
+
+
 
 	virtual void ImGUICreateFontsTexture()
 	{

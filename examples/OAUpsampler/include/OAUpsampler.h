@@ -25,12 +25,14 @@ public:
     {
         resolutionSettings = resolutionSettings_t(defaultResScale);
         resScale = glm::vec2(defaultResScale);
-        scaledResolution = camera.resolution * resScale;
+		glm::vec2 windowResolution = glm::vec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
+        scaledResolution = windowResolution * resScale;
     }
 
     void Initialize() override
     {
         SMAAScene::Initialize();
+
     }
 
 protected:
@@ -182,8 +184,6 @@ protected:
         {
             val.Resize(resolution);
         }
-
-        camera.resolution = resolution;
     }
 
     void HandleWindowResize(const tWindow* window, const vec2_t<uint16_t>& dimensions) override

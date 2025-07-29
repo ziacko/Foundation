@@ -11,8 +11,6 @@
 #endif
 
 #include <time.h>
-#include <stdio.h>
-#include <math.h>
 #include <thread>
 #include <chrono>
 
@@ -20,11 +18,11 @@ class tinyClock_t
 {
 public:
 
-	tinyClock_t(void)
+	tinyClock_t()
 	{
 		Initialize();
 	}
-	~tinyClock_t(void)
+	~tinyClock_t()
 	{
 
 	}
@@ -32,7 +30,7 @@ public:
 	/**
 	 * Initialize the TinyClock API
 	 */
-	void Initialize(void)
+	void Initialize()
 	{
 		totalTime = 0;
 		deltaTime = 0;
@@ -46,38 +44,36 @@ public:
 	/**
 	 * update the clock using a fixed time step. e.g 60
 	 */
-	inline void UpdateClockFixed(double TimeStep, bool forceFrameRate = true)
+	void UpdateClockFixed(const double TimeStep, const bool forceFrameRate = true)
 	{
 		deltaTime = 1.0 / TimeStep;
-		double NewTime = tinyClock_t::GetTime();
+		const double NewTime = tinyClock_t::GetTime();
 		totalTime = NewTime;
 		if (1.0 / TimeStep > deltaTime && forceFrameRate)
 		{
-			std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<int>(1.0 / TimeStep) * 1000));// static_cast<long>(1.0 / 60.0 - (sceneClock->GetDeltaTime() * 1000.0))));
-			printf("%f \n", (1.0 / 60.0 - deltaTime * 1000));
+			std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<int>(1.0 / TimeStep) * 1000));
 		}
 	}
-
 	/**
 	 * update the clock using adaptive CPU clocking
 	 */
-	inline void UpdateClockAdaptive(void)
+	void UpdateClockAdaptive()
 	{
-		double NewTime = tinyClock_t::GetTime();
+		const double NewTime = tinyClock_t::GetTime();
 		deltaTime = NewTime - totalTime;
 		totalTime = NewTime;
 	}	
 	/**
 	 * get the total amount of time TinyClock has been running in milliseconds
 	 */
-	double GetTotalTime(void)
+	double GetTotalTime() const
 	{
 		return totalTime;
 	}
 	/**
 	 * get the current CPU delta time (time between CPU cycles in milliseconds)
 	 */
-	double GetDeltaTime(void)
+	double GetDeltaTime() const
 	{
 		return deltaTime;
 	}
@@ -99,7 +95,7 @@ private:
 	/**
 	 * get the Time of the computer
 	 */
-	double GetTime(void)
+	double GetTime()
 	{
 #if defined (TC_WINDOWS)
 		return Windows_GetTime();
@@ -110,7 +106,7 @@ private:
 	/**
 	 * get the amount of time the computer has been running
 	 */
-	double GetRawTime(void)
+	double GetRawTime() const
 	{
 #if defined (TC_WINDOWS)
 			return (double)Windows_GetRawTime();
@@ -124,7 +120,7 @@ private:
 	/**
 	 * Initialize tinyClock on the Windows platform
 	 */
-	void Windows_Initialize(void)
+	void Windows_Initialize()
 	{
 		unsigned __int64 Frequency;
 
@@ -151,7 +147,7 @@ private:
 	/**
 	 * get the amount of time since the system was turned on
 	 */
-	unsigned __int64 Windows_GetRawTime(void)
+	unsigned __int64 Windows_GetRawTime()
 	{
 			if (supportsHighRes)
 			{
@@ -169,7 +165,7 @@ private:
 	 * time that was collected when TinyClock was Initialized. then multiply that value
 	 * by the current Resolution.
 	 */
-	double Windows_GetTime(void)
+	double Windows_GetTime()
 	{
 			return (double)(Windows_GetRawTime() - baseTime) * timeResolution;
 	}
@@ -179,7 +175,7 @@ private:
 	/*
 	 * Initialize TinyClock on the Linux platform
 	 */
-	void Linux_Initialize(void)
+	void Linux_Initialize()
 	{
 		monoticSupported = false;
 
@@ -203,7 +199,7 @@ private:
 	/**
 	 * get the amount of time since the system was turned on in milliseconds
 	 */
-	uint64_t Linux_GetRawTime(void)
+	uint64_t Linux_GetRawTime() const
 	{
 #if defined (CLOCK_MONOTONIC)
 		if (monoticSupported)

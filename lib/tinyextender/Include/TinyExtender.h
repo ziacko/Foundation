@@ -2319,8 +2319,8 @@ namespace TinyExtender
 	typedef char GLcharARB;
 	typedef unsigned int GLhandleARB;
 	typedef int GLfixed;
-	typedef struct _cl_context* cl_context;
-	typedef struct _cl_event* cl_event;
+	//typedef struct _cl_context* cl_context;
+	//typedef struct _cl_event* cl_event;
 	typedef ptrdiff_t GLintptrARB;
 	typedef ptrdiff_t GLsizeiptrARB;
 
@@ -3663,7 +3663,7 @@ namespace TinyExtender
 #define ARB_buffer_storage 1
 
 	//cl event
-	inline GLsync(*glCreateSyncFromCLeventARB) (cl_context context, cl_event event, GLbitfield flags) = nullptr;
+	//inline GLsync(*glCreateSyncFromCLeventARB) (cl_context context, cl_event event, GLbitfield flags) = nullptr;
 #define ARB_cl_event 1
 
 	//clear buffer object
@@ -4926,7 +4926,7 @@ namespace TinyExtender
 		FetchProcAddress(glBufferStorage, "glBufferStorage");
 
 		//cl event
-		FetchProcAddress(glCreateSyncFromCLeventARB, "glCreateSyncFromCLeventARB");
+		//FetchProcAddress(glCreateSyncFromCLeventARB, "glCreateSyncFromCLeventARB");
 
 		//clear buffer object
 		FetchProcAddress(glClearBufferData, "glClearBufferData");
@@ -14436,10 +14436,9 @@ namespace TinyExtender
 		WIN,
 	};
 
-	enum class error_e
+	enum error_e
 	{
-		success,
-		loadFailed,
+		loadFailed = 0,
 		versionLoadFailed,
 		Unsupported1_2,
 		Unsupported1_3,
@@ -14460,14 +14459,13 @@ namespace TinyExtender
 		Unsupported4_6,
 	};
 
-
-	typedef std::pair<const error_e,  const std::string> errorEntry;
-	using errorEvent_c = std::function<void(const errorEntry& entry)>;
+	typedef std::pair<error_e,  std::string> errorEntry;
+	using errorEvent_c = std::function<void(const std::string& message)>;
 	inline errorEvent_c errorEvent;
 
 	namespace
 	{
-		const std::unordered_map<const error_e, const std::string> errorLUT =
+		const std::unordered_map<error_e, std::string> errorLUT =
 		{
 			errorEntry(error_e::loadFailed, "Error: extension has failed to load"),
 			errorEntry(error_e::Unsupported1_2, "Error: OpenGL 1.2 extensions unsupported. stopping loading here"),
@@ -14507,7 +14505,7 @@ namespace TinyExtender
 
 			if (errorEvent != nullptr)
 			{
-				errorEvent(newEntry);
+				errorEvent(newEntry.second);
 			}
 		}
 
