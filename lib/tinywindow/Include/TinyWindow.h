@@ -3841,7 +3841,8 @@ namespace TinyWindow
 							if (nextEvent.type == KeyPress && nextEvent.xkey.time == inEvent.xkey.time && nextEvent.xkey.keycode == inEvent.xkey.keycode)
 							{
 								const uint16_t functionKeysym = XkbKeycodeToKeysym(currentDisplay, inEvent.xkey.keycode, 0, inEvent.xkey.state & ShiftMask ? 1 : 0);
-
+								const uint16_t translatedKey	= Linux_TranslateKey(functionKeysym);
+								window->keys[translatedKey] = keyState_e::down;
 								XNextEvent(currentDisplay, &inEvent);
 								triggered = true;
 								if (keyEvent != nullptr)

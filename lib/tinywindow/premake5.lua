@@ -1,3 +1,17 @@
+if os.host() == "linux" then
+    local cmake = require "cmake"
+    cmake.workspace_directory = _SCRIPT_DIR
+    cmake.write_settings = {
+        CMAKE_CURRENT_SOURCE_DIR = _SCRIPT_DIR
+    }
+
+    location "proj/cmake"
+    else if os.host() == "windows" then
+    location "proj/vs"
+    end
+end
+
+
 local RD = path.getabsolute("./") .. "/"
 
 includedirs(RD .. "Include/")
