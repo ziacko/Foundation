@@ -688,6 +688,7 @@ namespace TinyWindow
 		bool contextCreated;				/**< Whether the OpenGL context has been successfully created */
 		bool isCurrentContext;				/**< Whether the window is the current window being drawn to */
 		uint16_t currentStyle;				/**< The current style of the window */
+		uint16_t previousStyle;				/**< The previous style of the window (for restoration) */
 		keyState_e keys[last];				/**< Record of keys that are either pressed or released in the respective window */
 		vec2_t<int16_t> position;			/**< Position of the Window relative to the screen co-ordinates */
 		windowSetting_t settings;			/**< List of User-defined settings for this windowS */
@@ -1443,7 +1444,7 @@ namespace TinyWindow
 		*/
 		void ToggleFullscreen(tWindow* window, monitor_t* monitor, const uint16_t& monitorSettingIndex)
 		{
-			window->isFullscreen = !window->isFullscreen;
+
 			monitor->previousSetting = monitor->currentSetting;
 			monitor->currentSetting = monitor->settings[monitorSettingIndex];
 #if defined(TW_WINDOWS)
@@ -1451,6 +1452,7 @@ namespace TinyWindow
 #elif defined(TW_LINUX)
 			Linux_ToggleFullscreen(window, monitor, monitorSettingIndex);
 #endif
+			window->isFullscreen = !window->isFullscreen;
 		}
 
 		/**
@@ -1518,6 +1520,7 @@ namespace TinyWindow
 		*/
 		void SetStyle(tWindow* window, const style_e& windowStyle)
 		{
+			window->previousStyle = window->currentStyle;
 #if defined(TW_WINDOWS)
 			switch (windowStyle)
 			{
@@ -4618,28 +4621,40 @@ namespace TinyWindow
 			// Get the current screen configuration
 			XRRScreenConfiguration* conf = XRRGetScreenInfo(rootDisplay, root);
 			int result					 = 0;
+
 			if (window->isFullscreen == false)
 			{
-				result = XRRSetCrtcConfig(rootDisplay, screenResources, monitorSetting->crtc, CurrentTime, (int)monitor->extents.left, (int)monitor->extents.top, monitorSetting->mode, monitor->rotation, &monitorSetting->output, 1);
+				// Save the current window state
+				window->previousDimensions = window->settings.resolution; // Assuming currentDimensions exists
+				window->previousPosition = window->previousPosition;     // Assuming currentPosition exists
+				result = XRRSetCrtcConfig(rootDisplay, screenResources, monitorSetting->crtc, CurrentTime,
+										  (int)monitor->extents.left, (int)monitor->extents.top,
+										  monitorSetting->mode, monitor->rotation, &monitorSetting->output, 1);
 				XSync(rootDisplay, True);
-
 				if (result == Success)
 				{
-					window->isFullscreen = !window->isFullscreen;// flip the toggle
 					SetWindowSize(window, vec2_t<uint16_t>(monitor->resolution.width, monitor->resolution.height));
-					SetPosition(window, vec2_t<int16_t>((int)monitor->extents.left, (int)monitor->extents.top));
+					SetPosition(window, vec2_t<int16_t>(0, 0)); // Use (0,0) as origin after mode change
 					SetStyle(window, style_e::popup);
+					window->isFullscreen = true;
+
 				}
 			}
+
 			else if (window->isFullscreen == true)
 			{
-				result = XRRSetCrtcConfig(rootDisplay, screenResources, monitor->currentSetting.crtc, CurrentTime, (int)monitor->extents.left, (int)monitor->extents.top, monitor->currentSetting.mode, monitor->rotation, &monitor->currentSetting.output, 1);
+				result = XRRSetCrtcConfig(rootDisplay, screenResources, monitor->currentSetting.crtc, CurrentTime,
+						  (int)monitor->extents.left, (int)monitor->extents.top,
+						  monitor->currentSetting.mode, monitor->rotation, &monitor->currentSetting.output, 1);
+
+				XSync(rootDisplay, True);
 				if (result == Success)
 				{
-					window->isFullscreen = !window->isFullscreen;// flip the toggle
+					window->isFullscreen = false;
 					SetWindowSize(window, vec2_t<uint16_t>(window->previousDimensions.width, window->previousDimensions.height));
 					SetPosition(window, vec2_t<int16_t>(window->previousPosition.x, window->previousPosition.y));
-					SetStyle(window, style_e::popup);
+					SetStyle(window, style_e::normal); // Restore original style if different
+
 				}
 			}
 		}
