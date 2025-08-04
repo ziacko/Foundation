@@ -266,8 +266,9 @@ int main()
 		if (spacePressed)
 		{
 			//window->SetWindowSize(vec2_t<unsigned int>(manager->GetMonitors().back()->resolution.width, manager->GetMonitors().back()->resolution.height));
-			manager->ToggleFullscreen(window.get(), &manager->GetMonitors().at(0), 0);
-			//manager->SetStyle(window.get(), style_e::bare);
+			//manager->ToggleFullscreen(window.get(), &manager->GetMonitors().at(0), 0);
+			//manager->GetClipboardText(window.get());
+			manager->SetDecorators(window.get(), style_n::none);
 			//manager->DisableDecorators(window.get(), decorator_e::titleBar | decorator_e::icon);
 			//manager->SetTitleBar(window.get(), "poopoo");
 			//manager->SetWindowSwapInterval(window.get(), 0);

@@ -78,12 +78,12 @@
 #define MWM_DECOR_MINIMIZE (1L << 5)
 #define MWM_DECOR_MAXIMIZE (1L << 6)
 
-#define MWM_FUNC_ALL = (1L << 0)
-#define MWM_FUNC_RESIZE = (1L << 1)
-#define MWM_FUNC_MOVE = (1L << 2)
-#define MWM_FUNC_MINIMIZE = (1L << 3)
-#define MWM_FUNC_MAXIMIZE = (1L << 4)
-#define MWM_FUNC_CLOSE = (1L << 5)
+#define MWM_FUNC_ALL (1L << 0)
+#define MWM_FUNC_RESIZE (1L << 1)
+#define MWM_FUNC_MOVE (1L << 2)
+#define MWM_FUNC_MINIMIZE (1L << 3)
+#define MWM_FUNC_MAXIMIZE (1L << 4)
+#define MWM_FUNC_CLOSE (1L << 5)
 
 #if !defined(TW_USE_VULKAN)
 
@@ -494,8 +494,8 @@ namespace TinyWindow
 
 	enum class buttonState_e
 	{
-		up,	 /**< The mouse button is currently up */
-		down /**< The mouse button is currently down */
+		up,		/**< The mouse button is currently up */
+		down	/**< The mouse button is currently down */
 	};
 
 	enum class mouseButton_e
@@ -510,8 +510,8 @@ namespace TinyWindow
 
 	enum class mouseScroll_e
 	{
-		down, /**< The mouse wheel up */
-		up	  /**< The mouse wheel down */
+		down,	/**< The mouse wheel up */
+		up		/**< The mouse wheel down */
 	};
 
 	enum decorator_e
@@ -525,12 +525,12 @@ namespace TinyWindow
 		sizeableBorder = 1L << 7, /**< The sizable border decoration of the window */
 	};
 
-	enum class style_e
+	namespace style_n
 	{
-		bare,	/**< The window has no decorators but the window border and title bar */
-		normal, /**< The default window style for the respective platform */
-		popup,	/**< The window has no decorators */
-	};
+		constexpr uint32_t none = 0; /**< The window has no decorators */
+		constexpr uint32_t bare = titleBar | border; /**< The window has no decorators but the window border and title bar */
+		constexpr uint32_t normal = titleBar | border | closeButton | minimizeButton | maximizeButton | sizeableBorder; /**< The default window style for the respective platform */
+	}
 
 	enum class error_e
 	{
@@ -667,7 +667,7 @@ namespace TinyWindow
 		const bool& GetIsFullscreen() const { return isFullscreen; }
 		const bool& GetIsInitialized() const { return initialized; }
 		const windowSetting_t& GetSettings() const { return settings; }
-		const uint16_t& GetCurrentStyle() const { return currentStyle; }
+		const uint32_t& GetCurrentStyle() const { return currentStyle; }
 		const bool& GetContextCreated() const { return contextCreated; }
 		const bool& GetIsCurrentContext() const { return isCurrentContext; }
 		const monitor_t* GetCurrentMonitor() const { return currentMonitor; }
@@ -687,8 +687,8 @@ namespace TinyWindow
 		bool isFullscreen;					/**< Whether the window is currently in fullscreen mode */
 		bool contextCreated;				/**< Whether the OpenGL context has been successfully created */
 		bool isCurrentContext;				/**< Whether the window is the current window being drawn to */
-		uint16_t currentStyle;				/**< The current style of the window */
-		uint16_t previousStyle;				/**< The previous style of the window (for restoration) */
+		uint32_t currentStyle;				/**< The current style of the window */
+		uint32_t previousStyle;				/**< The previous style of the window (for restoration) */
 		keyState_e keys[last];				/**< Record of keys that are either pressed or released in the respective window */
 		vec2_t<int16_t> position;			/**< Position of the Window relative to the screen co-ordinates */
 		windowSetting_t settings;			/**< List of User-defined settings for this windowS */
@@ -738,47 +738,10 @@ namespace TinyWindow
 		Atom AtomDesktopGeometry;  /**< Atom for Desktop Geometry */
 		Atom AtomDemandsAttention; /**< Atom for when the window demands attention */
 
-		Atom AtomWindowType;
-		Atom AtomWindowTypeNormal;
-		Atom AtomWindowTypeDesktop;
-		Atom AtomWindowTypeDock;
-		Atom AtomWindowTypeToolbar;
-		Atom AtomWindowTypeMenu;
-		Atom AtomWindowTypeUtility;
-		Atom AtomWindowTypeSplash;
-		Atom AtomWindowTypeDialog;
-		Atom AtomWindowTypeDropdownMenu;
-		Atom AtomWindowTypePopupMenu;
-		Atom AtomWindowTypeTooltip;
-		Atom AtomWindowTypeNotification;
-		Atom AtomWindowTypeCombo;
-		Atom AtomWindowTypeDND;
-
 		Atom AtomState;
-		Atom AtomStateModal;
-		Atom AtomStateSticky;
 		Atom AtomStateMaximizedVert;
 		Atom AtomStateMaximizedHorz;
-		Atom AtomStateShaded;
-		Atom AtomStateSkipTaskbar;
-		Atom AtomStateSkipPager;
 		Atom AtomStateHidden;
-		Atom AtomStateFullscreen;
-		Atom AtomStateAbove;
-		Atom AtomStateBelow;
-		Atom AtomStateDemandsAttention;
-
-		Atom AtomAllowedActions;
-		Atom AtomActionMove;
-		Atom AtomActionResize;
-		Atom AtomActionMinimize;
-		Atom AtomActionShade;
-		Atom AtomActionStick;
-		Atom AtomActionMaximizeVert;
-		Atom AtomActionMaximizeHorz;
-		Atom AtomActionFullscreen;
-		Atom AtomActionChangeDesktop;
-		Atom AtomActionClose;
 
 		//DND Atoms
 		Atom AtomXDNDAware;		  /**< Atom for making the window Drag and Drop aware */
@@ -824,47 +787,10 @@ namespace TinyWindow
 			AtomDesktopGeometry	 = XInternAtom(currentDisplay, "_NET_DESKTOP_GEOMETRY", false);
 			AtomDemandsAttention = XInternAtom(currentDisplay, "_NET_WM_STATE_DEMANDS_ATTENTION", false);
 
-			AtomWindowType			   = XInternAtom(currentDisplay, "_NET_WM_WINDOW_TYPE", false);
-			AtomWindowTypeNormal	   = XInternAtom(currentDisplay, "_NET_WM_WINDOW_TYPE_NORMAL", false);
-			AtomWindowTypeDesktop	   = XInternAtom(currentDisplay, "_NET_WM_WINDOW_TYPE_DESKTOP", false);
-			AtomWindowTypeDock		   = XInternAtom(currentDisplay, "_NET_WM_WINDOW_TYPE_DOCK", false);
-			AtomWindowTypeToolbar	   = XInternAtom(currentDisplay, "_NET_WM_WINDOW_TYPE_TOOLBAR", false);
-			AtomWindowTypeMenu		   = XInternAtom(currentDisplay, "_NET_WM_WINDOW_TYPE_MENU", false);
-			AtomWindowTypeUtility	   = XInternAtom(currentDisplay, "_NET_WM_WINDOW_TYPE_UTILITY", false);
-			AtomWindowTypeSplash	   = XInternAtom(currentDisplay, "_NET_WM_WINDOW_TYPE_SPLASH", false);
-			AtomWindowTypeDialog	   = XInternAtom(currentDisplay, "_NET_WM_WINDOW_TYPE_DIALOG", false);
-			AtomWindowTypeDropdownMenu = XInternAtom(currentDisplay, "_NET_WM_WINDOW_TYPE_DROPDOWN_MENU", false);
-			AtomWindowTypePopupMenu	   = XInternAtom(currentDisplay, "_NET_WM_WINDOW_TYPE_POPUP_MENU", false);
-			AtomWindowTypeTooltip	   = XInternAtom(currentDisplay, "_NET_WM_WINDOW_TYPE_TOOLTIP", false);
-			AtomWindowTypeNotification = XInternAtom(currentDisplay, "_NET_WM_WINDOW_TYPE_NOTIFICATION", false);
-			AtomWindowTypeCombo		   = XInternAtom(currentDisplay, "_NET_WM_WINDOW_TYPE_COMBO", false);
-			AtomWindowTypeDND		   = XInternAtom(currentDisplay, "_NET_WM_WINDOW_TYPE_DND", false);
-
 			AtomState				  = XInternAtom(currentDisplay, "_NET_WM_STATE", false);
-			AtomStateModal			  = XInternAtom(currentDisplay, "_NET_WM_STATE_MODAL", false);
-			AtomStateSticky			  = XInternAtom(currentDisplay, "_NET_WM_STATE_STICKY", false);
 			AtomStateMaximizedVert	  = XInternAtom(currentDisplay, "_NET_WM_STATE_MAXIMIZED_VERT", false);
 			AtomStateMaximizedHorz	  = XInternAtom(currentDisplay, "_NET_WM_STATE_MAXIMIZED_HORZ", false);
-			AtomStateShaded			  = XInternAtom(currentDisplay, "_NET_WM_STATE_SHADED", false);
-			AtomStateSkipTaskbar	  = XInternAtom(currentDisplay, "_NET_WM_STATE_SKIP_TASKBAR", false);
-			AtomStateSkipPager		  = XInternAtom(currentDisplay, "_NET_WM_STATE_SKIP_PAGER", false);
 			AtomStateHidden			  = XInternAtom(currentDisplay, "_NET_WM_STATE_HIDDEN", false);
-			AtomStateFullscreen		  = XInternAtom(currentDisplay, "_NET_WM_STATE_FULLSCREEN", false);
-			AtomStateAbove			  = XInternAtom(currentDisplay, "_NET_WM_STATE_ABOVE", false);
-			AtomStateBelow			  = XInternAtom(currentDisplay, "_NET_WM_STATE_BELOW", false);
-			AtomStateDemandsAttention = XInternAtom(currentDisplay, "_NET_WM_STATE_DEMANDS_ATTENTION", false);
-
-			AtomAllowedActions		= XInternAtom(currentDisplay, "_NET_WM_ALLOWED_ACTIONS", false);
-			AtomActionMove			= XInternAtom(currentDisplay, "_NET_WM_ACTION_MOVE", false);
-			AtomActionResize		= XInternAtom(currentDisplay, "_NET_WM_ACTION_RESIZE", false);
-			AtomActionMinimize		= XInternAtom(currentDisplay, "_NET_WM_ACTION_MINIMIZE", false);
-			AtomActionShade			= XInternAtom(currentDisplay, "_NET_WM_ACTION_SHADE", false);
-			AtomActionStick			= XInternAtom(currentDisplay, "_NET_WM_ACTION_STICK", false);
-			AtomActionMaximizeVert	= XInternAtom(currentDisplay, "_NET_WM_ACTION_MAXIMIZE_VERT", false);
-			AtomActionMaximizeHorz	= XInternAtom(currentDisplay, "_NET_WM_ACTION_MAXIMIZE_HORZ", false);
-			AtomActionFullscreen	= XInternAtom(currentDisplay, "_NET_WM_ACTION_FULLSCREEN", false);
-			AtomActionChangeDesktop = XInternAtom(currentDisplay, "_NET_WM_ACTION_CHANGE_DESKTOP", false);
-			AtomActionClose			= XInternAtom(currentDisplay, "_NET_WM_ACTION_CLOSE", false);
 
 			AtomXDNDAware		= XInternAtom(currentDisplay, "XdndAware", false);
 			AtomXDNDEnter		= XInternAtom(currentDisplay, "XdndEnter", false);
@@ -1516,107 +1442,13 @@ namespace TinyWindow
 		}
 
 		/**
-		* Set the window style preset
+		* Set window decorators
 		*/
-		void SetStyle(tWindow* window, const style_e& windowStyle)
+		void SetDecorators(tWindow* window, const uint16_t& decorators) const
 		{
 			window->previousStyle = window->currentStyle;
+
 #if defined(TW_WINDOWS)
-			switch (windowStyle)
-			{
-				case style_e::normal:
-					{
-						EnableDecorators(window, titleBar | border | closeButton | minimizeButton | maximizeButton | sizeableBorder);
-						break;
-					}
-				case style_e::popup:
-					{
-						EnableDecorators(window, 0);
-						break;
-					}
-				case style_e::bare:
-					{
-						EnableDecorators(window, titleBar | border);
-						break;
-					}
-				default:
-					{
-						AddErrorLog(window, error_e::invalidWindowStyle, __LINE__, __FUNCTION__);
-						break;
-					}
-			}
-
-#elif defined(TW_LINUX)
-
-			switch (windowStyle)
-			{
-				case style_e::normal:
-					{
-						window->linuxDecorators = (1L << 2);
-						window->currentStyle	= tWindow::linuxMove | tWindow::linuxClose | tWindow::linuxMaximize | tWindow::linuxMinimize;
-						const long Hints[5]			= {tWindow::function | tWindow::decorator, window->currentStyle, window->linuxDecorators, 0, 0};
-
-						XChangeProperty(currentDisplay, window->windowHandle, window->AtomHints, XA_ATOM, 32, PropModeReplace, (unsigned char*)Hints, 5);
-						XMapWindow(currentDisplay, window->windowHandle);
-						break;
-					}
-
-				case style_e::bare:
-					{
-						MWMHints_t hints;
-						// Set up Motif hints to control decorations
-						hints.flags = MWM_HINTS_DECORATIONS;
-						hints.decorations = MWM_DECOR_BORDER | MWM_DECOR_TITLE;
-						hints.functions = 0;    // No window functions
-						hints.input_mode = 0;
-						hints.status = 0;
-
-						// Set the Motif hints atom
-						XChangeProperty(
-						    currentDisplay,
-						    window->windowHandle,
-						    window->AtomHints,
-						    window->AtomHints,
-						    32,                 // 32-bit data
-						    PropModeReplace,
-						    (unsigned char *)&hints,
-						    5                   // Number of long values
-						);
-						break;
-					}
-
-				case style_e::popup:
-					{
-						MWMHints_t hints;
-						hints.flags		  = MWM_HINTS_DECORATIONS | MWM_HINTS_FUNCTIONS;
-						hints.decorations = 0;
-						hints.functions	  = 0;
-
-						XChangeProperty(window->currentDisplay, window->windowHandle, window->AtomHints, window->AtomHints, 32, PropModeReplace, (unsigned char*)&hints, sizeof(MWMHints_t) / sizeof(long));
-
-						// Update window
-						XMapWindow(window->currentDisplay, window->windowHandle);
-						XFlush(window->currentDisplay);
-						break;
-					}
-
-				default:
-					{
-						AddErrorLog(error_e::invalidWindowStyle, window, __LINE__, __func__);
-					}
-			}
-#endif
-		}
-
-		/**
-		* Enable window decorators
-		*/
-		void EnableDecorators(tWindow* window, const uint16_t& decorators)
-		{
-#if defined(TW_WINDOWS)
-
-			window->currentStyle = WS_VISIBLE | WS_CLIPSIBLINGS;
-
 			if (decorators & border)
 			{
 				window->currentStyle |= WS_BORDER;
@@ -1635,31 +1467,30 @@ namespace TinyWindow
 			}
 			if (decorators & minimizeButton)
 			{
-				window->currentStyle |= WS_MINIMIZEBOX | WS_SYSMENU;
+				window->currentStyle |= WS_MINIMIZEBOX;
 			}
 			if (decorators & maximizeButton)
 			{
-				window->currentStyle |= WS_MAXIMIZEBOX | WS_SYSMENU;
+				window->currentStyle |= WS_MAXIMIZEBOX;
 			}
 			if (decorators & sizeableBorder)
 			{
-				window->currentStyle |= WS_SIZEBOX;
+				window->currentStyle |= WS_THICKFRAME;
 			}
 
-			SetWindowLongPtr(window->windowHandle, GWL_STYLE, static_cast<LONG_PTR>(window->currentStyle));
-			SetWindowPos(window->windowHandle, HWND_TOP, window->position.x, window->position.y, window->settings.resolution.width, window->settings.resolution.height, SWP_FRAMECHANGED);
-
+			SetWindowLongPtr(window->windowHandle, GWL_STYLE, static_cast<LONG_PTR>(window->currentStyle | WS_VISIBLE));
+			SetWindowPos(window->windowHandle, HWND_TOPMOST, window->position.x, window->position.y, window->settings.resolution.width, window->settings.resolution.height, SWP_FRAMECHANGED);
 #elif defined(TW_LINUX)
 
 			MWMHints_t hints;
 			hints.flags		  = MWM_HINTS_DECORATIONS | MWM_HINTS_FUNCTIONS;
 			hints.decorations = 0;
-			hints.functions	  = 0;
+			hints.functions	  = window->linuxDecorators;
 
 			if (decorators & titleBar)
 			{
 				hints.decorations |= MWM_DECOR_TITLE;
-				//hints.functions |= MWM_HI;
+				hints.functions |= MWM_FUNC_MOVE;
 			}
 			if (decorators & border)
 			{
@@ -1668,106 +1499,28 @@ namespace TinyWindow
 			if (decorators & minimizeButton)
 			{
 				hints.decorations |= MWM_DECOR_MINIMIZE;
-				//hints.functions |= MWM_FUNC_MINIMIZE;
+				hints.functions |= MWM_FUNC_MINIMIZE;
 			}
 			if (decorators & maximizeButton)
 			{
 				hints.decorations |= MWM_DECOR_MAXIMIZE;
-				//hints.functions |= MWM_FUNC_MAXIMIZE;
+				hints.functions |= MWM_FUNC_MAXIMIZE;
 			}
 			if (decorators & closeButton)
 			{
-				//hints.functions |= MWM_FUNC_CLOSE;
+				hints.functions |= MWM_FUNC_CLOSE;
 			}
 			if (decorators & sizeableBorder)
 			{
 				hints.decorations |= MWM_DECOR_RESIZE;
-				//hints.functions |= MWM_FUNC_RESIZE;
+				hints.functions |= MWM_FUNC_RESIZE;
 			}
 
 			XChangeProperty(currentDisplay, window->windowHandle, window->AtomHints, window->AtomHints, 32, PropModeReplace, (unsigned char*)&hints, sizeof(MWMHints_t) / sizeof(long));
 			XMapWindow(currentDisplay, window->windowHandle);
 #endif
-		}
 
-		/**
-		* Disable window decorators
-		*/
-		void DisableDecorators(tWindow* window, const uint16_t& decorators) const
-		{
-#if defined(TW_WINDOWS)
-			if (decorators & border)
-			{
-				window->currentStyle &= ~WS_BORDER;
-			}
-			if (decorators & titleBar)
-			{
-				window->currentStyle &= ~WS_CAPTION;
-			}
-			if (decorators & icon)
-			{
-				window->currentStyle &= ~WS_ICONIC;
-			}
-			if (decorators & closeButton)
-			{
-				window->currentStyle &= ~WS_SYSMENU;
-			}
-			if (decorators & minimizeButton)
-			{
-				window->currentStyle &= ~WS_MINIMIZEBOX;
-			}
-			if (decorators & maximizeButton)
-			{
-				window->currentStyle &= ~WS_MAXIMIZEBOX;
-			}
-			if (decorators & sizeableBorder)
-			{
-				window->currentStyle &= ~WS_THICKFRAME;
-			}
-
-			SetWindowLongPtr(window->windowHandle, GWL_STYLE, static_cast<LONG_PTR>(window->currentStyle | WS_VISIBLE));
-
-			SetWindowPos(window->windowHandle, HWND_TOPMOST, window->position.x, window->position.y, window->settings.resolution.width, window->settings.resolution.height, SWP_FRAMECHANGED);
-#elif defined(TW_LINUX)
-
-			MWMHints_t hints;
-			hints.flags		  = MWM_HINTS_DECORATIONS | MWM_HINTS_FUNCTIONS;
-			hints.decorations = window->currentStyle;
-			hints.functions	  = window->linuxDecorators;
-
-			if (decorators & titleBar)
-			{
-				hints.decorations &= ~MWM_DECOR_TITLE;
-				//hints.functions &= ~MWM_FUNC_MOVE;
-			}
-			if (decorators & border)
-			{
-				hints.decorations &= ~MWM_DECOR_BORDER;
-			}
-			if (decorators & minimizeButton)
-			{
-				hints.decorations &= ~MWM_DECOR_MINIMIZE;
-				//hints.functions &= ~MWM_FUNC_MINIMIZE;
-			}
-			if (decorators & maximizeButton)
-			{
-				hints.decorations &= ~MWM_DECOR_MAXIMIZE;
-				//hints.functions &= ~MWM_FUNC_MAXIMIZE;
-			}
-			if (decorators & closeButton)
-			{
-				//hints.functions &= ~MWM_FUNC_CLOSE;
-			}
-			if (decorators & sizeableBorder)
-			{
-				hints.decorations &= ~MWM_DECOR_RESIZE;
-				//hints.functions &= ~MWM_FUNC_RESIZE;
-			}
-
-			XChangeProperty(currentDisplay, window->windowHandle, window->AtomHints, window->AtomHints, 32, PropModeReplace, (unsigned char*)&hints, sizeof(MWMHints_t) / sizeof(long));
-
-			XMapWindow(currentDisplay, window->windowHandle);
-#endif
+			window->currentStyle = decorators;
 		}
 
 		const std::vector<errorEntry>& GetErrorLog() { return errorLog; }
@@ -3686,7 +3439,6 @@ namespace TinyWindow
 		};
 
 		//use map of <handle, window> for faster lookups
-
 		tWindow* GetWindowByHandle(const Window& windowHandle) const
 		{
 			const auto it = std::ranges::find_if(windowList, [&](const std::unique_ptr<tWindow>& window)
@@ -3764,9 +3516,7 @@ namespace TinyWindow
 			}
 
 			window->setAttributes.colormap = XCreateColormap(window->currentDisplay, DefaultRootWindow(window->currentDisplay), window->visualInfo->visual, AllocNone);
-
 			window->setAttributes.event_mask = ExposureMask | KeyPressMask | KeyReleaseMask | MotionNotify | ButtonPressMask | ButtonReleaseMask | FocusIn | FocusOut | Button1MotionMask | Button2MotionMask | Button3MotionMask | Button4MotionMask | Button5MotionMask | PointerMotionMask | FocusChangeMask | VisibilityChangeMask | PropertyChangeMask | SubstructureNotifyMask;
-
 			window->windowHandle = XCreateWindow(window->currentDisplay, RootWindow(currentDisplay, window->visualInfo->screen), 0, 0, window->settings.resolution.width, window->settings.resolution.height, 0, window->visualInfo->depth, InputOutput, window->visualInfo->visual, CWColormap | CWEventMask, &window->setAttributes);
 
 			if (!window->windowHandle)
@@ -4635,17 +4385,16 @@ namespace TinyWindow
 				{
 					SetWindowSize(window, vec2_t<uint16_t>(monitor->resolution.width, monitor->resolution.height));
 					SetPosition(window, vec2_t<int16_t>(0, 0)); // Use (0,0) as origin after mode change
-					SetStyle(window, style_e::popup);
+					SetDecorators(window, style_n::none);
 					window->isFullscreen = true;
-
 				}
 			}
 
 			else if (window->isFullscreen == true)
 			{
 				result = XRRSetCrtcConfig(rootDisplay, screenResources, monitor->currentSetting.crtc, CurrentTime,
-						  (int)monitor->extents.left, (int)monitor->extents.top,
-						  monitor->currentSetting.mode, monitor->rotation, &monitor->currentSetting.output, 1);
+				(int)monitor->extents.left, (int)monitor->extents.top,
+				monitor->currentSetting.mode, monitor->rotation, &monitor->currentSetting.output, 1);
 
 				XSync(rootDisplay, True);
 				if (result == Success)
@@ -4653,8 +4402,7 @@ namespace TinyWindow
 					window->isFullscreen = false;
 					SetWindowSize(window, vec2_t<uint16_t>(window->previousDimensions.width, window->previousDimensions.height));
 					SetPosition(window, vec2_t<int16_t>(window->previousPosition.x, window->previousPosition.y));
-					SetStyle(window, style_e::normal); // Restore original style if different
-
+					SetDecorators(window, style_n::normal); // Restore original style if different
 				}
 			}
 		}
