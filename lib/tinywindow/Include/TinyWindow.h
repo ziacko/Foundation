@@ -720,13 +720,13 @@ namespace TinyWindow
 
 #elif defined(TW_LINUX)
 
-		int16_t* attributes;					/**< Attributes of the window. RGB, depth, stencil, etc */
+		int16_t* attributes;				/**< Attributes of the window. RGB, depth, stencil, etc */
 		GLXContext context;					/**< The handle to the GLX rendering context */
 		Window windowHandle;				/**< The X11 handle to the window. I wish they didn't name the type 'Window' */
 		XVisualInfo* visualInfo;			/**< The handle to the Visual Information. similar purpose to PixelformatDesriptor */
 		Display* currentDisplay;			/**< Handle to the X11 window */
-		uint16_t linuxDecorators;		/**< Enabled window decorators */
-		XSetWindowAttributes setAttributes; /**< The attributes to be set for the window */
+		uint16_t linuxDecorators;			/**< Enabled window decorators */
+		XSetWindowAttributes setAttributes;	/**< The attributes to be set for the window */
 
 		/* these atoms are needed to change window states via the extended window manager */
 		Atom AtomIcon;			   /**< Atom for the icon of the window */
@@ -1184,6 +1184,7 @@ namespace TinyWindow
 #elif defined(TW_LINUX)
 			XResizeWindow(currentDisplay, window->windowHandle, newResolution.x, newResolution.y);
 #endif
+			//TODO: add error handling
 		}
 
 		/**
@@ -3438,37 +3439,82 @@ namespace TinyWindow
 			unsigned long status	  = 0;
 		};
 
-		//use map of <handle, window> for faster lookups
-		tWindow* GetWindowByHandle(const Window& windowHandle) const
+		typedef std::pair<Window, tWindow*> windowEntry;
+		std::unordered_map<Window, tWindow*> windowLUT;
+
+		typedef std::pair<uint32_t, key_e> keyEntry;
+		std::unordered_map<uint32_t, key_e> keyLUT =
 		{
-			const auto it = std::ranges::find_if(windowList, [&](const std::unique_ptr<tWindow>& window)
-			{
-				return window->windowHandle == windowHandle;
-			});
-			return (it != windowList.end()) ? it->get() : nullptr;
-		}
+			keyEntry(XK_Escape, escape),
+			keyEntry(XK_space, spacebar),
+			keyEntry(XK_Home, home),
+			keyEntry(XK_Left, arrowLeft),
+			keyEntry(XK_Right, arrowRight),
+			keyEntry(XK_Up, arrowUp),
+			keyEntry(XK_Down, arrowDown),
+			keyEntry(XK_Page_Up, pageUp),
+			keyEntry(XK_Page_Down, pageDown),
+			keyEntry(XK_End, end),
+			keyEntry(XK_Print, printScreen),
+			keyEntry(XK_Insert, insert),
+			keyEntry(XK_Num_Lock, numLock),
+			keyEntry(XK_KP_Multiply, keypadMultiply),
+			keyEntry(XK_KP_Add, keypadAdd),
+			keyEntry(XK_KP_Subtract, keypadSubtract),
+			keyEntry(XK_KP_Decimal, keypadPeriod),
+			keyEntry(XK_KP_Divide, keypadDivide),
+			keyEntry(XK_KP_0, keypad0),
+			keyEntry(XK_KP_1, keypad1),
+			keyEntry(XK_KP_2, keypad2),
+			keyEntry(XK_KP_3, keypad3),
+			keyEntry(XK_KP_4, keypad4),
+			keyEntry(XK_KP_5, keypad5),
+			keyEntry(XK_KP_6, keypad6),
+			keyEntry(XK_KP_7, keypad7),
+			keyEntry(XK_KP_8, keypad8),
+			keyEntry(XK_KP_9, keypad9),
+			keyEntry(XK_F1, F1),
+			keyEntry(XK_F2, F2),
+			keyEntry(XK_F3, F3),
+			keyEntry(XK_F4, F4),
+			keyEntry(XK_F5, F5),
+			keyEntry(XK_F6, F6),
+			keyEntry(XK_F7, F7),
+			keyEntry(XK_F8, F8),
+			keyEntry(XK_F9, F9),
+			keyEntry(XK_F10, F10),
+			keyEntry(XK_F11, F11),
+			keyEntry(XK_F12, F12),
+			keyEntry(XK_Shift_L, leftShift),
+			keyEntry(XK_Shift_R, rightShift),
+			keyEntry(XK_Control_R, rightControl),
+			keyEntry(XK_Control_L, leftControl),
+			keyEntry(XK_Caps_Lock, capsLock),
+			keyEntry(XK_Alt_L, leftAlt),
+			keyEntry(XK_Alt_R, rightAlt),
+		};
 
 		tWindow* GetWindowByEvent(const XEvent& inEvent) const
 		{
 			switch (inEvent.type)
 			{
 				//use case fallthrough. not the biggest fan of this
-				case Expose: return GetWindowByHandle(inEvent.xexpose.window);
-				case DestroyNotify: return GetWindowByHandle(inEvent.xdestroywindow.window);
-				case CreateNotify: return GetWindowByHandle(inEvent.xcreatewindow.window);
+				case Expose: return windowLUT.at(inEvent.xexpose.window);
+				case DestroyNotify: return windowLUT.at(inEvent.xdestroywindow.window);
+				case CreateNotify: return windowLUT.at(inEvent.xcreatewindow.window);
 				case KeyPress:
-				case KeyRelease: return GetWindowByHandle(inEvent.xkey.window);
+				case KeyRelease: return windowLUT.at(inEvent.xkey.window);
 				case ButtonPress:
-				case ButtonRelease: return GetWindowByHandle(inEvent.xbutton.window);
-				case MotionNotify: return GetWindowByHandle(inEvent.xmotion.window);
+				case ButtonRelease: return windowLUT.at(inEvent.xbutton.window);
+				case MotionNotify: return windowLUT.at(inEvent.xmotion.window);
 				case FocusIn:
-				case FocusOut: return GetWindowByHandle(inEvent.xfocus.window);
-				case ResizeRequest: return GetWindowByHandle(inEvent.xresizerequest.window);
-				case ConfigureNotify: return GetWindowByHandle(inEvent.xconfigure.window);
-				case PropertyNotify: return GetWindowByHandle(inEvent.xproperty.window);
-				case GravityNotify: return GetWindowByHandle(inEvent.xgravity.window);
-				case ClientMessage: return GetWindowByHandle(inEvent.xclient.window);
-				case VisibilityNotify: return GetWindowByHandle(inEvent.xvisibility.window);
+				case FocusOut: return windowLUT.at(inEvent.xfocus.window);
+				case ResizeRequest: return windowLUT.at(inEvent.xresizerequest.window);
+				case ConfigureNotify: return windowLUT.at(inEvent.xconfigure.window);
+				case PropertyNotify: return windowLUT.at(inEvent.xproperty.window);
+				case GravityNotify: return windowLUT.at(inEvent.xgravity.window);
+				case ClientMessage: return windowLUT.at(inEvent.xclient.window);
+				case VisibilityNotify: return windowLUT.at(inEvent.xvisibility.window);
 				default: return nullptr;
 			}
 		}
@@ -3532,6 +3578,8 @@ namespace TinyWindow
 			XWindowAttributes attributes;
 			Status status	 = XGetWindowAttributes(window->currentDisplay, window->windowHandle, &attributes);
 			window->position = vec2_t<int16_t>((int16_t)attributes.x, (int16_t)attributes.y);
+
+			windowLUT.emplace(windowEntry(window->windowHandle, window));
 
 			InitializeGL(window);
 		}
@@ -3969,59 +4017,9 @@ namespace TinyWindow
 		}
 
 		// translate keys from X keys to TinyWindow Keys
-		static uint16_t Linux_TranslateKey(const uint16_t& keySymbol)
+		uint16_t Linux_TranslateKey(const uint16_t& keySymbol) const
 		{
-			switch (keySymbol)
-			{
-				case XK_Escape: return escape;
-				case XK_space: return spacebar;
-				case XK_Home: return home;
-				case XK_Left: return arrowLeft;
-				case XK_Right: return arrowRight;
-				case XK_Up: return arrowUp;
-				case XK_Down: return arrowDown;
-				case XK_Page_Up: return pageUp;
-				case XK_Page_Down: return pageDown;
-				case XK_End: return end;
-				case XK_Print: return printScreen;
-				case XK_Insert: return insert;
-				case XK_Num_Lock: return numLock;
-				case XK_KP_Multiply: return keypadMultiply;
-				case XK_KP_Add: return keypadAdd;
-				case XK_KP_Subtract: return keypadSubtract;
-				case XK_KP_Decimal: return keypadPeriod;
-				case XK_KP_Divide: return keypadDivide;
-				case XK_KP_0: return keypad0;
-				case XK_KP_1: return keypad1;
-				case XK_KP_2: return keypad2;
-				case XK_KP_3: return keypad3;
-				case XK_KP_4: return keypad4;
-				case XK_KP_5: return keypad5;
-				case XK_KP_6: return keypad6;
-				case XK_KP_7: return keypad7;
-				case XK_KP_8: return keypad8;
-				case XK_KP_9: return keypad9;
-				case XK_F1: return F1;
-				case XK_F2: return F2;
-				case XK_F3: return F3;
-				case XK_F4: return F4;
-				case XK_F5: return F5;
-				case XK_F6: return F6;
-				case XK_F7: return F7;
-				case XK_F8: return F8;
-				case XK_F9: return F9;
-				case XK_F10: return F10;
-				case XK_F11: return F11;
-				case XK_F12: return F12;
-				case XK_Shift_L: return leftShift;
-				case XK_Shift_R: return rightShift;
-				case XK_Control_R: return rightControl;
-				case XK_Control_L: return leftControl;
-				case XK_Caps_Lock: return capsLock;
-				case XK_Alt_L: return leftAlt;
-				case XK_Alt_R: return rightAlt;
-				default: return keySymbol;
-			}
+			return keyLUT.at(keySymbol);
 		}
 
 		void Linux_SetWindowIcon(tWindow* window)
