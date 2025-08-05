@@ -1161,15 +1161,27 @@ namespace TinyWindow
 		*/
 		std::vector<monitor_t> GetMonitors() const { return monitorList; }
 
-		void GetClipboardInfo()
+		std::string GetClipboardInfo(tWindow* window)
 		{
 #if defined(TW_WINDOWS)
 
 #endif
 #if defined(TW_LINUX)
-			//Linux_GetClipboardInfo();
+			return Linux_GetClipboardString(window);
 #endif
-			AddErrorLog(error_e::functionNotImplemented);
+			//AddErrorLog(error_e::functionNotImplemented);
+		}
+
+		std::vector<std::string> GetClipboardFiles(tWindow* window)
+		{
+#if defined(TW_WINDOWS)
+
+#endif
+
+#if defined(TW_LINUX)
+
+			return Linux_GetClipboardFiles(window);
+#endif
 		}
 
 		/**
@@ -3426,9 +3438,10 @@ namespace TinyWindow
 		PFNGLXCREATECONTEXTATTRIBSARBPROC glXCreateContextAttribsARB;
 
 		// clipboard Atoms
-		Atom uriList;	 /**< Atom for grabbing image data */
-		Atom clipboard;	 /**< Atom for grabbing data from the clipboard */
-		Atom utf8String; /**< Atom for storing the clipboard data */
+		Atom uriList;		/**< Atom for grabbing clipboard files paths */
+		Atom clipboard;		/**< Atom for grabbing data from the clipboard */
+		Atom utf8String;	/**< Atom for storing the clipboard data */
+		Atom clipProperty;	/**< Atom for using the clipboard property */
 
 		struct MWMHints_t
 		{
@@ -3443,7 +3456,7 @@ namespace TinyWindow
 		std::unordered_map<Window, tWindow*> windowLUT;
 
 		typedef std::pair<uint32_t, key_e> keyEntry;
-		std::unordered_map<uint32_t, key_e> keyLUT =
+		const std::unordered_map<uint32_t, key_e> keyLUT =
 		{
 			keyEntry(XK_Escape, escape),
 			keyEntry(XK_space, spacebar),
@@ -4019,7 +4032,11 @@ namespace TinyWindow
 		// translate keys from X keys to TinyWindow Keys
 		uint16_t Linux_TranslateKey(const uint16_t& keySymbol) const
 		{
-			return keyLUT.at(keySymbol);
+			if (keyLUT.contains(keySymbol))
+			{
+				return keyLUT.at(keySymbol);
+			}
+			return keySymbol;
 		}
 
 		void Linux_SetWindowIcon(tWindow* window)
@@ -4352,6 +4369,7 @@ namespace TinyWindow
 			clipboard  = XInternAtom(currentDisplay, "CLIPBOARD", False);
 			utf8String = XInternAtom(currentDisplay, "UTF8_STRING", False);
 			uriList	   = XInternAtom(currentDisplay, "text/uri-list", False);
+			clipProperty = XInternAtom(currentDisplay, "CLIPBOARD_PROPERTY", False);
 		}
 
 		void Linux_ToggleFullscreen(tWindow* window, monitor_t* monitor, const uint16_t& monitorSettingIndex)
@@ -4404,6 +4422,212 @@ namespace TinyWindow
 				}
 			}
 		}
+
+		std::string Linux_GetClipboardString(tWindow* window)
+		{
+			XConvertSelection(currentDisplay, clipboard, utf8String, clipProperty, window->windowHandle, CurrentTime);
+			XFlush(currentDisplay); // Ensure the request is sent immediately
+
+			// Temporary event loop to wait for SelectionNotify
+			XEvent event;
+			bool selectionReceived = false;
+			for (int i = 0; i < 100 && !selectionReceived; i++)
+			{
+				if (XPending(currentDisplay)) //if there is an event in the pipeline
+				{
+					XNextEvent(currentDisplay, &event); //grab the event and check if it's an event we want
+					if (event.type == SelectionNotify && event.xselection.selection == clipboard)
+					{
+						selectionReceived = true;
+						if (event.xselection.property == None)
+						{
+							// Selection owner couldn't convert to target or no selection
+							return std::string();
+						}
+					}
+				}
+				else
+				{
+					usleep(10000); // Sleep 10ms to avoid busy-waiting
+				}
+			}
+
+			if (!selectionReceived)
+			{
+				// Timeout or no response
+				return std::string();
+			}
+
+			// Read the property
+			Atom actualType;
+			int actualFormat;
+			unsigned long nitems, bytesAfter;
+			unsigned char* data = nullptr;
+
+			int result = XGetWindowProperty(currentDisplay, window->windowHandle, clipProperty, 0, LONG_MAX / 4, True,
+											AnyPropertyType, &actualType, &actualFormat, &nitems, &bytesAfter, &data);
+
+			if (result != Success || !data || actualType == None)
+			{
+				if (data) XFree(data);
+				return std::string();
+			}
+
+			std::string clipboardText;
+			if (actualType == utf8String)
+			{
+				// Successfully retrieved data
+				clipboardText = std::string((char*)data, nitems);
+			}
+
+			XFree(data);
+			return clipboardText;
+		}
+
+		std::vector<std::string> Linux_GetClipboardFiles(tWindow* window)
+		{
+			std::vector<std::string> files;
+
+			// Request the clipboard selection
+			XConvertSelection(currentDisplay, clipboard, uriList, clipProperty, window->windowHandle, CurrentTime);
+			XFlush(currentDisplay); // Ensure the request is sent immediately
+
+			// Temporary event loop to wait for SelectionNotify
+			XEvent event;
+			bool selectionReceived = false;
+			for (int i = 0; i < 100 && !selectionReceived; i++)
+			{ // Timeout after 100 iterations
+				if (XPending(currentDisplay))
+				{
+					XNextEvent(currentDisplay, &event);
+					if (event.type == SelectionNotify && event.xselection.selection == clipboard)
+					{
+						selectionReceived = true;
+						if (event.xselection.property == None)
+						{
+							// Selection owner couldn't convert to text/uri-list or no selection
+							return std::vector<std::string>();
+						}
+					}
+				}
+				else
+				{
+					usleep(10000); // Sleep 10ms to avoid busy-waiting
+				}
+			}
+
+			if (!selectionReceived)
+			{
+				// Timeout or no response
+				return std::vector<std::string>();
+			}
+
+			// Read the property
+    Atom actualType;
+    int actualFormat;
+    unsigned long nitems, bytesAfter;
+    unsigned char* data = nullptr;
+
+    int result = XGetWindowProperty(currentDisplay, window->windowHandle, clipProperty, 0, LONG_MAX / 4, True,
+                                    AnyPropertyType, &actualType, &actualFormat, &nitems, &bytesAfter, &data);
+
+    std::vector<std::string> filePaths;
+    if (result != Success || !data || actualType == None)
+    {
+        if (data) XFree(data);
+        return filePaths;
+    }
+
+    if (actualType == uriList)
+    {
+        // Parse the text/uri-list data
+        std::string uriData((char*)data, nitems);
+        XFree(data);
+
+        // Split the data into lines, plop them into the vector and return the vector
+
+		//first find every instance of "file://", '\n' and '\r' into a small vector of locations being start and end
+    	//then in a loop, get the substring between the beginning and and of that "line" in the larger string
+    	//make a copy into the vector
+
+    	/*
+    	std::vector<std::pair<uint16_t, uint16_t>> lineLocations;
+    	std::vector<std::string> results;
+		std::string beginstring = "file://";
+    	size_t position = 0;
+    	size_t test = uriData.length();
+
+    	while (position < test)
+    	{
+    		size_t start = uriData.find("file://", position) + beginstring.length();
+    		size_t end_of_file = start + test;
+    		size_t end   = uriData.find("\n", end_of_file);
+    		if (start == std::string::npos) break;
+
+    		if (end == std::string::npos)
+    		{
+    			end = test;
+    		}
+
+    		lineLocations.push_back(std::make_pair(end_of_file, end));
+
+    		position = end + 1;
+    	}
+
+    	for (const auto& line : lineLocations)
+    	{
+    		std::string file = uriData.substr(line.first, line.second - line.first);
+    		results.push_back(file);
+    	}*/
+
+        std::string line;
+        for (size_t i = 0, start = 0; i <= uriData.size(); ++i)
+        {
+            if (i == uriData.size() || uriData[i] == '\n' || uriData[i] == '\r')
+            {
+                if (i > start)
+                {
+                    line = uriData.substr(start, i - start);
+                    // Skip comments and empty lines
+                    if (!line.empty() && line[0] != '#')
+                    {
+                        // Check for file:// URI
+                        if (line.find("file://") == 0)
+                        {
+                            // Remove file:// prefix and decode basic URL encoding
+                            std::string path = line.substr(7); // Skip "file://"
+                            // Simple URL decoding for common cases (e.g., %20 -> space)
+                            std::string decoded;
+                            for (size_t j = 0; j < path.size(); ++j)
+                            {
+                                if (path[j] == '%' && j + 2 < path.size() &&
+                                    isxdigit(path[j + 1]) && isxdigit(path[j + 2]))
+                                {
+                                    std::string hex = path.substr(j + 1, 2);
+                                    char decodedChar = static_cast<char>(std::stoi(hex, nullptr, 16));
+                                    decoded += decodedChar;
+                                    j += 2;
+                                }
+                            	else
+                            	{
+                                    decoded += path[j];
+                                }
+                            }
+                            filePaths.push_back(decoded);
+                        }
+                    }
+                }
+                start = i + 1;
+            }
+        }
+    }
+	else
+	{
+        XFree(data);
+    }
+
+    return filePaths;
+	}
 
 #endif
 #pragma endregion

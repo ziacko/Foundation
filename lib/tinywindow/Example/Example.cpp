@@ -19,6 +19,18 @@ void HandleKeyPresses(const tWindow* window, const unsigned int key, const keySt
 				break;
 			}
 
+		case leftShift:
+				{
+					printf("Window: %s | left shift has been pressed \n", windowSetings.name.c_str());
+					break;
+				}
+
+			case rightShift:
+				{
+					printf("Window: %s | right shift has been pressed \n", windowSetings.name.c_str());
+					break;
+				}
+
 			default:
 			{
 				if (key < 255)
@@ -267,8 +279,12 @@ int main()
 		{
 			//window->SetWindowSize(vec2_t<unsigned int>(manager->GetMonitors().back()->resolution.width, manager->GetMonitors().back()->resolution.height));
 			//manager->ToggleFullscreen(window.get(), &manager->GetMonitors().at(0), 0);
-			//manager->GetClipboardText(window.get());
-			manager->SetDecorators(window.get(), style_n::none);
+			auto files = manager->GetClipboardFiles(window.get());
+			for (const auto& iter : files)
+			{
+				printf("%s \n", iter.c_str());
+			}
+			//manager->SetDecorators(window.get(), style_n::none);
 			//manager->DisableDecorators(window.get(), decorator_e::titleBar | decorator_e::icon);
 			//manager->SetTitleBar(window.get(), "poopoo");
 			//manager->SetWindowSwapInterval(window.get(), 0);
