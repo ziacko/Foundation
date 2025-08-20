@@ -294,20 +294,20 @@ namespace TinyWindow
 	{
 		friend class windowManager;
 
-		int8_t redBits;
-		int8_t greenBits;
-		int8_t blueBits;
-		int8_t alphaBits;
-		int8_t depthBits;
-		int8_t stencilBits;
+		uint8_t redBits;
+		uint8_t greenBits;
+		uint8_t blueBits;
+		uint8_t alphaBits;
+		uint8_t depthBits;
+		uint8_t stencilBits;
 
-		int8_t accumRedBits;
-		int8_t accumGreenBits;
-		int8_t accumBlueBits;
-		int8_t accumAlphaBits;
+		uint8_t accumRedBits;
+		uint8_t accumGreenBits;
+		uint8_t accumBlueBits;
+		uint8_t accumAlphaBits;
 
-		int8_t auxBuffers;
-		int8_t numSamples;
+		uint8_t auxBuffers;
+		uint8_t numSamples;
 
 		bool stereo;
 		bool doubleBuffer;
@@ -319,9 +319,9 @@ namespace TinyWindow
 #endif
 
 	public:
-		explicit formatSetting_t(const int8_t& redBits = 8, const int8_t& greenBits = 8, const int8_t& blueBits = 8, const int8_t& alphaBits = 8,
-			const int8_t& depthBits = 32, const int8_t& stencilBits = 8, const int8_t& accumRedBits = 8, const int8_t& accumGreenBits = 8, const int8_t& accumBlueBits = 8, const int8_t& accumAlphaBits = 8,
-			const int8_t& auxBuffers = 0, const int8_t& numSamples = 0, const bool& stereo = false, const bool& doubleBuffer = true)
+		explicit formatSetting_t(const uint8_t& redBits = 8, const uint8_t& greenBits = 8, const uint8_t& blueBits = 8, const uint8_t& alphaBits = 8,
+			const uint8_t& depthBits = 32, const uint8_t& stencilBits = 8, const uint8_t& accumRedBits = 8, const uint8_t& accumGreenBits = 8, const uint8_t& accumBlueBits = 8, const uint8_t& accumAlphaBits = 8,
+			const uint8_t& auxBuffers = 0, const uint8_t& numSamples = 0, const bool& stereo = false, const bool& doubleBuffer = true)
 		{
 			this->redBits	  = redBits;
 			this->greenBits	  = greenBits;
@@ -367,7 +367,7 @@ namespace TinyWindow
 
 		//should i move this to a window descriptor system?
 		explicit windowSetting_t(const std::string& name = "window", void* userData = nullptr, const vec2_t<uint16_t>& resolution = vec2_t(defaultWindowWidth, defaultWindowHeight),
-			const int8_t& versionMajor = 4, const int8_t& versionMinor = 5, const int8_t& colorBits = 8, const int8_t& depthBits = 24, const int8_t& stencilBits = 8, const int8_t& accumBits = 8,
+			const uint8_t& versionMajor = 4, const uint8_t& versionMinor = 5, const uint8_t& colorBits = 8, const uint8_t& depthBits = 24, const uint8_t& stencilBits = 8, const uint8_t& accumBits = 8,
 			const state_e& currentState = state_e::normal, const profile_e& profile = profile_e::core)
 		{
 			this->name		   = name;
@@ -401,7 +401,7 @@ namespace TinyWindow
 
 		void* userData;
 		std::string name; /**< Name of the window */
-		bool enableSRGB;  /**< whether the window will support an sRGB colorspace backbuffer*/
+		bool enableSRGB;  /**< whether the window will support an sRGB colorspace backbuffer */
 		state_e currentState;
 		/**< The current state of the window. these states include Normal, Minimized, Maximized and Full screen */
 		unsigned char colorBits;		   /**< Color format of the window. (defaults to 32 bit color) */
@@ -523,6 +523,13 @@ namespace TinyWindow
 		maximizeButton = 1L << 5, /**< The maximize button decoration pf the window */
 		closeButton	   = 1L << 6, /**< The close button decoration of the window */
 		sizeableBorder = 1L << 7, /**< The sizable border decoration of the window */
+	};
+
+	enum class clipboard_e
+	{
+		text, /**< The clipboard contains text */
+		files, /**< The clipboard contains file paths */
+		invalid /**< The clipboard content is invalid */
 	};
 
 	namespace style_n
@@ -716,7 +723,7 @@ namespace TinyWindow
 		HWND windowHandle;							 /**< A handle to A window */
 		HINSTANCE instanceHandle;					 /**< A handle to the window class instance */
 		int accumWheelDelta;						 /**< holds the accumulated mouse wheel delta for this window */
-		vec2_t<uint16_t> clientArea;			 /**< the width and height of the client window */
+		vec2_t<uint16_t> clientArea;				/**< the width and height of the client window */
 
 #elif defined(TW_LINUX)
 
@@ -1161,27 +1168,15 @@ namespace TinyWindow
 		*/
 		std::vector<monitor_t> GetMonitors() const { return monitorList; }
 
-		std::string GetClipboardInfo(tWindow* window)
+		std::vector<std::string> GetClipboardLatest(tWindow* window, clipboard_e& clipType)
 		{
 #if defined(TW_WINDOWS)
 
 #endif
 #if defined(TW_LINUX)
-			return Linux_GetClipboardString(window);
+			return Linux_GetClipboardLatest(window, clipType);
 #endif
 			//AddErrorLog(error_e::functionNotImplemented);
-		}
-
-		std::vector<std::string> GetClipboardFiles(tWindow* window)
-		{
-#if defined(TW_WINDOWS)
-
-#endif
-
-#if defined(TW_LINUX)
-
-			return Linux_GetClipboardFiles(window);
-#endif
 		}
 
 		/**
@@ -1538,10 +1533,15 @@ namespace TinyWindow
 
 		const std::vector<errorEntry>& GetErrorLog() { return errorLog; }
 
+		const std::vector<formatSetting_t>* GetFormatList() const
+		{
+			return &formatList;
+		}
+
 	private:
 		vec2_t<int16_t> screenMousePosition;
 		std::vector<monitor_t> monitorList;
-		std::vector<formatSetting_t*> formatList;
+		std::vector<formatSetting_t> formatList;
 		std::vector<std::unique_ptr<tWindow>> windowList;// replace with unordered map <handle, window?>?
 		std::vector<errorEntry> errorLog;
 
@@ -1707,7 +1707,7 @@ namespace TinyWindow
 		MSG winMessage;
 		HWND dummyWindowHandle;
 		HGLRC dummyGLContextHandle; /**< A handle to the dummy OpenGL rendering
-                                                   context*/
+												   context*/
 		HDC dummyDeviceContextHandle;
 
 		HINSTANCE dummyWindowInstance;
@@ -3333,96 +3333,6 @@ namespace TinyWindow
 			dummyGLContextHandle	 = nullptr;
 		}
 
-		/*void Windows_InitGamepad()
-		{
-			DWORD result;
-			for (size_t iter = 0; iter < XUSER_MAX_COUNT; iter++)
-			{
-				XINPUT_STATE state;
-				ZeroMemory(&state, sizeof(XINPUT_STATE));
-				result = XInputGetState((DWORD)iter, &state);
-
-				XINPUT_CAPABILITIES caps;
-				XInputGetCapabilities((DWORD)iter, XINPUT_FLAG_GAMEPAD, &caps);
-
-				gamepadList[iter] = new gamepad_t();
-
-				Windows_FillGamepad(state, iter);
-
-				JOYCAPS joycaps;
-				ZeroMemory(&joycaps, sizeof(joycaps));
-				joyGetDevCaps(iter, &joycaps, sizeof(joycaps));
-
-				if (result == ERROR_SUCCESS)
-				{
-					if (caps.Flags & XINPUT_CAPS_FFB_SUPPORTED)
-						printf("has force feedback \n");
-
-					if (caps.Flags & XINPUT_CAPS_WIRELESS)
-						printf("is wireless \n");
-
-					printf("sending force feedback \n");
-					XINPUT_VIBRATION vib;
-					ZeroMemory(&vib, sizeof(XINPUT_VIBRATION));
-					vib.wLeftMotorSpeed	 = 65'535;
-					vib.wRightMotorSpeed = 65'535;
-				}
-
-				else
-				{
-					// controller not connected
-				}
-			}
-		}
-
-		void Windows_PollGamepads()
-		{
-			DWORD result;
-			for (size_t iter = 0; iter < XUSER_MAX_COUNT; iter++)
-			{
-				XINPUT_STATE state;
-				ZeroMemory(&state, sizeof(XINPUT_STATE));
-
-				result = XInputGetState((DWORD)iter, &state);
-
-				//Windows_FillGamepad(state, iter);
-			}
-		}*/
-
-		/*void Windows_FillGamepad(XINPUT_STATE state, size_t gamepadIter)
-		{
-			// ok... how do I set up a callback system with this?
-			// callback per controller region?
-			gamepadList[gamepadIter]->buttonStates[gamepad_t::button_t::Dpad_top]		= (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP);
-			gamepadList[gamepadIter]->buttonStates[gamepad_t::button_t::Dpad_bottom]	= (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN);
-			gamepadList[gamepadIter]->buttonStates[gamepad_t::button_t::Dpad_left]		= (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT);
-			gamepadList[gamepadIter]->buttonStates[gamepad_t::button_t::Dpad_right]		= (state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT);
-
-			gamepadList[gamepadIter]->buttonStates[gamepad_t::button_t::start]			= (state.Gamepad.wButtons & XINPUT_GAMEPAD_START);
-			gamepadList[gamepadIter]->buttonStates[gamepad_t::button_t::select]			= (state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK);
-
-			gamepadList[gamepadIter]->buttonStates[gamepad_t::button_t::left_stick]		= (state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_THUMB);
-			gamepadList[gamepadIter]->buttonStates[gamepad_t::button_t::right_stick]	= (state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_THUMB);
-
-			gamepadList[gamepadIter]->buttonStates[gamepad_t::button_t::left_shoulder]	= (state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER);
-			gamepadList[gamepadIter]->buttonStates[gamepad_t::button_t::right_shoulder] = (state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER);
-
-			gamepadList[gamepadIter]->buttonStates[gamepad_t::button_t::face_bottom]	= (state.Gamepad.wButtons & XINPUT_GAMEPAD_A);
-			gamepadList[gamepadIter]->buttonStates[gamepad_t::button_t::face_right]		= (state.Gamepad.wButtons & XINPUT_GAMEPAD_B);
-			gamepadList[gamepadIter]->buttonStates[gamepad_t::button_t::face_left]		= (state.Gamepad.wButtons & XINPUT_GAMEPAD_X);
-			gamepadList[gamepadIter]->buttonStates[gamepad_t::button_t::face_top]		= (state.Gamepad.wButtons & XINPUT_GAMEPAD_Y);
-
-			gamepadList[gamepadIter]->leftTrigger										= (float)state.Gamepad.bLeftTrigger / (float)std::numeric_limits<unsigned char>::max();
-			gamepadList[gamepadIter]->rightTrigger										= (float)state.Gamepad.bRightTrigger / (float)std::numeric_limits<unsigned char>::max();
-			;
-
-			// shift these values to be between 1 and -1
-			gamepadList[gamepadIter]->leftStick[0]	= (float)state.Gamepad.sThumbLX / (float)std::numeric_limits<short>::max();
-			gamepadList[gamepadIter]->leftStick[1]	= (float)state.Gamepad.sThumbLY / (float)std::numeric_limits<short>::max();
-
-			gamepadList[gamepadIter]->rightStick[0] = (float)state.Gamepad.sThumbRX / (float)std::numeric_limits<short>::max();
-			gamepadList[gamepadIter]->rightStick[1] = (float)state.Gamepad.sThumbRY / (float)std::numeric_limits<short>::max();
-		}*/
 #endif
 #pragma endregion
 #pragma region Linux_Internal
@@ -3442,6 +3352,11 @@ namespace TinyWindow
 		Atom clipboard;		/**< Atom for grabbing data from the clipboard */
 		Atom utf8String;	/**< Atom for storing the clipboard data */
 		Atom clipProperty;	/**< Atom for using the clipboard property */
+
+		Atom clipMultiple;	/**< Atom for storing multiple files in the clipboard */
+		Atom propUtf8;
+		Atom propUriList;
+		Atom propMultiple;
 
 		struct MWMHints_t
 		{
@@ -4364,15 +4279,9 @@ namespace TinyWindow
 			}
 		}
 
-		void InitializeAtoms()
-		{
-			clipboard  = XInternAtom(currentDisplay, "CLIPBOARD", False);
-			utf8String = XInternAtom(currentDisplay, "UTF8_STRING", False);
-			uriList	   = XInternAtom(currentDisplay, "text/uri-list", False);
-			clipProperty = XInternAtom(currentDisplay, "CLIPBOARD_PROPERTY", False);
-		}
 
-		void Linux_ToggleFullscreen(tWindow* window, monitor_t* monitor, const uint16_t& monitorSettingIndex)
+
+		void Linux_ToggleFullscreen(tWindow* window, monitor_t* monitor, const uint16_t& monitorSettingIndex) const
 		{
 			// set window position and change style to popup
 			window->currentMonitor = monitor;
@@ -4423,210 +4332,300 @@ namespace TinyWindow
 			}
 		}
 
-		std::string Linux_GetClipboardString(tWindow* window)
+		void InitializeAtoms()
 		{
-			XConvertSelection(currentDisplay, clipboard, utf8String, clipProperty, window->windowHandle, CurrentTime);
-			XFlush(currentDisplay); // Ensure the request is sent immediately
+			clipboard  = XInternAtom(currentDisplay, "CLIPBOARD", False);
+			utf8String = XInternAtom(currentDisplay, "UTF8_STRING", False);
+			uriList	   = XInternAtom(currentDisplay, "text/uri-list", False);
+			clipProperty = XInternAtom(currentDisplay, "CLIPBOARD_PROPERTY", False);
 
-			// Temporary event loop to wait for SelectionNotify
-			XEvent event;
-			bool selectionReceived = false;
-			for (int i = 0; i < 100 && !selectionReceived; i++)
+			clipMultiple = XInternAtom(currentDisplay, "MULTIPLE", False);
+			propMultiple = XInternAtom(currentDisplay, "MY_CLIP_MULTI", False);
+			propUtf8 = XInternAtom(currentDisplay, "MY_CLIP_UTF8", False);
+			propUriList = XInternAtom(currentDisplay, "MY_CLIP_URI", False);
+		}
+
+	std::vector<std::string> Linux_GetClipboardLatest(tWindow* window, clipboard_e& clipType) const
+	{
+		// Check if there is a selection owner
+		Atom sel_owner = XGetSelectionOwner(currentDisplay, clipboard);
+		if (sel_owner == None)
+		{
+			clipType = clipboard_e::invalid;
+			return std::vector<std::string>();
+		}
+
+		Atom pairs[] =
+		{
+			uriList, propUriList,  // Prioritize URI list (files) first
+			utf8String, propUtf8
+		};
+
+		// Put the pairs into propMultiple (type = XA_ATOM, format = 32)
+		XChangeProperty(currentDisplay, window->windowHandle, propMultiple, XA_ATOM, 32, PropModeReplace,
+						(unsigned char*)pairs, sizeof(pairs) / sizeof(pairs[0]));
+
+		// Request the clipboard selection with MULTIPLE
+		XConvertSelection(currentDisplay, clipboard, clipMultiple, propMultiple, window->windowHandle, CurrentTime);
+
+		XFlush(currentDisplay); // Ensure the request is sent immediately
+
+		// Temporary event loop to wait for SelectionNotify
+		XEvent event;
+		bool selectionReceived = false;
+		Atom received_property = None;
+		for (int i = 0; i < 200 && !selectionReceived; i++) // Increased to 200 for 2s timeout
+		{
+			if (XPending(currentDisplay))
 			{
-				if (XPending(currentDisplay)) //if there is an event in the pipeline
+				XNextEvent(currentDisplay, &event);
+				if (event.type == SelectionNotify && event.xselection.selection == clipboard)
 				{
-					XNextEvent(currentDisplay, &event); //grab the event and check if it's an event we want
-					if (event.type == SelectionNotify && event.xselection.selection == clipboard)
+					selectionReceived = true;
+					received_property = event.xselection.property;
+				}
+			}
+			else
+			{
+				usleep(10000); // Sleep 10ms to avoid busy-waiting
+			}
+		}
+
+		if (!selectionReceived)
+		{
+			// Timeout or no response
+			clipType = clipboard_e::invalid;
+			return std::vector<std::string>();
+		}
+
+		bool multiple_success = (received_property != None);
+
+		Atom actualType;
+		int actualFormat;
+		unsigned long nitems, bytesAfter;
+		unsigned char* data = nullptr;
+		std::vector<std::string> result;
+
+		if (multiple_success)
+		{
+			// MULTIPLE succeeded, process as before
+			int result_get = XGetWindowProperty(currentDisplay, window->windowHandle, propMultiple, 0, LONG_MAX / 4, False,
+											AnyPropertyType, &actualType, &actualFormat, &nitems, &bytesAfter, &data);
+
+			if (result_get != Success)
+			{
+				clipType = clipboard_e::invalid;
+				return std::vector<std::string>();
+			}
+
+			std::vector<std::pair<Atom, Atom>> propPairs;
+			Atom* atoms = reinterpret_cast<Atom*>(data); // nitems atoms
+			for (unsigned long i = 0; i < nitems; i += 2)
+			{
+				propPairs.emplace_back(atoms[i + 0], atoms[i + 1]); // (target, property)
+			}
+			if (data) XFree(data); // Free after extracting pairs
+
+			for (uint8_t i = 0; i < propPairs.size(); i++)
+			{
+				int localResult = XGetWindowProperty(currentDisplay, window->windowHandle, propPairs[i].second, 0, LONG_MAX / 4, False,
+													 AnyPropertyType, &actualType, &actualFormat, &nitems, &bytesAfter, &data);
+
+				if (localResult != Success || !data || actualType == None)
+				{
+					if (data) XFree(data);
+					continue; // Skip to next pair
+				}
+
+				if (actualType == utf8String)
+				{
+					// Successfully retrieved data
+					clipType = clipboard_e::text;
+					result.push_back(std::string((char*)data, nitems));
+					XFree(data); // Free data before returning
+					return result;
+				}
+				else if (actualType == uriList)
+				{
+					clipType = clipboard_e::files;
+					// Parse the text/uri-list data
+					std::string uriData((char*)data, nitems);
+					XFree(data); // Free data
+
+					std::string line;
+					for (size_t i = 0, start = 0; i <= uriData.size(); ++i)
 					{
-						selectionReceived = true;
-						if (event.xselection.property == None)
+						if (i == uriData.size() || uriData[i] == '\n' || uriData[i] == '\r')
 						{
-							// Selection owner couldn't convert to target or no selection
-							return std::string();
+							if (i > start)
+							{
+								line = uriData.substr(start, i - start);
+								// Skip comments and empty lines
+								if (!line.empty() && line[0] != '#')
+								{
+									// Check for file:// URI
+									if (line.find("file://") == 0)
+									{
+										// Remove file:// prefix and decode basic URL encoding
+										std::string path = line.substr(7); // Skip "file://"
+										// Simple URL decoding for common cases (e.g., %20 -> space)
+										std::string decoded;
+										for (size_t j = 0; j < path.size(); ++j)
+										{
+											if (path[j] == '%' && j + 2 < path.size() &&
+												isxdigit(path[j + 1]) && isxdigit(path[j + 2]))
+											{
+												std::string hex = path.substr(j + 1, 2);
+												char decodedChar = static_cast<char>(std::stoi(hex, nullptr, 16));
+												decoded += decodedChar;
+												j += 2;
+											}
+											else
+											{
+												decoded += path[j];
+											}
+										}
+										result.push_back(decoded);
+									}
+								}
+							}
+							start = i + 1;
 						}
 					}
+					return result;
 				}
 				else
 				{
-					usleep(10000); // Sleep 10ms to avoid busy-waiting
+					XFree(data);
 				}
 			}
-
-			if (!selectionReceived)
-			{
-				// Timeout or no response
-				return std::string();
-			}
-
-			// Read the property
-			Atom actualType;
-			int actualFormat;
-			unsigned long nitems, bytesAfter;
-			unsigned char* data = nullptr;
-
-			int result = XGetWindowProperty(currentDisplay, window->windowHandle, clipProperty, 0, LONG_MAX / 4, True,
-											AnyPropertyType, &actualType, &actualFormat, &nitems, &bytesAfter, &data);
-
-			if (result != Success || !data || actualType == None)
-			{
-				if (data) XFree(data);
-				return std::string();
-			}
-
-			std::string clipboardText;
-			if (actualType == utf8String)
-			{
-				// Successfully retrieved data
-				clipboardText = std::string((char*)data, nitems);
-			}
-
-			XFree(data);
-			return clipboardText;
 		}
-
-		std::vector<std::string> Linux_GetClipboardFiles(tWindow* window)
+		else
 		{
-			std::vector<std::string> files;
+			// MULTIPLE failed (property == None), fallback to single requests
+			// Try uriList first
+			XConvertSelection(currentDisplay, clipboard, uriList, propUriList, window->windowHandle, CurrentTime);
+			XFlush(currentDisplay);
 
-			// Request the clipboard selection
-			XConvertSelection(currentDisplay, clipboard, uriList, clipProperty, window->windowHandle, CurrentTime);
-			XFlush(currentDisplay); // Ensure the request is sent immediately
-
-			// Temporary event loop to wait for SelectionNotify
-			XEvent event;
-			bool selectionReceived = false;
-			for (int i = 0; i < 100 && !selectionReceived; i++)
-			{ // Timeout after 100 iterations
+			selectionReceived = false;
+			received_property = None;
+			for (int i = 0; i < 200 && !selectionReceived; i++)
+			{
 				if (XPending(currentDisplay))
 				{
 					XNextEvent(currentDisplay, &event);
 					if (event.type == SelectionNotify && event.xselection.selection == clipboard)
 					{
 						selectionReceived = true;
-						if (event.xselection.property == None)
-						{
-							// Selection owner couldn't convert to text/uri-list or no selection
-							return std::vector<std::string>();
-						}
+						received_property = event.xselection.property;
 					}
 				}
 				else
 				{
-					usleep(10000); // Sleep 10ms to avoid busy-waiting
+					usleep(10000);
 				}
 			}
 
-			if (!selectionReceived)
+			if (selectionReceived && received_property != None)
 			{
-				// Timeout or no response
-				return std::vector<std::string>();
+				int localResult = XGetWindowProperty(currentDisplay, window->windowHandle, propUriList, 0, LONG_MAX / 4, False,
+													 AnyPropertyType, &actualType, &actualFormat, &nitems, &bytesAfter, &data);
+
+				if (localResult == Success && data && actualType != None)
+				{
+					if (actualType == uriList)
+					{
+						clipType = clipboard_e::files;
+						std::string uriData((char*)data, nitems);
+						XFree(data);
+
+						std::string line;
+						for (size_t i = 0, start = 0; i <= uriData.size(); ++i)
+						{
+							if (i == uriData.size() || uriData[i] == '\n' || uriData[i] == '\r')
+							{
+								if (i > start)
+								{
+									line = uriData.substr(start, i - start);
+									if (!line.empty() && line[0] != '#')
+									{
+										if (line.find("file://") == 0)
+										{
+											std::string path = line.substr(7);
+											std::string decoded;
+											for (size_t j = 0; j < path.size(); ++j)
+											{
+												if (path[j] == '%' && j + 2 < path.size() &&
+													isxdigit(path[j + 1]) && isxdigit(path[j + 2]))
+												{
+													std::string hex = path.substr(j + 1, 2);
+													char decodedChar = static_cast<char>(std::stoi(hex, nullptr, 16));
+													decoded += decodedChar;
+													j += 2;
+												}
+												else
+												{
+													decoded += path[j];
+												}
+											}
+											result.push_back(decoded);
+										}
+									}
+								}
+								start = i + 1;
+							}
+						}
+						return result;
+					}
+				}
+				if (data) XFree(data);
 			}
 
-			// Read the property
-    Atom actualType;
-    int actualFormat;
-    unsigned long nitems, bytesAfter;
-    unsigned char* data = nullptr;
+			// If uriList failed, try utf8String
+			XConvertSelection(currentDisplay, clipboard, utf8String, propUtf8, window->windowHandle, CurrentTime);
+			XFlush(currentDisplay);
 
-    int result = XGetWindowProperty(currentDisplay, window->windowHandle, clipProperty, 0, LONG_MAX / 4, True,
-                                    AnyPropertyType, &actualType, &actualFormat, &nitems, &bytesAfter, &data);
+			selectionReceived = false;
+			received_property = None;
+			for (int i = 0; i < 200 && !selectionReceived; i++)
+			{
+				if (XPending(currentDisplay))
+				{
+					XNextEvent(currentDisplay, &event);
+					if (event.type == SelectionNotify && event.xselection.selection == clipboard)
+					{
+						selectionReceived = true;
+						received_property = event.xselection.property;
+					}
+				}
+				else
+				{
+					usleep(10000);
+				}
+			}
 
-    std::vector<std::string> filePaths;
-    if (result != Success || !data || actualType == None)
-    {
-        if (data) XFree(data);
-        return filePaths;
-    }
+			if (selectionReceived && received_property != None)
+			{
+				int localResult = XGetWindowProperty(currentDisplay, window->windowHandle, propUtf8, 0, LONG_MAX / 4, False,
+													 AnyPropertyType, &actualType, &actualFormat, &nitems, &bytesAfter, &data);
 
-    if (actualType == uriList)
-    {
-        // Parse the text/uri-list data
-        std::string uriData((char*)data, nitems);
-        XFree(data);
+				if (localResult == Success && data && actualType != None)
+				{
+					if (actualType == utf8String)
+					{
+						clipType = clipboard_e::text;
+						result.push_back(std::string((char*)data, nitems));
+						XFree(data);
+						return result;
+					}
+				}
+				if (data) XFree(data);
+			}
+		}
 
-        // Split the data into lines, plop them into the vector and return the vector
-
-		//first find every instance of "file://", '\n' and '\r' into a small vector of locations being start and end
-    	//then in a loop, get the substring between the beginning and and of that "line" in the larger string
-    	//make a copy into the vector
-
-    	/*
-    	std::vector<std::pair<uint16_t, uint16_t>> lineLocations;
-    	std::vector<std::string> results;
-		std::string beginstring = "file://";
-    	size_t position = 0;
-    	size_t test = uriData.length();
-
-    	while (position < test)
-    	{
-    		size_t start = uriData.find("file://", position) + beginstring.length();
-    		size_t end_of_file = start + test;
-    		size_t end   = uriData.find("\n", end_of_file);
-    		if (start == std::string::npos) break;
-
-    		if (end == std::string::npos)
-    		{
-    			end = test;
-    		}
-
-    		lineLocations.push_back(std::make_pair(end_of_file, end));
-
-    		position = end + 1;
-    	}
-
-    	for (const auto& line : lineLocations)
-    	{
-    		std::string file = uriData.substr(line.first, line.second - line.first);
-    		results.push_back(file);
-    	}*/
-
-        std::string line;
-        for (size_t i = 0, start = 0; i <= uriData.size(); ++i)
-        {
-            if (i == uriData.size() || uriData[i] == '\n' || uriData[i] == '\r')
-            {
-                if (i > start)
-                {
-                    line = uriData.substr(start, i - start);
-                    // Skip comments and empty lines
-                    if (!line.empty() && line[0] != '#')
-                    {
-                        // Check for file:// URI
-                        if (line.find("file://") == 0)
-                        {
-                            // Remove file:// prefix and decode basic URL encoding
-                            std::string path = line.substr(7); // Skip "file://"
-                            // Simple URL decoding for common cases (e.g., %20 -> space)
-                            std::string decoded;
-                            for (size_t j = 0; j < path.size(); ++j)
-                            {
-                                if (path[j] == '%' && j + 2 < path.size() &&
-                                    isxdigit(path[j + 1]) && isxdigit(path[j + 2]))
-                                {
-                                    std::string hex = path.substr(j + 1, 2);
-                                    char decodedChar = static_cast<char>(std::stoi(hex, nullptr, 16));
-                                    decoded += decodedChar;
-                                    j += 2;
-                                }
-                            	else
-                            	{
-                                    decoded += path[j];
-                                }
-                            }
-                            filePaths.push_back(decoded);
-                        }
-                    }
-                }
-                start = i + 1;
-            }
-        }
-    }
-	else
-	{
-        XFree(data);
-    }
-
-    return filePaths;
+		// If nothing succeeded
+		clipType = clipboard_e::invalid;
+		return std::vector<std::string>();
 	}
 
 #endif

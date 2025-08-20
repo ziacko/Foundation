@@ -279,11 +279,29 @@ int main()
 		{
 			//window->SetWindowSize(vec2_t<unsigned int>(manager->GetMonitors().back()->resolution.width, manager->GetMonitors().back()->resolution.height));
 			//manager->ToggleFullscreen(window.get(), &manager->GetMonitors().at(0), 0);
-			auto files = manager->GetClipboardFiles(window.get());
-			for (const auto& iter : files)
+			clipboard_e clipType;
+			auto strings = manager->GetClipboardLatest(window.get(), clipType);
+			if (strings.size() > 0)
 			{
-				printf("%s \n", iter.c_str());
+				switch (clipType)
+				{
+				case clipboard_e::files:
+					{
+						for (const auto& iter : strings)
+						{
+							printf("%s \n", iter.c_str());
+						}
+						break;
+					}
+
+				case clipboard_e::text:
+					{
+						printf("%s \n", strings[0].c_str());
+						break;
+					}
+				}
 			}
+
 			//manager->SetDecorators(window.get(), style_n::none);
 			//manager->DisableDecorators(window.get(), decorator_e::titleBar | decorator_e::icon);
 			//manager->SetTitleBar(window.get(), "poopoo");
