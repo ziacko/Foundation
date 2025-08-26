@@ -101,6 +101,7 @@
 #include <X11/extensions/Xinerama.h>
 #include <X11/extensions/Xrandr.h>
 #include <X11/keysym.h>
+#include <X11/xpm.h>
 
 #endif//__linux__
 
@@ -404,17 +405,17 @@ namespace TinyWindow
 		bool enableSRGB;  /**< whether the window will support an sRGB colorspace backbuffer */
 		state_e currentState;
 		/**< The current state of the window. these states include Normal, Minimized, Maximized and Full screen */
-		unsigned char colorBits;		   /**< Color format of the window. (defaults to 32 bit color) */
-		unsigned char depthBits;		   /**< Size of the Depth buffer. (defaults to 8 bit depth) */
-		unsigned char accumBits;		   /**< Size of the Accum buffer */
-		unsigned char stencilBits;		   /**< Size of the stencil buffer, (defaults to 8 bit) */
-		vec2_t<uint16_t> resolution; /**< Resolution/Size of the window stored in an array */
+		unsigned char colorBits;		/**< Color format of the window. (defaults to 32 bit color) */
+		unsigned char depthBits;		/**< Size of the Depth buffer. (defaults to 8 bit depth) */
+		unsigned char accumBits;		/**< Size of the Accum buffer */
+		unsigned char stencilBits;		/**< Size of the stencil buffer, (defaults to 8 bit) */
+		vec2_t<uint16_t> resolution;	/**< Resolution/Size of the window stored in an array */
 
 #if !defined(TW_USE_VULKAN)
-		GLint versionMajor;				   /**< Major OpenGL version*/
-		GLint versionMinor;				   /**< Minor OpenGL version*/
+		GLint versionMajor;				/**< Major OpenGL version*/
+		GLint versionMinor;				/**< Minor OpenGL version*/
 	private:
-		GLint profile;					   /**< Compatibility or core OpenGL profiles*/
+		GLint profile;					/**< Compatibility or core OpenGL profiles*/
 #if defined(TW_LINUX)
 		GLXFBConfig bestFBConfig;
 #endif
@@ -558,6 +559,7 @@ namespace TinyWindow
 		invalidVersion,					/**< If an invalid OpenGL version is being used */
 		invalidProfile,					/**< If an invalid OpenGL profile is being used */
 		invalidInterval,				/**< If a window swap interval setting is invalid */
+		invalidDimensions,				/**< If the provided dimensions are invalid */
 		fullscreenFailed,				/**< If setting the window to fullscreen has failed */
 		noExtensions,					/**< If platform-specific window extensions have not been properly loaded */
 		invalidExtension,				/**< If a platform-specific window extension is not supported */
@@ -577,6 +579,7 @@ namespace TinyWindow
 		linuxCannotCreateAdvancedContext, /**< Linux: cannot create advanced context */
 		linuxNoValidFBConfig,				/**< Linux: cannot find a suitable Framebuffer config */
 		linuxNoHDRConfig, 					/**< Linux: cannot find HDR compatible FBConfig */
+		linuxInvalidIcon,					/**< Linux: invalid icon data */
 		windowsCannotCreateWindows,		/**< Windows: When Win32 cannot create a window */
 		windowsCannotInitialize,		/**< Windows: When Win32 cannot initialize */
 		windowsFullscreenBadDualView,	/**< Windows: The system is not DualView capable. whatever that means */
@@ -607,6 +610,8 @@ namespace TinyWindow
 		errorEntry(error_e::invalidWindowStyle, "Error: invalid window style given"),
 		errorEntry(error_e::invalidVersion, "Error: invalid OpenGL version"),
 		errorEntry(error_e::invalidProfile, "Error: invalid OpenGL profile"),
+		errorEntry(error_e::invalidInterval, "Error: invalid swap interval setting"),
+		errorEntry(error_e::invalidDimensions, "Error: invalid window dimensions"),
 		errorEntry(error_e::fullscreenFailed, "Error: failed to enter fullscreen mode"),
 		errorEntry(error_e::functionNotImplemented, "Error: I'm sorry but this function has not been implemented yet"),
 		errorEntry(error_e::noExtensions, "Error: Platform extensions have not been loaded correctly"),
@@ -625,6 +630,7 @@ namespace TinyWindow
 		errorEntry(error_e::linuxCannotCreateDummyContext, "Linux Error: failed to create dummy context"),
 		errorEntry(error_e::linuxNoValidFBConfig, "Linux Error: failed to get valid FBConfig"),
 		errorEntry(error_e::linuxNoHDRConfig, "Linux Error: failed to get HDR config"),
+		errorEntry(error_e::linuxInvalidIcon, "Linux Error: invalid icon data"),
 		errorEntry(error_e::windowsCannotCreateWindows, "Windows Error: failed to create window"),
 		//errorEntry(error_e::windowsFullscreenBadDualView, "Windows Error: bad dual view value for fullscreen"),
 		errorEntry(error_e::windowsFullscreenBadFlags, "Windows Error: Bad display change flags"),
@@ -736,14 +742,15 @@ namespace TinyWindow
 		XSetWindowAttributes setAttributes;	/**< The attributes to be set for the window */
 
 		/* these atoms are needed to change window states via the extended window manager */
-		Atom AtomIcon;			   /**< Atom for the icon of the window */
-		Atom AtomHints;			   /**< Atom for the window decorations */
-		Atom AtomClose;			   /**< Atom for closing the window */
-		Atom AtomActive;		   /**< Atom for the active window */
-		Atom AtomCardinal;		   /**< Atom for cardinal coordinates */
-		Atom AtomFullScreen;	   /**< Atom for the full screen state of the window */
-		Atom AtomDesktopGeometry;  /**< Atom for Desktop Geometry */
-		Atom AtomDemandsAttention; /**< Atom for when the window demands attention */
+		Atom AtomIcon;				/**< Atom for the icon of the window */
+		Atom AtomHints;				/**< Atom for the window decorations */
+		Atom AtomClose;				/**< Atom for closing the window */
+		Atom AtomCursor;			/**< Atom for the mouse cursor */
+		Atom AtomActive;			/**< Atom for the active window */
+		Atom AtomCardinal;			/**< Atom for cardinal coordinates */
+		Atom AtomFullScreen;		/**< Atom for the full screen state of the window */
+		Atom AtomDesktopGeometry;	/**< Atom for Desktop Geometry */
+		Atom AtomDemandsAttention;	/**< Atom for when the window demands attention */
 
 		Atom AtomState;
 		Atom AtomStateMaximizedVert;
@@ -787,6 +794,7 @@ namespace TinyWindow
 		{
 			AtomIcon			 = XInternAtom(currentDisplay, "_NET_WM_ICON", false);
 			AtomHints			 = XInternAtom(currentDisplay, "_MOTIF_WM_HINTS", true);
+			AtomCursor			 = XInternAtom(currentDisplay, "_NET_WM_CURSOR", false);
 			AtomClose			 = XInternAtom(currentDisplay, "WM_DELETE_WINDOW", false);
 			AtomActive			 = XInternAtom(currentDisplay, "_NET_ACTIVE_WINDOW", false);
 			AtomCardinal		 = XInternAtom(currentDisplay, "CARDINAL", false);
@@ -801,12 +809,12 @@ namespace TinyWindow
 
 			AtomXDNDAware		= XInternAtom(currentDisplay, "XdndAware", false);
 			AtomXDNDEnter		= XInternAtom(currentDisplay, "XdndEnter", false);
-			AtomXDNDPosition	= XInternAtom(currentDisplay, "xdndPosition", false);
-			AtomXDNDStatus		= XInternAtom(currentDisplay, "xdndStatus", false);
-			AtomXDNDDrop		= XInternAtom(currentDisplay, "xdndDrop", false);
-			AtomXDNDFinished	= XInternAtom(currentDisplay, "xdndFinished", false);
-			AtomXDNDLeave		= XInternAtom(currentDisplay, "xdndLeave", false);
-			AtomXDNDSelection	= XInternAtom(currentDisplay, "xdndSelection", false);
+			AtomXDNDPosition	= XInternAtom(currentDisplay, "XdndPosition", false);
+			AtomXDNDStatus		= XInternAtom(currentDisplay, "XdndStatus", false);
+			AtomXDNDDrop		= XInternAtom(currentDisplay, "XdndDrop", false);
+			AtomXDNDFinished	= XInternAtom(currentDisplay, "XdndFinished", false);
+			AtomXDNDLeave		= XInternAtom(currentDisplay, "XdndLeave", false);
+			AtomXDNDSelection	= XInternAtom(currentDisplay, "XdndSelection", false);
 			AtomXDNDTextUriList = XInternAtom(currentDisplay, "text/uri-list", false);
 
 			AtomXDNDActionCopy	  = XInternAtom(currentDisplay, "XdndActionCopy", false);
@@ -832,6 +840,11 @@ namespace TinyWindow
 			currentScreenIndex = 0;
 			isFullscreen	   = false;
 			currentMonitor	   = nullptr;
+			previousStyle = currentStyle;
+			mousePosition	   = { 0, 0 };
+			previousMousePosition = { 0, 0 };
+			previousDimensions = { 0, 0 };
+			previousPosition = { 0, 0 };
 
 			std::fill(keys, keys + last, keyState_e::up);// = { keyState_e.bad };
 			std::fill_n(mouseButton, static_cast<uint16_t>(mouseButton_e::last), buttonState_e::up);
@@ -1048,9 +1061,9 @@ namespace TinyWindow
 			// if there are any events to process
 			while (XEventsQueued(currentDisplay, QueuedAfterReading) > 0)
 			{
-				XEvent currentEvent;
-				XNextEvent(currentDisplay, &currentEvent);
-				Linux_ProcessEvents(currentEvent);
+				XEvent localCurrentEvent;
+				XNextEvent(currentDisplay, &localCurrentEvent);
+				Linux_ProcessEvents(localCurrentEvent);
 			}
 #endif
 
@@ -1531,12 +1544,107 @@ namespace TinyWindow
 			window->currentStyle = decorators;
 		}
 
+		/**
+		* Set window titlebar icon
+		*/
+		void SetTitleBarIcon(const tWindow* window, const std::vector<uint32_t>& icon, const vec2_t<uint16_t>& dimensions)
+		{
+			if (icon.empty())
+			{
+				AddErrorLog(error_e::linuxInvalidIcon, window);
+				return;
+			}
+
+			size_t expected_size = static_cast<size_t>(dimensions.x * dimensions.y);
+			if (icon.size() != expected_size || dimensions.x == 0 || dimensions.y == 0)
+			{
+				AddErrorLog(error_e::invalidDimensions, window);
+				return;
+			}
+
+#if defined(TW_WINDOWS)
+			AddErrorLog(error_e::functionNotImplemented, window);
+			// TODO: Implement with SetClassLongPtr or LoadIcon for Windows.
+#elif defined(TW_LINUX)
+			// Allocate buffer: width + height + pixels (all 32-bit)
+
+			// Allocate property data: width + height + pixels
+			auto* prop_data = static_cast<unsigned long*>(malloc((2 + dimensions.width * dimensions.height) * sizeof(unsigned long)));
+
+			prop_data[0] = dimensions.width;
+			prop_data[1] = dimensions.height;
+			for (unsigned int i = 0; i < dimensions.width * dimensions.height; ++i)
+			{
+				prop_data[2 + i] = icon[i];
+			}
+
+			// Set property
+			int result = XChangeProperty(currentDisplay, window->windowHandle, window->AtomIcon, XA_CARDINAL, 32,
+					PropModeReplace, reinterpret_cast<unsigned char*>(prop_data), 2 + dimensions.width * dimensions.height);
+			if (result != Success)
+			{
+				AddErrorLog(error_e::linuxInvalidIcon, window);
+			}
+
+			delete[] prop_data;
+			XFlush(window->currentDisplay);
+#endif
+		}
+
+		/**
+		* Set window cursor icon
+		*/
+		void SetCursorIcon(const tWindow* window, const std::vector<uint32_t>& icon, const vec2_t<uint16_t>& dimensions)
+		{
+			if (icon.empty())
+			{
+				AddErrorLog(error_e::linuxInvalidIcon, window);
+				return;
+			}
+
+			size_t expected_size = static_cast<size_t>(dimensions.x * dimensions.y);
+			if (icon.size() != expected_size || dimensions.x == 0 || dimensions.y == 0)
+			{
+				AddErrorLog(error_e::invalidDimensions, window);
+				return;
+			}
+
+#if defined(TW_WINDOWS)
+			AddErrorLog(error_e::functionNotImplemented, window);
+			// TODO: Implement with SetClassLongPtr or LoadIcon for Windows.
+#elif defined(TW_LINUX)
+			// Allocate buffer: width + height + pixels (all 32-bit)
+
+			// Allocate property data: width + height + pixels
+			auto* prop_data = static_cast<unsigned long*>(malloc((dimensions.width * dimensions.height) * sizeof(unsigned long)));
+
+			//prop_data[0] = dimensions.width;
+			//prop_data[1] = dimensions.height;
+			for (unsigned int i = 0; i < dimensions.width * dimensions.height; ++i)
+			{
+				prop_data[i] = icon[i];
+			}
+
+			// Set property
+			int result = XChangeProperty(currentDisplay, window->windowHandle, window->AtomCursor, XA_CURSOR, 32,
+					PropModeReplace, reinterpret_cast<unsigned char*>(prop_data), dimensions.width * dimensions.height);
+			if (result != Success)
+			{
+				AddErrorLog(error_e::linuxInvalidIcon, window);
+			}
+
+			delete[] prop_data;
+			XFlush(window->currentDisplay);
+#endif
+		}
+
 		const std::vector<errorEntry>& GetErrorLog() { return errorLog; }
 
 		const std::vector<formatSetting_t>* GetFormatList() const
 		{
 			return &formatList;
 		}
+
 
 	private:
 		vec2_t<int16_t> screenMousePosition;
@@ -1551,9 +1659,9 @@ namespace TinyWindow
 			auto newString = errorLUT.at(newError);
 
 			//add to string then send it along
-			newString.append(" | in function: %s ");
+			newString.append(" | in function: ");
 			newString.append(functionName);
-			newString.append("at line %i \n");
+			newString.append(" at line ");
 			newString.append(std::to_string(fileLine));
 
 			const auto newEntry = errorEntry(newError, newString);
@@ -3490,7 +3598,7 @@ namespace TinyWindow
 			}
 
 			window->setAttributes.colormap = XCreateColormap(window->currentDisplay, DefaultRootWindow(window->currentDisplay), window->visualInfo->visual, AllocNone);
-			window->setAttributes.event_mask = ExposureMask | KeyPressMask | KeyReleaseMask | MotionNotify | ButtonPressMask | ButtonReleaseMask | FocusIn | FocusOut | Button1MotionMask | Button2MotionMask | Button3MotionMask | Button4MotionMask | Button5MotionMask | PointerMotionMask | FocusChangeMask | VisibilityChangeMask | PropertyChangeMask | SubstructureNotifyMask;
+			window->setAttributes.event_mask = ExposureMask | KeyPressMask | KeyReleaseMask | MotionNotify | ButtonPressMask | ButtonReleaseMask | FocusIn | FocusOut | Button1MotionMask | Button2MotionMask | Button3MotionMask | Button4MotionMask | Button5MotionMask | PointerMotionMask | FocusChangeMask | VisibilityChangeMask | PropertyChangeMask | StructureNotifyMask | SubstructureNotifyMask | ClientMessage;
 			window->windowHandle = XCreateWindow(window->currentDisplay, RootWindow(currentDisplay, window->visualInfo->screen), 0, 0, window->settings.resolution.width, window->settings.resolution.height, 0, window->visualInfo->depth, InputOutput, window->visualInfo->visual, CWColormap | CWEventMask, &window->setAttributes);
 
 			if (!window->windowHandle)
@@ -3499,6 +3607,8 @@ namespace TinyWindow
 				return;
 			}
 
+
+
 			XMapWindow(window->currentDisplay, window->windowHandle);
 			XStoreName(window->currentDisplay, window->windowHandle, window->settings.name.c_str());
 			XSetWMProtocols(window->currentDisplay, window->windowHandle, &window->AtomClose, true);
@@ -3506,6 +3616,12 @@ namespace TinyWindow
 			XWindowAttributes attributes;
 			Status status	 = XGetWindowAttributes(window->currentDisplay, window->windowHandle, &attributes);
 			window->position = vec2_t<int16_t>((int16_t)attributes.x, (int16_t)attributes.y);
+
+			window->InitializeAtoms();
+
+			//set Drag and Drop support
+			int DNDVersion = 5;
+			XChangeProperty(currentDisplay, window->windowHandle, window->AtomXDNDAware, XA_ATOM, 32, PropModeReplace, (unsigned char*)&DNDVersion, 1);
 
 			windowLUT.emplace(windowEntry(window->windowHandle, window));
 
@@ -3846,7 +3962,35 @@ namespace TinyWindow
 				// check for events that were created by the TinyWindow manager
 				case ClientMessage:
 					{
-						const char* atomName = XGetAtomName(currentDisplay, inEvent.xclient.message_type);
+						if (window != nullptr)
+						{
+							const char* atomName = XGetAtomName(currentDisplay, inEvent.xclient.message_type);
+							printf("%s \n", atomName);
+							if(inEvent.xclient.message_type == window->AtomXDNDDrop)
+							{
+								printf("test \n");
+							}
+							if (inEvent.xclient.message_type == window->AtomXDNDPosition)
+							{
+								// Accept the drop and specify position
+								XClientMessageEvent response;
+								response.type		  = ClientMessage;
+								response.display	  = currentDisplay;
+								response.window		  = inEvent.xclient.data.l[0];
+								response.message_type = window->AtomXDNDStatus;
+								response.format		  = 32;
+								response.data.l[0]	  = window->windowHandle;
+								response.data.l[1]	  = 1;// Accept drop
+								response.data.l[2]	  = 0;// x,y coordinates for rectangle
+								response.data.l[3]	  = 0;// w,h coordinates for rectangle
+								response.data.l[4]	  = uriList;
+
+								XSendEvent(currentDisplay, inEvent.xclient.data.l[0], false, NoEventMask, (XEvent*)&response);
+							}
+						}
+						break;
+
+						/*const char* atomName = XGetAtomName(currentDisplay, inEvent.xclient.message_type);
 						if (atomName != nullptr) {}
 
 						if ((Atom)inEvent.xclient.data.l[0] == window->AtomClose)
@@ -3860,48 +4004,9 @@ namespace TinyWindow
 						// check if full screen
 						if ((Atom)inEvent.xclient.data.l[1] == window->AtomFullScreen)
 							break;
-						break;
+						break;*/
 					}
 			default: {};
-			}
-
-			if (inEvent.type == window->AtomXDNDPosition)
-			{
-				// Accept the drop and specify position
-				XClientMessageEvent response;
-				response.type		  = ClientMessage;
-				response.display	  = currentDisplay;
-				response.window		  = inEvent.xclient.data.l[0];
-				response.message_type = window->AtomXDNDStatus;
-				response.format		  = 32;
-				response.data.l[0]	  = window->windowHandle;
-				response.data.l[1]	  = 1;// Accept drop
-				response.data.l[2]	  = 0;// x,y coordinates for rectangle
-				response.data.l[3]	  = 0;// w,h coordinates for rectangle
-				response.data.l[4]	  = window->AtomXDNDActionCopy;
-
-				XSendEvent(currentDisplay, inEvent.xclient.data.l[0], false, NoEventMask, (XEvent*)&response);
-				XFlush(currentDisplay);
-			}
-			else if (inEvent.type == window->AtomXDNDDrop)
-			{
-				Atom selection = window->AtomXDNDSelection;
-
-				XConvertSelection(currentDisplay, selection, window->AtomXDNDTextUriList, selection, window->windowHandle, inEvent.xclient.data.l[2]);
-
-				// Send finished message
-				XClientMessageEvent finished;
-				finished.type		  = ClientMessage;
-				finished.display	  = currentDisplay;
-				finished.window		  = window->windowHandle;
-				finished.message_type = window->AtomXDNDFinished;
-				finished.format		  = 32;
-				finished.data.l[0]	  = window->windowHandle;
-				finished.data.l[1]	  = 1;
-				finished.data.l[2]	  = window->AtomXDNDActionCopy;// Indicate we performed a copy
-
-				XSendEvent(currentDisplay, window->windowHandle, false, NoEventMask, (XEvent*)&finished);
-				XFlush(currentDisplay);
 			}
 		}
 
@@ -4165,8 +4270,7 @@ namespace TinyWindow
 			// Get the number of screens
 			int screenCount = 0;
 
-			// I NEED A WHOLE OTHER EXTENSION JUST TO SEE HOW MANY SCREENS ARE ACTUALLY
-			// ATTACHED!
+			// I NEED A WHOLE OTHER EXTENSION JUST TO SEE HOW MANY SCREENS ARE ACTUALLY ATTACHED?!
 			if (XineramaIsActive(rootDisplay) == true)
 			{
 				XineramaScreenInfo* xineramaInfo = nullptr;
@@ -4279,8 +4383,6 @@ namespace TinyWindow
 			}
 		}
 
-
-
 		void Linux_ToggleFullscreen(tWindow* window, monitor_t* monitor, const uint16_t& monitorSettingIndex) const
 		{
 			// set window position and change style to popup
@@ -4345,171 +4447,36 @@ namespace TinyWindow
 			propUriList = XInternAtom(currentDisplay, "MY_CLIP_URI", False);
 		}
 
-	std::vector<std::string> Linux_GetClipboardLatest(tWindow* window, clipboard_e& clipType) const
-	{
-		// Check if there is a selection owner
-		Atom sel_owner = XGetSelectionOwner(currentDisplay, clipboard);
-		if (sel_owner == None)
+		std::vector<std::string> Linux_GetClipboardLatest(tWindow* window, clipboard_e& clipType) const
 		{
-			clipType = clipboard_e::invalid;
-			return std::vector<std::string>();
-		}
-
-		Atom pairs[] =
-		{
-			uriList, propUriList,  // Prioritize URI list (files) first
-			utf8String, propUtf8
-		};
-
-		// Put the pairs into propMultiple (type = XA_ATOM, format = 32)
-		XChangeProperty(currentDisplay, window->windowHandle, propMultiple, XA_ATOM, 32, PropModeReplace,
-						(unsigned char*)pairs, sizeof(pairs) / sizeof(pairs[0]));
-
-		// Request the clipboard selection with MULTIPLE
-		XConvertSelection(currentDisplay, clipboard, clipMultiple, propMultiple, window->windowHandle, CurrentTime);
-
-		XFlush(currentDisplay); // Ensure the request is sent immediately
-
-		// Temporary event loop to wait for SelectionNotify
-		XEvent event;
-		bool selectionReceived = false;
-		Atom received_property = None;
-		for (int i = 0; i < 200 && !selectionReceived; i++) // Increased to 200 for 2s timeout
-		{
-			if (XPending(currentDisplay))
-			{
-				XNextEvent(currentDisplay, &event);
-				if (event.type == SelectionNotify && event.xselection.selection == clipboard)
-				{
-					selectionReceived = true;
-					received_property = event.xselection.property;
-				}
-			}
-			else
-			{
-				usleep(10000); // Sleep 10ms to avoid busy-waiting
-			}
-		}
-
-		if (!selectionReceived)
-		{
-			// Timeout or no response
-			clipType = clipboard_e::invalid;
-			return std::vector<std::string>();
-		}
-
-		bool multiple_success = (received_property != None);
-
-		Atom actualType;
-		int actualFormat;
-		unsigned long nitems, bytesAfter;
-		unsigned char* data = nullptr;
-		std::vector<std::string> result;
-
-		if (multiple_success)
-		{
-			// MULTIPLE succeeded, process as before
-			int result_get = XGetWindowProperty(currentDisplay, window->windowHandle, propMultiple, 0, LONG_MAX / 4, False,
-											AnyPropertyType, &actualType, &actualFormat, &nitems, &bytesAfter, &data);
-
-			if (result_get != Success)
+			// Check if there is a selection owner
+			Atom sel_owner = XGetSelectionOwner(currentDisplay, clipboard);
+			if (sel_owner == None)
 			{
 				clipType = clipboard_e::invalid;
 				return std::vector<std::string>();
 			}
 
-			std::vector<std::pair<Atom, Atom>> propPairs;
-			Atom* atoms = reinterpret_cast<Atom*>(data); // nitems atoms
-			for (unsigned long i = 0; i < nitems; i += 2)
+			Atom pairs[] =
 			{
-				propPairs.emplace_back(atoms[i + 0], atoms[i + 1]); // (target, property)
-			}
-			if (data) XFree(data); // Free after extracting pairs
+				uriList, propUriList,  // Prioritize URI list (files) first
+				utf8String, propUtf8
+			};
 
-			for (uint8_t i = 0; i < propPairs.size(); i++)
-			{
-				int localResult = XGetWindowProperty(currentDisplay, window->windowHandle, propPairs[i].second, 0, LONG_MAX / 4, False,
-													 AnyPropertyType, &actualType, &actualFormat, &nitems, &bytesAfter, &data);
+			// Put the pairs into propMultiple (type = XA_ATOM, format = 32)
+			XChangeProperty(currentDisplay, window->windowHandle, propMultiple, XA_ATOM, 32, PropModeReplace,
+							(unsigned char*)pairs, sizeof(pairs) / sizeof(pairs[0]));
 
-				if (localResult != Success || !data || actualType == None)
-				{
-					if (data) XFree(data);
-					continue; // Skip to next pair
-				}
+			// Request the clipboard selection with MULTIPLE
+			XConvertSelection(currentDisplay, clipboard, clipMultiple, propMultiple, window->windowHandle, CurrentTime);
 
-				if (actualType == utf8String)
-				{
-					// Successfully retrieved data
-					clipType = clipboard_e::text;
-					result.push_back(std::string((char*)data, nitems));
-					XFree(data); // Free data before returning
-					return result;
-				}
-				else if (actualType == uriList)
-				{
-					clipType = clipboard_e::files;
-					// Parse the text/uri-list data
-					std::string uriData((char*)data, nitems);
-					XFree(data); // Free data
+			XFlush(currentDisplay); // Ensure the request is sent immediately
 
-					std::string line;
-					for (size_t i = 0, start = 0; i <= uriData.size(); ++i)
-					{
-						if (i == uriData.size() || uriData[i] == '\n' || uriData[i] == '\r')
-						{
-							if (i > start)
-							{
-								line = uriData.substr(start, i - start);
-								// Skip comments and empty lines
-								if (!line.empty() && line[0] != '#')
-								{
-									// Check for file:// URI
-									if (line.find("file://") == 0)
-									{
-										// Remove file:// prefix and decode basic URL encoding
-										std::string path = line.substr(7); // Skip "file://"
-										// Simple URL decoding for common cases (e.g., %20 -> space)
-										std::string decoded;
-										for (size_t j = 0; j < path.size(); ++j)
-										{
-											if (path[j] == '%' && j + 2 < path.size() &&
-												isxdigit(path[j + 1]) && isxdigit(path[j + 2]))
-											{
-												std::string hex = path.substr(j + 1, 2);
-												char decodedChar = static_cast<char>(std::stoi(hex, nullptr, 16));
-												decoded += decodedChar;
-												j += 2;
-											}
-											else
-											{
-												decoded += path[j];
-											}
-										}
-										result.push_back(decoded);
-									}
-								}
-							}
-							start = i + 1;
-						}
-					}
-					return result;
-				}
-				else
-				{
-					XFree(data);
-				}
-			}
-		}
-		else
-		{
-			// MULTIPLE failed (property == None), fallback to single requests
-			// Try uriList first
-			XConvertSelection(currentDisplay, clipboard, uriList, propUriList, window->windowHandle, CurrentTime);
-			XFlush(currentDisplay);
-
-			selectionReceived = false;
-			received_property = None;
-			for (int i = 0; i < 200 && !selectionReceived; i++)
+			// Temporary event loop to wait for SelectionNotify
+			XEvent event;
+			bool selectionReceived = false;
+			Atom received_property = None;
+			for (int i = 0; i < 200 && !selectionReceived; i++) // Increased to 200 for 2s timeout
 			{
 				if (XPending(currentDisplay))
 				{
@@ -4522,22 +4489,70 @@ namespace TinyWindow
 				}
 				else
 				{
-					usleep(10000);
+					usleep(10000); // Sleep 10ms to avoid busy-waiting
 				}
 			}
 
-			if (selectionReceived && received_property != None)
+			if (!selectionReceived)
 			{
-				int localResult = XGetWindowProperty(currentDisplay, window->windowHandle, propUriList, 0, LONG_MAX / 4, False,
-													 AnyPropertyType, &actualType, &actualFormat, &nitems, &bytesAfter, &data);
+				// Timeout or no response
+				clipType = clipboard_e::invalid;
+				return std::vector<std::string>();
+			}
 
-				if (localResult == Success && data && actualType != None)
+			bool multiple_success = (received_property != None);
+
+			Atom actualType;
+			int actualFormat;
+			unsigned long nitems, bytesAfter;
+			unsigned char* data = nullptr;
+			std::vector<std::string> result;
+
+			if (multiple_success)
+			{
+				// MULTIPLE succeeded, process as before
+				int result_get = XGetWindowProperty(currentDisplay, window->windowHandle, propMultiple, 0, LONG_MAX / 4, False,
+												AnyPropertyType, &actualType, &actualFormat, &nitems, &bytesAfter, &data);
+
+				if (result_get != Success)
 				{
-					if (actualType == uriList)
+					clipType = clipboard_e::invalid;
+					return std::vector<std::string>();
+				}
+
+				std::vector<std::pair<Atom, Atom>> propPairs;
+				Atom* atoms = reinterpret_cast<Atom*>(data); // nitems atoms
+				for (unsigned long i = 0; i < nitems; i += 2)
+				{
+					propPairs.emplace_back(atoms[i + 0], atoms[i + 1]); // (target, property)
+				}
+				if (data) XFree(data); // Free after extracting pairs
+
+				for (uint8_t i = 0; i < propPairs.size(); i++)
+				{
+					int localResult = XGetWindowProperty(currentDisplay, window->windowHandle, propPairs[i].second, 0, LONG_MAX / 4, False,
+														 AnyPropertyType, &actualType, &actualFormat, &nitems, &bytesAfter, &data);
+
+					if (localResult != Success || !data || actualType == None)
+					{
+						if (data) XFree(data);
+						continue; // Skip to next pair
+					}
+
+					if (actualType == utf8String)
+					{
+						// Successfully retrieved data
+						clipType = clipboard_e::text;
+						result.push_back(std::string((char*)data, nitems));
+						XFree(data); // Free data before returning
+						return result;
+					}
+					else if (actualType == uriList)
 					{
 						clipType = clipboard_e::files;
+						// Parse the text/uri-list data
 						std::string uriData((char*)data, nitems);
-						XFree(data);
+						XFree(data); // Free data
 
 						std::string line;
 						for (size_t i = 0, start = 0; i <= uriData.size(); ++i)
@@ -4547,11 +4562,15 @@ namespace TinyWindow
 								if (i > start)
 								{
 									line = uriData.substr(start, i - start);
+									// Skip comments and empty lines
 									if (!line.empty() && line[0] != '#')
 									{
+										// Check for file:// URI
 										if (line.find("file://") == 0)
 										{
-											std::string path = line.substr(7);
+											// Remove file:// prefix and decode basic URL encoding
+											std::string path = line.substr(7); // Skip "file://"
+											// Simple URL decoding for common cases (e.g., %20 -> space)
 											std::string decoded;
 											for (size_t j = 0; j < path.size(); ++j)
 											{
@@ -4577,56 +4596,139 @@ namespace TinyWindow
 						}
 						return result;
 					}
-				}
-				if (data) XFree(data);
-			}
-
-			// If uriList failed, try utf8String
-			XConvertSelection(currentDisplay, clipboard, utf8String, propUtf8, window->windowHandle, CurrentTime);
-			XFlush(currentDisplay);
-
-			selectionReceived = false;
-			received_property = None;
-			for (int i = 0; i < 200 && !selectionReceived; i++)
-			{
-				if (XPending(currentDisplay))
-				{
-					XNextEvent(currentDisplay, &event);
-					if (event.type == SelectionNotify && event.xselection.selection == clipboard)
+					else
 					{
-						selectionReceived = true;
-						received_property = event.xselection.property;
-					}
-				}
-				else
-				{
-					usleep(10000);
-				}
-			}
-
-			if (selectionReceived && received_property != None)
-			{
-				int localResult = XGetWindowProperty(currentDisplay, window->windowHandle, propUtf8, 0, LONG_MAX / 4, False,
-													 AnyPropertyType, &actualType, &actualFormat, &nitems, &bytesAfter, &data);
-
-				if (localResult == Success && data && actualType != None)
-				{
-					if (actualType == utf8String)
-					{
-						clipType = clipboard_e::text;
-						result.push_back(std::string((char*)data, nitems));
 						XFree(data);
-						return result;
 					}
 				}
-				if (data) XFree(data);
 			}
-		}
+			else
+			{
+				// MULTIPLE failed (property == None), fallback to single requests
+				// Try uriList first
+				XConvertSelection(currentDisplay, clipboard, uriList, propUriList, window->windowHandle, CurrentTime);
+				XFlush(currentDisplay);
 
-		// If nothing succeeded
-		clipType = clipboard_e::invalid;
-		return std::vector<std::string>();
-	}
+				selectionReceived = false;
+				received_property = None;
+				for (int i = 0; i < 200 && !selectionReceived; i++)
+				{
+					if (XPending(currentDisplay))
+					{
+						XNextEvent(currentDisplay, &event);
+						if (event.type == SelectionNotify && event.xselection.selection == clipboard)
+						{
+							selectionReceived = true;
+							received_property = event.xselection.property;
+						}
+					}
+					else
+					{
+						usleep(10000);
+					}
+				}
+
+				if (selectionReceived && received_property != None)
+				{
+					int localResult = XGetWindowProperty(currentDisplay, window->windowHandle, propUriList, 0, LONG_MAX / 4, False,
+														 AnyPropertyType, &actualType, &actualFormat, &nitems, &bytesAfter, &data);
+
+					if (localResult == Success && data && actualType != None)
+					{
+						if (actualType == uriList)
+						{
+							clipType = clipboard_e::files;
+							std::string uriData((char*)data, nitems);
+							XFree(data);
+
+							std::string line;
+							for (size_t i = 0, start = 0; i <= uriData.size(); ++i)
+							{
+								if (i == uriData.size() || uriData[i] == '\n' || uriData[i] == '\r')
+								{
+									if (i > start)
+									{
+										line = uriData.substr(start, i - start);
+										if (!line.empty() && line[0] != '#')
+										{
+											if (line.find("file://") == 0)
+											{
+												std::string path = line.substr(7);
+												std::string decoded;
+												for (size_t j = 0; j < path.size(); ++j)
+												{
+													if (path[j] == '%' && j + 2 < path.size() &&
+														isxdigit(path[j + 1]) && isxdigit(path[j + 2]))
+													{
+														std::string hex = path.substr(j + 1, 2);
+														char decodedChar = static_cast<char>(std::stoi(hex, nullptr, 16));
+														decoded += decodedChar;
+														j += 2;
+													}
+													else
+													{
+														decoded += path[j];
+													}
+												}
+												result.push_back(decoded);
+											}
+										}
+									}
+									start = i + 1;
+								}
+							}
+							return result;
+						}
+					}
+					if (data) XFree(data);
+				}
+
+				// If uriList failed, try utf8String
+				XConvertSelection(currentDisplay, clipboard, utf8String, propUtf8, window->windowHandle, CurrentTime);
+				XFlush(currentDisplay);
+
+				selectionReceived = false;
+				received_property = None;
+				for (int i = 0; i < 200 && !selectionReceived; i++)
+				{
+					if (XPending(currentDisplay))
+					{
+						XNextEvent(currentDisplay, &event);
+						if (event.type == SelectionNotify && event.xselection.selection == clipboard)
+						{
+							selectionReceived = true;
+							received_property = event.xselection.property;
+						}
+					}
+					else
+					{
+						usleep(10000);
+					}
+				}
+
+				if (selectionReceived && received_property != None)
+				{
+					int localResult = XGetWindowProperty(currentDisplay, window->windowHandle, propUtf8, 0, LONG_MAX / 4, False,
+														 AnyPropertyType, &actualType, &actualFormat, &nitems, &bytesAfter, &data);
+
+					if (localResult == Success && data && actualType != None)
+					{
+						if (actualType == utf8String)
+						{
+							clipType = clipboard_e::text;
+							result.push_back(std::string((char*)data, nitems));
+							XFree(data);
+							return result;
+						}
+					}
+					if (data) XFree(data);
+				}
+			}
+
+			// If nothing succeeded
+			clipType = clipboard_e::invalid;
+			return std::vector<std::string>();
+		}
 
 #endif
 #pragma endregion

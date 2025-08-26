@@ -1,5 +1,6 @@
 //#define TW_NO_CONSOLE
 #include "TinyWindow.h"
+#include "IconTest.h"
 
 using namespace TinyWindow;
 
@@ -176,7 +177,7 @@ void HandleMouseMovement(const tWindow* window, const vec2_t<int16_t>& windowMou
 		windowMousePosition.x, windowMousePosition.y, screenMousePosition.x, screenMousePosition.y);
 }
 
-void HandleFileDrop(const tWindow* window, const std::vector<std::string>& files, const vec2_t<int>& windowMousePosition)
+void HandleFileDrop(const tWindow* window, const std::vector<std::string>& files, const vec2_t<int16_t>& windowMousePosition)
 {
 	printf("Window: %s | files dropped | \n", window->GetSettings().name.c_str());
 	for (const auto& iter : files)
@@ -241,6 +242,18 @@ void PrintMonitorInfo(windowManager* manager)
 
 int main()
 {
+	vec2_t<uint16_t> iconDimensions = { 200, 200 };
+	std::vector<uint32_t> iconData(iconDimensions.width * iconDimensions.height, 0);  // Initialize to 0
+
+	for (unsigned int iter = 0; iter < iconTest.size() / 4; iter++)
+	{
+		uint32_t index = iter * 4;
+		//ok now copy over the data from uint8 to uint32
+		iconData[iter] = (iconTest[index + 3] << 24) | (iconTest[index] << 16) | (iconTest[index + 1] << 8) | iconTest[index + 2];  // RGBA -> ARGB
+	}
+
+
+
 	windowSetting_t defaultSetting;
 	defaultSetting.name = "example window";
 	defaultSetting.resolution = vec2_t<unsigned short>(1280, 720);
@@ -260,8 +273,8 @@ int main()
 	//manager->focusEvent = HandleFocus;
 	//manager->movedEvent = HandleMovement;
 	//manager->resizeEvent = HandleResize;
-	//manager->fileDropEvent = HandleFileDrop;
-	manager->mouseMoveEvent = HandleMouseMovement;
+	manager->fileDropEvent = HandleFileDrop;
+	//manager->mouseMoveEvent = HandleMouseMovement;
 	manager->Initialize();
 	std::unique_ptr<tWindow> window(manager->AddWindow(defaultSetting));
 
@@ -279,7 +292,7 @@ int main()
 		{
 			//window->SetWindowSize(vec2_t<unsigned int>(manager->GetMonitors().back()->resolution.width, manager->GetMonitors().back()->resolution.height));
 			//manager->ToggleFullscreen(window.get(), &manager->GetMonitors().at(0), 0);
-			clipboard_e clipType;
+			/*clipboard_e clipType;
 			auto strings = manager->GetClipboardLatest(window.get(), clipType);
 			if (strings.size() > 0)
 			{
@@ -300,7 +313,9 @@ int main()
 						break;
 					}
 				}
-			}
+			}*/
+
+			manager->SetCursorIcon(window.get(), iconData, iconDimensions);
 
 			//manager->SetDecorators(window.get(), style_n::none);
 			//manager->DisableDecorators(window.get(), decorator_e::titleBar | decorator_e::icon);
