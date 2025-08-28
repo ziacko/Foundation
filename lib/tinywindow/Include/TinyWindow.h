@@ -1048,7 +1048,7 @@ namespace TinyWindow
 				char errorText[256];
 				XGetErrorText(currentDisplay, result, errorText, sizeof(errorText));
 				printf("%s \n", errorText);
-				AddErrorLog(error_e::LinuxCannotSetMouseScreenPosition);
+				AddErrorLog(error_e::LinuxCannotSetMouseScreenPosition, __LINE__, __func__);
 			}
 
 
@@ -1120,7 +1120,7 @@ namespace TinyWindow
 			{
 				ShutdownWindow(window);
 			}
-			AddErrorLog(error_e::windowInvalid, window, __LINE__, __func__);
+			AddErrorLog(error_e::windowInvalid, __LINE__, __func__, window);
 		}
 
 		/**
@@ -1152,7 +1152,7 @@ namespace TinyWindow
 
 				if (result != 0)
 				{
-					AddErrorLog(error_e::invalidInterval, window, __LINE__, __func__);
+					AddErrorLog(error_e::invalidInterval, __LINE__, __func__, window);
 					return;
 				}
 				glXMakeCurrent(previousDisplay, window->windowHandle, previousGLContext);
@@ -1432,7 +1432,7 @@ namespace TinyWindow
 				XStoreName(currentDisplay, window->windowHandle, newTitle);
 #endif
 			}
-			AddErrorLog(TinyWindow::error_e::invalidTitlebar, window, __LINE__, __func__);
+			AddErrorLog(TinyWindow::error_e::invalidTitlebar, __LINE__, __func__, window);
 		}
 
 		/**
@@ -1441,7 +1441,7 @@ namespace TinyWindow
 		void SetIcon(tWindow* window)
 		{
 			// const char* windowName, const char* icon, uint16_t width, uint16_t height
-			AddErrorLog(error_e::functionNotImplemented, window);
+			AddErrorLog(error_e::functionNotImplemented, __LINE__, __func__, window);
 		}
 
 		/**
@@ -1568,14 +1568,14 @@ namespace TinyWindow
 		{
 			if (icon.empty())
 			{
-				AddErrorLog(error_e::linuxInvalidIcon, window);
+				AddErrorLog(error_e::linuxInvalidIcon, __LINE__, __func__, window);
 				return;
 			}
 
 			size_t expected_size = static_cast<size_t>(dimensions.x * dimensions.y);
 			if (icon.size() != expected_size || dimensions.x == 0 || dimensions.y == 0)
 			{
-				AddErrorLog(error_e::invalidDimensions, window);
+				AddErrorLog(error_e::invalidDimensions, __LINE__, __func__, window);
 				return;
 			}
 
@@ -1600,7 +1600,7 @@ namespace TinyWindow
 					PropModeReplace, reinterpret_cast<unsigned char*>(prop_data), 2 + dimensions.width * dimensions.height);
 			if (result != Success)
 			{
-				AddErrorLog(error_e::linuxInvalidIcon, window);
+				AddErrorLog(error_e::linuxInvalidIcon, __LINE__, __func__, window);
 			}
 
 			delete[] prop_data;
@@ -1615,14 +1615,14 @@ namespace TinyWindow
 		{
 			if (icon.empty())
 			{
-				AddErrorLog(error_e::linuxInvalidIcon, window);
+				AddErrorLog(error_e::linuxInvalidIcon, __LINE__, __func__, window);
 				return;
 			}
 
 			size_t expected_size = static_cast<size_t>(dimensions.x * dimensions.y);
 			if (icon.size() != expected_size || dimensions.x == 0 || dimensions.y == 0)
 			{
-				AddErrorLog(error_e::invalidDimensions, window);
+				AddErrorLog(error_e::invalidDimensions, __LINE__, __func__, window);
 				return;
 			}
 
@@ -1647,7 +1647,7 @@ namespace TinyWindow
 					PropModeReplace, reinterpret_cast<unsigned char*>(prop_data), dimensions.width * dimensions.height);
 			if (result != Success)
 			{
-				AddErrorLog(error_e::linuxInvalidIcon, window);
+				AddErrorLog(error_e::linuxInvalidIcon, __LINE__, __func__, window);
 			}
 
 			delete[] prop_data;
@@ -1671,7 +1671,7 @@ namespace TinyWindow
 		std::vector<errorEntry> errorLog;
 
 		template<typename T = void>
-		void AddErrorLog(const error_e& newError, T* obj = nullptr, const uint16_t& fileLine = __LINE__, const std::string& functionName = __FUNCTION__)
+		void AddErrorLog(const error_e& newError, const uint32_t& fileLine, const std::string& functionName, T* obj = nullptr)
 		{
 			auto newString = errorLUT.at(newError);
 
@@ -1707,7 +1707,7 @@ namespace TinyWindow
 			Windows_CreateDummyContext();
 #elif defined(TW_LINUX)
 			//return error_e::success;// TODO: flesh this out?
-			AddErrorLog(error_e::linuxFunctionNotImplemented);
+			AddErrorLog(error_e::linuxFunctionNotImplemented, __LINE__, __func__);
 #endif
 		}
 
@@ -1762,7 +1762,7 @@ namespace TinyWindow
 #endif
 
 #if defined(TW_LINUX)
-			AddErrorLog(error_e::linuxFunctionNotImplemented);
+			AddErrorLog(error_e::linuxFunctionNotImplemented, __LINE__, __func__);
 #endif
 		}
 
@@ -1813,7 +1813,7 @@ namespace TinyWindow
 			Windows_ShareContexts(sourceWindow, newWindow);
 #elif defined(TW_LINUX)
 			// TODO: need to implement shared context functionality
-			AddErrorLog(error_e::linuxFunctionNotImplemented);
+			AddErrorLog(error_e::linuxFunctionNotImplemented, __LINE__, __func__);
 #endif
 		}
 
@@ -1822,7 +1822,7 @@ namespace TinyWindow
 #if defined(TW_WINDOWS)
 			Windows_ResetMonitors();
 #elif defined(TW_LINUX)
-			AddErrorLog(error_e::linuxFunctionNotImplemented);
+			AddErrorLog(error_e::linuxFunctionNotImplemented, __LINE__, __func__);
 #endif
 		}
 
@@ -3582,7 +3582,7 @@ namespace TinyWindow
 
 			if (!currentDisplay)
 			{
-				AddErrorLog(error_e::linuxCannotConnectXServer, window, __LINE__, __func__);
+				AddErrorLog(error_e::linuxCannotConnectXServer, __LINE__, __func__, window);
 				return;
 			}
 
@@ -3610,7 +3610,7 @@ namespace TinyWindow
 
 			if (!window->visualInfo)
 			{
-				AddErrorLog(error_e::linuxInvalidVisualinfo, window, __LINE__, __func__);
+				AddErrorLog(error_e::linuxInvalidVisualinfo, __LINE__, __func__, window);
 				return;
 			}
 
@@ -3620,7 +3620,7 @@ namespace TinyWindow
 
 			if (!window->windowHandle)
 			{
-				AddErrorLog(error_e::linuxCannotCreateWindow, window, __LINE__, __func__);
+				AddErrorLog(error_e::linuxCannotCreateWindow, __LINE__, __func__, window);
 				return;
 			}
 
@@ -4081,7 +4081,7 @@ namespace TinyWindow
 			/*std::unique_ptr<window_t> window, const char*
 				icon, uint16_t width, uint16_t height */
 			// sorry :(
-			AddErrorLog(error_e::linuxFunctionNotImplemented, window, __LINE__, __func__);
+			AddErrorLog(error_e::linuxFunctionNotImplemented, __LINE__, __func__, window);
 		}
 
 		void Linux_InitExtensions()
@@ -4117,7 +4117,7 @@ namespace TinyWindow
 
 			if (configs == nullptr || frameBufferCount == 0)
 			{
-				AddErrorLog(error_e::linuxNoValidFBConfig, window, __LINE__, __func__);
+				AddErrorLog(error_e::linuxNoValidFBConfig, __LINE__, __func__, window);
 				return;
 			}
 
@@ -4185,7 +4185,7 @@ namespace TinyWindow
 
 				if (dummyContext == nullptr)
 				{
-					AddErrorLog(error_e::linuxFunctionNotImplemented, window, __LINE__, __func__);
+					AddErrorLog(error_e::linuxFunctionNotImplemented, __LINE__, __func__, window);
 					return;
 				}
 
@@ -4204,7 +4204,7 @@ namespace TinyWindow
 
 				if (window->context == nullptr)
 				{
-					AddErrorLog(error_e::invalidContext, window, __LINE__, __func__);
+					AddErrorLog(error_e::invalidContext, __LINE__, __func__, window);
 					return;
 				}
 			}
@@ -4217,7 +4217,7 @@ namespace TinyWindow
 			{
 				if (glXMakeCurrent(window->currentDisplay, window->windowHandle, window->context) == false)
 				{
-					AddErrorLog(error_e::dummyCannotMakeCurrent, window, __LINE__, __func__);
+					AddErrorLog(error_e::dummyCannotMakeCurrent, __LINE__, __func__, window);
 					return;
 				}
 
@@ -4231,7 +4231,7 @@ namespace TinyWindow
 			}
 			else
 			{
-				AddErrorLog(error_e::linuxCannotConnectXServer, window, __LINE__, __func__);
+				AddErrorLog(error_e::linuxCannotConnectXServer, __LINE__, __func__, window);
 			}
 		}
 
