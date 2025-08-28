@@ -252,8 +252,6 @@ int main()
 		iconData[iter] = (iconTest[index + 3] << 24) | (iconTest[index] << 16) | (iconTest[index + 1] << 8) | iconTest[index + 2];  // RGBA -> ARGB
 	}
 
-
-
 	windowSetting_t defaultSetting;
 	defaultSetting.name = "example window";
 	defaultSetting.resolution = vec2_t<unsigned short>(1280, 720);
@@ -315,7 +313,8 @@ int main()
 				}
 			}*/
 
-			manager->SetCursorIcon(window.get(), iconData, iconDimensions);
+			manager->SetMousePositionInScreen(vec2_t<int32_t>(500, 500), manager->GetMonitors().back());
+			//manager->SetCursorIcon(window.get(), iconData, iconDimensions);
 
 			//manager->SetDecorators(window.get(), style_n::none);
 			//manager->DisableDecorators(window.get(), decorator_e::titleBar | decorator_e::icon);

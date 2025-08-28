@@ -580,11 +580,12 @@ namespace TinyWindow
 		linuxNoValidFBConfig,				/**< Linux: cannot find a suitable Framebuffer config */
 		linuxNoHDRConfig, 					/**< Linux: cannot find HDR compatible FBConfig */
 		linuxInvalidIcon,					/**< Linux: invalid icon data */
-		windowsCannotCreateWindows,		/**< Windows: When Win32 cannot create a window */
-		windowsCannotInitialize,		/**< Windows: When Win32 cannot initialize */
-		windowsFullscreenBadDualView,	/**< Windows: The system is not DualView capable. whatever that means */
-		windowsFullscreenBadFlags,		/**< Windows: Bad display change flags */
-		windowsFullscreenBadMode,		/**< Windows: Bad display change mode */
+		LinuxCannotSetMouseScreenPosition,		/**< Linux: cannot set mouse position in screen */
+		windowsCannotCreateWindows,				/**< Windows: When Win32 cannot create a window */
+		windowsCannotInitialize,				/**< Windows: When Win32 cannot initialize */
+		windowsFullscreenBadDualView,			/**< Windows: The system is not DualView capable. whatever that means */
+		windowsFullscreenBadFlags,				/**< Windows: Bad display change flags */
+		windowsFullscreenBadMode,				/**< Windows: Bad display change mode */
 		WindowsFullscreenBadParam,		/**< Windows: Bad display change Parameter */
 		WindowsFullscreenChangeFailed,	/**< Windows: The display driver failed to implement the specified graphics mode */
 		WindowsFullscreenNotUpdated,	/**< Windows: Unable to write settings to the registry */
@@ -631,6 +632,8 @@ namespace TinyWindow
 		errorEntry(error_e::linuxNoValidFBConfig, "Linux Error: failed to get valid FBConfig"),
 		errorEntry(error_e::linuxNoHDRConfig, "Linux Error: failed to get HDR config"),
 		errorEntry(error_e::linuxInvalidIcon, "Linux Error: invalid icon data"),
+		errorEntry(error_e::LinuxCannotSetMouseScreenPosition, "Linux Error: cannot set mouse position in screen"),
+		errorEntry(error_e::windowsCannotInitialize, "Windows Error: failed to initialize"),
 		errorEntry(error_e::windowsCannotCreateWindows, "Windows Error: failed to create window"),
 		//errorEntry(error_e::windowsFullscreenBadDualView, "Windows Error: bad dual view value for fullscreen"),
 		errorEntry(error_e::windowsFullscreenBadFlags, "Windows Error: Bad display change flags"),
@@ -1021,7 +1024,7 @@ namespace TinyWindow
 		/**
 		* Set the position of the mouse cursor relative to screen co-ordinates
 		*/
-		void SetMousePositionInScreen(const vec2_t<int16_t> mousePosition)
+		void SetMousePositionInScreen(const vec2_t<int32_t>& mousePosition, const monitor_t& monitor)
 		{
 			screenMousePosition.x = mousePosition.x;
 			screenMousePosition.y = mousePosition.y;
@@ -1029,12 +1032,26 @@ namespace TinyWindow
 #if defined(TW_WINDOWS)
 			SetCursorPos(screenMousePosition.x, screenMousePosition.y);
 #elif defined(TW_LINUX)
-			/*XWarpPointer(currentDisplay, None,
-			XDefaultRootWindow(currentDisplay), 0, 0,
-			screenResolution.x,
-			screenResolution.y,
-			screenMousePosition.x, screenMousePosition.y);*/
-			AddErrorLog(error_e::linuxFunctionNotImplemented);
+			int result = XWarpPointer(currentDisplay, None,
+			XDefaultRootWindow(currentDisplay),
+			0, 0,
+			0, 0,
+			screenMousePosition.x, screenMousePosition.y);
+			XFlush(currentDisplay);
+
+			auto test = XDefaultRootWindow(currentDisplay);
+
+			printf("%i \n", test);
+
+			if (result != Success)
+			{
+				char errorText[256];
+				XGetErrorText(currentDisplay, result, errorText, sizeof(errorText));
+				printf("%s \n", errorText);
+				AddErrorLog(error_e::LinuxCannotSetMouseScreenPosition);
+			}
+
+
 #endif
 		}
 
