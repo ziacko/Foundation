@@ -116,8 +116,8 @@ namespace TinyWindow
 	class tWindow;
 	class WindowManager;
 
-	constexpr uint16_t defaultWindowWidth	 = 1280;
-	constexpr uint16_t defaultWindowHeight = 720;
+	constexpr uint16_t defaultWindowWidth	= 1280;
+	constexpr uint16_t defaultWindowHeight	= 720;
 
 	template<typename type> struct vec2_t
 	{
@@ -367,8 +367,10 @@ namespace TinyWindow
 		friend class windowManager;
 
 		//should i move this to a window descriptor system?
-		explicit windowSetting_t(const std::string& name = "window", void* userData = nullptr, const vec2_t<uint16_t>& resolution = vec2_t(defaultWindowWidth, defaultWindowHeight),
-			const uint8_t& versionMajor = 4, const uint8_t& versionMinor = 5, const uint8_t& colorBits = 8, const uint8_t& depthBits = 24, const uint8_t& stencilBits = 8, const uint8_t& accumBits = 8,
+		explicit windowSetting_t(const std::string& name = "window", void* userData = nullptr,
+			const vec2_t<uint16_t>& resolution = vec2_t(defaultWindowWidth, defaultWindowHeight),
+			const uint8_t& versionMajor = 4, const uint8_t& versionMinor = 5, const uint8_t& colorBits = 8,
+			const uint8_t& depthBits = 24, const uint8_t& stencilBits = 8, const uint8_t& accumBits = 8,
 			const state_e& currentState = state_e::normal, const profile_e& profile = profile_e::core)
 		{
 			this->name		   = name;
@@ -427,6 +429,13 @@ namespace TinyWindow
 		bad,  /**< If get key state fails (could not name it ERROR) */
 		up,	  /**< The key is currently up */
 		down, /**< The key is currently down */
+	};
+
+	enum class fullscreenMode_e
+	{
+		windowed,	/**< The decorators and are restored (if applicable) alongside the window size and monitor resolution  */
+		borderless,	/**< The decorators are removed and the window is resized to fit the screen */
+		exclusive,	/**< The decorators are removed and the monitor resolution is set to match the window */
 	};
 
 	enum key_e
@@ -1260,7 +1269,8 @@ namespace TinyWindow
 			ClientToScreen(window->windowHandle, &mousePoint);
 			SetCursorPos(mousePoint.x, mousePoint.y);
 #elif defined(TW_LINUX)
-			XWarpPointer(currentDisplay, window->windowHandle, window->windowHandle, window->position.x, window->position.y, window->settings.resolution.width, window->settings.resolution.height, newMousePosition.x, newMousePosition.y);
+			XWarpPointer(currentDisplay, window->windowHandle, window->windowHandle, window->position.x, window->position.y,
+				window->settings.resolution.width, window->settings.resolution.height, newMousePosition.x, newMousePosition.y);
 #endif
 		}
 
@@ -2566,7 +2576,9 @@ namespace TinyWindow
 		}
 
 		// initialize the given window using Win32
-		void Windows_InitializeWindow(tWindow* window, UINT style = CS_OWNDC | CS_HREDRAW | CS_VREDRAW | CS_DROPSHADOW, int clearScreenExtra = 0, int windowExtra = 0, HINSTANCE winInstance = GetModuleHandle(nullptr), HICON icon = LoadIcon(nullptr, IDI_APPLICATION), HCURSOR cursor = LoadCursor(nullptr, IDC_ARROW), HBRUSH brush = (HBRUSH)GetStockObject(WHITE_BRUSH))
+		void Windows_InitializeWindow(tWindow* window, UINT style = CS_OWNDC | CS_HREDRAW | CS_VREDRAW | CS_DROPSHADOW,
+			int clearScreenExtra = 0, int windowExtra = 0, HINSTANCE winInstance = GetModuleHandle(nullptr), HICON icon = LoadIcon(nullptr,
+				IDI_APPLICATION), HCURSOR cursor = LoadCursor(nullptr, IDC_ARROW), HBRUSH brush = (HBRUSH)GetStockObject(WHITE_BRUSH))
 		{
 			std::string menuName   = window->settings.name;
 			std::wstring wMenuName = std::wstring(menuName.begin(), menuName.end());;
@@ -2587,7 +2599,9 @@ namespace TinyWindow
 			window->windowClass.lpszClassName = wClassName.c_str();
 			RegisterClass(&window->windowClass);
 
-			window->windowHandle = CreateWindow(window->windowClass.lpszClassName, window->windowClass.lpszMenuName, WS_OVERLAPPEDWINDOW, 0, 0, window->settings.resolution.width, window->settings.resolution.height, nullptr, nullptr, nullptr, nullptr);
+			window->windowHandle = CreateWindow(window->windowClass.lpszClassName, window->windowClass.lpszMenuName,
+				WS_OVERLAPPEDWINDOW, 0, 0, window->settings.resolution.width, window->settings.resolution.height,
+				nullptr, nullptr, nullptr, nullptr);
 
 			SetWindowLongPtr(window->windowHandle, GWLP_USERDATA, (LONG_PTR)this);
 
@@ -2638,7 +2652,12 @@ namespace TinyWindow
 		{
 			UINT count = WGL_NUMBER_PIXEL_FORMATS_ARB;
 			int format		   = 0;
-			int attribs[]	   = {WGL_SUPPORT_OPENGL_ARB, 1, WGL_DRAW_TO_WINDOW_ARB, 1, WGL_DOUBLE_BUFFER_ARB, 1, WGL_RED_BITS_ARB, window->settings.colorBits, WGL_GREEN_BITS_ARB, window->settings.colorBits, WGL_BLUE_BITS_ARB, window->settings.colorBits, WGL_ALPHA_BITS_ARB, window->settings.colorBits, WGL_DEPTH_BITS_ARB, window->settings.depthBits, WGL_STENCIL_BITS_ARB, window->settings.stencilBits, WGL_ACCUM_RED_BITS_ARB, window->settings.accumBits, WGL_ACCUM_GREEN_BITS_ARB, window->settings.accumBits, WGL_ACCUM_BLUE_BITS_ARB, window->settings.accumBits, WGL_ACCUM_ALPHA_BITS_ARB, window->settings.accumBits, WGL_ACCELERATION_ARB, WGL_FULL_ACCELERATION_ARB, WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_ARB};
+			int attribs[]	   = {WGL_SUPPORT_OPENGL_ARB, 1, WGL_DRAW_TO_WINDOW_ARB, 1, WGL_DOUBLE_BUFFER_ARB, 1, WGL_RED_BITS_ARB,
+				window->settings.colorBits, WGL_GREEN_BITS_ARB, window->settings.colorBits, WGL_BLUE_BITS_ARB, window->settings.colorBits,
+				WGL_ALPHA_BITS_ARB, window->settings.colorBits, WGL_DEPTH_BITS_ARB, window->settings.depthBits, WGL_STENCIL_BITS_ARB,
+				window->settings.stencilBits, WGL_ACCUM_RED_BITS_ARB, window->settings.accumBits, WGL_ACCUM_GREEN_BITS_ARB,
+				window->settings.accumBits, WGL_ACCUM_BLUE_BITS_ARB, window->settings.accumBits, WGL_ACCUM_ALPHA_BITS_ARB,
+				window->settings.accumBits, WGL_ACCELERATION_ARB, WGL_FULL_ACCELERATION_ARB, WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_ARB};
 
 			std::vector<int> attribList;
 			attribList.assign(attribs, attribs + std::size(attribs));
@@ -2670,7 +2689,9 @@ namespace TinyWindow
 			else
 			{
 				PIXELFORMATDESCRIPTOR pfd		= {};
-				formatSetting_t* desiredSetting = new formatSetting_t(window->settings.colorBits, window->settings.colorBits, window->settings.colorBits, window->settings.colorBits, window->settings.depthBits, window->settings.stencilBits, window->settings.accumBits, window->settings.accumBits, window->settings.accumBits, window->settings.accumBits);
+				formatSetting_t* desiredSetting = new formatSetting_t(window->settings.colorBits, window->settings.colorBits,
+					window->settings.colorBits, window->settings.colorBits, window->settings.depthBits, window->settings.stencilBits,
+					window->settings.accumBits, window->settings.accumBits, window->settings.accumBits, window->settings.accumBits);
 				int bestPFDHandle				= GetLegacyPFD(desiredSetting, window->deviceContextHandle)->handle;
 				if (!DescribePixelFormat(window->deviceContextHandle, bestPFDHandle, sizeof(pfd), &pfd))
 					return;
@@ -2706,7 +2727,9 @@ namespace TinyWindow
 				if (pfd.iPixelType != PFD_TYPE_RGBA)
 					continue;
 
-				formatSetting_t* setting = new formatSetting_t(pfd.cRedBits, pfd.cGreenBits, pfd.cBlueBits, pfd.cAlphaBits, pfd.cDepthBits, pfd.cStencilBits, pfd.cAccumRedBits, pfd.cAccumGreenBits, pfd.cAccumBlueBits, pfd.cAccumAlphaBits, pfd.cAuxBuffers, (pfd.dwFlags & PFD_STEREO) ? true : false, (pfd.dwFlags & PFD_DOUBLEBUFFER) ? true : false);
+				formatSetting_t* setting = new formatSetting_t(pfd.cRedBits, pfd.cGreenBits, pfd.cBlueBits, pfd.cAlphaBits,
+					pfd.cDepthBits, pfd.cStencilBits, pfd.cAccumRedBits, pfd.cAccumGreenBits, pfd.cAccumBlueBits, pfd.cAccumAlphaBits,
+					pfd.cAuxBuffers, (pfd.dwFlags & PFD_STEREO) ? true : false, (pfd.dwFlags & PFD_DOUBLEBUFFER) ? true : false);
 				setting->handle			 = num;
 
 				formatList.push_back(std::move(setting));
@@ -3257,7 +3280,11 @@ namespace TinyWindow
 			}
 		}
 
-		static void Windows_SetWindowIcon(tWindow* window, const char* icon, uint16_t width, uint16_t height) { SendMessage(window->windowHandle, (UINT)WM_SETICON, ICON_BIG, (LPARAM)LoadImage(window->instanceHandle, (wchar_t*)icon, IMAGE_ICON, (int)width, (int)height, LR_LOADFROMFILE)); }
+		static void Windows_SetWindowIcon(tWindow* window, const char* icon, uint16_t width, uint16_t height)
+		{
+			SendMessage(window->windowHandle, (UINT)WM_SETICON, ICON_BIG, (LPARAM)LoadImage(window->instanceHandle,
+				(wchar_t*)icon, IMAGE_ICON, (int)width, (int)height, LR_LOADFROMFILE));
+		}
 
 		void Windows_GetScreenInfo()
 		{
@@ -3615,8 +3642,13 @@ namespace TinyWindow
 			}
 
 			window->setAttributes.colormap = XCreateColormap(window->currentDisplay, DefaultRootWindow(window->currentDisplay), window->visualInfo->visual, AllocNone);
-			window->setAttributes.event_mask = ExposureMask | KeyPressMask | KeyReleaseMask | MotionNotify | ButtonPressMask | ButtonReleaseMask | FocusIn | FocusOut | Button1MotionMask | Button2MotionMask | Button3MotionMask | Button4MotionMask | Button5MotionMask | PointerMotionMask | FocusChangeMask | VisibilityChangeMask | PropertyChangeMask | StructureNotifyMask | SubstructureNotifyMask | ClientMessage;
-			window->windowHandle = XCreateWindow(window->currentDisplay, RootWindow(currentDisplay, window->visualInfo->screen), 0, 0, window->settings.resolution.width, window->settings.resolution.height, 0, window->visualInfo->depth, InputOutput, window->visualInfo->visual, CWColormap | CWEventMask, &window->setAttributes);
+			window->setAttributes.event_mask = ExposureMask | KeyPressMask | KeyReleaseMask | MotionNotify | ButtonPressMask |
+				ButtonReleaseMask | FocusIn | FocusOut | Button1MotionMask | Button2MotionMask | Button3MotionMask | Button4MotionMask
+			| Button5MotionMask | PointerMotionMask | FocusChangeMask | VisibilityChangeMask | PropertyChangeMask | StructureNotifyMask |
+				SubstructureNotifyMask | ClientMessage;
+			window->windowHandle = XCreateWindow(window->currentDisplay, RootWindow(currentDisplay, window->visualInfo->screen),
+				0, 0, window->settings.resolution.width, window->settings.resolution.height, 0, window->visualInfo->depth,
+				InputOutput, window->visualInfo->visual, CWColormap | CWEventMask, &window->setAttributes);
 
 			if (!window->windowHandle)
 			{
