@@ -177,7 +177,7 @@ void HandleMouseMovement(const tWindow* window, const vec2_t<int16_t>& windowMou
 		windowMousePosition.x, windowMousePosition.y, screenMousePosition.x, screenMousePosition.y);
 }
 
-void HandleFileDrop(const tWindow* window, const std::vector<std::string>& files, const vec2_t<int16_t>& windowMousePosition)
+void HandleFileDrop(const tWindow* window, const std::vector<std::string>& files)
 {
 	printf("Window: %s | files dropped | \n", window->GetSettings().name.c_str());
 	for (const auto& iter : files)
@@ -323,7 +323,7 @@ int main()
 			spacePressed = false;
 		}
 		
-		//manager->SwapDrawBuffers(window.get());
+		manager->SwapDrawBuffers(window.get());
 		glClear(GL_COLOR_BUFFER_BIT);
 	}
 

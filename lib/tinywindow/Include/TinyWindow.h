@@ -8,6 +8,7 @@
 
 #include <cstdlib>
 #include <string>
+#include <sstream>
 
 #if defined(_WIN32) || defined(_WIN64)
 #define TW_WINDOWS
@@ -659,7 +660,7 @@ namespace TinyWindow
 	using focus_c		 = std::function<void(const tWindow* window, const bool& isFocused)>;
 	using moved_c		 = std::function<void(const tWindow* window, const vec2_t<int16_t>& windowPosition)>;
 	using resize_c		 = std::function<void(const tWindow* window, const vec2_t<uint16_t>& windowResolution)>;
-	using fileDrop_c	 = std::function<void(const tWindow* window, const std::vector<std::string>& files, const vec2_t<int16_t>& windowMousePosition)>;
+	using fileDrop_c	 = std::function<void(const tWindow* window, const std::vector<std::string>& files)>;
 	using destroyed_c	 = std::function<void(const tWindow* window)>;
 	using maximized_c	 = std::function<void(const tWindow* window)>;
 	using minimized_c	 = std::function<void(const tWindow* window)>;
@@ -1443,15 +1444,6 @@ namespace TinyWindow
 #endif
 			}
 			AddErrorLog(TinyWindow::error_e::invalidTitlebar, __LINE__, __func__, window);
-		}
-
-		/**
-		* Set the window icon (currently not functional)
-		*/
-		void SetIcon(tWindow* window)
-		{
-			// const char* windowName, const char* icon, uint16_t width, uint16_t height
-			AddErrorLog(error_e::functionNotImplemented, __LINE__, __func__, window);
 		}
 
 		/**
@@ -4014,10 +4006,10 @@ namespace TinyWindow
 						if (window != nullptr)
 						{
 							const char* atomName = XGetAtomName(currentDisplay, inEvent.xclient.message_type);
-							printf("%s \n", atomName);
-							if(inEvent.xclient.message_type == window->AtomXDNDDrop)
+							//printf("%s \n", atomName);
+							if (inEvent.xclient.message_type == window->AtomXDNDDrop)
 							{
-								printf("test \n");
+								HandleDroppedFiles(window, inEvent);
 							}
 							if (inEvent.xclient.message_type == window->AtomXDNDPosition)
 							{
@@ -4038,25 +4030,99 @@ namespace TinyWindow
 							}
 						}
 						break;
-
-						/*const char* atomName = XGetAtomName(currentDisplay, inEvent.xclient.message_type);
-						if (atomName != nullptr) {}
-
-						if ((Atom)inEvent.xclient.data.l[0] == window->AtomClose)
-						{
-							window->shouldClose = true;
-							if (destroyedEvent != nullptr)
-								destroyedEvent(window);
-							break;
-						}
-
-						// check if full screen
-						if ((Atom)inEvent.xclient.data.l[1] == window->AtomFullScreen)
-							break;
-						break;*/
 					}
 			default: {};
 			}
+		}
+
+		void HandleDroppedFiles(tWindow* window, XEvent& inEvent)
+		{
+			    // Request the dropped data
+			    Atom actualType;
+			    int actualFormat;
+			    unsigned long itemCount, remainingBytes;
+			    unsigned char* data = nullptr;
+
+			    // Convert the XdndSelection to get the URI list
+			    XConvertSelection(currentDisplay,
+			                      window->AtomXDNDSelection, // Selection atom
+			                      window->AtomXDNDTextUriList,       // Target type (text/uri-list)
+			                      window->AtomXDNDSelection, // Property to store the data
+			                      window->windowHandle,      // Target window
+			                      inEvent.xclient.data.l[2]); // Timestamp
+
+			    // Wait for the SelectionNotify event
+			    XEvent selEvent;
+			    while (true) {
+			        XNextEvent(currentDisplay, &selEvent);
+			        if (selEvent.type == SelectionNotify) {
+			            break;
+			        }
+			    }
+
+			    // Retrieve the data from the property
+			    if (selEvent.xselection.property != None) {
+			        XGetWindowProperty(currentDisplay,
+			                           window->windowHandle,
+			                           window->AtomXDNDSelection,
+			                           0,
+			                           LONG_MAX,
+			                           True, // Delete property after retrieval
+			                           AnyPropertyType,
+			                           &actualType,
+			                           &actualFormat,
+			                           &itemCount,
+			                           &remainingBytes,
+			                           &data);
+
+			        if (actualType == window->AtomXDNDTextUriList && data != nullptr) {
+			            // Process the URI list
+			            char* uriList = (char*)data;
+#if (DEBUG)
+			            printf("Dropped URIs:\n%s\n", uriList);
+#endif
+
+			            // Parse the URI list (split by newlines)
+			            std::vector<std::string> files;
+			            std::istringstream stream(uriList);
+			            std::string uri;
+			            while (std::getline(stream, uri)) {
+			                if (!uri.empty() && uri != "\r") {
+			                    // Remove trailing \r if present
+			                    if (uri.back() == '\r') {
+			                        uri.pop_back();
+			                    }
+			                    // Convert file:// URI to a local path
+			                    if (uri.substr(0, 7) == "file://") {
+			                        uri = uri.substr(7); // Remove "file://"
+			                        // Decode URL-encoded characters if needed
+			                        files.push_back(uri);
+			                    }
+			                }
+			            }
+
+			            // Call your file drop event handler with the file list and mouse position
+			            if (fileDropEvent != nullptr) {
+			                // Assuming you stored x, y from XDNDPosition
+			                fileDropEvent(window, files);
+			            }
+
+			            XFree(data);
+			        }
+			    }
+
+			    // Send XDNDfinished to acknowledge the drop
+			    XClientMessageEvent finished;
+			    finished.type = ClientMessage;
+			    finished.display = currentDisplay;
+			    finished.window = inEvent.xclient.data.l[0]; // Source window
+			    finished.message_type = window->AtomXDNDFinished;
+				finished.format = 32;
+			    finished.data.l[0] = window->windowHandle;
+			    finished.data.l[1] = 1; // Success
+			    finished.data.l[2] = window->AtomXDNDTextUriList; // Action
+			    XSendEvent(currentDisplay, inEvent.xclient.data.l[0], False, NoEventMask, (XEvent*)&finished);
+
 		}
 
 		// debugging. used to determine what type of event was generated
