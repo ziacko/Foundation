@@ -663,6 +663,61 @@ namespace TinyWindow
 		errorEntry(error_e::windowsFunctionNotImplemented, "Windows Error: function not implemented on Windows platform yet"),
 	};
 
+#ifdef TW_WINDOWS
+	//create a LUT for win32 keys
+	typedef std::pair<WPARAM, key_e> keyEntry;
+	const std::unordered_map<WPARAM, key_e> keyLUT =
+	{
+		keyEntry(VK_BACK, backspace),
+		keyEntry(VK_TAB, tab),
+		keyEntry(VK_RETURN, enter),
+		keyEntry(VK_ESCAPE, escape),
+		keyEntry(VK_SPACE, spacebar),
+		keyEntry(VK_HOME, home),
+		keyEntry(VK_LEFT, arrowLeft),
+		keyEntry(VK_RIGHT, arrowRight),
+		keyEntry(VK_UP, arrowUp),
+		keyEntry(VK_DOWN, arrowDown),
+		keyEntry(VK_PRIOR, pageUp),
+		keyEntry(VK_NEXT, pageDown),
+		keyEntry(VK_END, end),
+		keyEntry(VK_PRINT, printScreen),
+		keyEntry(VK_INSERT, insert),
+		keyEntry(VK_NUMLOCK, numLock),
+		keyEntry(VK_MULTIPLY, keypadMultiply),
+		keyEntry(VK_ADD, keypadAdd),
+		keyEntry(VK_SUBTRACT, keypadSubtract),
+		keyEntry(VK_DECIMAL, keypadPeriod),
+		keyEntry(VK_DIVIDE, keypadDivide),
+		keyEntry(VK_NUMPAD0, keypad0),
+		keyEntry(VK_NUMPAD1, keypad1),
+		keyEntry(VK_NUMPAD2, keypad2),
+		keyEntry(VK_NUMPAD3, keypad3),
+		keyEntry(VK_NUMPAD4, keypad4),
+		keyEntry(VK_NUMPAD5, keypad5),
+		keyEntry(VK_NUMPAD6, keypad6),
+		keyEntry(VK_NUMPAD7, keypad7),
+		keyEntry(VK_NUMPAD8, keypad8),
+		keyEntry(VK_NUMPAD9, keypad9),
+		keyEntry(VK_F1, F1),
+		keyEntry(VK_F2, F2),
+		keyEntry(VK_F3, F3),
+		keyEntry(VK_F4, F4),
+		keyEntry(VK_F5, F5),
+		keyEntry(VK_F6, F6),
+		keyEntry(VK_F7, F7),
+		keyEntry(VK_F8, F8),
+		keyEntry(VK_F9, F9),
+		keyEntry(VK_F10, F10),
+		keyEntry(VK_F11, F11),
+		keyEntry(VK_F12, F12),
+		keyEntry(VK_SHIFT, leftShift),
+		keyEntry(VK_SHIFT, rightShift),
+		keyEntry(VK_CAPITAL, capsLock),
+	};
+#endif // TW_WINDOWS
+
+
 	using key_c			 = std::function<void(const tWindow* window, const uint16_t& key, const keyState_e& keyState)>;
 	using focus_c		 = std::function<void(const tWindow* window, const bool& isFocused)>;
 	using moved_c		 = std::function<void(const tWindow* window, const vec2_t<int16_t>& windowPosition)>;
@@ -741,15 +796,15 @@ namespace TinyWindow
 
 #if defined(TW_WINDOWS)
 
-		HDC deviceContextHandle;					 /**< A handle to a device context */
-		HGLRC glRenderingContextHandle;				 /**< A handle to an OpenGL rendering context*/
-		HPALETTE paletteHandle;						 /**< A handle to a Win32 palette*/
-		PIXELFORMATDESCRIPTOR pixelFormatDescriptor; /**< Describes the pixel format of a drawing surface*/
-		WNDCLASS windowClass;						 /**< Contains the window class attributes */
-		HWND windowHandle;							 /**< A handle to A window */
-		HINSTANCE instanceHandle;					 /**< A handle to the window class instance */
-		int accumWheelDelta;						 /**< holds the accumulated mouse wheel delta for this window */
-		vec2_t<uint16_t> clientArea;				/**< the width and height of the client window */
+		HDC deviceContextHandle;						/**< A handle to a device context */
+		HGLRC glRenderingContextHandle;					/**< A handle to an OpenGL rendering context*/
+		HPALETTE paletteHandle;							/**< A handle to a Win32 palette*/
+		PIXELFORMATDESCRIPTOR pixelFormatDescriptor;	/**< Describes the pixel format of a drawing surface*/
+		WNDCLASS windowClass;							/**< Contains the window class attributes */
+		HWND windowHandle;								/**< A handle to A window */
+		HINSTANCE instanceHandle;						/**< A handle to the window class instance */
+		int accumWheelDelta;							/**< holds the accumulated mouse wheel delta for this window */
+		vec2_t<uint16_t> clientArea;					/**< the width and height of the client window */
 
 #elif defined(TW_LINUX)
 
@@ -851,20 +906,20 @@ namespace TinyWindow
 		{
 			this->settings = windowSetting;
 
-			shouldClose		   = false;
-			initialized		   = false;
-			contextCreated	   = false;
-			currentStyle	   = titleBar | icon | border | minimizeButton | maximizeButton | closeButton | sizeableBorder;
-			inFocus			   = false;
-			isCurrentContext   = false;
-			currentScreenIndex = 0;
-			isFullscreen	   = false;
-			currentMonitor	   = nullptr;
-			previousStyle = currentStyle;
-			mousePosition	   = { 0, 0 };
-			previousMousePosition = { 0, 0 };
-			previousDimensions = { 0, 0 };
-			previousPosition = { 0, 0 };
+			shouldClose				= false;
+			initialized				= false;
+			contextCreated			= false;
+			currentStyle			= titleBar | icon | border | minimizeButton | maximizeButton | closeButton | sizeableBorder;
+			inFocus					= false;
+			isCurrentContext		= false;
+			currentScreenIndex		= 0;
+			isFullscreen			= false;
+			currentMonitor			= nullptr;
+			previousStyle			= currentStyle;
+			mousePosition			= { 0, 0 };
+			previousMousePosition	= { 0, 0 };
+			previousDimensions		= { 0, 0 };
+			previousPosition		= { 0, 0 };
 
 			std::fill(keys, keys + last, keyState_e::up);// = { keyState_e.bad };
 			std::fill_n(mouseButton, static_cast<uint16_t>(mouseButton_e::last), buttonState_e::up);
@@ -918,6 +973,7 @@ namespace TinyWindow
 	class windowManager
 	{
 	public:
+
 		key_c keyEvent; /**< This is the callback to be used when a key has been pressed */
 		focus_c focusEvent; /**< This is the callback to be used when the window has been given focus in a non-programmatic fashion */
 		moved_c movedEvent; /**< This is the callback to be used the window has been moved in a non-programmatic fashion */
@@ -1218,7 +1274,7 @@ namespace TinyWindow
 		std::vector<std::string> GetClipboardLatest(tWindow* window, clipboard_e& clipType)
 		{
 #if defined(TW_WINDOWS)
-
+			return Windows_GetClipboardLatest(window, clipType);
 #endif
 #if defined(TW_LINUX)
 			return Linux_GetClipboardLatest(window, clipType);
@@ -2322,6 +2378,7 @@ namespace TinyWindow
 									break;
 								}
 
+
 							default:
 								{
 									translatedKey = Windows_TranslateKey(wordParam);
@@ -3224,206 +3281,7 @@ namespace TinyWindow
 
 		static uint16_t Windows_TranslateKey(WPARAM wordParam)
 		{
-			switch (wordParam)
-			{
-				case VK_ESCAPE:
-					{
-						return escape;
-					}
-				case VK_SPACE:
-					{
-						return spacebar;
-					}
-				case VK_F1:
-					{
-						return F1;
-					}
-				case VK_F2:
-					{
-						return F2;
-					}
-				case VK_F3:
-					{
-						return F3;
-					}
-				case VK_F4:
-					{
-						return F4;
-					}
-				case VK_F5:
-					{
-						return F5;
-					}
-				case VK_F6:
-					{
-						return F6;
-					}
-				case VK_F7:
-					{
-						return F7;
-					}
-				case VK_F8:
-					{
-						return F8;
-					}
-				case VK_F9:
-					{
-						return F9;
-					}
-				case VK_F10:
-					{
-						return F10;
-					}
-				case VK_F11:
-					{
-						return F11;
-					}
-				case VK_F12:
-					{
-						return F12;
-					}
-				case VK_BACK:
-					{
-						return backspace;
-					}
-				case VK_TAB:
-					{
-						return tab;
-					}
-				case VK_CAPITAL:
-					{
-						return capsLock;
-					}
-				case VK_RETURN:
-					{
-						return enter;
-					}
-				case VK_PRINT:
-					{
-						return printScreen;
-					}
-				case VK_SCROLL:
-					{
-						return scrollLock;
-					}
-				case VK_PAUSE:
-					{
-						return pause;
-					}
-				case VK_INSERT:
-					{
-						return insert;
-					}
-				case VK_HOME:
-					{
-						return home;
-					}
-				case VK_DELETE:
-					{
-						return del;
-					}
-				case VK_END:
-					{
-						return end;
-					}
-				case VK_PRIOR:
-					{
-						return pageUp;
-					}
-				case VK_NEXT:
-					{
-						return pageDown;
-					}
-				case VK_DOWN:
-					{
-						return arrowDown;
-					}
-				case VK_UP:
-					{
-						return arrowUp;
-					}
-				case VK_LEFT:
-					{
-						return arrowLeft;
-					}
-				case VK_RIGHT:
-					{
-						return arrowRight;
-					}
-				case VK_DIVIDE:
-					{
-						return keypadDivide;
-					}
-				case VK_MULTIPLY:
-					{
-						return keypadMultiply;
-					}
-				case VK_SUBTRACT:
-					{
-						return keypadDivide;
-					}
-				case VK_ADD:
-					{
-						return keypadAdd;
-					}
-				case VK_DECIMAL:
-					{
-						return keypadPeriod;
-					}
-				case VK_NUMPAD0:
-					{
-						return keypad0;
-					}
-				case VK_NUMPAD1:
-					{
-						return keypad1;
-					}
-				case VK_NUMPAD2:
-					{
-						return keypad2;
-					}
-				case VK_NUMPAD3:
-					{
-						return keypad3;
-					}
-				case VK_NUMPAD4:
-					{
-						return keypad4;
-					}
-				case VK_NUMPAD5:
-					{
-						return keypad5;
-					}
-				case VK_NUMPAD6:
-					{
-						return keypad6;
-					}
-				case VK_NUMPAD7:
-					{
-						return keypad7;
-					}
-				case VK_NUMPAD8:
-					{
-						return keypad8;
-					}
-				case VK_NUMPAD9:
-					{
-						return keypad9;
-					}
-				case VK_LWIN:
-					{
-						return leftWindow;
-					}
-				case VK_RWIN:
-					{
-						return rightWindow;
-					}
-
-				default:
-					{
-						return 0;
-					}
-			}
+			return keyLUT.at(wordParam);
 		}
 
 		static void Windows_SetWindowIcon(tWindow* window, const char* icon, uint16_t width, uint16_t height)
@@ -3441,8 +3299,7 @@ namespace TinyWindow
 				::WideCharToMultiByte(CP_UTF8, 0, ws, -1, out.data(), size, nullptr, nullptr);
 			return out;
 		}
-
-
+		
 		void Windows_GetScreenInfo()
 		{
 		    for (uint16_t deviceNum = 0;; deviceNum++)
@@ -3525,8 +3382,7 @@ namespace TinyWindow
 		        }
 		    }
 		}
-
-
+		
 		bool Windows_ExtensionSupported(const char* extensionName)
 		{
 			const char* wglExtensions;
@@ -3642,6 +3498,65 @@ namespace TinyWindow
 		}
 
 		void Windows_ShareContexts(tWindow* sourceWindow, tWindow* newWindow) { wglShareLists(sourceWindow->glRenderingContextHandle, newWindow->glRenderingContextHandle); }
+
+		std::vector<std::string> Windows_GetClipboardLatest(tWindow* window, clipboard_e& clipType) const
+		{
+			std::vector<std::string> out;
+			if (OpenClipboard(window->windowHandle))
+			{
+				//first check for text. if invalid then check for files
+				HANDLE hData = GetClipboardData(CF_HDROP);
+
+				if (hData == nullptr)
+				{
+					hData = GetClipboardData(CF_UNICODETEXT);
+					if (hData == nullptr)
+					{
+						CloseClipboard();
+						return out;
+					}
+					clipType = clipboard_e::text;
+
+					wchar_t* pwszText = static_cast<wchar_t*>(GlobalLock(hData));
+					if (pwszText == nullptr) {
+						CloseClipboard();
+					}
+
+					std::wstring text(pwszText);
+
+					//move from Wchar to char
+					int stringLength = WideCharToMultiByte(CP_UTF8, 0, pwszText, -1, nullptr, 0, nullptr, nullptr);
+					std::string utf8String(static_cast<size_t>(stringLength ? stringLength - 1 : 0), '\0');
+					if (stringLength > 1)
+						WideCharToMultiByte(CP_UTF8, 0, pwszText, -1, utf8String.data(), stringLength, nullptr, nullptr);
+					out.push_back(utf8String);
+					return out;
+				}
+
+
+				clipType = clipboard_e::files;
+				HDROP hDrop = static_cast<HDROP>(hData);
+				uint16_t fileCount = static_cast<uint16_t>(DragQueryFileW(hDrop, 0xFFFFFFFF, nullptr, 0));
+				for (uint16_t fileIter = 0; fileIter < fileCount; fileIter++)
+				{
+					uint16_t pathLength = static_cast<uint16_t>(DragQueryFileW(hDrop, fileIter, nullptr, 0)) + 1;
+					wchar_t* filePath = new wchar_t[pathLength];
+					DragQueryFileW(hDrop, fileIter, filePath, pathLength);
+					//move from Wchar to char
+					int stringLength = WideCharToMultiByte(CP_UTF8, 0, filePath, -1, nullptr, 0, nullptr, nullptr);
+					std::string utf8String(static_cast<size_t>(stringLength ? stringLength - 1 : 0), '\0');
+					if (stringLength > 1)
+						WideCharToMultiByte(CP_UTF8, 0, filePath, -1, utf8String.data(), stringLength, nullptr, nullptr);
+					out.push_back(utf8String);
+					delete[] filePath;
+				}
+				DragFinish(hDrop);
+				CloseClipboard();
+				return out;
+			}
+
+			return out;			
+		}
 
 		void ShutdownDummy()
 		{

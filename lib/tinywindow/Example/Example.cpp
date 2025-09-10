@@ -290,7 +290,7 @@ int main()
 		{
 			//window->SetWindowSize(vec2_t<unsigned int>(manager->GetMonitors().back()->resolution.width, manager->GetMonitors().back()->resolution.height));
 			//manager->ToggleFullscreen(window.get(), &manager->GetMonitors().at(0), 2);
-			/*clipboard_e clipType;
+			clipboard_e clipType;
 			auto strings = manager->GetClipboardLatest(window.get(), clipType);
 			if (strings.size() > 0)
 			{
@@ -311,10 +311,10 @@ int main()
 						break;
 					}
 				}
-			}*/
+			}
 
 			//manager->SetMousePositionInScreen(vec2_t<int32_t>(500, 500), manager->GetMonitors().back());
-			manager->SetCursorIcon(window.get(), iconData, iconDimensions);
+			//manager->SetCursorIcon(window.get(), iconData, iconDimensions);
 
 			//manager->SetDecorators(window.get(), style_n::bare);
 			//manager->DisableDecorators(window.get(), decorator_e::titleBar | decorator_e::icon);
