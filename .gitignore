@@ -501,3 +501,9 @@
 /.cache/clangd/index/wrap.inl.48E4B4CFE4612556.idx
 /.cache/clangd/index/yyjson.c.1B58A8C287D04F6A.idx
 /.cache/clangd/index/yyjson.h.A55C0DE5D3CD245B.idx
+/lib/tinywindow/.idea
+/lib/tinywindow/bin/Debug/Example_Debug.exe
+/lib/tinywindow/bin/Debug/Example_Debug.pdb
+/lib/tinywindow/bin/Debug/Example_Debug.rdi
+/lib/tinywindow/proj/vs
+/lib/tinywindow/premake5.exe
