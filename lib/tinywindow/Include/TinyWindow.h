@@ -117,10 +117,11 @@ namespace TinyWindow
 	class tWindow;
 	class WindowManager;
 
-	constexpr uint16_t defaultWindowWidth	= 1280;
-	constexpr uint16_t defaultWindowHeight	= 720;
+	constexpr uint16_t defaultWindowWidth = 1280;
+	constexpr uint16_t defaultWindowHeight = 720;
 
-	template<typename type> struct vec2_t
+	template <typename type>
+	struct vec2_t
 	{
 		vec2_t()
 		{
@@ -149,7 +150,8 @@ namespace TinyWindow
 		static vec2_t Zero() { return vec2_t<type>(0, 0); }
 	};
 
-	template<typename type> struct vec4_t
+	template <typename type>
+	struct vec4_t
 	{
 		vec4_t()
 		{
@@ -214,17 +216,19 @@ namespace TinyWindow
 		RRCrtc crtc;
 #endif
 
-		explicit monitorSetting_t(const vec2_t<uint16_t>& inResolution = vec2_t<uint16_t>::Zero(), const uint16_t& inDisplayFrequency = 0) : resolution(inResolution), displayFrequency(inDisplayFrequency)
+		explicit monitorSetting_t(const vec2_t<uint16_t>& inResolution = vec2_t<uint16_t>::Zero(),
+		                          const uint16_t& inDisplayFrequency = 0) : resolution(inResolution),
+		                                                                    displayFrequency(inDisplayFrequency)
 		{
 #if defined(TW_WINDOWS)
 			displayFlags = 0;
-			fixedOutput	 = 0;
+			fixedOutput = 0;
 #endif
 
 #if defined(TW_LINUX)
 			output = 0;
-			mode   = 0;
-			crtc   = 0;
+			mode = 0;
+			crtc = 0;
 #endif
 		}
 	};
@@ -243,7 +247,7 @@ namespace TinyWindow
 		monitorSetting_t currentSetting;
 		monitorSetting_t previousSetting;
 		vec2_t<uint16_t> resolution;
-		std::vector<monitorSetting_t> settings;// store all display settings
+		std::vector<monitorSetting_t> settings; // store all display settings
 
 #if defined(TW_WINDOWS)
 		HMONITOR monitorHandle;
@@ -254,9 +258,9 @@ namespace TinyWindow
 	public:
 		monitor_t()
 		{
-			isPrimary  = false;
+			isPrimary = false;
 			resolution = vec2_t<uint16_t>::Zero();
-			extents	   = vec4_t<uint16_t>::Zero();
+			extents = vec4_t<uint16_t>::Zero();
 #if defined(TW_WINDOWS)
 			monitorHandle = nullptr;
 #endif
@@ -266,19 +270,20 @@ namespace TinyWindow
 #endif
 		}
 
-		explicit monitor_t(const std::string& displayName, const std::string& deviceName, const std::string& monitorName, const bool& isPrimary = false)
+		explicit monitor_t(const std::string& displayName, const std::string& deviceName,
+		                   const std::string& monitorName, const bool& isPrimary = false)
 		{
 #if defined(TW_WINDOWS)
 			this->monitorHandle = nullptr;
-			this->displayName	= displayName;
+			this->displayName = displayName;
 #endif
 #if defined(TW_LINUX)
 			rotation = 0;
 #endif
-			this->deviceName  = deviceName;
+			this->deviceName = deviceName;
 			this->monitorName = monitorName;
 			this->displayName = displayName;
-			this->isPrimary	  = isPrimary;
+			this->isPrimary = isPrimary;
 		}
 
 		const bool* GetIsPrimary() const { return &isPrimary; }
@@ -321,28 +326,32 @@ namespace TinyWindow
 #endif
 
 	public:
-		explicit formatSetting_t(const uint8_t& redBits = 8, const uint8_t& greenBits = 8, const uint8_t& blueBits = 8, const uint8_t& alphaBits = 8,
-			const uint8_t& depthBits = 32, const uint8_t& stencilBits = 8, const uint8_t& accumRedBits = 8, const uint8_t& accumGreenBits = 8, const uint8_t& accumBlueBits = 8, const uint8_t& accumAlphaBits = 8,
-			const uint8_t& auxBuffers = 0, const uint8_t& numSamples = 0, const bool& stereo = false, const bool& doubleBuffer = true)
+		explicit formatSetting_t(const uint8_t& redBits = 8, const uint8_t& greenBits = 8, const uint8_t& blueBits = 8,
+		                         const uint8_t& alphaBits = 8,
+		                         const uint8_t& depthBits = 32, const uint8_t& stencilBits = 8,
+		                         const uint8_t& accumRedBits = 8, const uint8_t& accumGreenBits = 8,
+		                         const uint8_t& accumBlueBits = 8, const uint8_t& accumAlphaBits = 8,
+		                         const uint8_t& auxBuffers = 0, const uint8_t& numSamples = 0,
+		                         const bool& stereo = false, const bool& doubleBuffer = true)
 		{
-			this->redBits	  = redBits;
-			this->greenBits	  = greenBits;
-			this->blueBits	  = blueBits;
-			this->alphaBits	  = alphaBits;
-			this->depthBits	  = depthBits;
+			this->redBits = redBits;
+			this->greenBits = greenBits;
+			this->blueBits = blueBits;
+			this->alphaBits = alphaBits;
+			this->depthBits = depthBits;
 			this->stencilBits = stencilBits;
 
-			this->accumRedBits	 = accumRedBits;
+			this->accumRedBits = accumRedBits;
 			this->accumGreenBits = accumGreenBits;
-			this->accumBlueBits	 = accumBlueBits;
+			this->accumBlueBits = accumBlueBits;
 			this->accumAlphaBits = accumAlphaBits;
 
 			this->auxBuffers = auxBuffers;
 			this->numSamples = numSamples;
 
-			this->stereo	   = stereo;
+			this->stereo = stereo;
 			this->doubleBuffer = doubleBuffer;
-			pixelRGB		   = true;
+			pixelRGB = true;
 #if defined(TW_WINDOWS)
 			this->handle = 0;
 #endif
@@ -357,9 +366,9 @@ namespace TinyWindow
 
 	enum class state_e
 	{
-		normal,		/**< The window is in its default state */
-		maximized,	/**< The window is currently maximized */
-		minimized,	/**< The window is currently minimized */
+		normal, /**< The window is in its default state */
+		maximized, /**< The window is currently maximized */
+		minimized, /**< The window is currently minimized */
 		fullscreen, /**< The window is currently full screen */
 	};
 
@@ -369,19 +378,22 @@ namespace TinyWindow
 
 		//should i move this to a window descriptor system?
 		explicit windowSetting_t(const std::string& name = "window", void* userData = nullptr,
-			const vec2_t<uint16_t>& resolution = vec2_t(defaultWindowWidth, defaultWindowHeight),
-			const uint8_t& versionMajor = 4, const uint8_t& versionMinor = 5, const uint8_t& colorBits = 8,
-			const uint8_t& depthBits = 24, const uint8_t& stencilBits = 8, const uint8_t& accumBits = 8,
-			const state_e& currentState = state_e::normal, const profile_e& profile = profile_e::core)
+		                         const vec2_t<uint16_t>& resolution = vec2_t(defaultWindowWidth, defaultWindowHeight),
+		                         const uint8_t& versionMajor = 4, const uint8_t& versionMinor = 5,
+		                         const uint8_t& colorBits = 8,
+		                         const uint8_t& depthBits = 24, const uint8_t& stencilBits = 8,
+		                         const uint8_t& accumBits = 8,
+		                         const state_e& currentState = state_e::normal,
+		                         const profile_e& profile = profile_e::core)
 		{
-			this->name		   = name;
-			this->resolution   = resolution;
-			this->colorBits	   = colorBits;
-			this->depthBits	   = depthBits;
-			this->stencilBits  = stencilBits;
-			this->accumBits	   = accumBits;
+			this->name = name;
+			this->resolution = resolution;
+			this->colorBits = colorBits;
+			this->depthBits = depthBits;
+			this->stencilBits = stencilBits;
+			this->accumBits = accumBits;
 			this->currentState = currentState;
-			this->userData	   = userData;
+			this->userData = userData;
 #if !defined(TW_USE_VULKAN)
 			this->versionMajor = versionMajor;
 			this->versionMinor = versionMinor;
@@ -397,28 +409,32 @@ namespace TinyWindow
 		void SetProfile(profile_e inProfile)
 		{
 #if defined(TW_WINDOWS) && !defined(TW_USE_VULKAN)
-			this->profile = (inProfile == profile_e::compatibility) ? WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB : WGL_CONTEXT_CORE_PROFILE_BIT_ARB;
+			this->profile = (inProfile == profile_e::compatibility)
+				                ? WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB
+				                : WGL_CONTEXT_CORE_PROFILE_BIT_ARB;
 #elif defined(TW_LINUX) && !defined(TW_USE_VULKAN)
-			this->profile = (inProfile == profile_e::compatibility) ? GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB : GLX_CONTEXT_CORE_PROFILE_BIT_ARB;
+			this->profile = (inProfile == profile_e::compatibility)
+				                ? GLX_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB
+				                : GLX_CONTEXT_CORE_PROFILE_BIT_ARB;
 #endif
 		}
 
 		void* userData;
 		std::string name; /**< Name of the window */
-		bool enableSRGB;  /**< whether the window will support an sRGB colorspace backbuffer */
+		bool enableSRGB; /**< whether the window will support an sRGB colorspace backbuffer */
 		state_e currentState;
 		/**< The current state of the window. these states include Normal, Minimized, Maximized and Full screen */
-		unsigned char colorBits;		/**< Color format of the window. (defaults to 32 bit color) */
-		unsigned char depthBits;		/**< Size of the Depth buffer. (defaults to 8 bit depth) */
-		unsigned char accumBits;		/**< Size of the Accum buffer */
-		unsigned char stencilBits;		/**< Size of the stencil buffer, (defaults to 8 bit) */
-		vec2_t<uint16_t> resolution;	/**< Resolution/Size of the window stored in an array */
+		unsigned char colorBits; /**< Color format of the window. (defaults to 32 bit color) */
+		unsigned char depthBits; /**< Size of the Depth buffer. (defaults to 8 bit depth) */
+		unsigned char accumBits; /**< Size of the Accum buffer */
+		unsigned char stencilBits; /**< Size of the stencil buffer, (defaults to 8 bit) */
+		vec2_t<uint16_t> resolution; /**< Resolution/Size of the window stored in an array */
 
 #if !defined(TW_USE_VULKAN)
-		GLint versionMajor;				/**< Major OpenGL version*/
-		GLint versionMinor;				/**< Minor OpenGL version*/
+		GLint versionMajor; /**< Major OpenGL version*/
+		GLint versionMinor; /**< Minor OpenGL version*/
 	private:
-		GLint profile;					/**< Compatibility or core OpenGL profiles*/
+		GLint profile; /**< Compatibility or core OpenGL profiles*/
 #if defined(TW_LINUX)
 		GLXFBConfig bestFBConfig;
 #endif
@@ -427,218 +443,225 @@ namespace TinyWindow
 
 	enum class keyState_e
 	{
-		bad,  /**< If get key state fails (could not name it ERROR) */
-		up,	  /**< The key is currently up */
+		bad, /**< If get key state fails (could not name it ERROR) */
+		up, /**< The key is currently up */
 		down, /**< The key is currently down */
 	};
 
 	enum class fullscreenMode_e
 	{
-		windowed,	/**< The decorators and are restored (if applicable) alongside the window size and monitor resolution  */
-		borderless,	/**< The decorators are removed and the window is resized to fit the screen */
-		exclusive,	/**< The decorators are removed and the monitor resolution is set to match the window */
+		windowed,
+		/**< The decorators and are restored (if applicable) alongside the window size and monitor resolution  */
+		borderless, /**< The decorators are removed and the window is resized to fit the screen */
+		exclusive, /**< The decorators are removed and the monitor resolution is set to match the window */
 	};
 
 	enum key_e
 	{
-		bad	  = -1,		 /**< The key pressed is considered invalid */
+		bad = -1, /**< The key pressed is considered invalid */
 		first = 256 + 1, /**< The first key that is not a char */
-		F1,				 /**< The F1 key */
-		F2,				 /**< The F2 key */
-		F3,				 /**< The F3 key */
-		F4,				 /**< The F4 key */
-		F5,				 /**< The F5 key */
-		F6,				 /**< The F6 key */
-		F7,				 /**< The F7 key */
-		F8,				 /**< The F8 key */
-		F9,				 /**< The F9 key */
-		F10,			 /**< The F10 key */
-		F11,			 /**< The F11 key */
-		F12,			 /**< The F12 key */
-		capsLock,		 /**< The CapsLock key */
-		leftShift,		 /**< The left Shift key */
-		rightShift,		 /**< The right Shift key */
-		leftControl,	 /**< The left Control key */
-		rightControl,	 /**< The right Control key */
-		leftWindow,		 /**< The left Window key */
-		rightWindow,	 /**< The right Window key */
-		leftAlt,		 /**< The left Alternate key */
-		rightAlt,		 /**< The right Alternate key */
-		enter,			 /**< The Enter/Return key */
-		printScreen,	 /**< The PrintScreen key */
-		scrollLock,		 /**< The ScrollLock key */
-		numLock,		 /**< The NumLock key */
-		pause,			 /**< The pause/break key */
-		insert,			 /**< The insert key */
-		home,			 /**< The Home key */
-		end,			 /**< The End key */
-		pageUp,			 /**< The PageUp key */
-		pageDown,		 /**< The PageDown key */
-		arrowDown,		 /**< The ArrowDown key */
-		arrowUp,		 /**< The ArrowUp key */
-		arrowLeft,		 /**< The ArrowLeft key */
-		arrowRight,		 /**< The ArrowRight key */
-		keypadDivide,	 /**< The KeyPad Divide key */
-		keypadMultiply,	 /**< The Keypad Multiply key */
-		keypadSubtract,	 /**< The Keypad Subtract key */
-		keypadAdd,		 /**< The Keypad Add key */
-		keypadEnter,	 /**< The Keypad Enter key */
-		keypadPeriod,	 /**< The Keypad Period/Decimal key */
-		keypad0,		 /**< The Keypad 0 key */
-		keypad1,		 /**< The Keypad 1 key */
-		keypad2,		 /**< The Keypad 2 key */
-		keypad3,		 /**< The Keypad 3 key */
-		keypad4,		 /**< The Keypad 4 key */
-		keypad5,		 /**< The Keypad 5 key */
-		keypad6,		 /**< The Keypad 6 key */
-		keypad7,		 /**< The Keypad 7 key */
-		keypad8,		 /**< The keypad 8 key */
-		keypad9,		 /**< The Keypad 9 key */
-		backspace,		 /**< The Backspace key */
-		tab,			 /**< The Tab key */
-		del,			 /**< The Delete key */
-		spacebar,		 /**< The Spacebar key */
-		escape,			 /**< The Escape key */
-		apps,			 /**< The Applications key*/
-		last = apps,	 /**< The last key to be supported */
+		F1, /**< The F1 key */
+		F2, /**< The F2 key */
+		F3, /**< The F3 key */
+		F4, /**< The F4 key */
+		F5, /**< The F5 key */
+		F6, /**< The F6 key */
+		F7, /**< The F7 key */
+		F8, /**< The F8 key */
+		F9, /**< The F9 key */
+		F10, /**< The F10 key */
+		F11, /**< The F11 key */
+		F12, /**< The F12 key */
+		capsLock, /**< The CapsLock key */
+		leftShift, /**< The left Shift key */
+		rightShift, /**< The right Shift key */
+		leftControl, /**< The left Control key */
+		rightControl, /**< The right Control key */
+		leftWindow, /**< The left Window key */
+		rightWindow, /**< The right Window key */
+		leftAlt, /**< The left Alternate key */
+		rightAlt, /**< The right Alternate key */
+		enter, /**< The Enter/Return key */
+		printScreen, /**< The PrintScreen key */
+		scrollLock, /**< The ScrollLock key */
+		numLock, /**< The NumLock key */
+		pause, /**< The pause/break key */
+		insert, /**< The insert key */
+		home, /**< The Home key */
+		end, /**< The End key */
+		pageUp, /**< The PageUp key */
+		pageDown, /**< The PageDown key */
+		arrowDown, /**< The ArrowDown key */
+		arrowUp, /**< The ArrowUp key */
+		arrowLeft, /**< The ArrowLeft key */
+		arrowRight, /**< The ArrowRight key */
+		keypadDivide, /**< The KeyPad Divide key */
+		keypadMultiply, /**< The Keypad Multiply key */
+		keypadSubtract, /**< The Keypad Subtract key */
+		keypadAdd, /**< The Keypad Add key */
+		keypadEnter, /**< The Keypad Enter key */
+		keypadPeriod, /**< The Keypad Period/Decimal key */
+		keypad0, /**< The Keypad 0 key */
+		keypad1, /**< The Keypad 1 key */
+		keypad2, /**< The Keypad 2 key */
+		keypad3, /**< The Keypad 3 key */
+		keypad4, /**< The Keypad 4 key */
+		keypad5, /**< The Keypad 5 key */
+		keypad6, /**< The Keypad 6 key */
+		keypad7, /**< The Keypad 7 key */
+		keypad8, /**< The keypad 8 key */
+		keypad9, /**< The Keypad 9 key */
+		backspace, /**< The Backspace key */
+		tab, /**< The Tab key */
+		del, /**< The Delete key */
+		spacebar, /**< The Spacebar key */
+		escape, /**< The Escape key */
+		apps, /**< The Applications key*/
+		last = apps, /**< The last key to be supported */
 	};
 
 	enum class buttonState_e
 	{
-		up,		/**< The mouse button is currently up */
-		down	/**< The mouse button is currently down */
+		up, /**< The mouse button is currently up */
+		down /**< The mouse button is currently down */
 	};
 
 	enum class mouseButton_e
 	{
-		left,	 /**< The left mouse button */
-		right,	 /**< The right mouse button */
-		middle,	 /**< The middle mouse button / ScrollWheel */
-		XFirst,	 /**< The first mouse X button */
+		left, /**< The left mouse button */
+		right, /**< The right mouse button */
+		middle, /**< The middle mouse button / ScrollWheel */
+		XFirst, /**< The first mouse X button */
 		XSecond, /**< The second mouse X button */
-		last,	 /**< The last mouse button to be supported */
+		last, /**< The last mouse button to be supported */
 	};
 
 	enum class mouseScroll_e
 	{
-		down,	/**< The mouse wheel up */
-		up		/**< The mouse wheel down */
+		down, /**< The mouse wheel up */
+		up /**< The mouse wheel down */
 	};
 
 	enum decorator_e
 	{
-		titleBar	   = 1L << 1, /**< The title bar decoration of the window */
-		icon		   = 1L << 2, /**< The icon decoration of the window */
-		border		   = 1L << 3, /**< The border decoration of the window */
+		titleBar = 1L << 1, /**< The title bar decoration of the window */
+		icon = 1L << 2, /**< The icon decoration of the window */
+		border = 1L << 3, /**< The border decoration of the window */
 		minimizeButton = 1L << 4, /**< The minimize button decoration of the window */
 		maximizeButton = 1L << 5, /**< The maximize button decoration pf the window */
-		closeButton	   = 1L << 6, /**< The close button decoration of the window */
+		closeButton = 1L << 6, /**< The close button decoration of the window */
 		sizeableBorder = 1L << 7, /**< The sizable border decoration of the window */
 	};
 
 	enum class clipboard_e
 	{
-		text,	/**< The clipboard contains text */
-		files,	/**< The clipboard contains file paths */
-		invalid	/**< The clipboard content is invalid */
+		text, /**< The clipboard contains text */
+		files, /**< The clipboard contains file paths */
+		invalid /**< The clipboard content is invalid */
 	};
 
 	namespace style_n
 	{
 		constexpr uint32_t none = 0; /**< The window has no decorators */
-		constexpr uint32_t bare = titleBar | border; /**< The window has no decorators but the window border and title bar */
-		constexpr uint32_t normal = titleBar | border | closeButton | minimizeButton | maximizeButton | sizeableBorder; /**< The default window style for the respective platform */
+		constexpr uint32_t bare = titleBar | border;
+		/**< The window has no decorators but the window border and title bar */
+		constexpr uint32_t normal = titleBar | border | closeButton | minimizeButton | maximizeButton | sizeableBorder;
+		/**< The default window style for the respective platform */
 	}
 
 	enum class error_e
 	{
-		invalidWindowName,				/**< If an invalid window name was given */
-		invalidIconPath,				/**< If an invalid icon path was given */
-		invalidWindowIndex,				/**< If an invalid window index was given */
-		invalidWindowState,				/**< If an invalid window state was given */
-		invalidResolution,				/**< If an invalid window resolution was given */
-		invalidContext,					/**< If the OpenGL context for the window is invalid */
-		existingContext,				/**< If the window already has an OpenGL context */
-		notInitialized,					/**< If the window is being used without being initialized */
-		alreadyInitialized,				/**< If the window was already initialized */
-		invalidTitlebar,				/**< If the Title-bar text given was invalid */
-		invalidCallback,				/**< If the given event callback was invalid */
-		windowInvalid,					/**< If the window given was invalid */
-		invalidWindowStyle,				/**< If the window style gives is invalid */
-		invalidVersion,					/**< If an invalid OpenGL version is being used */
-		invalidProfile,					/**< If an invalid OpenGL profile is being used */
-		invalidInterval,				/**< If a window swap interval setting is invalid */
-		invalidDimensions,				/**< If the provided dimensions are invalid */
-		fullscreenFailed,				/**< If setting the window to fullscreen has failed */
-		noExtensions,					/**< If platform-specific window extensions have not been properly loaded */
-		invalidExtension,				/**< If a platform-specific window extension is not supported */
-		invalidDummyWindow,				/**< If the dummy window creation has failed */
-		invalidDummyPixelFormat,		/**< If the pixel format for the dummy context id invalid */
-		dummyCreationFailed,			/**< If the dummy context has failed to be created */
-		invalidDummyContext,			/**< If the dummy context in invalid */
-		dummyCannotMakeCurrent,			/**< If the dummy cannot be made the current context */
-		cannotCreateCurrent, 			/**< cannot make context current */
-		invalidMonitorSettingIndex,		/**< If the provided monitor setting index is invalid */
-		InvalidIcon,					/**< invalid icon data */
-		functionNotImplemented,			/**< If the function has not yet been implemented in the current version of the API */
-		
+		InvalidIcon, /**< invalid icon data */
+		noExtensions, /**< If platform-specific window extensions have not been properly loaded */
+		windowInvalid, /**< If the window given was invalid */
+		invalidContext, /**< If the OpenGL context for the window is invalid */
+		notInitialized, /**< If the window is being used without being initialized */
+		invalidVersion, /**< If an invalid OpenGL version is being used */
+		invalidProfile, /**< If an invalid OpenGL profile is being used */
+		invalidIconPath, /**< If an invalid icon path was given */
+		existingContext, /**< If the window already has an OpenGL context */
+		invalidTitlebar, /**< If the Title-bar text given was invalid */
+		invalidCallback, /**< If the given event callback was invalid */
+		invalidInterval, /**< If a window swap interval setting is invalid */
+		fullscreenFailed, /**< If setting the window to fullscreen has failed */
+		invalidExtension, /**< If a platform-specific window extension is not supported */
+		invalidDimensions, /**< If the provided dimensions are invalid */
+		invalidResolution, /**< If an invalid window resolution was given */
+		invalidWindowName, /**< If an invalid window name was given */
+		invalidWindowIndex, /**< If an invalid window index was given */
+		invalidWindowState, /**< If an invalid window state was given */
+		invalidWindowStyle, /**< If the window style gives is invalid */
+		alreadyInitialized, /**< If the window was already initialized */
+		invalidDummyWindow, /**< If the dummy window creation has failed */
+		dummyCreationFailed, /**< If the dummy context has failed to be created */
+		invalidDummyContext, /**< If the dummy context in invalid */
+		cannotCreateCurrent, /**< cannot make context current */
+		dummyCannotMakeCurrent, /**< If the dummy cannot be made the current context */
+		functionNotImplemented, /**< If the function has not yet been implemented in the current version of the API */
+		invalidDummyPixelFormat, /**< If the pixel format for the dummy context id invalid */
+		invalidMonitorSettingIndex, /**< If the provided monitor setting index is invalid */
+
 		//Linux
-		linuxCannotConnectXServer,		/**< Linux: If cannot connect to an X11 server */
-		linuxInvalidVisualinfo,			/**< Linux: If visual information given was invalid */
-		linuxCannotCreateWindow,		/**< Linux: When X11 fails to create a new window */
-		linuxFunctionNotImplemented,	/**< Linux: When the function has not yet been implemented on the Linux in the current version of the API */
-		linuxCannotCreateDummyContext,	/**< Linux: if a dummy OpenGL context cannot be created */
+		linuxNoHDRConfig, /**< Linux: cannot find HDR compatible FBConfig */
+		linuxNoValidFBConfig, /**< Linux: cannot find a suitable Framebuffer config */
+		linuxInvalidVisualinfo, /**< Linux: If visual information given was invalid */
+		linuxCannotCreateWindow, /**< Linux: When X11 fails to create a new window */
+		linuxCannotConnectXServer, /**< Linux: If cannot connect to an X11 server */
+		linuxFunctionNotImplemented,
+		/**< Linux: When the function has not yet been implemented on the Linux in the current version of the API */
+		linuxCannotCreateDummyContext, /**< Linux: if a dummy OpenGL context cannot be created */
 		linuxCannotCreateAdvancedContext, /**< Linux: cannot create advanced context */
-		linuxNoValidFBConfig,				/**< Linux: cannot find a suitable Framebuffer config */
-		linuxNoHDRConfig, 					/**< Linux: cannot find HDR compatible FBConfig */
-		LinuxCannotSetMouseScreenPosition,		/**< Linux: cannot set mouse position in screen */
-		
+		linuxCannotSetMouseScreenPosition, /**< Linux: cannot set mouse position in screen */
+
 		//Windows
-		windowsCannotCreateWindows,				/**< Windows: When Win32 cannot create a window */
-		windowsCannotInitialize,				/**< Windows: When Win32 cannot initialize */
-		windowsFullscreenBadDualView,			/**< Windows: The system is not DualView capable. whatever that means */
-		windowsFullscreenBadFlags,				/**< Windows: Bad display change flags */
-		windowsFullscreenBadMode,				/**< Windows: Bad display change mode */
-		WindowsFullscreenBadParam,		/**< Windows: Bad display change Parameter */
-		WindowsFullscreenChangeFailed,	/**< Windows: The display driver failed to implement the specified graphics mode */
-		WindowsFullscreenNotUpdated,	/**< Windows: Unable to write settings to the registry */
-		WindowsFullscreenNeedRestart,	/**< Windows: The computer must be restarted for the graphics mode to work */
-		Windows_NoDisplayDevicesFound,	/**< Windows: Unable to find any display devices */
-		windowsFunctionNotImplemented,	/**< Windows: When a function has yet to be implemented on the Windows platform in the current version of the API */
+
+		windowsCannotInitialize, /**< Windows: When Win32 cannot initialize */
+		windowsFullscreenBadMode, /**< Windows: Bad display change mode */
+		windowsFullscreenBadFlags, /**< Windows: Bad display change flags */
+		WindowsFullscreenBadParam, /**< Windows: Bad display change Parameter */
+		windowsCannotCreateWindows, /**< Windows: When Win32 cannot create a window */
+		WindowsFullscreenNotUpdated, /**< Windows: Unable to write settings to the registry */
+		WindowsFullscreenNeedRestart, /**< Windows: The computer must be restarted for the graphics mode to work */
+		windowsFullscreenBadDualView, /**< Windows: The system is not DualView capable. whatever that means */
+		WindowsFullscreenChangeFailed,
+		/**< Windows: The display driver failed to implement the specified graphics mode */
+		Windows_NoDisplayDevicesFound, /**< Windows: Unable to find any display devices */
+		windowsFunctionNotImplemented,
+		/**< Windows: When a function has yet to be implemented on the Windows platform in the current version of the API */
 	};
 
 	typedef std::pair<error_e, std::string> errorEntry;
 	const std::unordered_map errorLUT =
 	{
-		errorEntry(error_e::invalidWindowName, "Error: invalid window name"),
-		errorEntry(error_e::invalidIconPath, "Error: invalid icon path"),
-		errorEntry(error_e::invalidWindowIndex, "Error: invalid window index"),
-		errorEntry(error_e::invalidWindowState, "Error: invalid window state"),
-		errorEntry(error_e::invalidResolution, "Error: invalid resolution"),
-		errorEntry(error_e::invalidContext, "Error: Failed to create OpenGL context"),
-		errorEntry(error_e::existingContext, "Error: context already created"),
-		errorEntry(error_e::notInitialized, "Error: Window manager not initialized"),
-		errorEntry(error_e::alreadyInitialized, "Error: window has already been initialized"),
-		errorEntry(error_e::invalidTitlebar, "Error: invalid title bar name (cannot be null or nullptr)"),
-		errorEntry(error_e::invalidCallback, "Error: invalid event callback given"),
+		errorEntry(error_e::InvalidIcon, "Error: invalid icon data"),
+		errorEntry(error_e::noExtensions, "Error: Platform extensions have not been loaded correctly"),
 		errorEntry(error_e::windowInvalid, "Error: window was not found"),
-		errorEntry(error_e::invalidWindowStyle, "Error: invalid window style given"),
 		errorEntry(error_e::invalidVersion, "Error: invalid OpenGL version"),
 		errorEntry(error_e::invalidProfile, "Error: invalid OpenGL profile"),
+		errorEntry(error_e::invalidContext, "Error: Failed to create OpenGL context"),
+		errorEntry(error_e::notInitialized, "Error: Window manager not initialized"),
+		errorEntry(error_e::existingContext, "Error: context already created"),
+		errorEntry(error_e::invalidCallback, "Error: invalid event callback given"),
 		errorEntry(error_e::invalidInterval, "Error: invalid swap interval setting"),
-		errorEntry(error_e::invalidDimensions, "Error: invalid window dimensions"),
+		errorEntry(error_e::invalidTitlebar, "Error: invalid title bar name (cannot be null or nullptr)"),
+		errorEntry(error_e::invalidIconPath, "Error: invalid icon path"),
 		errorEntry(error_e::fullscreenFailed, "Error: failed to enter fullscreen mode"),
-		errorEntry(error_e::functionNotImplemented, "Error: I'm sorry but this function has not been implemented yet"),
-		errorEntry(error_e::noExtensions, "Error: Platform extensions have not been loaded correctly"),
 		errorEntry(error_e::invalidExtension, "Error: Platform specific extension is not valid"),
+		errorEntry(error_e::invalidDimensions, "Error: invalid window dimensions"),
+		errorEntry(error_e::invalidResolution, "Error: invalid resolution"),
+		errorEntry(error_e::invalidWindowName, "Error: invalid window name"),
+		errorEntry(error_e::invalidWindowStyle, "Error: invalid window style given"),
+		errorEntry(error_e::alreadyInitialized, "Error: window has already been initialized"),
+		errorEntry(error_e::invalidWindowIndex, "Error: invalid window index"),
+		errorEntry(error_e::invalidWindowState, "Error: invalid window state"),
 		errorEntry(error_e::invalidDummyWindow, "Error: the dummy window failed to be created"),
-		errorEntry(error_e::invalidDummyPixelFormat, "Error: the pixel format for the dummy context is invalid"),
-		errorEntry(error_e::dummyCreationFailed, "Error: the dummy context has failed to be created"),
 		errorEntry(error_e::invalidDummyContext, "Error: the dummy context in invalid"),
-		errorEntry(error_e::dummyCannotMakeCurrent, "Error: the dummy cannot be made the current context"),
+		errorEntry(error_e::dummyCreationFailed, "Error: the dummy context has failed to be created"),
 		errorEntry(error_e::cannotCreateCurrent, "Error: the context cannot be made current"),
+		errorEntry(error_e::dummyCannotMakeCurrent, "Error: the dummy cannot be made the current context"),
+		errorEntry(error_e::functionNotImplemented, "Error: I'm sorry but this function has not been implemented yet"),
+		errorEntry(error_e::invalidDummyPixelFormat, "Error: the pixel format for the dummy context is invalid"),
 		errorEntry(error_e::invalidMonitorSettingIndex, "Error: the provided monitor setting index is invalid"),
-		errorEntry(error_e::InvalidIcon, "Error: invalid icon data"),
 
 		//Linux
 		errorEntry(error_e::linuxNoHDRConfig, "Linux Error: failed to get HDR config"),
@@ -648,7 +671,7 @@ namespace TinyWindow
 		errorEntry(error_e::linuxCannotConnectXServer, "Linux Error: cannot connect to X server"),
 		errorEntry(error_e::linuxFunctionNotImplemented, "Linux Error: function not implemented on Linux platform yet"),
 		errorEntry(error_e::linuxCannotCreateDummyContext, "Linux Error: failed to create dummy context"),
-		errorEntry(error_e::LinuxCannotSetMouseScreenPosition, "Linux Error: cannot set mouse position in screen"),
+		errorEntry(error_e::linuxCannotSetMouseScreenPosition, "Linux Error: cannot set mouse position in screen"),
 
 		//Windows
 		errorEntry(error_e::windowsCannotInitialize, "Windows Error: failed to initialize"),
@@ -657,10 +680,13 @@ namespace TinyWindow
 		errorEntry(error_e::WindowsFullscreenBadParam, "Windows Error: Bad display change Parameter"),
 		errorEntry(error_e::windowsCannotCreateWindows, "Windows Error: failed to create window"),
 		errorEntry(error_e::WindowsFullscreenNotUpdated, "Windows Error: Unable to write settings to the registry"),
-		errorEntry(error_e::WindowsFullscreenNeedRestart, "Windows Error: The computer must be restarted for the graphics mode to work"),
-		errorEntry(error_e::WindowsFullscreenChangeFailed, "Windows Error: The display driver failed to implement the specified graphics mode"),
+		errorEntry(error_e::WindowsFullscreenNeedRestart,
+		           "Windows Error: The computer must be restarted for the graphics mode to work"),
+		errorEntry(error_e::WindowsFullscreenChangeFailed,
+		           "Windows Error: The display driver failed to implement the specified graphics mode"),
 		errorEntry(error_e::Windows_NoDisplayDevicesFound, "Windows Error: Unable to find any display devices"),
-		errorEntry(error_e::windowsFunctionNotImplemented, "Windows Error: function not implemented on Windows platform yet"),
+		errorEntry(error_e::windowsFunctionNotImplemented,
+		           "Windows Error: function not implemented on Windows platform yet"),
 	};
 
 #ifdef TW_WINDOWS
@@ -718,34 +744,38 @@ namespace TinyWindow
 #endif // TW_WINDOWS
 
 
-	using key_c			 = std::function<void(const tWindow* window, const uint16_t& key, const keyState_e& keyState)>;
-	using focus_c		 = std::function<void(const tWindow* window, const bool& isFocused)>;
-	using moved_c		 = std::function<void(const tWindow* window, const vec2_t<int16_t>& windowPosition)>;
-	using resize_c		 = std::function<void(const tWindow* window, const vec2_t<uint16_t>& windowResolution)>;
-	using fileDrop_c	 = std::function<void(const tWindow* window, const std::vector<std::string>& files)>;
-	using destroyed_c	 = std::function<void(const tWindow* window)>;
-	using maximized_c	 = std::function<void(const tWindow* window)>;
-	using minimized_c	 = std::function<void(const tWindow* window)>;
-	using mouseMove_c	 = std::function<void(const tWindow* window, const vec2_t<int16_t>& windowMousePosition, const vec2_t<int16_t>& screenMousePosition)>;
-	using mouseWheel_c	 = std::function<void(const tWindow* window, const mouseScroll_e& mouseScrollDirection)>;
-	using mouseButton_c  = std::function<void(const tWindow* window, const mouseButton_e& mouseButton, const buttonState_e& buttonState)>;
-	using windowError_c  = std::function<void(const tWindow* window, const std::string& entry)>;
+	using key_c = std::function<void(const tWindow* window, const uint16_t& key, const keyState_e& keyState)>;
+	using focus_c = std::function<void(const tWindow* window, const bool& isFocused)>;
+	using moved_c = std::function<void(const tWindow* window, const vec2_t<int16_t>& windowPosition)>;
+	using resize_c = std::function<void(const tWindow* window, const vec2_t<uint16_t>& windowResolution)>;
+	using fileDrop_c = std::function<void(const tWindow* window, const std::vector<std::string>& files)>;
+	using destroyed_c = std::function<void(const tWindow* window)>;
+	using maximized_c = std::function<void(const tWindow* window)>;
+	using minimized_c = std::function<void(const tWindow* window)>;
+	using mouseMove_c = std::function<void(const tWindow* window, const vec2_t<int16_t>& windowMousePosition,
+	                                       const vec2_t<int16_t>& screenMousePosition)>;
+	using mouseWheel_c = std::function<void(const tWindow* window, const mouseScroll_e& mouseScrollDirection)>;
+	using mouseButton_c = std::function<void(const tWindow* window, const mouseButton_e& mouseButton,
+	                                         const buttonState_e& buttonState)>;
+	using windowError_c = std::function<void(const tWindow* window, const std::string& entry)>;
 	using managerError_c = std::function<void(const std::string& entry)>;
 
 	class tWindow
 	{
 		friend class windowManager;
 
-		using key_c			 = std::function<void(const tWindow* window, uint16_t key, keyState_e keyState)>;
-		using focus_c		 = std::function<void(const tWindow* window, bool isFocused)>;
-		using moved_c		 = std::function<void(const tWindow* window, vec2_t<int16_t> windowPosition)>;
-		using resize_c		 = std::function<void(const tWindow* window, vec2_t<uint16_t> windowResolution)>;
-		using mouseMove_c	 = std::function<void(const tWindow* window, vec2_t<int16_t> windowMousePosition, vec2_t<int16_t> screenMousePosition)>;
-		using destroyed_c	 = std::function<void(const tWindow* window)>;
-		using maximized_c	 = std::function<void(const tWindow* window)>;
-		using minimized_c	 = std::function<void(const tWindow* window)>;
-		using mouseWheel_c	 = std::function<void(const tWindow* window, const mouseScroll_e& mouseScrollDirection)>;
-		using mouseButton_c	 = std::function<void(const tWindow* window, const mouseButton_e& mouseButton, const buttonState_e& buttonState)>;
+		using key_c = std::function<void(const tWindow* window, uint16_t key, keyState_e keyState)>;
+		using focus_c = std::function<void(const tWindow* window, bool isFocused)>;
+		using moved_c = std::function<void(const tWindow* window, vec2_t<int16_t> windowPosition)>;
+		using resize_c = std::function<void(const tWindow* window, vec2_t<uint16_t> windowResolution)>;
+		using mouseMove_c = std::function<void(const tWindow* window, vec2_t<int16_t> windowMousePosition,
+		                                       vec2_t<int16_t> screenMousePosition)>;
+		using destroyed_c = std::function<void(const tWindow* window)>;
+		using maximized_c = std::function<void(const tWindow* window)>;
+		using minimized_c = std::function<void(const tWindow* window)>;
+		using mouseWheel_c = std::function<void(const tWindow* window, const mouseScroll_e& mouseScrollDirection)>;
+		using mouseButton_c = std::function<void(const tWindow* window, const mouseButton_e& mouseButton,
+		                                         const buttonState_e& buttonState)>;
 
 	public:
 		const bool& GetIsFocused() const { return inFocus; }
@@ -769,25 +799,27 @@ namespace TinyWindow
 		void SetShouldClose(const bool& inShouldClose) { shouldClose = inShouldClose; }
 
 	private:
-		bool inFocus;						/**< Whether the Window is currently in focus(if it is the current window be used) */
-		bool shouldClose;					/**< Whether the Window should be closing */
-		bool initialized;					/**< Whether the window has been successfully initialized */
-		bool isFullscreen;					/**< Whether the window is currently in fullscreen mode */
-		bool contextCreated;				/**< Whether the OpenGL context has been successfully created */
-		bool isCurrentContext;				/**< Whether the window is the current window being drawn to */
-		uint32_t currentStyle;				/**< The current style of the window */
-		uint32_t previousStyle;				/**< The previous style of the window (for restoration) */
-		keyState_e keys[last];				/**< Record of keys that are either pressed or released in the respective window */
-		vec2_t<int16_t> position;			/**< Position of the Window relative to the screen co-ordinates */
-		windowSetting_t settings;			/**< List of User-defined settings for this windowS */
-		monitor_t* currentMonitor;			/**< The monitor that the window is currently rendering to */
-		uint16_t currentScreenIndex;		/**< The Index of the screen currently being rendered to (fullscreen) */
-		vec2_t<int16_t> mousePosition;		/**< Position of the Mouse cursor relative to the window co-ordinates */
-		vec2_t<int16_t> previousPosition;	/**< Previous position of the window before being set as Fullscreen */
-		vec2_t<uint16_t> previousDimensions;
-		vec2_t<int16_t> previousMousePosition;
-		buttonState_e mouseButton[(uint16_t)mouseButton_e::last] {};
+		bool inFocus; /**< Whether the Window is currently in focus(if it is the current window be used) */
+		bool shouldClose; /**< Whether the Window should be closing */
+		bool initialized; /**< Whether the window has been successfully initialized */
+		bool isFullscreen; /**< Whether the window is currently in fullscreen mode */
+		bool contextCreated; /**< Whether the OpenGL context has been successfully created */
+		bool isCurrentContext; /**< Whether the window is the current window being drawn to */
+		uint32_t currentStyle; /**< The current style of the window */
+		uint32_t previousStyle; /**< The previous style of the window (for restoration) */
+		keyState_e keys[last]; /**< Record of keys that are either pressed or released in the respective window */
+		vec2_t<int16_t> position; /**< Position of the Window relative to the screen co-ordinates */
+		windowSetting_t settings; /**< List of User-defined settings for this windowS */
+		monitor_t* currentMonitor; /**< The monitor that the window is currently rendering to */
+		uint16_t currentScreenIndex; /**< The Index of the screen currently being rendered to (fullscreen) */
+		vec2_t<int16_t> mousePosition; /**< Position of the Mouse cursor relative to the window co-ordinates */
+		vec2_t<int16_t> previousPosition; /**< Previous position of the window before being set as Fullscreen */
+		vec2_t<uint16_t> previousDimensions; /**< Previous dimensions of the window before being set as Fullscreen */
+		vec2_t<int16_t> previousMousePosition; /**< Previous mouse position relative to the window */
+
+		buttonState_e mouseButton[(uint16_t)mouseButton_e::last]{};
 		/**< Record of mouse buttons that are either presses or released */
+
 
 #if defined(TW_USE_VULKAN)
 		VkInstance vulkanInstanceHandle;
@@ -796,67 +828,59 @@ namespace TinyWindow
 
 #if defined(TW_WINDOWS)
 
-		HDC deviceContextHandle;						/**< A handle to a device context */
-		HGLRC glRenderingContextHandle;					/**< A handle to an OpenGL rendering context*/
-		HPALETTE paletteHandle;							/**< A handle to a Win32 palette*/
-		PIXELFORMATDESCRIPTOR pixelFormatDescriptor;	/**< Describes the pixel format of a drawing surface*/
-		WNDCLASS windowClass;							/**< Contains the window class attributes */
-		HWND windowHandle;								/**< A handle to A window */
-		HINSTANCE instanceHandle;						/**< A handle to the window class instance */
-		int accumWheelDelta;							/**< holds the accumulated mouse wheel delta for this window */
-		vec2_t<uint16_t> clientArea;					/**< the width and height of the client window */
+		HDC deviceContextHandle; /**< A handle to a device context */
+		HGLRC glRenderingContextHandle; /**< A handle to an OpenGL rendering context*/
+		HPALETTE paletteHandle; /**< A handle to a Win32 palette*/
+		PIXELFORMATDESCRIPTOR pixelFormatDescriptor; /**< Describes the pixel format of a drawing surface*/
+		WNDCLASS windowClass; /**< Contains the window class attributes */
+		HWND windowHandle; /**< A handle to A window */
+		HINSTANCE instanceHandle; /**< A handle to the window class instance */
+		int accumWheelDelta; /**< holds the accumulated mouse wheel delta for this window */
+		vec2_t<uint16_t> clientArea; /**< the width and height of the client window */
 
 #elif defined(TW_LINUX)
 
-		int16_t* attributes;				/**< Attributes of the window. RGB, depth, stencil, etc */
-		GLXContext context;					/**< The handle to the GLX rendering context */
-		Window windowHandle;				/**< The X11 handle to the window. I wish they didn't name the type 'Window' */
-		XVisualInfo* visualInfo;			/**< The handle to the Visual Information. similar purpose to PixelformatDesriptor */
-		Display* currentDisplay;			/**< Handle to the X11 window */
-		uint16_t linuxDecorators;			/**< Enabled window decorators */
-		XSetWindowAttributes setAttributes;	/**< The attributes to be set for the window */
+		int16_t* attributes; /**< Attributes of the window. RGB, depth, stencil, etc */
+		GLXContext context; /**< The handle to the GLX rendering context */
+		Window windowHandle; /**< The X11 handle to the window. I wish they didn't name the type 'Window' */
+		XVisualInfo* visualInfo; /**< The handle to the Visual Information. similar purpose to PixelformatDesriptor */
+		Display* currentDisplay; /**< Handle to the X11 window */
+		uint16_t linuxDecorators; /**< Enabled window decorators */
+		XSetWindowAttributes setAttributes; /**< The attributes to be set for the window */
 
 		/* these atoms are needed to change window states via the extended window manager */
-		Atom AtomIcon;				/**< Atom for the icon of the window */
-		Atom AtomHints;				/**< Atom for the window decorations */
-		Atom AtomClose;				/**< Atom for closing the window */
-		Atom AtomCursor;			/**< Atom for the mouse cursor */
-		Atom AtomActive;			/**< Atom for the active window */
-		Atom AtomCardinal;			/**< Atom for cardinal coordinates */
-		Atom AtomFullScreen;		/**< Atom for the full screen state of the window */
-		Atom AtomDesktopGeometry;	/**< Atom for Desktop Geometry */
-		Atom AtomDemandsAttention;	/**< Atom for when the window demands attention */
-
+		Atom AtomIcon; /**< Atom for the icon of the window */
 		Atom AtomState;
+		Atom AtomHints; /**< Atom for the window decorations */
+		Atom AtomClose; /**< Atom for closing the window */
+		Atom AtomCursor; /**< Atom for the mouse cursor */
+		Atom AtomActive; /**< Atom for the active window */
+		Atom AtomCardinal; /**< Atom for cardinal coordinates */
+		Atom AtomFullScreen; /**< Atom for the full screen state of the window */
+		Atom AtomStateHidden;
+		Atom AtomDesktopGeometry; /**< Atom for Desktop Geometry */
+		Atom AtomDemandsAttention; /**< Atom for when the window demands attention */
 		Atom AtomStateMaximizedVert;
 		Atom AtomStateMaximizedHorz;
-		Atom AtomStateHidden;
 
 		//DND Atoms
-		Atom AtomXDNDAware;		  /**< Atom for making the window Drag and Drop aware */
-		Atom AtomXDNDEnter;		  /**< Atom for when a Drag and Drop selection enters the client area */
-		Atom AtomXDNDPosition;	  /**< Atom the position of the mouse when a Drag and Drop Event occurs */
-		Atom AtomXDNDStatus;	  /**< Atom for the DND status when a drag and drop event occurs */
-		Atom AtomXDNDDrop;		  /**< Atom for when a Drag and Drop selection occurs */
-		Atom AtomXDNDFinished;	  /**< Atom for when a DND event finishes */
-		Atom AtomXDNDLeave;		  /**< Atom for when the mouse leaves the window client area during a DND event */
-		Atom AtomXDNDSelection;	  /**< Atom for the DND selection of files when a DND event occurs */
+		Atom AtomXDNDAware; /**< Atom for making the window Drag and Drop aware */
+		Atom AtomXDNDEnter; /**< Atom for when a Drag and Drop selection enters the client area */
+		Atom AtomXDNDPosition; /**< Atom the position of the mouse when a Drag and Drop Event occurs */
+		Atom AtomXDNDStatus; /**< Atom for the DND status when a drag and drop event occurs */
+		Atom AtomXDNDDrop; /**< Atom for when a Drag and Drop selection occurs */
+		Atom AtomXDNDFinished; /**< Atom for when a DND event finishes */
+		Atom AtomXDNDLeave; /**< Atom for when the mouse leaves the window client area during a DND event */
+		Atom AtomXDNDSelection; /**< Atom for the DND selection of files when a DND event occurs */
 		Atom AtomXDNDTextUriList; /**< Atom for the list of file strings when a DND event occurs */
-
-		//Action Atoms
-		Atom AtomXDNDActionCopy;
-		Atom AtomXDNDActionMove;
-		Atom AtomXDNDActionLink;
-		Atom AtomXDNDActionAsk;
-		Atom AtomXDNDActionPrivate;
 
 		enum decorator_e
 		{
-			linuxBorder	  = 1L << 1,
-			linuxMove	  = 1L << 2,
-			linuxMinimize = 1L << 3,
-			linuxMaximize = 1L << 4,
-			linuxClose	  = 1L << 5,
+			linuxMove = 1L << 1,
+			linuxClose = 1L << 2,
+			linuxBorder = 1L << 3,
+			linuxMinimize = 1L << 4,
+			linuxMaximize = 1L << 5,
 		};
 
 		enum hint_e
@@ -867,36 +891,29 @@ namespace TinyWindow
 
 		void InitializeAtoms()
 		{
-			AtomIcon			 = XInternAtom(currentDisplay, "_NET_WM_ICON", false);
-			AtomHints			 = XInternAtom(currentDisplay, "_MOTIF_WM_HINTS", true);
-			AtomCursor			 = XInternAtom(currentDisplay, "_NET_WM_CURSOR", false);
-			AtomClose			 = XInternAtom(currentDisplay, "WM_DELETE_WINDOW", false);
-			AtomActive			 = XInternAtom(currentDisplay, "_NET_ACTIVE_WINDOW", false);
-			AtomCardinal		 = XInternAtom(currentDisplay, "CARDINAL", false);
-			AtomFullScreen		 = XInternAtom(currentDisplay, "_NET_WM_STATE_FULLSCREEN", false);
-			AtomDesktopGeometry	 = XInternAtom(currentDisplay, "_NET_DESKTOP_GEOMETRY", false);
+			AtomIcon = XInternAtom(currentDisplay, "_NET_WM_ICON", false);
+			AtomHints = XInternAtom(currentDisplay, "_MOTIF_WM_HINTS", true);
+			AtomCursor = XInternAtom(currentDisplay, "_NET_WM_CURSOR", false);
+			AtomClose = XInternAtom(currentDisplay, "WM_DELETE_WINDOW", false);
+			AtomState = XInternAtom(currentDisplay, "_NET_WM_STATE", false);
+			AtomActive = XInternAtom(currentDisplay, "_NET_ACTIVE_WINDOW", false);
+			AtomCardinal = XInternAtom(currentDisplay, "CARDINAL", false);
+			AtomFullScreen = XInternAtom(currentDisplay, "_NET_WM_STATE_FULLSCREEN", false);
+			AtomDesktopGeometry = XInternAtom(currentDisplay, "_NET_DESKTOP_GEOMETRY", false);
 			AtomDemandsAttention = XInternAtom(currentDisplay, "_NET_WM_STATE_DEMANDS_ATTENTION", false);
+			AtomStateMaximizedVert = XInternAtom(currentDisplay, "_NET_WM_STATE_MAXIMIZED_VERT", false);
+			AtomStateMaximizedHorz = XInternAtom(currentDisplay, "_NET_WM_STATE_MAXIMIZED_HORZ", false);
+			AtomStateHidden = XInternAtom(currentDisplay, "_NET_WM_STATE_HIDDEN", false);
 
-			AtomState				  = XInternAtom(currentDisplay, "_NET_WM_STATE", false);
-			AtomStateMaximizedVert	  = XInternAtom(currentDisplay, "_NET_WM_STATE_MAXIMIZED_VERT", false);
-			AtomStateMaximizedHorz	  = XInternAtom(currentDisplay, "_NET_WM_STATE_MAXIMIZED_HORZ", false);
-			AtomStateHidden			  = XInternAtom(currentDisplay, "_NET_WM_STATE_HIDDEN", false);
-
-			AtomXDNDAware		= XInternAtom(currentDisplay, "XdndAware", false);
-			AtomXDNDEnter		= XInternAtom(currentDisplay, "XdndEnter", false);
-			AtomXDNDPosition	= XInternAtom(currentDisplay, "XdndPosition", false);
-			AtomXDNDStatus		= XInternAtom(currentDisplay, "XdndStatus", false);
-			AtomXDNDDrop		= XInternAtom(currentDisplay, "XdndDrop", false);
-			AtomXDNDFinished	= XInternAtom(currentDisplay, "XdndFinished", false);
-			AtomXDNDLeave		= XInternAtom(currentDisplay, "XdndLeave", false);
-			AtomXDNDSelection	= XInternAtom(currentDisplay, "XdndSelection", false);
+			AtomXDNDAware = XInternAtom(currentDisplay, "XdndAware", false);
+			AtomXDNDEnter = XInternAtom(currentDisplay, "XdndEnter", false);
+			AtomXDNDPosition = XInternAtom(currentDisplay, "XdndPosition", false);
+			AtomXDNDStatus = XInternAtom(currentDisplay, "XdndStatus", false);
+			AtomXDNDDrop = XInternAtom(currentDisplay, "XdndDrop", false);
+			AtomXDNDFinished = XInternAtom(currentDisplay, "XdndFinished", false);
+			AtomXDNDLeave = XInternAtom(currentDisplay, "XdndLeave", false);
+			AtomXDNDSelection = XInternAtom(currentDisplay, "XdndSelection", false);
 			AtomXDNDTextUriList = XInternAtom(currentDisplay, "text/uri-list", false);
-
-			AtomXDNDActionCopy	  = XInternAtom(currentDisplay, "XdndActionCopy", false);
-			AtomXDNDActionMove	  = XInternAtom(currentDisplay, "XdndActionMove", false);
-			AtomXDNDActionLink	  = XInternAtom(currentDisplay, "XdndActionLink", false);
-			AtomXDNDActionAsk	  = XInternAtom(currentDisplay, "XdndActionAsk", false);
-			AtomXDNDActionPrivate = XInternAtom(currentDisplay, "XdndActionPrivate", false);
 		}
 
 #endif
@@ -906,34 +923,34 @@ namespace TinyWindow
 		{
 			this->settings = windowSetting;
 
-			shouldClose				= false;
-			initialized				= false;
-			contextCreated			= false;
-			currentStyle			= titleBar | icon | border | minimizeButton | maximizeButton | closeButton | sizeableBorder;
-			inFocus					= false;
-			isCurrentContext		= false;
-			currentScreenIndex		= 0;
-			isFullscreen			= false;
-			currentMonitor			= nullptr;
-			previousStyle			= currentStyle;
-			mousePosition			= { 0, 0 };
-			previousMousePosition	= { 0, 0 };
-			previousDimensions		= { 0, 0 };
-			previousPosition		= { 0, 0 };
+			shouldClose = false;
+			initialized = false;
+			contextCreated = false;
+			currentStyle = titleBar | icon | border | minimizeButton | maximizeButton | closeButton | sizeableBorder;
+			inFocus = false;
+			isCurrentContext = false;
+			currentScreenIndex = 0;
+			isFullscreen = false;
+			currentMonitor = nullptr;
+			previousStyle = currentStyle;
+			mousePosition = {0, 0};
+			previousMousePosition = {0, 0};
+			previousDimensions = {0, 0};
+			previousPosition = {0, 0};
 
-			std::fill(keys, keys + last, keyState_e::up);// = { keyState_e.bad };
+			std::fill(keys, keys + last, keyState_e::up); // = { keyState_e.bad };
 			std::fill_n(mouseButton, static_cast<uint16_t>(mouseButton_e::last), buttonState_e::up);
 
 #if defined(TW_WINDOWS)
-			deviceContextHandle		 = nullptr;
+			deviceContextHandle = nullptr;
 			glRenderingContextHandle = nullptr;
-			paletteHandle			 = nullptr;
-			pixelFormatDescriptor	 = PIXELFORMATDESCRIPTOR();
-			windowClass				 = WNDCLASS();
-			windowHandle			 = nullptr;
-			instanceHandle			 = nullptr;
-			accumWheelDelta			 = 0;
-			clientArea				 = vec2_t<uint16_t>::Zero();
+			paletteHandle = nullptr;
+			pixelFormatDescriptor = PIXELFORMATDESCRIPTOR();
+			windowClass = WNDCLASS();
+			windowHandle = nullptr;
+			instanceHandle = nullptr;
+			accumWheelDelta = 0;
+			clientArea = vec2_t<uint16_t>::Zero();
 #endif
 
 #if defined(__linux__)
@@ -973,22 +990,28 @@ namespace TinyWindow
 	class windowManager
 	{
 	public:
-
 		key_c keyEvent; /**< This is the callback to be used when a key has been pressed */
-		focus_c focusEvent; /**< This is the callback to be used when the window has been given focus in a non-programmatic fashion */
-		moved_c movedEvent; /**< This is the callback to be used the window has been moved in a non-programmatic fashion */
-		resize_c resizeEvent; /**< This is a callback to be used when the window has been resized in a non-programmatic fashion */
-		fileDrop_c fileDropEvent; /**< This is a callback to be used when files have been dragged onto a window */
-		destroyed_c destroyedEvent; /**< This is the callback to be used when the window has been closed in a non-programmatic fashion */
-		maximized_c maximizedEvent; /**< This is the callback to be used when the window has been maximized in a non-programmatic fashion */
-		minimized_c minimizedEvent; /**< This is the callback to be used when the window has been minimized in a non-programmatic fashion */
-		mouseMove_c mouseMoveEvent; /**< This is a callback to be used when the mouse has been moved */
+		focus_c focusEvent;
+		/**< This is the callback to be used when the window has been given focus in a non-programmatic fashion */
+		moved_c movedEvent;
+		/**< This is the callback to be used the window has been moved in a non-programmatic fashion */
+		resize_c resizeEvent;
+		/**< This is the callback to be used when the window has been resized in a non-programmatic fashion */
+		fileDrop_c fileDropEvent; /**< This is the callback to be used when files have been dragged onto a window */
+		destroyed_c destroyedEvent;
+		/**< This is the callback to be used when the window has been closed in a non-programmatic fashion */
+		maximized_c maximizedEvent;
+		/**< This is the callback to be used when the window has been maximized in a non-programmatic fashion */
+		minimized_c minimizedEvent;
+		/**< This is the callback to be used when the window has been minimized in a non-programmatic fashion */
+		mouseMove_c mouseMoveEvent; /**< This is the callback to be used when the mouse has been moved */
 		mouseWheel_c mouseWheelEvent; /**< This is the callback to be used when the mouse wheel has been scrolled. */
 		mouseButton_c mouseButtonEvent; /**< This is the callback to be used when a mouse button has been pressed */
 		windowError_c windowErrorEvent; /**< This is the callback to be used when an error has occurred */
-		managerError_c managerErrorEvent; /**< This is the callback to be used when a manager specific error has occurred */
+		managerError_c managerErrorEvent;
+		/**< This is the callback to be used when a manager specific error has occurred */
 
-		windowManager() = default;
+		windowManager() { Initialize(); }
 
 		/**
 		* Shutdown and delete all windows in the manager
@@ -996,44 +1019,6 @@ namespace TinyWindow
 		~windowManager()
 		{
 			ShutDown();
-		}
-
-		void Initialize()
-		{
-#if defined(TW_WINDOWS)
-			HWND desktopHandle = GetDesktopWindow();
-
-			if (desktopHandle)
-			{
-				bestPixelFormat = nullptr;
-				GetScreenInfo();
-				CreateDummyContext();
-				InitExtensions();
-				{
-					// delete the dummy context and make the current context null
-					wglMakeCurrent(dummyDeviceContextHandle, nullptr);
-					wglMakeCurrent(dummyDeviceContextHandle, nullptr);
-					wglDeleteContext(dummyGLContextHandle);
-					ShutdownDummy();
-				}
-
-				//gamepadList.resize(4, nullptr);
-				//Windows_InitGamepad();
-			}
-#elif defined(TW_LINUX)
-			glxSwapIntervalMESA = nullptr;
-			glxSwapIntervalEXT	= nullptr;
-			currentEvent		= XEvent();
-			currentDisplay		= XOpenDisplay(nullptr);
-
-			if (!currentDisplay)
-			{
-				return;
-			}
-
-			GetScreenInfo();
-			InitExtensions();
-#endif
 		}
 
 		/**
@@ -1047,7 +1032,7 @@ namespace TinyWindow
 			Linux_Shutdown();
 #endif
 
-			for (auto& windowIndex: windowList)
+			for (auto& windowIndex : windowList)
 			{
 				ShutdownWindow(windowIndex.get());
 			}
@@ -1106,10 +1091,10 @@ namespace TinyWindow
 			SetCursorPos(screenMousePosition.x, screenMousePosition.y);
 #elif defined(TW_LINUX)
 			int result = XWarpPointer(currentDisplay, None,
-			XDefaultRootWindow(currentDisplay),
-			0, 0,
-			0, 0,
-			screenMousePosition.x, screenMousePosition.y);
+			                          XDefaultRootWindow(currentDisplay),
+			                          0, 0,
+			                          0, 0,
+			                          screenMousePosition.x, screenMousePosition.y);
 			XFlush(currentDisplay);
 
 			auto test = XDefaultRootWindow(currentDisplay);
@@ -1121,7 +1106,7 @@ namespace TinyWindow
 				char errorText[256];
 				XGetErrorText(currentDisplay, result, errorText, sizeof(errorText));
 				printf("%s \n", errorText);
-				AddErrorLog(error_e::LinuxCannotSetMouseScreenPosition, __LINE__, __func__);
+				AddErrorLog(error_e::linuxCannotSetMouseScreenPosition, __LINE__, __func__);
 			}
 
 
@@ -1202,9 +1187,9 @@ namespace TinyWindow
 		void SetWindowSwapInterval(tWindow* window, int interval)
 		{
 #if defined(TW_WINDOWS)
-			if (swapControlEXT && wglSwapIntervalEXT != nullptr)
+			if (swapControlEXT&& wglSwapIntervalEXT!= nullptr)
 			{
-				HGLRC previousGLContext	  = wglGetCurrentContext();
+				HGLRC previousGLContext = wglGetCurrentContext();
 				HDC previousDeviceContext = wglGetCurrentDC();
 				wglMakeCurrent(window->deviceContextHandle, window->glRenderingContextHandle);
 				wglSwapIntervalEXT(interval);
@@ -1221,7 +1206,8 @@ namespace TinyWindow
 				glXMakeCurrent(window->currentDisplay, window->windowHandle, window->context);
 				int result = 0;
 				if (glxSwapIntervalMESA != nullptr) result = glxSwapIntervalMESA(interval);
-				else if (glxSwapIntervalEXT != nullptr) glxSwapIntervalEXT(window->currentDisplay, window->windowHandle, interval);
+				else if (glxSwapIntervalEXT != nullptr) glxSwapIntervalEXT(
+					window->currentDisplay, window->windowHandle, interval);
 
 				if (result != 0)
 				{
@@ -1242,7 +1228,7 @@ namespace TinyWindow
 
 			if (wglGetSwapIntervalEXT && swapControlEXT)
 			{
-				HGLRC previousGLContext	  = wglGetCurrentContext();
+				HGLRC previousGLContext = wglGetCurrentContext();
 				HDC previousDeviceContext = wglGetCurrentDC();
 				wglMakeCurrent(window->deviceContextHandle, window->glRenderingContextHandle);
 				int interval = wglGetSwapIntervalEXT();
@@ -1271,6 +1257,9 @@ namespace TinyWindow
 		*/
 		std::vector<monitor_t> GetMonitors() const { return monitorList; }
 
+		/**
+		 * Get the latest clipboard data. use clipType to determine which kind after calling
+		*/
 		std::vector<std::string> GetClipboardLatest(tWindow* window, clipboard_e& clipType)
 		{
 #if defined(TW_WINDOWS)
@@ -1279,7 +1268,6 @@ namespace TinyWindow
 #if defined(TW_LINUX)
 			return Linux_GetClipboardLatest(window, clipType);
 #endif
-			//AddErrorLog(error_e::functionNotImplemented);
 		}
 
 		/**
@@ -1287,10 +1275,11 @@ namespace TinyWindow
 		*/
 		void SetWindowSize(tWindow* window, vec2_t<uint16_t> newResolution) const
 		{
-			window->previousDimensions	= window->settings.resolution;
+			window->previousDimensions = window->settings.resolution;
 			window->settings.resolution = newResolution;
 #if defined(TW_WINDOWS)
-			SetWindowPos(window->windowHandle, HWND_TOP, window->position.x, window->position.y, newResolution.x, newResolution.y, SWP_SHOWWINDOW | SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE);
+			SetWindowPos(window->windowHandle, HWND_TOP, window->position.x, window->position.y, newResolution.x,
+			             newResolution.y, SWP_SHOWWINDOW | SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE);
 #elif defined(TW_LINUX)
 			XResizeWindow(currentDisplay, window->windowHandle, newResolution.x, newResolution.y);
 #endif
@@ -1303,10 +1292,11 @@ namespace TinyWindow
 		void SetPosition(tWindow* window, vec2_t<int16_t> newPosition) const //lol, sure
 		{
 			window->previousPosition = window->position;
-			window->position		 = newPosition;
+			window->position = newPosition;
 
 #if defined(TW_WINDOWS)
-			SetWindowPos(window->windowHandle, HWND_TOP, newPosition.x, newPosition.y, window->settings.resolution.x, window->settings.resolution.y, SWP_SHOWWINDOW | SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
+			SetWindowPos(window->windowHandle, HWND_TOP, newPosition.x, newPosition.y, window->settings.resolution.x,
+			             window->settings.resolution.y, SWP_SHOWWINDOW | SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
 #elif defined(TW_LINUX)
 			XWindowChanges windowChanges;
 
@@ -1333,8 +1323,10 @@ namespace TinyWindow
 			ClientToScreen(window->windowHandle, &mousePoint);
 			SetCursorPos(mousePoint.x, mousePoint.y);
 #elif defined(TW_LINUX)
-			XWarpPointer(currentDisplay, window->windowHandle, window->windowHandle, window->position.x, window->position.y,
-				window->settings.resolution.width, window->settings.resolution.height, newMousePosition.x, newMousePosition.y);
+			XWarpPointer(currentDisplay, window->windowHandle, window->windowHandle, window->position.x,
+			             window->position.y,
+			             window->settings.resolution.width, window->settings.resolution.height, newMousePosition.x,
+			             newMousePosition.y);
 #endif
 		}
 
@@ -1412,13 +1404,13 @@ namespace TinyWindow
 #elif defined(TW_LINUX)
 				XEvent currentEvent = {};
 
-				currentEvent.xany.type			  = ClientMessage;
+				currentEvent.xany.type = ClientMessage;
 				currentEvent.xclient.message_type = window->AtomState;
-				currentEvent.xclient.format		  = 32;
-				currentEvent.xclient.window		  = window->windowHandle;
-				currentEvent.xclient.data.l[0]	  = true;
-				currentEvent.xclient.data.l[1]	  = (long)window->AtomStateMaximizedVert;
-				currentEvent.xclient.data.l[2]	  = (long)window->AtomStateMaximizedVert;
+				currentEvent.xclient.format = 32;
+				currentEvent.xclient.window = window->windowHandle;
+				currentEvent.xclient.data.l[0] = true;
+				currentEvent.xclient.data.l[1] = (long)window->AtomStateMaximizedVert;
+				currentEvent.xclient.data.l[2] = (long)window->AtomStateMaximizedVert;
 
 				XSendEvent(currentDisplay, window->windowHandle, 0, SubstructureNotifyMask, &currentEvent);
 #endif
@@ -1431,13 +1423,13 @@ namespace TinyWindow
 #elif defined(TW_LINUX)
 				XEvent currentEvent = {};
 
-				currentEvent.xany.type			  = ClientMessage;
+				currentEvent.xany.type = ClientMessage;
 				currentEvent.xclient.message_type = window->AtomState;
-				currentEvent.xclient.format		  = 32;
-				currentEvent.xclient.window		  = window->windowHandle;
-				currentEvent.xclient.data.l[0]	  = false;
-				currentEvent.xclient.data.l[1]	  = (long)window->AtomStateMaximizedVert;
-				currentEvent.xclient.data.l[2]	  = (long)window->AtomStateMaximizedVert;
+				currentEvent.xclient.format = 32;
+				currentEvent.xclient.window = window->windowHandle;
+				currentEvent.xclient.data.l[0] = false;
+				currentEvent.xclient.data.l[1] = (long)window->AtomStateMaximizedVert;
+				currentEvent.xclient.data.l[2] = (long)window->AtomStateMaximizedVert;
 
 				XSendEvent(currentDisplay, window->windowHandle, 0, SubstructureNotifyMask, &currentEvent);
 #endif
@@ -1453,7 +1445,9 @@ namespace TinyWindow
 
 #if defined(TW_WINDOWS)
 
-			SetWindowLongPtr(window->windowHandle, GWL_STYLE, static_cast<LONG_PTR>(WS_SYSMENU | WS_POPUP | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_VISIBLE));
+			SetWindowLongPtr(window->windowHandle, GWL_STYLE,
+			                 static_cast<LONG_PTR>(WS_SYSMENU | WS_POPUP | WS_CLIPCHILDREN | WS_CLIPSIBLINGS |
+				                 WS_VISIBLE));
 
 			RECT desktop;
 			GetWindowRect(window->windowHandle, &desktop);
@@ -1464,12 +1458,12 @@ namespace TinyWindow
 			XEvent currentEvent;
 			memset(&currentEvent, 0, sizeof(currentEvent));
 
-			currentEvent.xany.type			  = ClientMessage;
+			currentEvent.xany.type = ClientMessage;
 			currentEvent.xclient.message_type = window->AtomState;
-			currentEvent.xclient.format		  = 32;
-			currentEvent.xclient.window		  = window->windowHandle;
-			currentEvent.xclient.data.l[0]	  = window->settings.currentState == state_e::fullscreen;
-			currentEvent.xclient.data.l[1]	  = (long)window->AtomFullScreen;
+			currentEvent.xclient.format = 32;
+			currentEvent.xclient.window = window->windowHandle;
+			currentEvent.xclient.data.l[0] = window->settings.currentState == state_e::fullscreen;
+			currentEvent.xclient.data.l[1] = (long)window->AtomFullScreen;
 
 			XSendEvent(currentDisplay, window->windowHandle, 0, SubstructureNotifyMask, &currentEvent);
 
@@ -1482,7 +1476,6 @@ namespace TinyWindow
 		*/
 		void ToggleFullscreen(tWindow* window, monitor_t* monitor, const uint16_t& monitorSettingIndex)
 		{
-
 			monitor->previousSetting = monitor->currentSetting;
 			monitor->currentSetting = monitor->settings[monitorSettingIndex];
 #if defined(TW_WINDOWS)
@@ -1582,13 +1575,14 @@ namespace TinyWindow
 			}
 
 			SetWindowLongPtr(window->windowHandle, GWL_STYLE, static_cast<LONG_PTR>(window->currentStyle | WS_VISIBLE));
-			SetWindowPos(window->windowHandle, HWND_TOPMOST, window->position.x, window->position.y, window->settings.resolution.width, window->settings.resolution.height, SWP_FRAMECHANGED);
+			SetWindowPos(window->windowHandle, HWND_TOPMOST, window->position.x, window->position.y,
+			             window->settings.resolution.width, window->settings.resolution.height, SWP_FRAMECHANGED);
 #elif defined(TW_LINUX)
 
 			MWMHints_t hints;
-			hints.flags		  = MWM_HINTS_DECORATIONS | MWM_HINTS_FUNCTIONS;
+			hints.flags = MWM_HINTS_DECORATIONS | MWM_HINTS_FUNCTIONS;
 			hints.decorations = 0;
-			hints.functions	  = window->linuxDecorators;
+			hints.functions = window->linuxDecorators;
 
 			if (decorators & titleBar)
 			{
@@ -1619,7 +1613,8 @@ namespace TinyWindow
 				hints.functions |= MWM_FUNC_RESIZE;
 			}
 
-			XChangeProperty(currentDisplay, window->windowHandle, window->AtomHints, window->AtomHints, 32, PropModeReplace, (unsigned char*)&hints, sizeof(MWMHints_t) / sizeof(long));
+			XChangeProperty(currentDisplay, window->windowHandle, window->AtomHints, window->AtomHints, 32,
+			                PropModeReplace, (unsigned char*)&hints, sizeof(MWMHints_t) / sizeof(long));
 			XMapWindow(currentDisplay, window->windowHandle);
 #endif
 
@@ -1648,32 +1643,34 @@ namespace TinyWindow
 
 			// Prepare a 32-bit BGRA DIB with alpha (top-down via negative height)
 			BITMAPV5HEADER bi = {};
-			bi.bV5Size        = sizeof(BITMAPV5HEADER);
-			bi.bV5Width       = dimensions.width;
-			bi.bV5Height      = -dimensions.height; // top-down
-			bi.bV5Planes      = 1;
-			bi.bV5BitCount    = 32;
+			bi.bV5Size = sizeof(BITMAPV5HEADER);
+			bi.bV5Width = dimensions.width;
+			bi.bV5Height = -dimensions.height; // top-down
+			bi.bV5Planes = 1;
+			bi.bV5BitCount = 32;
 			bi.bV5Compression = BI_BITFIELDS;
-			bi.bV5RedMask     = 0x00FF0000;
-			bi.bV5GreenMask   = 0x0000FF00;
-			bi.bV5BlueMask    = 0x000000FF;
-			bi.bV5AlphaMask   = 0xFF000000;
+			bi.bV5RedMask = 0x00FF0000;
+			bi.bV5GreenMask = 0x0000FF00;
+			bi.bV5BlueMask = 0x000000FF;
+			bi.bV5AlphaMask = 0xFF000000;
 
 			void* dibBits = nullptr;
 			HDC hdc = GetDC(nullptr);
 			HBITMAP hbmColor = CreateDIBSection(hdc, reinterpret_cast<BITMAPINFO*>(&bi),
-												DIB_RGB_COLORS, &dibBits, nullptr, 0);
+			                                    DIB_RGB_COLORS, &dibBits, nullptr, 0);
 			ReleaseDC(nullptr, hdc);
-			if (!hbmColor || !dibBits) {
+			if (!hbmColor || !dibBits)
+			{
 				//cannot create bitmap
 				if (hbmColor) DeleteObject(hbmColor);
 				return;
 			}
-			
-			// Convert ARGB -> premultiplied BGRA 
+
+			// Convert ARGB -> premultiplied BGRA
 			// Windows wants premultiplied alpha for 32bpp icons/bitmaps.
 			uint32_t* dst = static_cast<uint32_t*>(dibBits);
-			for (int i = 0; i < dimensions.width * dimensions.height; ++i) {
+			for (int i = 0; i < dimensions.width * dimensions.height; ++i)
+			{
 				uint32_t p = icon[i];
 				uint8_t a = (uint8_t)((p >> 24) & 0xFF);
 				uint8_t r = (uint8_t)((p >> 16) & 0xFF);
@@ -1691,14 +1688,15 @@ namespace TinyWindow
 
 			// Create dummy monochrome mask (ignored when alpha present, but required)
 			HBITMAP hbmMask = CreateBitmap(dimensions.width, dimensions.height, 1, 1, nullptr);
-			if (!hbmMask) {
+			if (!hbmMask)
+			{
 				DeleteObject(hbmColor);
 				return; //cannot create monochrome mask
 			}
 
 			ICONINFO ii = {};
-			ii.fIcon    = TRUE;
-			ii.hbmMask  = hbmMask;
+			ii.fIcon = TRUE;
+			ii.hbmMask = hbmMask;
 			ii.hbmColor = hbmColor;
 
 			HICON hIcon = CreateIconIndirect(&ii);
@@ -1715,12 +1713,13 @@ namespace TinyWindow
 
 			SendMessage(window->windowHandle, WM_SETICON, ICON_BIG, reinterpret_cast<LPARAM>(hIcon));
 			SendMessage(window->windowHandle, WM_SETICON, ICON_SMALL, reinterpret_cast<LPARAM>(hSmall));
-			
+
 #elif defined(TW_LINUX)
 			// Allocate buffer: width + height + pixels (all 32-bit)
 
 			// Allocate property data: width + height + pixels
-			auto* prop_data = static_cast<unsigned long*>(malloc((2 + dimensions.width * dimensions.height) * sizeof(unsigned long)));
+			auto* prop_data = static_cast<unsigned long*>(malloc(
+				(2 + dimensions.width * dimensions.height) * sizeof(unsigned long)));
 
 			prop_data[0] = dimensions.width;
 			prop_data[1] = dimensions.height;
@@ -1731,10 +1730,11 @@ namespace TinyWindow
 
 			// Set property
 			int result = XChangeProperty(currentDisplay, window->windowHandle, window->AtomIcon, XA_CARDINAL, 32,
-					PropModeReplace, reinterpret_cast<unsigned char*>(prop_data), 2 + dimensions.width * dimensions.height);
+			                             PropModeReplace, reinterpret_cast<unsigned char*>(prop_data),
+			                             2 + dimensions.width * dimensions.height);
 			if (result != Success)
 			{
-				AddErrorLog(error_e::linuxInvalidIcon, __LINE__, __func__, window);
+				AddErrorLog(error_e::InvalidIcon, __LINE__, __func__, window);
 			}
 
 			delete[] prop_data;
@@ -1764,32 +1764,34 @@ namespace TinyWindow
 
 			// Prepare a 32-bit BGRA DIB with alpha (top-down via negative height)
 			BITMAPV5HEADER bi = {};
-			bi.bV5Size        = sizeof(BITMAPV5HEADER);
-			bi.bV5Width       = dimensions.width;
-			bi.bV5Height      = -dimensions.height; // top-down
-			bi.bV5Planes      = 1;
-			bi.bV5BitCount    = 32;
+			bi.bV5Size = sizeof(BITMAPV5HEADER);
+			bi.bV5Width = dimensions.width;
+			bi.bV5Height = -dimensions.height; // top-down
+			bi.bV5Planes = 1;
+			bi.bV5BitCount = 32;
 			bi.bV5Compression = BI_BITFIELDS;
-			bi.bV5RedMask     = 0x00FF0000;
-			bi.bV5GreenMask   = 0x0000FF00;
-			bi.bV5BlueMask    = 0x000000FF;
-			bi.bV5AlphaMask   = 0xFF000000;
+			bi.bV5RedMask = 0x00FF0000;
+			bi.bV5GreenMask = 0x0000FF00;
+			bi.bV5BlueMask = 0x000000FF;
+			bi.bV5AlphaMask = 0xFF000000;
 
 			void* dibBits = nullptr;
 			HDC hdc = GetDC(nullptr);
 			HBITMAP hbmColor = CreateDIBSection(hdc, reinterpret_cast<BITMAPINFO*>(&bi),
-												DIB_RGB_COLORS, &dibBits, nullptr, 0);
+			                                    DIB_RGB_COLORS, &dibBits, nullptr, 0);
 			ReleaseDC(nullptr, hdc);
-			if (!hbmColor || !dibBits) {
+			if (!hbmColor || !dibBits)
+			{
 				//cannot create bitmap
 				if (hbmColor) DeleteObject(hbmColor);
 				return;
 			}
-			
-			// Convert ARGB -> premultiplied BGRA 
+
+			// Convert ARGB -> premultiplied BGRA
 			// Windows wants premultiplied alpha for 32bpp icons/bitmaps.
 			uint32_t* dst = static_cast<uint32_t*>(dibBits);
-			for (int i = 0; i < dimensions.width * dimensions.height; ++i) {
+			for (int i = 0; i < dimensions.width * dimensions.height; ++i)
+			{
 				uint32_t p = icon[i];
 				uint8_t a = (uint8_t)((p >> 24) & 0xFF);
 				uint8_t r = (uint8_t)((p >> 16) & 0xFF);
@@ -1807,14 +1809,15 @@ namespace TinyWindow
 
 			// Create dummy monochrome mask (ignored when alpha present, but required)
 			HBITMAP hbmMask = CreateBitmap(dimensions.width, dimensions.height, 1, 1, nullptr);
-			if (!hbmMask) {
+			if (!hbmMask)
+			{
 				DeleteObject(hbmColor);
 				return; //cannot create monochrome mask
 			}
 
 			ICONINFO ii = {};
-			ii.fIcon    = FALSE;
-			ii.hbmMask  = hbmMask;
+			ii.fIcon = FALSE;
+			ii.hbmMask = hbmMask;
 			ii.hbmColor = hbmColor;
 			ii.xHotspot = 0;
 			ii.yHotspot = 0;
@@ -1832,7 +1835,8 @@ namespace TinyWindow
 			// Allocate buffer: width + height + pixels (all 32-bit)
 
 			// Allocate property data: width + height + pixels
-			auto* prop_data = static_cast<unsigned long*>(malloc((dimensions.width * dimensions.height) * sizeof(unsigned long)));
+			auto* prop_data = static_cast<unsigned long*>(malloc(
+				(dimensions.width * dimensions.height) * sizeof(unsigned long)));
 
 			//prop_data[0] = dimensions.width;
 			//prop_data[1] = dimensions.height;
@@ -1843,10 +1847,11 @@ namespace TinyWindow
 
 			// Set property
 			int result = XChangeProperty(currentDisplay, window->windowHandle, window->AtomCursor, XA_CURSOR, 32,
-					PropModeReplace, reinterpret_cast<unsigned char*>(prop_data), dimensions.width * dimensions.height);
+			                             PropModeReplace, reinterpret_cast<unsigned char*>(prop_data),
+			                             dimensions.width * dimensions.height);
 			if (result != Success)
 			{
-				AddErrorLog(error_e::linuxInvalidIcon, __LINE__, __func__, window);
+				AddErrorLog(error_e::InvalidIcon, __LINE__, __func__, window);
 			}
 
 			delete[] prop_data;
@@ -1861,16 +1866,54 @@ namespace TinyWindow
 			return &formatList;
 		}
 
-
 	private:
 		vec2_t<int16_t> screenMousePosition;
 		std::vector<monitor_t> monitorList;
 		std::vector<formatSetting_t> formatList;
-		std::vector<std::unique_ptr<tWindow>> windowList;// replace with unordered map <handle, window?>?
 		std::vector<errorEntry> errorLog;
+		std::vector<std::unique_ptr<tWindow>> windowList; // replace with unordered map <handle, window?>?
 
-		template<typename T = void>
-		void AddErrorLog(const error_e& newError, const uint32_t& fileLine, const std::string& functionName, T* obj = nullptr)
+		void Initialize()
+		{
+#if defined(TW_WINDOWS)
+			HWND desktopHandle = GetDesktopWindow();
+
+			if (desktopHandle)
+			{
+				bestPixelFormat = nullptr;
+				GetScreenInfo();
+				CreateDummyContext();
+				InitExtensions();
+				{
+					// delete the dummy context and make the current context null
+					wglMakeCurrent(dummyDeviceContextHandle, nullptr);
+					wglMakeCurrent(dummyDeviceContextHandle, nullptr);
+					wglDeleteContext(dummyGLContextHandle);
+					ShutdownDummy();
+				}
+
+				//gamepadList.resize(4, nullptr);
+				//Windows_InitGamepad();
+			}
+#elif defined(TW_LINUX)
+			glxSwapIntervalMESA = nullptr;
+			glxSwapIntervalEXT = nullptr;
+			currentEvent = XEvent();
+			currentDisplay = XOpenDisplay(nullptr);
+
+			if (!currentDisplay)
+			{
+				return;
+			}
+
+			GetScreenInfo();
+			InitExtensions();
+#endif
+		}
+
+		template <typename T = void>
+		void AddErrorLog(const error_e& newError, const uint32_t& fileLine, const std::string& functionName,
+		                 T* obj = nullptr)
 		{
 			auto newString = errorLUT.at(newError);
 
@@ -1951,7 +1994,7 @@ namespace TinyWindow
 		{
 #if defined(TW_WINDOWS)
 			// for each monitor
-			for (auto& monitorIndex: monitorList)
+			for (auto& monitorIndex : monitorList)
 			{
 				if (monitorIndex.monitorHandle == MonitorFromWindow(window->windowHandle, MONITOR_DEFAULTTONEAREST))
 				{
@@ -1990,8 +2033,8 @@ namespace TinyWindow
 
 			FreeModule(window->instanceHandle);
 
-			window->deviceContextHandle		 = nullptr;
-			window->windowHandle			 = nullptr;
+			window->deviceContextHandle = nullptr;
+			window->windowHandle = nullptr;
 			window->glRenderingContextHandle = nullptr;
 
 #elif defined(TW_LINUX)
@@ -2002,7 +2045,7 @@ namespace TinyWindow
 			XUnmapWindow(currentDisplay, window->windowHandle);
 			XDestroyWindow(currentDisplay, window->windowHandle);
 			window->windowHandle = 0;
-			window->context		 = nullptr;
+			window->context = nullptr;
 #endif
 		}
 
@@ -2057,693 +2100,698 @@ namespace TinyWindow
 		static LRESULT CALLBACK WindowProcedure(HWND windowHandle, UINT winMessage, WPARAM wordParam, LPARAM longParam)
 		{
 			windowManager* manager = (windowManager*)GetWindowLongPtr(windowHandle, GWLP_USERDATA);
-			tWindow* window		   = nullptr;
+			tWindow* window = nullptr;
 			if (manager != nullptr)
 			{
 				window = manager->GetWindowByHandle(windowHandle);
 			}
 
 			uint16_t translatedKey = 0;
-			static bool wasLowerCase   = false;
+			static bool wasLowerCase = false;
 
 			switch (winMessage)
 			{
-				case WM_DESTROY:
+			case WM_DESTROY:
+				{
+					if (manager != nullptr)
 					{
-						if (manager != nullptr)
-						{
-							window->shouldClose = true;
+						window->shouldClose = true;
 
-							if (manager->destroyedEvent != nullptr)
+						if (manager->destroyedEvent != nullptr)
+						{
+							manager->destroyedEvent(window);
+						}
+
+						// don't shutdown automatically, let people choose when to unload
+						// manager->ShutdownWindow(window);
+					}
+					break;
+				}
+
+			case WM_MOVE:
+				{
+					window->position.x = LOWORD(longParam);
+					window->position.y = HIWORD(longParam);
+					manager->CheckWindowScreen(window);
+
+					if (manager->movedEvent != nullptr)
+					{
+						manager->movedEvent(window, window->position);
+					}
+
+					break;
+				}
+
+			case WM_MOVING:
+				{
+					window->position.x = LOWORD(longParam);
+					window->position.y = HIWORD(longParam);
+
+					if (manager->movedEvent != nullptr)
+					{
+						manager->movedEvent(window, window->position);
+					}
+					break;
+				}
+
+			case WM_SIZE:
+				{
+					// high and low word are the client resolution. will need to change this
+					window->settings.resolution.width = (uint16_t)LOWORD(longParam);
+					window->settings.resolution.height = (uint16_t)HIWORD(longParam);
+
+					RECT tempRect;
+					GetClientRect(window->windowHandle, &tempRect);
+					window->clientArea.width = tempRect.right;
+					window->clientArea.height = tempRect.bottom;
+
+					GetWindowRect(window->windowHandle, &tempRect);
+
+					switch (wordParam)
+					{
+					case SIZE_MAXIMIZED:
+						{
+							if (manager->maximizedEvent != nullptr)
 							{
-								manager->destroyedEvent(window);
+								manager->maximizedEvent(window);
 							}
-
-							// don't shutdown automatically, let people choose when to unload
-							// manager->ShutdownWindow(window);
-						}
-						break;
-					}
-
-				case WM_MOVE:
-					{
-						window->position.x = LOWORD(longParam);
-						window->position.y = HIWORD(longParam);
-						manager->CheckWindowScreen(window);
-
-						if (manager->movedEvent != nullptr)
-						{
-							manager->movedEvent(window, window->position);
+							break;
 						}
 
-						break;
-					}
-
-				case WM_MOVING:
-					{
-						window->position.x = LOWORD(longParam);
-						window->position.y = HIWORD(longParam);
-
-						if (manager->movedEvent != nullptr)
+					case SIZE_MINIMIZED:
 						{
-							manager->movedEvent(window, window->position);
-						}
-						break;
-					}
-
-				case WM_SIZE:
-					{
-						// high and low word are the client resolution. will need to change this
-						window->settings.resolution.width  = (uint16_t)LOWORD(longParam);
-						window->settings.resolution.height = (uint16_t)HIWORD(longParam);
-
-						RECT tempRect;
-						GetClientRect(window->windowHandle, &tempRect);
-						window->clientArea.width  = tempRect.right;
-						window->clientArea.height = tempRect.bottom;
-
-						GetWindowRect(window->windowHandle, &tempRect);
-
-						switch (wordParam)
-						{
-							case SIZE_MAXIMIZED:
-								{
-									if (manager->maximizedEvent != nullptr)
-									{
-										manager->maximizedEvent(window);
-									}
-									break;
-								}
-
-							case SIZE_MINIMIZED:
-								{
-									if (manager->minimizedEvent != nullptr)
-									{
-										manager->minimizedEvent(window);
-									}
-									break;
-								}
-
-							default:
-								{
-									if (manager->resizeEvent != nullptr)
-									{
-										manager->resizeEvent(window, window->settings.resolution);
-									}
-									break;
-								}
-						}
-						break;
-					}
-				// only occurs when the window size is being dragged
-				case WM_SIZING:
-					{
-						RECT tempRect;
-						GetWindowRect(window->windowHandle, &tempRect);
-						window->settings.resolution.width  = tempRect.right;
-						window->settings.resolution.height = tempRect.bottom;
-
-						GetClientRect(window->windowHandle, &tempRect);
-						window->clientArea.width  = tempRect.right;
-						window->clientArea.height = tempRect.bottom;
-
-						if (manager->resizeEvent != nullptr)
-						{
-							manager->resizeEvent(window, window->settings.resolution);
-						}
-
-						UpdateWindow(window->windowHandle);// , NULL, true);
-						break;
-					}
-
-				case WM_INPUT:
-					{
-						char buffer[sizeof(RAWINPUT)] = {};
-						UINT size					  = sizeof(RAWINPUT);
-						GetRawInputData(reinterpret_cast<HRAWINPUT>(longParam), RID_INPUT, buffer, &size, sizeof(RAWINPUTHEADER));
-
-						RAWINPUT* rawInput = reinterpret_cast<RAWINPUT*>(buffer);
-						switch (rawInput->header.dwType)
-						{
-							// grab raw keyboard info
-							case RIM_TYPEKEYBOARD:
-								{
-									const RAWKEYBOARD& rawKB = rawInput->data.keyboard;
-									uint16_t virtualKey	 = rawKB.VKey;
-									uint16_t scanCode	 = rawKB.MakeCode;
-									uint16_t flags		 = rawKB.Flags;
-									bool isE0				 = false;
-									bool isE1				 = false;
-
-									if (virtualKey == 255)
-										break;
-
-									keyState_e keyState;
-									if ((flags & RI_KEY_BREAK) != 0)
-									{
-										keyState = keyState_e::up;
-									}
-
-									else
-									{
-										keyState = keyState_e::down;
-									}
-
-									if (flags & RI_KEY_E0)
-									{
-										isE0 = true;
-									}
-
-									if (flags & RI_KEY_E1)
-									{
-										isE1 = true;
-									}
-
-									if (virtualKey == VK_SHIFT)
-									{
-										virtualKey = MapVirtualKey(scanCode, MAPVK_VSC_TO_VK_EX);
-
-										if (virtualKey == VK_LSHIFT)
-										{
-											window->keys[leftShift] = keyState;
-										}
-
-										else if (virtualKey == VK_RSHIFT)
-										{
-											window->keys[rightShift] = keyState;
-										}
-									}
-
-									else if (virtualKey == VK_NUMLOCK)
-									{
-										// in raw input there is a big problem with PAUSE/break and numlock
-										// the scancode needs to be remapped and have the extended bit set
-										scanCode = (MapVirtualKey(virtualKey, MAPVK_VK_TO_VSC) | 0x100);
-
-										if (scanCode == VK_PAUSE) {}
-
-										// std::bitset<64> bits(scanCode);
-										// bits.set(24);
-									}
-
-									if (isE1)
-									{
-										if (virtualKey == VK_PAUSE)
-										{
-											scanCode = 0x45;// the E key???
-										}
-
-										else
-										{
-											scanCode = MapVirtualKey(virtualKey, MAPVK_VK_TO_VSC);
-										}
-									}
-
-									translatedKey = 0;
-
-									switch (virtualKey)
-									{
-										case VK_CONTROL:
-											{
-												translatedKey = (isE0) ? rightControl : leftControl;
-												break;
-											}
-									}
-								}
-
-							// grab mouse info
-							case RIM_TYPEMOUSE:
-							// grab joystick info
-							case RIM_TYPEHID:
-								{
-									break;
-								}
-						}
-					}
-
-				case WM_CHAR:
-					{
-						// WM_KEYUP/DOWN cannot tell between uppercase and lowercase since it
-						// takes directly from the keyboard so WM_CHAR is needed to determine
-						// casing. still a pain though to see whether the key was pressed or
-						// released.
-						wasLowerCase			= islower(static_cast<int16_t>(wordParam)) != 0;
-						window->keys[wordParam] = keyState_e::down;
-						if (manager->keyEvent != nullptr)
-						{
-							manager->keyEvent(window, static_cast<int16_t>(wordParam), keyState_e::down);
-						}
-						break;
-					}
-
-				case WM_KEYDOWN:
-					{
-						switch (DetermineLeftOrRight(wordParam, longParam))
-						{
-							case VK_LCONTROL:
-								{
-									window->keys[leftControl] = keyState_e::down;
-									translatedKey			  = leftControl;
-									break;
-								}
-
-							case VK_RCONTROL:
-								{
-									window->keys[rightControl] = keyState_e::down;
-									translatedKey			   = rightControl;
-									break;
-								}
-
-							case VK_LSHIFT:
-								{
-									window->keys[leftShift] = keyState_e::down;
-									translatedKey			= leftShift;
-									break;
-								}
-
-							case VK_RSHIFT:
-								{
-									window->keys[rightShift] = keyState_e::down;
-									translatedKey			 = rightShift;
-									break;
-								}
-
-							default:
-								{
-									translatedKey = Windows_TranslateKey(wordParam);
-									if (translatedKey != 0)
-									{
-										window->keys[translatedKey] = keyState_e::down;
-									}
-									break;
-								}
-						}
-
-						if (manager->keyEvent != nullptr && translatedKey != 0)
-						{
-							manager->keyEvent(window, translatedKey, keyState_e::down);
-						}
-						break;
-					}
-
-				case WM_KEYUP:
-					{
-						switch (DetermineLeftOrRight(wordParam, longParam))
-						{
-							case VK_LCONTROL:
-								{
-									window->keys[leftControl] = keyState_e::up;
-									translatedKey			  = leftControl;
-									break;
-								}
-
-							case VK_RCONTROL:
-								{
-									window->keys[rightControl] = keyState_e::up;
-									translatedKey			   = rightControl;
-									break;
-								}
-
-							case VK_LSHIFT:
-								{
-									window->keys[leftShift] = keyState_e::up;
-									translatedKey			= leftShift;
-									break;
-								}
-
-							case VK_RSHIFT:
-								{
-									window->keys[rightShift] = keyState_e::up;
-									translatedKey			 = rightShift;
-									break;
-								}
-
-
-							default:
-								{
-									translatedKey = Windows_TranslateKey(wordParam);
-									if (translatedKey != 0)
-									{
-										window->keys[translatedKey] = keyState_e::up;
-									}
-
-									else
-									{
-										// if it was lowercase
-										if (wasLowerCase)
-										{
-											// change the wordParam to lowercase
-											translatedKey = tolower(static_cast<uint16_t>(wordParam));
-										}
-										else
-										{
-											// keep it as is if it isn't
-											translatedKey = static_cast<uint16_t>(wordParam);
-										}
-
-										window->keys[translatedKey] = keyState_e::up;
-									}
-									break;
-								}
-						}
-
-						if (manager->keyEvent != nullptr)
-						{
-							manager->keyEvent(window, translatedKey, keyState_e::up);
-						}
-						break;
-					}
-
-				case WM_SYSKEYDOWN:
-					{
-						translatedKey = 0;
-
-						switch (DetermineLeftOrRight(wordParam, longParam))
-						{
-							case VK_LMENU:
-								{
-									window->keys[leftAlt] = keyState_e::down;
-									translatedKey		  = leftAlt;
-									break;
-								}
-
-							case VK_RMENU:
-								{
-									window->keys[rightAlt] = keyState_e::down;
-									translatedKey		   = rightAlt;
-									break;
-								}
-						}
-
-						if (manager->keyEvent != nullptr)
-						{
-							manager->keyEvent(window, translatedKey, keyState_e::down);
-						}
-						break;
-					}
-
-				case WM_SYSKEYUP:
-					{
-						translatedKey = 0;
-						switch (DetermineLeftOrRight(wordParam, longParam))
-						{
-							case VK_LMENU:
-								{
-									window->keys[leftAlt] = keyState_e::up;
-									translatedKey		  = leftAlt;
-									break;
-								}
-
-							case VK_RMENU:
-								{
-									window->keys[rightAlt] = keyState_e::up;
-									translatedKey		   = rightAlt;
-									break;
-								}
-
-							default:
-								{
-									break;
-								}
-						}
-
-						if (manager->keyEvent != nullptr)
-						{
-							manager->keyEvent(window, translatedKey, keyState_e::up);
-						}
-						break;
-					}
-
-				case WM_MOUSEMOVE:
-					{
-						window->previousMousePosition = window->mousePosition;
-						window->mousePosition.x		  = (int)LOWORD(longParam);
-						window->mousePosition.y		  = (int)HIWORD(longParam);
-
-						POINT point;
-						point.x = (LONG)window->mousePosition.x;
-						point.y = (LONG)window->mousePosition.y;
-
-						ClientToScreen(windowHandle, &point);
-
-						if (manager->mouseMoveEvent != nullptr)
-						{
-							manager->mouseMoveEvent(window, window->mousePosition, vec2_t<int16_t>(point.x, point.y));
-						}
-						break;
-					}
-
-				case WM_XBUTTONDOWN:
-					{
-						int XButton = (int)HIWORD(wordParam);
-
-						if (XButton == XBUTTON1)
-						{
-							window->mouseButton[(uint16_t)mouseButton_e::XFirst] = buttonState_e::down;
-
-							if (manager->mouseButtonEvent != nullptr)
+							if (manager->minimizedEvent != nullptr)
 							{
-								manager->mouseButtonEvent(window, mouseButton_e::XFirst, buttonState_e::down);
+								manager->minimizedEvent(window);
 							}
+							break;
 						}
 
-						if (XButton == XBUTTON2)
+					default:
 						{
-							window->mouseButton[(uint16_t)mouseButton_e::XSecond] = buttonState_e::down;
-
-							if (manager->mouseButtonEvent != nullptr)
+							if (manager->resizeEvent != nullptr)
 							{
-								manager->mouseButtonEvent(window, mouseButton_e::XSecond, buttonState_e::down);
+								manager->resizeEvent(window, window->settings.resolution);
 							}
+							break;
 						}
-						break;
+					}
+					break;
+				}
+			// only occurs when the window size is being dragged
+			case WM_SIZING:
+				{
+					RECT tempRect;
+					GetWindowRect(window->windowHandle, &tempRect);
+					window->settings.resolution.width = tempRect.right;
+					window->settings.resolution.height = tempRect.bottom;
+
+					GetClientRect(window->windowHandle, &tempRect);
+					window->clientArea.width = tempRect.right;
+					window->clientArea.height = tempRect.bottom;
+
+					if (manager->resizeEvent != nullptr)
+					{
+						manager->resizeEvent(window, window->settings.resolution);
 					}
 
-				case WM_XBUTTONUP:
+					UpdateWindow(window->windowHandle); // , NULL, true);
+					break;
+				}
+
+			case WM_INPUT:
+				{
+					char buffer[sizeof(RAWINPUT)] = {};
+					UINT size = sizeof(RAWINPUT);
+					GetRawInputData(reinterpret_cast<HRAWINPUT>(longParam), RID_INPUT, buffer, &size,
+					                sizeof(RAWINPUTHEADER));
+
+					RAWINPUT* rawInput = reinterpret_cast<RAWINPUT*>(buffer);
+					switch (rawInput->header.dwType)
 					{
-						int XButton = (int)HIWORD(wordParam);
-
-						if (XButton == XBUTTON1)
+					// grab raw keyboard info
+					case RIM_TYPEKEYBOARD:
 						{
-							window->mouseButton[(short)mouseButton_e::XFirst] = buttonState_e::up;
+							const RAWKEYBOARD& rawKB = rawInput->data.keyboard;
+							uint16_t virtualKey = rawKB.VKey;
+							uint16_t scanCode = rawKB.MakeCode;
+							uint16_t flags = rawKB.Flags;
+							bool isE0 = false;
+							bool isE1 = false;
 
-							if (manager->mouseButtonEvent != nullptr)
+							if (virtualKey == 255)
+								break;
+
+							keyState_e keyState;
+							if ((flags & RI_KEY_BREAK) != 0)
 							{
-								manager->mouseButtonEvent(window, mouseButton_e::XFirst, buttonState_e::up);
+								keyState = keyState_e::up;
 							}
-						}
-
-						if (XButton == XBUTTON2)
-						{
-							window->mouseButton[(short)mouseButton_e::XSecond] = buttonState_e::up;
-
-							if (manager->mouseButtonEvent != nullptr)
-							{
-								manager->mouseButtonEvent(window, mouseButton_e::XSecond, buttonState_e::up);
-							}
-						}
-						break;
-					}
-
-				case WM_LBUTTONDOWN:
-					{
-						window->mouseButton[(short)mouseButton_e::left] = buttonState_e::down;
-
-						if (manager->mouseButtonEvent != nullptr)
-						{
-							manager->mouseButtonEvent(window, mouseButton_e::left, buttonState_e::down);
-						}
-
-						break;
-					}
-
-				case WM_LBUTTONUP:
-					{
-						window->mouseButton[(short)mouseButton_e::left] = buttonState_e::up;
-
-						if (manager->mouseButtonEvent != nullptr)
-						{
-							manager->mouseButtonEvent(window, mouseButton_e::left, buttonState_e::up);
-						}
-						break;
-					}
-
-				case WM_RBUTTONDOWN:
-					{
-						window->mouseButton[(short)mouseButton_e::right] = buttonState_e::down;
-
-						if (manager->mouseButtonEvent != nullptr)
-						{
-							manager->mouseButtonEvent(window, mouseButton_e::right, buttonState_e::down);
-						}
-						break;
-					}
-
-				case WM_RBUTTONUP:
-					{
-						window->mouseButton[(short)mouseButton_e::right] = buttonState_e::up;
-
-						if (manager->mouseButtonEvent != nullptr)
-						{
-							manager->mouseButtonEvent(window, mouseButton_e::right, buttonState_e::up);
-						}
-						break;
-					}
-
-				case WM_MBUTTONDOWN:
-					{
-						window->mouseButton[(uint16_t)mouseButton_e::middle] = buttonState_e::down;
-
-						if (manager->mouseButtonEvent != nullptr)
-						{
-							manager->mouseButtonEvent(window, mouseButton_e::middle, buttonState_e::down);
-						}
-						break;
-					}
-
-				case WM_MBUTTONUP:
-					{
-						window->mouseButton[(uint16_t)mouseButton_e::middle] = buttonState_e::up;
-
-						if (manager->mouseButtonEvent != nullptr)
-						{
-							manager->mouseButtonEvent(window, mouseButton_e::middle, buttonState_e::up);
-						}
-						break;
-					}
-
-				case WM_MOUSEWHEEL:
-					{
-						int delta = GET_WHEEL_DELTA_WPARAM(wordParam);
-						if (delta > 0)
-						{
-							// if was previously negative, revert to zero
-							if (window->accumWheelDelta < 0)
-								window->accumWheelDelta = 0;
 
 							else
-								window->accumWheelDelta += delta;
-
-							if (window->accumWheelDelta >= WHEEL_DELTA)
 							{
-								if (manager->mouseWheelEvent != nullptr)
+								keyState = keyState_e::down;
+							}
+
+							if (flags & RI_KEY_E0)
+							{
+								isE0 = true;
+							}
+
+							if (flags & RI_KEY_E1)
+							{
+								isE1 = true;
+							}
+
+							if (virtualKey == VK_SHIFT)
+							{
+								virtualKey = MapVirtualKey(scanCode, MAPVK_VSC_TO_VK_EX);
+
+								if (virtualKey == VK_LSHIFT)
 								{
-									manager->mouseWheelEvent(window, mouseScroll_e::up);
+									window->keys[leftShift] = keyState;
 								}
 
-								// reset accum
-								window->accumWheelDelta = 0;
+								else if (virtualKey == VK_RSHIFT)
+								{
+									window->keys[rightShift] = keyState;
+								}
+							}
+
+							else if (virtualKey == VK_NUMLOCK)
+							{
+								// in raw input there is a big problem with PAUSE/break and numlock
+								// the scancode needs to be remapped and have the extended bit set
+								scanCode = (MapVirtualKey(virtualKey, MAPVK_VK_TO_VSC) | 0x100);
+
+								if (scanCode == VK_PAUSE)
+								{
+								}
+
+								// std::bitset<64> bits(scanCode);
+								// bits.set(24);
+							}
+
+							if (isE1)
+							{
+								if (virtualKey == VK_PAUSE)
+								{
+									scanCode = 0x45; // the E key???
+								}
+
+								else
+								{
+									scanCode = MapVirtualKey(virtualKey, MAPVK_VK_TO_VSC);
+								}
+							}
+
+							translatedKey = 0;
+
+							switch (virtualKey)
+							{
+							case VK_CONTROL:
+								{
+									translatedKey = (isE0) ? rightControl : leftControl;
+									break;
+								}
 							}
 						}
+
+					// grab mouse info
+					case RIM_TYPEMOUSE:
+					// grab joystick info
+					case RIM_TYPEHID:
+						{
+							break;
+						}
+					}
+				}
+
+			case WM_CHAR:
+				{
+					// WM_KEYUP/DOWN cannot tell between uppercase and lowercase since it
+					// takes directly from the keyboard so WM_CHAR is needed to determine
+					// casing. still a pain though to see whether the key was pressed or
+					// released.
+					wasLowerCase = islower(static_cast<int16_t>(wordParam)) != 0;
+					window->keys[wordParam] = keyState_e::down;
+					if (manager->keyEvent != nullptr)
+					{
+						manager->keyEvent(window, static_cast<int16_t>(wordParam), keyState_e::down);
+					}
+					break;
+				}
+
+			case WM_KEYDOWN:
+				{
+					switch (DetermineLeftOrRight(wordParam, longParam))
+					{
+					case VK_LCONTROL:
+						{
+							window->keys[leftControl] = keyState_e::down;
+							translatedKey = leftControl;
+							break;
+						}
+
+					case VK_RCONTROL:
+						{
+							window->keys[rightControl] = keyState_e::down;
+							translatedKey = rightControl;
+							break;
+						}
+
+					case VK_LSHIFT:
+						{
+							window->keys[leftShift] = keyState_e::down;
+							translatedKey = leftShift;
+							break;
+						}
+
+					case VK_RSHIFT:
+						{
+							window->keys[rightShift] = keyState_e::down;
+							translatedKey = rightShift;
+							break;
+						}
+
+					default:
+						{
+							translatedKey = Windows_TranslateKey(wordParam);
+							if (translatedKey != 0)
+							{
+								window->keys[translatedKey] = keyState_e::down;
+							}
+							break;
+						}
+					}
+
+					if (manager->keyEvent != nullptr && translatedKey != 0)
+					{
+						manager->keyEvent(window, translatedKey, keyState_e::down);
+					}
+					break;
+				}
+
+			case WM_KEYUP:
+				{
+					switch (DetermineLeftOrRight(wordParam, longParam))
+					{
+					case VK_LCONTROL:
+						{
+							window->keys[leftControl] = keyState_e::up;
+							translatedKey = leftControl;
+							break;
+						}
+
+					case VK_RCONTROL:
+						{
+							window->keys[rightControl] = keyState_e::up;
+							translatedKey = rightControl;
+							break;
+						}
+
+					case VK_LSHIFT:
+						{
+							window->keys[leftShift] = keyState_e::up;
+							translatedKey = leftShift;
+							break;
+						}
+
+					case VK_RSHIFT:
+						{
+							window->keys[rightShift] = keyState_e::up;
+							translatedKey = rightShift;
+							break;
+						}
+
+
+					default:
+						{
+							translatedKey = Windows_TranslateKey(wordParam);
+							if (translatedKey != 0)
+							{
+								window->keys[translatedKey] = keyState_e::up;
+							}
+
+							else
+							{
+								// if it was lowercase
+								if (wasLowerCase)
+								{
+									// change the wordParam to lowercase
+									translatedKey = tolower(static_cast<uint16_t>(wordParam));
+								}
+								else
+								{
+									// keep it as is if it isn't
+									translatedKey = static_cast<uint16_t>(wordParam);
+								}
+
+								window->keys[translatedKey] = keyState_e::up;
+							}
+							break;
+						}
+					}
+
+					if (manager->keyEvent != nullptr)
+					{
+						manager->keyEvent(window, translatedKey, keyState_e::up);
+					}
+					break;
+				}
+
+			case WM_SYSKEYDOWN:
+				{
+					translatedKey = 0;
+
+					switch (DetermineLeftOrRight(wordParam, longParam))
+					{
+					case VK_LMENU:
+						{
+							window->keys[leftAlt] = keyState_e::down;
+							translatedKey = leftAlt;
+							break;
+						}
+
+					case VK_RMENU:
+						{
+							window->keys[rightAlt] = keyState_e::down;
+							translatedKey = rightAlt;
+							break;
+						}
+					}
+
+					if (manager->keyEvent != nullptr)
+					{
+						manager->keyEvent(window, translatedKey, keyState_e::down);
+					}
+					break;
+				}
+
+			case WM_SYSKEYUP:
+				{
+					translatedKey = 0;
+					switch (DetermineLeftOrRight(wordParam, longParam))
+					{
+					case VK_LMENU:
+						{
+							window->keys[leftAlt] = keyState_e::up;
+							translatedKey = leftAlt;
+							break;
+						}
+
+					case VK_RMENU:
+						{
+							window->keys[rightAlt] = keyState_e::up;
+							translatedKey = rightAlt;
+							break;
+						}
+
+					default:
+						{
+							break;
+						}
+					}
+
+					if (manager->keyEvent != nullptr)
+					{
+						manager->keyEvent(window, translatedKey, keyState_e::up);
+					}
+					break;
+				}
+
+			case WM_MOUSEMOVE:
+				{
+					window->previousMousePosition = window->mousePosition;
+					window->mousePosition.x = (int)LOWORD(longParam);
+					window->mousePosition.y = (int)HIWORD(longParam);
+
+					POINT point;
+					point.x = (LONG)window->mousePosition.x;
+					point.y = (LONG)window->mousePosition.y;
+
+					ClientToScreen(windowHandle, &point);
+
+					if (manager->mouseMoveEvent != nullptr)
+					{
+						manager->mouseMoveEvent(window, window->mousePosition, vec2_t<int16_t>(point.x, point.y));
+					}
+					break;
+				}
+
+			case WM_XBUTTONDOWN:
+				{
+					int XButton = (int)HIWORD(wordParam);
+
+					if (XButton == XBUTTON1)
+					{
+						window->mouseButton[(uint16_t)mouseButton_e::XFirst] = buttonState_e::down;
+
+						if (manager->mouseButtonEvent != nullptr)
+						{
+							manager->mouseButtonEvent(window, mouseButton_e::XFirst, buttonState_e::down);
+						}
+					}
+
+					if (XButton == XBUTTON2)
+					{
+						window->mouseButton[(uint16_t)mouseButton_e::XSecond] = buttonState_e::down;
+
+						if (manager->mouseButtonEvent != nullptr)
+						{
+							manager->mouseButtonEvent(window, mouseButton_e::XSecond, buttonState_e::down);
+						}
+					}
+					break;
+				}
+
+			case WM_XBUTTONUP:
+				{
+					int XButton = (int)HIWORD(wordParam);
+
+					if (XButton == XBUTTON1)
+					{
+						window->mouseButton[(short)mouseButton_e::XFirst] = buttonState_e::up;
+
+						if (manager->mouseButtonEvent != nullptr)
+						{
+							manager->mouseButtonEvent(window, mouseButton_e::XFirst, buttonState_e::up);
+						}
+					}
+
+					if (XButton == XBUTTON2)
+					{
+						window->mouseButton[(short)mouseButton_e::XSecond] = buttonState_e::up;
+
+						if (manager->mouseButtonEvent != nullptr)
+						{
+							manager->mouseButtonEvent(window, mouseButton_e::XSecond, buttonState_e::up);
+						}
+					}
+					break;
+				}
+
+			case WM_LBUTTONDOWN:
+				{
+					window->mouseButton[(short)mouseButton_e::left] = buttonState_e::down;
+
+					if (manager->mouseButtonEvent != nullptr)
+					{
+						manager->mouseButtonEvent(window, mouseButton_e::left, buttonState_e::down);
+					}
+
+					break;
+				}
+
+			case WM_LBUTTONUP:
+				{
+					window->mouseButton[(short)mouseButton_e::left] = buttonState_e::up;
+
+					if (manager->mouseButtonEvent != nullptr)
+					{
+						manager->mouseButtonEvent(window, mouseButton_e::left, buttonState_e::up);
+					}
+					break;
+				}
+
+			case WM_RBUTTONDOWN:
+				{
+					window->mouseButton[(short)mouseButton_e::right] = buttonState_e::down;
+
+					if (manager->mouseButtonEvent != nullptr)
+					{
+						manager->mouseButtonEvent(window, mouseButton_e::right, buttonState_e::down);
+					}
+					break;
+				}
+
+			case WM_RBUTTONUP:
+				{
+					window->mouseButton[(short)mouseButton_e::right] = buttonState_e::up;
+
+					if (manager->mouseButtonEvent != nullptr)
+					{
+						manager->mouseButtonEvent(window, mouseButton_e::right, buttonState_e::up);
+					}
+					break;
+				}
+
+			case WM_MBUTTONDOWN:
+				{
+					window->mouseButton[(uint16_t)mouseButton_e::middle] = buttonState_e::down;
+
+					if (manager->mouseButtonEvent != nullptr)
+					{
+						manager->mouseButtonEvent(window, mouseButton_e::middle, buttonState_e::down);
+					}
+					break;
+				}
+
+			case WM_MBUTTONUP:
+				{
+					window->mouseButton[(uint16_t)mouseButton_e::middle] = buttonState_e::up;
+
+					if (manager->mouseButtonEvent != nullptr)
+					{
+						manager->mouseButtonEvent(window, mouseButton_e::middle, buttonState_e::up);
+					}
+					break;
+				}
+
+			case WM_MOUSEWHEEL:
+				{
+					int delta = GET_WHEEL_DELTA_WPARAM(wordParam);
+					if (delta > 0)
+					{
+						// if was previously negative, revert to zero
+						if (window->accumWheelDelta < 0)
+							window->accumWheelDelta = 0;
 
 						else
+							window->accumWheelDelta += delta;
+
+						if (window->accumWheelDelta >= WHEEL_DELTA)
 						{
-							// if was previously positive, revert to zero
-							if (window->accumWheelDelta > 0)
-								window->accumWheelDelta = 0;
-
-							else
-								window->accumWheelDelta += delta;
-
-							// if the delta is equal to or greater than delta
-							if (window->accumWheelDelta <= -WHEEL_DELTA)
+							if (manager->mouseWheelEvent != nullptr)
 							{
-								if (manager->mouseWheelEvent != nullptr)
-								{
-									manager->mouseWheelEvent(window, mouseScroll_e::down);
-								}
-
-								// reset accum
-								window->accumWheelDelta = 0;
+								manager->mouseWheelEvent(window, mouseScroll_e::up);
 							}
+
+							// reset accum
+							window->accumWheelDelta = 0;
 						}
-						break;
 					}
 
-				case WM_SETFOCUS:
+					else
 					{
-						window->inFocus = true;
-						if (manager->focusEvent != nullptr)
+						// if was previously positive, revert to zero
+						if (window->accumWheelDelta > 0)
+							window->accumWheelDelta = 0;
+
+						else
+							window->accumWheelDelta += delta;
+
+						// if the delta is equal to or greater than delta
+						if (window->accumWheelDelta <= -WHEEL_DELTA)
 						{
-							manager->focusEvent(window, true);
-						}
-
-						break;
-					}
-
-				case WM_KILLFOCUS:
-					{
-						window->inFocus = false;
-						if (manager->focusEvent != nullptr)
-						{
-							manager->focusEvent(window, false);
-						}
-
-						break;
-					}
-
-				case WM_DROPFILES:
-					{
-						// Get the number of files that were dropped
-						uint16_t numFilesDropped = DragQueryFile((HDROP)wordParam, 0xFFFFFFFF, nullptr, 0);
-						std::vector<std::string> files;
-
-						// For each file dropped, store the path
-						for (size_t fileIter = 0; fileIter < numFilesDropped; fileIter++)
-						{
-							// Get the size of the file path (in characters, not bytes)
-							uint16_t stringSize = DragQueryFile((HDROP)wordParam, (UINT)fileIter, nullptr, 0);
-
-							// Allocate a buffer for wide characters (Unicode)
-							std::vector<wchar_t> fileBuffer(stringSize + 1, 0); // +1 for null terminator
-
-							// Get the file path as a wide string
-							DragQueryFileW((HDROP)wordParam, (UINT)fileIter, fileBuffer.data(), stringSize + 1);
-
-							// Convert wide string (UTF-16) to std::string (UTF-8 or ANSI)
-							std::wstring wideStr(fileBuffer.data());
-							std::string narrowStr;
-							if (!wideStr.empty())
+							if (manager->mouseWheelEvent != nullptr)
 							{
-								// Convert wstring to string
-								narrowStr = std::wstring_convert<std::codecvt_utf8<wchar_t>>().to_bytes(wideStr);
+								manager->mouseWheelEvent(window, mouseScroll_e::down);
 							}
-							files.emplace_back(narrowStr);
-						}
 
-						// Release the memory
-						DragFinish((HDROP)wordParam);
-
-						if (manager->fileDropEvent != nullptr)
-						{
-							manager->fileDropEvent(window, files);
+							// reset accum
+							window->accumWheelDelta = 0;
 						}
+					}
 					break;
+				}
+
+			case WM_SETFOCUS:
+				{
+					window->inFocus = true;
+					if (manager->focusEvent != nullptr)
+					{
+						manager->focusEvent(window, true);
 					}
 
-				default:
+					break;
+				}
+
+			case WM_KILLFOCUS:
+				{
+					window->inFocus = false;
+					if (manager->focusEvent != nullptr)
 					{
-						return DefWindowProc(windowHandle, winMessage, wordParam, longParam);
+						manager->focusEvent(window, false);
 					}
+
+					break;
+				}
+
+			case WM_DROPFILES:
+				{
+					// Get the number of files that were dropped
+					uint16_t numFilesDropped = DragQueryFile((HDROP)wordParam, 0xFFFFFFFF, nullptr, 0);
+					std::vector<std::string> files;
+
+					// For each file dropped, store the path
+					for (size_t fileIter = 0; fileIter < numFilesDropped; fileIter++)
+					{
+						// Get the size of the file path (in characters, not bytes)
+						uint16_t stringSize = DragQueryFile((HDROP)wordParam, (UINT)fileIter, nullptr, 0);
+
+						// Allocate a buffer for wide characters (Unicode)
+						std::vector<wchar_t> fileBuffer(stringSize + 1, 0); // +1 for null terminator
+
+						// Get the file path as a wide string
+						DragQueryFileW((HDROP)wordParam, (UINT)fileIter, fileBuffer.data(), stringSize + 1);
+
+						// Convert wide string (UTF-16) to std::string (UTF-8 or ANSI)
+						std::wstring wideStr(fileBuffer.data());
+						std::string narrowStr;
+						if (!wideStr.empty())
+						{
+							// Convert wstring to string
+							narrowStr = std::wstring_convert<std::codecvt_utf8<wchar_t>>().to_bytes(wideStr);
+						}
+						files.emplace_back(narrowStr);
+					}
+
+					// Release the memory
+					DragFinish((HDROP)wordParam);
+
+					if (manager->fileDropEvent != nullptr)
+					{
+						manager->fileDropEvent(window, files);
+					}
+					break;
+				}
+
+			default:
+				{
+					return DefWindowProc(windowHandle, winMessage, wordParam, longParam);
+				}
 			}
 
 			return 0;
 		}
 
 		// user data should be a pointer to a window manager
-		static BOOL CALLBACK MonitorEnumProcedure(HMONITOR monitorHandle, HDC monitorDeviceContextHandle, LPRECT monitorSize, LPARAM userData)
+		static BOOL CALLBACK MonitorEnumProcedure(HMONITOR monitorHandle, HDC monitorDeviceContextHandle,
+		                                          LPRECT monitorSize, LPARAM userData)
 		{
 			windowManager* manager = (windowManager*)userData;
-			MONITORINFOEX info	   = {};
-			info.cbSize			   = sizeof(info);
+			MONITORINFOEX info = {};
+			info.cbSize = sizeof(info);
 			GetMonitorInfo(monitorHandle, &info);
 
 			std::wstring wstr(info.szDevice);
 
-			monitor_t* monitor		   = manager->GetMonitorByHandle(std::string(wstr.begin(), wstr.end()));
-			monitor->monitorHandle	   = monitorHandle;
-			monitor->extents		   = vec4_t<uint16_t>(monitorSize->left, monitorSize->top, monitorSize->right, monitorSize->bottom);
-			monitor->resolution.width  = monitor->extents.right - monitor->extents.left;
+			monitor_t* monitor = manager->GetMonitorByHandle(std::string(wstr.begin(), wstr.end()));
+			monitor->monitorHandle = monitorHandle;
+			monitor->extents = vec4_t<uint16_t>(monitorSize->left, monitorSize->top, monitorSize->right,
+			                                    monitorSize->bottom);
+			monitor->resolution.width = monitor->extents.right - monitor->extents.left;
 			monitor->resolution.height = monitor->extents.bottom - monitor->extents.top;
 			return true;
 		}
@@ -2751,7 +2799,7 @@ namespace TinyWindow
 		// get the window that is associated with this Win32 window handle
 		tWindow* GetWindowByHandle(HWND windowHandle)
 		{
-			for (auto& windowIndex: windowList)
+			for (auto& windowIndex : windowList)
 			{
 				if (windowIndex->windowHandle == windowHandle)
 				{
@@ -2763,7 +2811,7 @@ namespace TinyWindow
 
 		monitor_t* GetMonitorByHandle(std::string const& displayName)
 		{
-			for (auto& iter: monitorList)
+			for (auto& iter : monitorList)
 			{
 				if (displayName.compare(iter.displayName) == 0)
 				{
@@ -2775,68 +2823,72 @@ namespace TinyWindow
 
 		// initialize the given window using Win32
 		void Windows_InitializeWindow(tWindow* window, UINT style = CS_OWNDC | CS_HREDRAW | CS_VREDRAW | CS_DROPSHADOW,
-			int clearScreenExtra = 0, int windowExtra = 0, HINSTANCE winInstance = GetModuleHandle(nullptr), HICON icon = LoadIcon(nullptr,
-				IDI_APPLICATION), HCURSOR cursor = LoadCursor(nullptr, IDC_ARROW), HBRUSH brush = (HBRUSH)GetStockObject(WHITE_BRUSH))
+		                              int clearScreenExtra = 0, int windowExtra = 0,
+		                              HINSTANCE winInstance = GetModuleHandle(nullptr), HICON icon = LoadIcon(nullptr,
+			                              IDI_APPLICATION), HCURSOR cursor = LoadCursor(nullptr, IDC_ARROW),
+		                              HBRUSH brush = (HBRUSH)GetStockObject(WHITE_BRUSH))
 		{
-			std::string menuName   = window->settings.name;
+			std::string menuName = window->settings.name;
 			std::wstring wMenuName = std::wstring(menuName.begin(), menuName.end());;
 
-			std::string className	= window->settings.name;
+			std::string className = window->settings.name;
 			std::wstring wClassName = std::wstring(className.begin(), className.end());;
 
-			window->instanceHandle			  = winInstance;
-			window->windowClass.style		  = style;
-			window->windowClass.lpfnWndProc	  = windowManager::WindowProcedure;
-			window->windowClass.cbClsExtra	  = clearScreenExtra;
-			window->windowClass.cbWndExtra	  = windowExtra;
-			window->windowClass.hInstance	  = window->instanceHandle;
-			window->windowClass.hIcon		  = icon;
-			window->windowClass.hCursor		  = cursor;
+			window->instanceHandle = winInstance;
+			window->windowClass.style = style;
+			window->windowClass.lpfnWndProc = windowManager::WindowProcedure;
+			window->windowClass.cbClsExtra = clearScreenExtra;
+			window->windowClass.cbWndExtra = windowExtra;
+			window->windowClass.hInstance = window->instanceHandle;
+			window->windowClass.hIcon = icon;
+			window->windowClass.hCursor = cursor;
 			window->windowClass.hbrBackground = brush;
-			window->windowClass.lpszMenuName  = wMenuName.c_str();
+			window->windowClass.lpszMenuName = wMenuName.c_str();
 			window->windowClass.lpszClassName = wClassName.c_str();
 			RegisterClass(&window->windowClass);
 
 			window->windowHandle = CreateWindow(window->windowClass.lpszClassName, window->windowClass.lpszMenuName,
-				WS_OVERLAPPEDWINDOW, 0, 0, window->settings.resolution.width, window->settings.resolution.height,
-				nullptr, nullptr, nullptr, nullptr);
+			                                    WS_OVERLAPPEDWINDOW, 0, 0, window->settings.resolution.width,
+			                                    window->settings.resolution.height,
+			                                    nullptr, nullptr, nullptr, nullptr);
 
 			SetWindowLongPtr(window->windowHandle, GWLP_USERDATA, (LONG_PTR)this);
 
-			// if TW_USE_VULKAN is defined then stop TinyWindow from creating an OpenGL
-			// context since it will conflict with a vulkan context
+		// if TW_USE_VULKAN is defined then stop TinyWindow from creating an OpenGL
+		// context since it will conflict with a vulkan context
 #if !defined(TW_USE_VULKAN)
-			InitializeGL(window);
+		InitializeGL (window);
 #endif
-			ShowWindow(window->windowHandle, 1);
-			UpdateWindow(window->windowHandle);
+		ShowWindow (window->windowHandle, 1);
+		UpdateWindow (window->windowHandle);
 
-			CheckWindowScreen(window);
+		CheckWindowScreen (window);
 
-			// get screen by window Handle
+		// get screen by window Handle
 
-			//SetStyle(window, style_e::normal);
+		//SetStyle(window, style_e::normal);
 
-			DragAcceptFiles(window->windowHandle, true);
+		DragAcceptFiles (window->windowHandle, true);
 		}
 
 		void Windows_CreateDummyWindow()
 		{
 			dummyWindowInstance = GetModuleHandle(nullptr);
 			WNDCLASS dummyClass;
-			dummyClass.style		 = CS_OWNDC | CS_HREDRAW | CS_VREDRAW | CS_DROPSHADOW;
-			dummyClass.lpfnWndProc	 = windowManager::WindowProcedure;
-			dummyClass.cbClsExtra	 = 0;
-			dummyClass.cbWndExtra	 = 0;
-			dummyClass.hInstance	 = dummyWindowInstance;
-			dummyClass.hIcon		 = LoadIcon(nullptr, IDI_APPLICATION);
-			dummyClass.hCursor		 = LoadCursor(nullptr, IDC_ARROW);
+			dummyClass.style = CS_OWNDC | CS_HREDRAW | CS_VREDRAW | CS_DROPSHADOW;
+			dummyClass.lpfnWndProc = windowManager::WindowProcedure;
+			dummyClass.cbClsExtra = 0;
+			dummyClass.cbWndExtra = 0;
+			dummyClass.hInstance = dummyWindowInstance;
+			dummyClass.hIcon = LoadIcon(nullptr, IDI_APPLICATION);
+			dummyClass.hCursor = LoadCursor(nullptr, IDC_ARROW);
 			dummyClass.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
-			dummyClass.lpszMenuName	 = L"dummy";
+			dummyClass.lpszMenuName = L"dummy";
 			dummyClass.lpszClassName = L"dummy";
 			RegisterClass(&dummyClass);
 
-			dummyWindowHandle = CreateWindow(dummyClass.lpszMenuName, dummyClass.lpszClassName, WS_OVERLAPPEDWINDOW, 0, 0, 1, 1, nullptr, nullptr, nullptr, nullptr);
+			dummyWindowHandle = CreateWindow(dummyClass.lpszMenuName, dummyClass.lpszClassName, WS_OVERLAPPEDWINDOW, 0,
+			                                 0, 1, 1, nullptr, nullptr, nullptr, nullptr);
 			if (dummyWindowHandle == nullptr)
 			{
 				AddErrorLog(error_e::invalidDummyWindow, __LINE__, __func__);
@@ -2849,13 +2901,20 @@ namespace TinyWindow
 		void InitializePixelFormat(tWindow* window)
 		{
 			UINT count = WGL_NUMBER_PIXEL_FORMATS_ARB;
-			int format		   = 0;
-			int attribs[]	   = {WGL_SUPPORT_OPENGL_ARB, 1, WGL_DRAW_TO_WINDOW_ARB, 1, WGL_DOUBLE_BUFFER_ARB, 1, WGL_RED_BITS_ARB,
-				window->settings.colorBits, WGL_GREEN_BITS_ARB, window->settings.colorBits, WGL_BLUE_BITS_ARB, window->settings.colorBits,
-				WGL_ALPHA_BITS_ARB, window->settings.colorBits, WGL_DEPTH_BITS_ARB, window->settings.depthBits, WGL_STENCIL_BITS_ARB,
-				window->settings.stencilBits, WGL_ACCUM_RED_BITS_ARB, window->settings.accumBits, WGL_ACCUM_GREEN_BITS_ARB,
-				window->settings.accumBits, WGL_ACCUM_BLUE_BITS_ARB, window->settings.accumBits, WGL_ACCUM_ALPHA_BITS_ARB,
-				window->settings.accumBits, WGL_ACCELERATION_ARB, WGL_FULL_ACCELERATION_ARB, WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_ARB};
+			int format = 0;
+			int attribs[] = {
+				WGL_SUPPORT_OPENGL_ARB, 1, WGL_DRAW_TO_WINDOW_ARB, 1, WGL_DOUBLE_BUFFER_ARB, 1, WGL_RED_BITS_ARB,
+				window->settings.colorBits, WGL_GREEN_BITS_ARB, window->settings.colorBits, WGL_BLUE_BITS_ARB,
+				window->settings.colorBits,
+				WGL_ALPHA_BITS_ARB, window->settings.colorBits, WGL_DEPTH_BITS_ARB, window->settings.depthBits,
+				WGL_STENCIL_BITS_ARB,
+				window->settings.stencilBits, WGL_ACCUM_RED_BITS_ARB, window->settings.accumBits,
+				WGL_ACCUM_GREEN_BITS_ARB,
+				window->settings.accumBits, WGL_ACCUM_BLUE_BITS_ARB, window->settings.accumBits,
+				WGL_ACCUM_ALPHA_BITS_ARB,
+				window->settings.accumBits, WGL_ACCELERATION_ARB, WGL_FULL_ACCELERATION_ARB, WGL_PIXEL_TYPE_ARB,
+				WGL_TYPE_RGBA_ARB
+			};
 
 			std::vector<int> attribList;
 			attribList.assign(attribs, attribs + std::size(attribs));
@@ -2867,7 +2926,7 @@ namespace TinyWindow
 					attribList.push_back(WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB);
 				}
 
-				attribList.push_back(0);// needs a 0 to notify as the end of the list.
+				attribList.push_back(0); // needs a 0 to notify as the end of the list.
 				wglChoosePixelFormatARB(window->deviceContextHandle, &attribList[0], nullptr, 1, &format, &count);
 				SetPixelFormat(window->deviceContextHandle, format, &window->pixelFormatDescriptor);
 			}
@@ -2886,11 +2945,18 @@ namespace TinyWindow
 
 			else
 			{
-				PIXELFORMATDESCRIPTOR pfd		= {};
-				formatSetting_t* desiredSetting = new formatSetting_t(window->settings.colorBits, window->settings.colorBits,
-					window->settings.colorBits, window->settings.colorBits, window->settings.depthBits, window->settings.stencilBits,
-					window->settings.accumBits, window->settings.accumBits, window->settings.accumBits, window->settings.accumBits);
-				int bestPFDHandle				= GetLegacyPFD(desiredSetting, window->deviceContextHandle)->handle;
+				PIXELFORMATDESCRIPTOR pfd = {};
+				formatSetting_t* desiredSetting = new formatSetting_t(window->settings.colorBits,
+				                                                      window->settings.colorBits,
+				                                                      window->settings.colorBits,
+				                                                      window->settings.colorBits,
+				                                                      window->settings.depthBits,
+				                                                      window->settings.stencilBits,
+				                                                      window->settings.accumBits,
+				                                                      window->settings.accumBits,
+				                                                      window->settings.accumBits,
+				                                                      window->settings.accumBits);
+				int bestPFDHandle = GetLegacyPFD(desiredSetting, window->deviceContextHandle)->handle;
 				if (!DescribePixelFormat(window->deviceContextHandle, bestPFDHandle, sizeof(pfd), &pfd))
 					return;
 				SetPixelFormat(window->deviceContextHandle, bestPFDHandle, &pfd);
@@ -2900,7 +2966,7 @@ namespace TinyWindow
 		formatSetting_t* GetLegacyPFD(formatSetting_t* desiredSetting, HDC deviceContextHandle)
 		{
 			// use the old PFD system on the window if none of the extensions will load
-			int nativeCount	  = 0;
+			int nativeCount = 0;
 			int numCompatible = 0;
 			// pass nullptr to get the total number of PFDs that are available
 			nativeCount = DescribePixelFormat(deviceContextHandle, 1, sizeof(PIXELFORMATDESCRIPTOR), nullptr);
@@ -2926,9 +2992,11 @@ namespace TinyWindow
 					continue;
 
 				formatSetting_t setting = formatSetting_t(pfd.cRedBits, pfd.cGreenBits, pfd.cBlueBits, pfd.cAlphaBits,
-					pfd.cDepthBits, pfd.cStencilBits, pfd.cAccumRedBits, pfd.cAccumGreenBits, pfd.cAccumBlueBits, pfd.cAccumAlphaBits,
-					pfd.cAuxBuffers, (pfd.dwFlags & PFD_STEREO) ? true : false, (pfd.dwFlags & PFD_DOUBLEBUFFER) ? true : false);
-				setting.handle			 = num;
+				                                          pfd.cDepthBits, pfd.cStencilBits, pfd.cAccumRedBits,
+				                                          pfd.cAccumGreenBits, pfd.cAccumBlueBits, pfd.cAccumAlphaBits,
+				                                          pfd.cAuxBuffers, (pfd.dwFlags & PFD_STEREO) ? true : false,
+				                                          (pfd.dwFlags & PFD_DOUBLEBUFFER) ? true : false);
+				setting.handle = num;
 
 				formatList.push_back(setting);
 				numCompatible++;
@@ -2944,13 +3012,13 @@ namespace TinyWindow
 
 			// the best PFD would probably be the most basic by far
 			formatSetting_t defaultSetting = formatSetting_t();
-			defaultSetting.redBits		   = 8;
-			defaultSetting.greenBits	   = 8;
-			defaultSetting.blueBits		   = 8;
-			defaultSetting.alphaBits	   = 8;
-			defaultSetting.depthBits	   = 24;
-			defaultSetting.stencilBits	   = 8;
-			defaultSetting.doubleBuffer	   = true;
+			defaultSetting.redBits = 8;
+			defaultSetting.greenBits = 8;
+			defaultSetting.blueBits = 8;
+			defaultSetting.alphaBits = 8;
+			defaultSetting.depthBits = 24;
+			defaultSetting.stencilBits = 8;
+			defaultSetting.doubleBuffer = true;
 
 			// if the best format hasn't already been found then find them manually
 			formatSetting_t* bestFormat = GetClosestFormat(desiredSetting);
@@ -2962,13 +3030,13 @@ namespace TinyWindow
 		formatSetting_t* GetClosestFormat(const formatSetting_t* desiredFormat)
 		{
 			// go through all the compatible format settings
-			uint16_t absent, lowestAbsent		= UINT_MAX;
+			uint16_t absent, lowestAbsent = UINT_MAX;
 			uint16_t colorDiff, lowestColorDiff = UINT_MAX;
 			uint16_t extraDiff, lowestExtraDiff = UINT_MAX;
 			formatSetting_t* currentFormat;
 			formatSetting_t* closestFormat = nullptr;
 
-			for (auto formatIter: formatList)
+			for (auto formatIter : formatList)
 			{
 				currentFormat = &formatIter;
 
@@ -3108,7 +3176,7 @@ namespace TinyWindow
 
 				if (currentFormat == closestFormat)
 				{
-					lowestAbsent	= absent;
+					lowestAbsent = absent;
 					lowestColorDiff = colorDiff;
 					lowestExtraDiff = extraDiff;
 				}
@@ -3116,15 +3184,17 @@ namespace TinyWindow
 			return closestFormat;
 		}
 
-		void Windows_Shutown() {}
+		void Windows_Shutown()
+		{
+		}
 
 		void Windows_CreateDummyContext()
 		{
 			Windows_CreateDummyWindow();
-			dummyDeviceContextHandle		= GetDC(dummyWindowHandle);
-			PIXELFORMATDESCRIPTOR pfd		= {};
+			dummyDeviceContextHandle = GetDC(dummyWindowHandle);
+			PIXELFORMATDESCRIPTOR pfd = {};
 			formatSetting_t* desiredSetting = new formatSetting_t();
-			int bestPFDHandle				= GetLegacyPFD(desiredSetting, dummyDeviceContextHandle)->handle;
+			int bestPFDHandle = GetLegacyPFD(desiredSetting, dummyDeviceContextHandle)->handle;
 
 			if (!DescribePixelFormat(dummyDeviceContextHandle, bestPFDHandle, sizeof(PIXELFORMATDESCRIPTOR), &pfd))
 			{
@@ -3155,10 +3225,10 @@ namespace TinyWindow
 			DEVMODE devMode;
 			ZeroMemory(&devMode, sizeof(DEVMODE));
 			devMode.dmSize = sizeof(DEVMODE);
-			int err		   = 0;
+			int err = 0;
 
 			std::wstring wDisplayName = std::wstring(monitor->displayName.begin(), monitor->displayName.end());
-			
+
 			if (window->isFullscreen)
 			{
 				err = ChangeDisplaySettingsEx(wDisplayName.c_str(), nullptr, nullptr, NULL, nullptr);
@@ -3172,63 +3242,64 @@ namespace TinyWindow
 				//devMode.dmBitsPerPel = window->settings.colorBits * 4;
 				devMode.dmDisplayFrequency = selectedSetting.displayFrequency;
 				devMode.dmFields = DM_PELSWIDTH | DM_PELSHEIGHT | DM_DISPLAYFREQUENCY;
-				err = ChangeDisplaySettingsExW(wDisplayName.c_str(), &devMode, nullptr, CDS_FULLSCREEN | CDS_TEST, nullptr);
+				err = ChangeDisplaySettingsExW(wDisplayName.c_str(), &devMode, nullptr, CDS_FULLSCREEN | CDS_TEST,
+				                               nullptr);
 
 				switch (err)
 				{
-				case DISP_CHANGE_SUCCESSFUL: 
-				{
-					ChangeDisplaySettingsExW(wDisplayName.c_str(), &devMode, nullptr, CDS_FULLSCREEN, nullptr);
-					window->isFullscreen = !window->isFullscreen;
-					if (window->isFullscreen)
+				case DISP_CHANGE_SUCCESSFUL:
 					{
-						SetDecorators(window, style_n::none);
+						ChangeDisplaySettingsExW(wDisplayName.c_str(), &devMode, nullptr, CDS_FULLSCREEN, nullptr);
+						window->isFullscreen = !window->isFullscreen;
+						if (window->isFullscreen)
+						{
+							SetDecorators(window, style_n::none);
+						}
+						else
+						{
+							SetDecorators(window, style_n::normal);
+						}
+						break;
 					}
-					else
-					{
-						SetDecorators(window, style_n::normal);
-					} 
-					break;
-				}
 
 				case DISP_CHANGE_BADDUALVIEW:
-				{
-					AddErrorLog(error_e::windowsFullscreenBadDualView, __LINE__, __func__, window);
-					break;
-				}
+					{
+						AddErrorLog(error_e::windowsFullscreenBadDualView, __LINE__, __func__, window);
+						break;
+					}
 				case DISP_CHANGE_BADFLAGS:
-				{
-					AddErrorLog(error_e::windowsFullscreenBadFlags, __LINE__, __func__, window);
-					break;
-				}
+					{
+						AddErrorLog(error_e::windowsFullscreenBadFlags, __LINE__, __func__, window);
+						break;
+					}
 				case DISP_CHANGE_BADMODE:
-				{
-					AddErrorLog(error_e::windowsFullscreenBadMode, __LINE__, __func__, window);
-					break;
-				}
+					{
+						AddErrorLog(error_e::windowsFullscreenBadMode, __LINE__, __func__, window);
+						break;
+					}
 				case DISP_CHANGE_BADPARAM:
-				{
-					AddErrorLog(error_e::WindowsFullscreenBadParam, __LINE__, __func__, window);
-					break;
-				}
+					{
+						AddErrorLog(error_e::WindowsFullscreenBadParam, __LINE__, __func__, window);
+						break;
+					}
 				case DISP_CHANGE_FAILED:
-				{
-					AddErrorLog(error_e::WindowsFullscreenChangeFailed, __LINE__, __func__, window);
-					break;
-				}
+					{
+						AddErrorLog(error_e::WindowsFullscreenChangeFailed, __LINE__, __func__, window);
+						break;
+					}
 				case DISP_CHANGE_NOTUPDATED:
-				{
-					AddErrorLog(error_e::WindowsFullscreenNotUpdated, __LINE__, __func__, window);
-					break;
-				}
+					{
+						AddErrorLog(error_e::WindowsFullscreenNotUpdated, __LINE__, __func__, window);
+						break;
+					}
 
 				default:
-				{
-					break;
-				}
+					{
+						break;
+					}
 				}
 			}
-			
+
 			else
 			{
 				AddErrorLog(error_e::invalidMonitorSettingIndex, __LINE__, __func__, window);
@@ -3237,7 +3308,10 @@ namespace TinyWindow
 			SetPosition(window, vec2_t<int16_t>((int)monitor->extents.left, (int)monitor->extents.top));
 		}
 
-		static int RetrieveDataFromWin32Pointer(LPARAM longParam, uint16_t depth) { return (longParam >> depth) & ((1L << sizeof(longParam)) - 1); }
+		static int RetrieveDataFromWin32Pointer(LPARAM longParam, uint16_t depth)
+		{
+			return (longParam >> depth) & ((1L << sizeof(longParam)) - 1);
+		}
 
 		static WPARAM DetermineLeftOrRight(WPARAM key, LPARAM longParam)
 		{
@@ -3250,30 +3324,30 @@ namespace TinyWindow
 
 			switch (key)
 			{
-				case VK_SHIFT:
-					{
-						newKey = MapVirtualKey(scancode, MAPVK_VSC_TO_VK_EX);
-						break;
-					}
+			case VK_SHIFT:
+				{
+					newKey = MapVirtualKey(scancode, MAPVK_VSC_TO_VK_EX);
+					break;
+				}
 
-				case VK_CONTROL:
-					{
-						newKey = extended ? VK_RCONTROL : VK_LCONTROL;
-						break;
-					}
+			case VK_CONTROL:
+				{
+					newKey = extended ? VK_RCONTROL : VK_LCONTROL;
+					break;
+				}
 
-				case VK_MENU:
-					{
-						newKey = extended ? VK_RMENU : VK_LMENU;
-						break;
-					}
+			case VK_MENU:
+				{
+					newKey = extended ? VK_RMENU : VK_LMENU;
+					break;
+				}
 
-				default:
-					{
-						// if it cannot determine left from right then just return the original key
-						newKey = key;
-						break;
-					}
+			default:
+				{
+					// if it cannot determine left from right then just return the original key
+					newKey = key;
+					break;
+				}
 			}
 
 			return newKey;
@@ -3287,7 +3361,7 @@ namespace TinyWindow
 		static void Windows_SetWindowIcon(tWindow* window, const char* icon, uint16_t width, uint16_t height)
 		{
 			SendMessage(window->windowHandle, (UINT)WM_SETICON, ICON_BIG, (LPARAM)LoadImage(window->instanceHandle,
-				(wchar_t*)icon, IMAGE_ICON, (int)width, (int)height, LR_LOADFROMFILE));
+				            (wchar_t*)icon, IMAGE_ICON, (int)width, (int)height, LR_LOADFROMFILE));
 		}
 
 		std::string WideToUtf8(const wchar_t* ws)
@@ -3299,90 +3373,90 @@ namespace TinyWindow
 				::WideCharToMultiByte(CP_UTF8, 0, ws, -1, out.data(), size, nullptr, nullptr);
 			return out;
 		}
-		
+
 		void Windows_GetScreenInfo()
 		{
-		    for (uint16_t deviceNum = 0;; deviceNum++)
-		    {
-		        DISPLAY_DEVICEW graphicsDevice{};
-		        graphicsDevice.cb = sizeof(DISPLAY_DEVICEW);
+			for (uint16_t deviceNum = 0;; deviceNum++)
+			{
+				DISPLAY_DEVICEW graphicsDevice{};
+				graphicsDevice.cb = sizeof(DISPLAY_DEVICEW);
 
-		        if (EnumDisplayDevicesW(nullptr, deviceNum, &graphicsDevice, 0) == false)
-		        {
-		        	//no devices found
-		        	AddErrorLog(error_e::Windows_NoDisplayDevicesFound, __LINE__, __func__);
-			        break;
-		        }
+				if (EnumDisplayDevicesW(nullptr, deviceNum, &graphicsDevice, 0) == false)
+				{
+					//no devices found
+					AddErrorLog(error_e::Windows_NoDisplayDevicesFound, __LINE__, __func__);
+					break;
+				}
 
-		        // Enumerate monitors of the display adapter
-		        for (uint16_t monitorNum = 0; ; monitorNum++)
-		        {
-		            DISPLAY_DEVICEW monitorDevice{};
-		            monitorDevice.cb = sizeof(DISPLAY_DEVICEW);
+				// Enumerate monitors of the display adapter
+				for (uint16_t monitorNum = 0; ; monitorNum++)
+				{
+					DISPLAY_DEVICEW monitorDevice{};
+					monitorDevice.cb = sizeof(DISPLAY_DEVICEW);
 
-		            if (EnumDisplayDevicesW(graphicsDevice.DeviceName, monitorNum, &monitorDevice, 0) == false)
-		            {
-			            // no more monitors
-		                break;
-		            }
+					if (EnumDisplayDevicesW(graphicsDevice.DeviceName, monitorNum, &monitorDevice, 0) == false)
+					{
+						// no more monitors
+						break;
+					}
 
-		            if ((monitorDevice.StateFlags & DISPLAY_DEVICE_ATTACHED_TO_DESKTOP) == false)
-		            {
-		            	//display not attached to device. keep looking
-		            	continue;
-		            }
+					if ((monitorDevice.StateFlags & DISPLAY_DEVICE_ATTACHED_TO_DESKTOP) == false)
+					{
+						//display not attached to device. keep looking
+						continue;
+					}
 
-		            // Convert names to UTF-8 (or keep wstring)
-		            std::string deviceName = WideToUtf8(graphicsDevice.DeviceName);
-		            std::string deviceString = WideToUtf8(graphicsDevice.DeviceString);
-		            std::string monitorString = WideToUtf8(monitorDevice.DeviceString);
+					// Convert names to UTF-8 (or keep wstring)
+					std::string deviceName = WideToUtf8(graphicsDevice.DeviceName);
+					std::string deviceString = WideToUtf8(graphicsDevice.DeviceString);
+					std::string monitorString = WideToUtf8(monitorDevice.DeviceString);
 
-		            const bool isPrimary = (graphicsDevice.StateFlags & DISPLAY_DEVICE_PRIMARY_DEVICE) != 0;
-		        	
-		            monitor_t mon(deviceName, deviceString, monitorString, isPrimary);
-		            // Get current settings
-		            {
-		                DEVMODEW dm{};
-		                dm.dmSize = sizeof(DEVMODEW);
-		                if (EnumDisplaySettingsW(graphicsDevice.DeviceName, ENUM_CURRENT_SETTINGS, &dm))
-		                {
-		                    mon.currentSetting = monitorSetting_t(
-		                        vec2_t<uint16_t>(static_cast<uint16_t>(dm.dmPelsWidth),
-		                                         static_cast<uint16_t>(dm.dmPelsHeight)),
-		                        static_cast<uint16_t>(dm.dmDisplayFrequency));
-		                    mon.currentSetting.displayFlags = dm.dmDisplayFlags;
-		                    mon.currentSetting.fixedOutput  = dm.dmDisplayFixedOutput;
-		                }
-		            }
+					const bool isPrimary = (graphicsDevice.StateFlags & DISPLAY_DEVICE_PRIMARY_DEVICE) != 0;
 
-		            // Enumerate available modes
-		            for (DWORD modeNum = 0;; ++modeNum)
-		            {
-		                DEVMODEW dm{};
-		                dm.dmSize = sizeof(DEVMODEW);
-		                if (!EnumDisplaySettingsW(graphicsDevice.DeviceName, modeNum, &dm))
-		                {
-		                	//out of modes
-		                	break;
-		                }
-		            	
-		                monitorSetting_t setting(
-		                    vec2_t<uint16_t>(static_cast<uint16_t>(dm.dmPelsWidth),
-		                                     static_cast<uint16_t>(dm.dmPelsHeight)),
-		                    static_cast<uint16_t>(dm.dmDisplayFrequency));
-		                setting.displayFlags = dm.dmDisplayFlags;
-		                setting.fixedOutput  = dm.dmDisplayFixedOutput;
+					monitor_t mon(deviceName, deviceString, monitorString, isPrimary);
+					// Get current settings
+					{
+						DEVMODEW dm{};
+						dm.dmSize = sizeof(DEVMODEW);
+						if (EnumDisplaySettingsW(graphicsDevice.DeviceName, ENUM_CURRENT_SETTINGS, &dm))
+						{
+							mon.currentSetting = monitorSetting_t(
+								vec2_t<uint16_t>(static_cast<uint16_t>(dm.dmPelsWidth),
+								                 static_cast<uint16_t>(dm.dmPelsHeight)),
+								static_cast<uint16_t>(dm.dmDisplayFrequency));
+							mon.currentSetting.displayFlags = dm.dmDisplayFlags;
+							mon.currentSetting.fixedOutput = dm.dmDisplayFixedOutput;
+						}
+					}
 
-                        //treat like a queue
-                        mon.settings.insert(mon.settings.begin(), setting);
-		            }
+					// Enumerate available modes
+					for (DWORD modeNum = 0;; ++modeNum)
+					{
+						DEVMODEW dm{};
+						dm.dmSize = sizeof(DEVMODEW);
+						if (!EnumDisplaySettingsW(graphicsDevice.DeviceName, modeNum, &dm))
+						{
+							//out of modes
+							break;
+						}
 
-		        	//ass the monitor in the list
-		            monitorList.push_back(mon);
-		        }
-		    }
+						monitorSetting_t setting(
+							vec2_t<uint16_t>(static_cast<uint16_t>(dm.dmPelsWidth),
+							                 static_cast<uint16_t>(dm.dmPelsHeight)),
+							static_cast<uint16_t>(dm.dmDisplayFrequency));
+						setting.displayFlags = dm.dmDisplayFlags;
+						setting.fixedOutput = dm.dmDisplayFixedOutput;
+
+						//treat like a queue
+						mon.settings.insert(mon.settings.begin(), setting);
+					}
+
+					//ass the monitor in the list
+					monitorList.push_back(mon);
+				}
+			}
 		}
-		
+
 		bool Windows_ExtensionSupported(const char* extensionName)
 		{
 			const char* wglExtensions;
@@ -3415,7 +3489,7 @@ namespace TinyWindow
 
 		void Windows_ResetMonitors()
 		{
-			for (auto iter: monitorList)
+			for (auto iter : monitorList)
 			{
 				ChangeDisplaySettingsEx((wchar_t*)iter.displayName.c_str(), nullptr, nullptr, CDS_FULLSCREEN, nullptr);
 			}
@@ -3423,25 +3497,32 @@ namespace TinyWindow
 
 		void Windows_InitExtensions()
 		{
-			wglGetExtensionsStringARB = (PFNWGLGETEXTENSIONSSTRINGARBPROC)wglGetProcAddress("wglGetExtensionsStringARB");
-			wglGetExtensionsStringEXT = (PFNWGLGETEXTENSIONSSTRINGEXTPROC)wglGetProcAddress("wglGetExtensionsStringEXT");
+			wglGetExtensionsStringARB = (PFNWGLGETEXTENSIONSSTRINGARBPROC)
+				wglGetProcAddress("wglGetExtensionsStringARB");
+			wglGetExtensionsStringEXT = (PFNWGLGETEXTENSIONSSTRINGEXTPROC)
+				wglGetProcAddress("wglGetExtensionsStringEXT");
 			if (wglGetExtensionsStringARB == nullptr && wglGetExtensionsStringEXT == nullptr)
 			{
 				AddErrorLog(error_e::noExtensions, __LINE__, __func__);
 			}
-			wglChoosePixelFormatARB	   = (PFNWGLCHOOSEPIXELFORMATARBPROC)wglGetProcAddress("wglChoosePixelFormatARB");
-			wglChoosePixelFormatEXT	   = (PFNWGLCHOOSEPIXELFORMATEXTPROC)wglGetProcAddress("wglChoosePixelFormatEXT");
-			wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC)wglGetProcAddress("wglCreateContextAttribsARB");
-			wglSwapIntervalEXT		   = (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress("wglSwapIntervalEXT");
-			wglGetSwapIntervalEXT	   = (PFNWGLGETSWAPINTERVALEXTPROC)wglGetProcAddress("wglGetSwapIntervalEXT");
+			wglChoosePixelFormatARB = (PFNWGLCHOOSEPIXELFORMATARBPROC)wglGetProcAddress("wglChoosePixelFormatARB");
+			wglChoosePixelFormatEXT = (PFNWGLCHOOSEPIXELFORMATEXTPROC)wglGetProcAddress("wglChoosePixelFormatEXT");
+			wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC)wglGetProcAddress(
+				"wglCreateContextAttribsARB");
+			wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress("wglSwapIntervalEXT");
+			wglGetSwapIntervalEXT = (PFNWGLGETSWAPINTERVALEXTPROC)wglGetProcAddress("wglGetSwapIntervalEXT");
 
-			swapControlEXT				 = Windows_ExtensionSupported("WGL_EXT_swap_control");
+			swapControlEXT = Windows_ExtensionSupported("WGL_EXT_swap_control");
 			wglFramebufferSRGBCapableARB = Windows_ExtensionSupported("WGL_ARB_framebuffer_sRGB");
 
-			wglGetPixelFormatAttribfvARB = (PFNWGLGETPIXELFORMATATTRIBFVARBPROC)wglGetProcAddress("wglGetPixelFormatAttribfvARB");
-			wglGetPixelFormatAttribfvEXT = (PFNWGLGETPIXELFORMATATTRIBFVEXTPROC)wglGetProcAddress("wglGetPixelFormatAttribfvEXT");
-			wglGetPixelFormatAttribivARB = (PFNWGLGETPIXELFORMATATTRIBIVARBPROC)wglGetProcAddress("wglGetPixelFormatAttribivARB");
-			wglGetPixelFormatAttribivEXT = (PFNWGLGETPIXELFORMATATTRIBIVEXTPROC)wglGetProcAddress("wglGetPixelFormatAttribivEXT");
+			wglGetPixelFormatAttribfvARB = (PFNWGLGETPIXELFORMATATTRIBFVARBPROC)wglGetProcAddress(
+				"wglGetPixelFormatAttribfvARB");
+			wglGetPixelFormatAttribfvEXT = (PFNWGLGETPIXELFORMATATTRIBFVEXTPROC)wglGetProcAddress(
+				"wglGetPixelFormatAttribfvEXT");
+			wglGetPixelFormatAttribivARB = (PFNWGLGETPIXELFORMATATTRIBIVARBPROC)wglGetProcAddress(
+				"wglGetPixelFormatAttribivARB");
+			wglGetPixelFormatAttribivEXT = (PFNWGLGETPIXELFORMATATTRIBIVEXTPROC)wglGetProcAddress(
+				"wglGetPixelFormatAttribivEXT");
 		}
 
 		void Windows_InitGL(tWindow* window)
@@ -3450,21 +3531,21 @@ namespace TinyWindow
 			InitializePixelFormat(window);
 			if (wglCreateContextAttribsARB)
 			{
-				int attribs[] {WGL_CONTEXT_MAJOR_VERSION_ARB,
-							   window->settings.versionMajor,
-							   WGL_CONTEXT_MINOR_VERSION_ARB,
-							   window->settings.versionMinor,
-							   WGL_CONTEXT_PROFILE_MASK_ARB,
-							   window->settings.profile,
+				int attribs[]{WGL_CONTEXT_MAJOR_VERSION_ARB,
+					window->settings.versionMajor,
+					WGL_CONTEXT_MINOR_VERSION_ARB,
+					window->settings.versionMinor,
+					WGL_CONTEXT_PROFILE_MASK_ARB,
+					window->settings.profile,
 #if defined(_DEBUG)
-							   WGL_CONTEXT_FLAGS_ARB,
-							   WGL_CONTEXT_DEBUG_BIT_ARB,
+		WGL_CONTEXT_FLAGS_ARB,
+		WGL_CONTEXT_DEBUG_BIT_ARB,
 #endif
-							   0};
+		0};
 
-				window->glRenderingContextHandle = wglCreateContextAttribsARB(window->deviceContextHandle, nullptr, attribs);
+		window->glRenderingContextHandle= wglCreateContextAttribsARB(window->deviceContextHandle, nullptr, attribs);
 
-				if (window->glRenderingContextHandle == nullptr)
+				if (window->glRenderingContextHandle== nullptr)
 				{
 					switch (GetLastError())
 					{
@@ -3487,9 +3568,9 @@ namespace TinyWindow
 				window->glRenderingContextHandle = wglCreateContext(window->deviceContextHandle);
 			}
 
-			wglMakeCurrent(window->deviceContextHandle, window->glRenderingContextHandle);
+		wglMakeCurrent (window->deviceContextHandle, window->glRenderingContextHandle);
 
-			window->contextCreated = (window->glRenderingContextHandle != nullptr);
+		window->contextCreated= (window->glRenderingContextHandle!= nullptr);
 
 			if (!window->contextCreated)
 			{
@@ -3497,7 +3578,10 @@ namespace TinyWindow
 			}
 		}
 
-		void Windows_ShareContexts(tWindow* sourceWindow, tWindow* newWindow) { wglShareLists(sourceWindow->glRenderingContextHandle, newWindow->glRenderingContextHandle); }
+		void Windows_ShareContexts(tWindow* sourceWindow, tWindow* newWindow)
+		{
+			wglShareLists(sourceWindow->glRenderingContextHandle, newWindow->glRenderingContextHandle);
+		}
 
 		std::vector<std::string> Windows_GetClipboardLatest(tWindow* window, clipboard_e& clipType) const
 		{
@@ -3518,7 +3602,8 @@ namespace TinyWindow
 					clipType = clipboard_e::text;
 
 					wchar_t* pwszText = static_cast<wchar_t*>(GlobalLock(hData));
-					if (pwszText == nullptr) {
+					if (pwszText == nullptr)
+					{
 						CloseClipboard();
 					}
 
@@ -3528,7 +3613,8 @@ namespace TinyWindow
 					int stringLength = WideCharToMultiByte(CP_UTF8, 0, pwszText, -1, nullptr, 0, nullptr, nullptr);
 					std::string utf8String(static_cast<size_t>(stringLength ? stringLength - 1 : 0), '\0');
 					if (stringLength > 1)
-						WideCharToMultiByte(CP_UTF8, 0, pwszText, -1, utf8String.data(), stringLength, nullptr, nullptr);
+						WideCharToMultiByte(CP_UTF8, 0, pwszText, -1, utf8String.data(), stringLength, nullptr,
+						                    nullptr);
 					out.push_back(utf8String);
 					return out;
 				}
@@ -3546,7 +3632,8 @@ namespace TinyWindow
 					int stringLength = WideCharToMultiByte(CP_UTF8, 0, filePath, -1, nullptr, 0, nullptr, nullptr);
 					std::string utf8String(static_cast<size_t>(stringLength ? stringLength - 1 : 0), '\0');
 					if (stringLength > 1)
-						WideCharToMultiByte(CP_UTF8, 0, filePath, -1, utf8String.data(), stringLength, nullptr, nullptr);
+						WideCharToMultiByte(CP_UTF8, 0, filePath, -1, utf8String.data(), stringLength, nullptr,
+						                    nullptr);
 					out.push_back(utf8String);
 					delete[] filePath;
 				}
@@ -3555,7 +3642,7 @@ namespace TinyWindow
 				return out;
 			}
 
-			return out;			
+			return out;
 		}
 
 		void ShutdownDummy()
@@ -3572,8 +3659,8 @@ namespace TinyWindow
 			FreeModule(dummyWindowInstance);
 
 			dummyDeviceContextHandle = nullptr;
-			dummyWindowHandle		 = nullptr;
-			dummyGLContextHandle	 = nullptr;
+			dummyWindowHandle = nullptr;
+			dummyGLContextHandle = nullptr;
 		}
 
 #endif
@@ -3591,23 +3678,23 @@ namespace TinyWindow
 		PFNGLXCREATECONTEXTATTRIBSARBPROC glXCreateContextAttribsARB;
 
 		// clipboard Atoms
-		Atom uriList;		/**< Atom for grabbing clipboard files paths */
-		Atom clipboard;		/**< Atom for grabbing data from the clipboard */
-		Atom utf8String;	/**< Atom for storing the clipboard data */
-		Atom clipProperty;	/**< Atom for using the clipboard property */
+		Atom uriList; /**< Atom for grabbing clipboard files paths */
+		Atom clipboard; /**< Atom for grabbing data from the clipboard */
+		Atom utf8String; /**< Atom for storing the clipboard data */
+		Atom clipProperty; /**< Atom for using the clipboard property */
 
-		Atom clipMultiple;	/**< Atom for storing multiple files in the clipboard */
+		Atom clipMultiple; /**< Atom for storing multiple files in the clipboard */
 		Atom propUtf8;
 		Atom propUriList;
 		Atom propMultiple;
 
 		struct MWMHints_t
 		{
-			unsigned long flags		  = 0;
-			unsigned long functions	  = 0;
+			unsigned long flags = 0;
+			unsigned long functions = 0;
 			unsigned long decorations = 0;
-			long input_mode			  = 0;
-			unsigned long status	  = 0;
+			long input_mode = 0;
+			unsigned long status = 0;
 		};
 
 		typedef std::pair<Window, tWindow*> windowEntry;
@@ -3669,34 +3756,37 @@ namespace TinyWindow
 		{
 			switch (inEvent.type)
 			{
-				//use case fallthrough. not the biggest fan of this
-				case Expose: return windowLUT.at(inEvent.xexpose.window);
-				case DestroyNotify: return windowLUT.at(inEvent.xdestroywindow.window);
-				case CreateNotify: return windowLUT.at(inEvent.xcreatewindow.window);
-				case KeyPress:
-				case KeyRelease: return windowLUT.at(inEvent.xkey.window);
-				case ButtonPress:
-				case ButtonRelease: return windowLUT.at(inEvent.xbutton.window);
-				case MotionNotify: return windowLUT.at(inEvent.xmotion.window);
-				case FocusIn:
-				case FocusOut: return windowLUT.at(inEvent.xfocus.window);
-				case ResizeRequest: return windowLUT.at(inEvent.xresizerequest.window);
-				case ConfigureNotify: return windowLUT.at(inEvent.xconfigure.window);
-				case PropertyNotify: return windowLUT.at(inEvent.xproperty.window);
-				case GravityNotify: return windowLUT.at(inEvent.xgravity.window);
-				case ClientMessage: return windowLUT.at(inEvent.xclient.window);
-				case VisibilityNotify: return windowLUT.at(inEvent.xvisibility.window);
-				default: return nullptr;
+			//use case fallthrough. not the biggest fan of this
+			case Expose: return windowLUT.at(inEvent.xexpose.window);
+			case DestroyNotify: return windowLUT.at(inEvent.xdestroywindow.window);
+			case CreateNotify: return windowLUT.at(inEvent.xcreatewindow.window);
+			case KeyPress:
+			case KeyRelease: return windowLUT.at(inEvent.xkey.window);
+			case ButtonPress:
+			case ButtonRelease: return windowLUT.at(inEvent.xbutton.window);
+			case MotionNotify: return windowLUT.at(inEvent.xmotion.window);
+			case FocusIn:
+			case FocusOut: return windowLUT.at(inEvent.xfocus.window);
+			case ResizeRequest: return windowLUT.at(inEvent.xresizerequest.window);
+			case ConfigureNotify: return windowLUT.at(inEvent.xconfigure.window);
+			case PropertyNotify: return windowLUT.at(inEvent.xproperty.window);
+			case GravityNotify: return windowLUT.at(inEvent.xgravity.window);
+			case ClientMessage: return windowLUT.at(inEvent.xclient.window);
+			case VisibilityNotify: return windowLUT.at(inEvent.xvisibility.window);
+			default: return nullptr;
 			}
 		}
 
 		void Linux_InitializeWindow(tWindow* window)
 		{
 			window->currentDisplay = currentDisplay;
-			window->attributes = new int16_t[5] {GLX_RGBA, GLX_DOUBLEBUFFER, GLX_DEPTH_SIZE, window->settings.depthBits, None};
+			window->attributes = new int16_t[5]{
+				GLX_RGBA, GLX_DOUBLEBUFFER, GLX_DEPTH_SIZE, window->settings.depthBits, None
+			};
 
 			window->linuxDecorators = 1;
-			window->currentStyle |= tWindow::linuxClose | tWindow::linuxMaximize | tWindow::linuxMinimize | tWindow::linuxMove;
+			window->currentStyle |= tWindow::linuxClose | tWindow::linuxMaximize | tWindow::linuxMinimize |
+				tWindow::linuxMove;
 
 			if (!currentDisplay)
 			{
@@ -3732,14 +3822,22 @@ namespace TinyWindow
 				return;
 			}
 
-			window->setAttributes.colormap = XCreateColormap(window->currentDisplay, DefaultRootWindow(window->currentDisplay), window->visualInfo->visual, AllocNone);
-			window->setAttributes.event_mask = ExposureMask | KeyPressMask | KeyReleaseMask | MotionNotify | ButtonPressMask |
-				ButtonReleaseMask | FocusIn | FocusOut | Button1MotionMask | Button2MotionMask | Button3MotionMask | Button4MotionMask
-			| Button5MotionMask | PointerMotionMask | FocusChangeMask | VisibilityChangeMask | PropertyChangeMask | StructureNotifyMask |
+			window->setAttributes.colormap = XCreateColormap(window->currentDisplay,
+			                                                 DefaultRootWindow(window->currentDisplay),
+			                                                 window->visualInfo->visual, AllocNone);
+			window->setAttributes.event_mask = ExposureMask | KeyPressMask | KeyReleaseMask | MotionNotify |
+				ButtonPressMask |
+				ButtonReleaseMask | FocusIn | FocusOut | Button1MotionMask | Button2MotionMask | Button3MotionMask |
+				Button4MotionMask
+				| Button5MotionMask | PointerMotionMask | FocusChangeMask | VisibilityChangeMask | PropertyChangeMask |
+				StructureNotifyMask |
 				SubstructureNotifyMask | ClientMessage;
-			window->windowHandle = XCreateWindow(window->currentDisplay, RootWindow(currentDisplay, window->visualInfo->screen),
-				0, 0, window->settings.resolution.width, window->settings.resolution.height, 0, window->visualInfo->depth,
-				InputOutput, window->visualInfo->visual, CWColormap | CWEventMask, &window->setAttributes);
+			window->windowHandle = XCreateWindow(window->currentDisplay,
+			                                     RootWindow(currentDisplay, window->visualInfo->screen),
+			                                     0, 0, window->settings.resolution.width,
+			                                     window->settings.resolution.height, 0, window->visualInfo->depth,
+			                                     InputOutput, window->visualInfo->visual, CWColormap | CWEventMask,
+			                                     &window->setAttributes);
 
 			if (!window->windowHandle)
 			{
@@ -3748,20 +3846,20 @@ namespace TinyWindow
 			}
 
 
-
 			XMapWindow(window->currentDisplay, window->windowHandle);
 			XStoreName(window->currentDisplay, window->windowHandle, window->settings.name.c_str());
 			XSetWMProtocols(window->currentDisplay, window->windowHandle, &window->AtomClose, true);
 
 			XWindowAttributes attributes;
-			Status status	 = XGetWindowAttributes(window->currentDisplay, window->windowHandle, &attributes);
+			Status status = XGetWindowAttributes(window->currentDisplay, window->windowHandle, &attributes);
 			window->position = vec2_t<int16_t>((int16_t)attributes.x, (int16_t)attributes.y);
 
 			window->InitializeAtoms();
 
 			//set Drag and Drop support
 			int DNDVersion = 5;
-			XChangeProperty(currentDisplay, window->windowHandle, window->AtomXDNDAware, XA_ATOM, 32, PropModeReplace, (unsigned char*)&DNDVersion, 1);
+			XChangeProperty(currentDisplay, window->windowHandle, window->AtomXDNDAware, XA_ATOM, 32, PropModeReplace,
+			                (unsigned char*)&DNDVersion, 1);
 
 			windowLUT.emplace(windowEntry(window->windowHandle, window));
 
@@ -3772,7 +3870,7 @@ namespace TinyWindow
 
 		void Linux_Shutdown() const
 		{
-			for (const auto& windowIndex: windowList)
+			for (const auto& windowIndex : windowList)
 				Linux_ShutdownWindow(windowIndex.get());
 
 			XCloseDisplay(currentDisplay);
@@ -3784,444 +3882,465 @@ namespace TinyWindow
 
 			switch (inEvent.type)
 			{
-				case Expose:
+			case Expose:
+				{
+					break;
+				}
+
+			case DestroyNotify:
+				{
+					if (destroyedEvent != nullptr)
+						destroyedEvent(window);
+
+					ShutdownWindow(window);
+					break;
+				}
+
+			case CreateNotify:
+				{
+					// TODO: move some stuff here?
+					break;
+				}
+
+			case KeyPress:
+				{
+					const uint16_t functionKeysym = XkbKeycodeToKeysym(currentDisplay, inEvent.xkey.keycode, 0,
+					                                                   inEvent.xkey.state & ShiftMask ? 1 : 0);
+					const uint16_t translatedKey = Linux_TranslateKey(functionKeysym);
+					window->keys[translatedKey] = keyState_e::down;
+					if (keyEvent != nullptr)
+						keyEvent(window, translatedKey, keyState_e::down);
+
+					break;
+				}
+
+			case KeyRelease:
+				{
+					bool triggered = false;
+					if (XEventsQueued(currentDisplay, QueuedAfterReading))
 					{
-						break;
-					}
+						XEvent nextEvent;
+						XPeekEvent(currentDisplay, &nextEvent);
 
-				case DestroyNotify:
-					{
-						if (destroyedEvent != nullptr)
-							destroyedEvent(window);
-
-						ShutdownWindow(window);
-						break;
-					}
-
-				case CreateNotify:
-					{
-						// TODO: move some stuff here?
-						break;
-					}
-
-				case KeyPress:
-					{
-						const uint16_t functionKeysym = XkbKeycodeToKeysym(currentDisplay, inEvent.xkey.keycode, 0, inEvent.xkey.state & ShiftMask ? 1 : 0);
-						const uint16_t translatedKey	= Linux_TranslateKey(functionKeysym);
-						window->keys[translatedKey] = keyState_e::down;
-						if (keyEvent != nullptr)
-							keyEvent(window, translatedKey, keyState_e::down);
-
-						break;
-					}
-
-				case KeyRelease:
-					{
-						bool triggered = false;
-						if (XEventsQueued(currentDisplay, QueuedAfterReading))
+						if (nextEvent.type == KeyPress && nextEvent.xkey.time == inEvent.xkey.time && nextEvent.xkey.
+							keycode == inEvent.xkey.keycode)
 						{
-							XEvent nextEvent;
-							XPeekEvent(currentDisplay, &nextEvent);
-
-							if (nextEvent.type == KeyPress && nextEvent.xkey.time == inEvent.xkey.time && nextEvent.xkey.keycode == inEvent.xkey.keycode)
-							{
-								const uint16_t functionKeysym = XkbKeycodeToKeysym(currentDisplay, inEvent.xkey.keycode, 0, inEvent.xkey.state & ShiftMask ? 1 : 0);
-								const uint16_t translatedKey	= Linux_TranslateKey(functionKeysym);
-								window->keys[translatedKey] = keyState_e::down;
-								XNextEvent(currentDisplay, &inEvent);
-								triggered = true;
-								if (keyEvent != nullptr)
-									keyEvent(window, Linux_TranslateKey(functionKeysym), keyState_e::down);
-							}
-						}
-
-						if (triggered == false)
-						{
-							const uint16_t functionKeysym = XkbKeycodeToKeysym(currentDisplay, inEvent.xkey.keycode, 0, inEvent.xkey.state & ShiftMask ? 1 : 0);
-							const uint16_t translatedKey	= Linux_TranslateKey(functionKeysym);
-							window->keys[translatedKey] = keyState_e::up;
-
+							const uint16_t functionKeysym = XkbKeycodeToKeysym(
+								currentDisplay, inEvent.xkey.keycode, 0, inEvent.xkey.state & ShiftMask ? 1 : 0);
+							const uint16_t translatedKey = Linux_TranslateKey(functionKeysym);
+							window->keys[translatedKey] = keyState_e::down;
+							XNextEvent(currentDisplay, &inEvent);
+							triggered = true;
 							if (keyEvent != nullptr)
-								keyEvent(window, translatedKey, keyState_e::up);
+								keyEvent(window, Linux_TranslateKey(functionKeysym), keyState_e::down);
 						}
-
-						break;
 					}
 
-				case ButtonPress:
+					if (triggered == false)
 					{
-						switch (inEvent.xbutton.button)
+						const uint16_t functionKeysym = XkbKeycodeToKeysym(
+							currentDisplay, inEvent.xkey.keycode, 0, inEvent.xkey.state & ShiftMask ? 1 : 0);
+						const uint16_t translatedKey = Linux_TranslateKey(functionKeysym);
+						window->keys[translatedKey] = keyState_e::up;
+
+						if (keyEvent != nullptr)
+							keyEvent(window, translatedKey, keyState_e::up);
+					}
+
+					break;
+				}
+
+			case ButtonPress:
+				{
+					switch (inEvent.xbutton.button)
+					{
+					case 1:
 						{
-							case 1:
-								{
-									window->mouseButton[(uint16_t)mouseButton_e::left] = buttonState_e::down;
+							window->mouseButton[(uint16_t)mouseButton_e::left] = buttonState_e::down;
 
-									if (mouseButtonEvent != nullptr)
-										mouseButtonEvent(window, mouseButton_e::left, buttonState_e::down);
-									break;
-								}
-
-							case 2:
-								{
-									window->mouseButton[(uint16_t)mouseButton_e::middle] = buttonState_e::down;
-
-									if (mouseButtonEvent != nullptr)
-										mouseButtonEvent(window, mouseButton_e::middle, buttonState_e::down);
-									break;
-								}
-
-							case 3:
-								{
-									window->mouseButton[(uint16_t)mouseButton_e::right] = buttonState_e::down;
-
-									if (mouseButtonEvent != nullptr)
-										mouseButtonEvent(window, mouseButton_e::right, buttonState_e::down);
-									break;
-								}
-
-							case 4:
-								{
-									//window->mouseButton[(uint16_t)mouseScroll_e::up] = buttonState_e::down;
-
-									if (mouseWheelEvent != nullptr)
-										mouseWheelEvent(window, mouseScroll_e::up);
-									break;
-								}
-
-							case 5:
-								{
-									//window->mouseButton[(uint16_t)mouseScroll_e::down] = buttonState_e::down;
-
-									if (mouseWheelEvent != nullptr)
-										mouseWheelEvent(window, mouseScroll_e::down);
-									break;
-								}
-
-							default:
-								{
-									// need to add more mouse buttons
-									break;
-								}
+							if (mouseButtonEvent != nullptr)
+								mouseButtonEvent(window, mouseButton_e::left, buttonState_e::down);
+							break;
 						}
 
-						break;
-					}
-
-				case ButtonRelease:
-					{
-						switch (inEvent.xbutton.button)
+					case 2:
 						{
-							case 1:
-								{
-									// the left mouse button was released
-									window->mouseButton[(uint16_t)mouseButton_e::left] = buttonState_e::up;
+							window->mouseButton[(uint16_t)mouseButton_e::middle] = buttonState_e::down;
 
-									if (mouseButtonEvent != nullptr)
-										mouseButtonEvent(window, mouseButton_e::left, buttonState_e::up);
-									break;
-								}
-
-							case 2:
-								{
-									// the middle mouse button was released
-									window->mouseButton[(uint16_t)mouseButton_e::middle] = buttonState_e::up;
-
-									if (mouseButtonEvent != nullptr)
-										mouseButtonEvent(window, mouseButton_e::middle, buttonState_e::up);
-									break;
-								}
-
-							case 3:
-								{
-									// the right mouse button was released
-									window->mouseButton[(uint16_t)mouseButton_e::right] = buttonState_e::up;
-
-									if (mouseButtonEvent != nullptr)
-										mouseButtonEvent(window, mouseButton_e::right, buttonState_e::up);
-									break;
-								}
-
-							default:
-								{
-									// need to add more mouse buttons
-									break;
-								}
+							if (mouseButtonEvent != nullptr)
+								mouseButtonEvent(window, mouseButton_e::middle, buttonState_e::down);
+							break;
 						}
-						break;
+
+					case 3:
+						{
+							window->mouseButton[(uint16_t)mouseButton_e::right] = buttonState_e::down;
+
+							if (mouseButtonEvent != nullptr)
+								mouseButtonEvent(window, mouseButton_e::right, buttonState_e::down);
+							break;
+						}
+
+					case 4:
+						{
+							//window->mouseButton[(uint16_t)mouseScroll_e::up] = buttonState_e::down;
+
+							if (mouseWheelEvent != nullptr)
+								mouseWheelEvent(window, mouseScroll_e::up);
+							break;
+						}
+
+					case 5:
+						{
+							//window->mouseButton[(uint16_t)mouseScroll_e::down] = buttonState_e::down;
+
+							if (mouseWheelEvent != nullptr)
+								mouseWheelEvent(window, mouseScroll_e::down);
+							break;
+						}
+
+					default:
+						{
+							// need to add more mouse buttons
+							break;
+						}
 					}
 
-				// when the mouse/pointer device is moved
-				case MotionNotify:
+					break;
+				}
+
+			case ButtonRelease:
+				{
+					switch (inEvent.xbutton.button)
 					{
-						//setup previous mouse positons
-						window->previousMousePosition = window->mousePosition;
+					case 1:
+						{
+							// the left mouse button was released
+							window->mouseButton[(uint16_t)mouseButton_e::left] = buttonState_e::up;
 
-						// set the windows mouse position to match the event
-						window->mousePosition.x = (int16_t)inEvent.xmotion.x;
-						window->mousePosition.y = (int16_t)inEvent.xmotion.y;
+							if (mouseButtonEvent != nullptr)
+								mouseButtonEvent(window, mouseButton_e::left, buttonState_e::up);
+							break;
+						}
 
-						/// set the screen mouse position to match the event
-						screenMousePosition.x = (int16_t)inEvent.xmotion.x_root;
-						screenMousePosition.y = (int16_t)inEvent.xmotion.y_root;
+					case 2:
+						{
+							// the middle mouse button was released
+							window->mouseButton[(uint16_t)mouseButton_e::middle] = buttonState_e::up;
 
-						if (mouseMoveEvent != nullptr)
-							mouseMoveEvent(window, vec2_t<int16_t>((int16_t)inEvent.xmotion.x, (int16_t)inEvent.xmotion.y), vec2_t<int16_t>((int16_t)inEvent.xmotion.x_root, (int16_t)inEvent.xmotion.y_root));
-						break;
+							if (mouseButtonEvent != nullptr)
+								mouseButtonEvent(window, mouseButton_e::middle, buttonState_e::up);
+							break;
+						}
+
+					case 3:
+						{
+							// the right mouse button was released
+							window->mouseButton[(uint16_t)mouseButton_e::right] = buttonState_e::up;
+
+							if (mouseButtonEvent != nullptr)
+								mouseButtonEvent(window, mouseButton_e::right, buttonState_e::up);
+							break;
+						}
+
+					default:
+						{
+							// need to add more mouse buttons
+							break;
+						}
 					}
+					break;
+				}
 
-				// when the window goes out of focus
-				case FocusOut:
+			// when the mouse/pointer device is moved
+			case MotionNotify:
+				{
+					//setup previous mouse positons
+					window->previousMousePosition = window->mousePosition;
+
+					// set the windows mouse position to match the event
+					window->mousePosition.x = (int16_t)inEvent.xmotion.x;
+					window->mousePosition.y = (int16_t)inEvent.xmotion.y;
+
+					/// set the screen mouse position to match the event
+					screenMousePosition.x = (int16_t)inEvent.xmotion.x_root;
+					screenMousePosition.y = (int16_t)inEvent.xmotion.y_root;
+
+					if (mouseMoveEvent != nullptr)
+						mouseMoveEvent(window, vec2_t<int16_t>((int16_t)inEvent.xmotion.x, (int16_t)inEvent.xmotion.y),
+						               vec2_t<int16_t>((int16_t)inEvent.xmotion.x_root,
+						                               (int16_t)inEvent.xmotion.y_root));
+					break;
+				}
+
+			// when the window goes out of focus
+			case FocusOut:
+				{
+					window->inFocus = false;
+					if (focusEvent != nullptr)
+						focusEvent(window, window->inFocus);
+					break;
+				}
+
+			// when the window is back in focus (use to call restore callback?)
+			case FocusIn:
+				{
+					window->inFocus = true;
+
+					if (focusEvent != nullptr)
+						focusEvent(window, window->inFocus);
+					break;
+				}
+
+			// when a request to resize the window is made either by
+			// dragging out the window or programmatically
+			case ResizeRequest:
+				{
+					window->settings.resolution.width = inEvent.xresizerequest.width;
+					window->settings.resolution.height = inEvent.xresizerequest.height;
+
+					// kinda redundant for this to be here...
+					// glViewport(0, 0, window->settings.resolution.width,
+					// window->settings.resolution.height);
+
+					if (resizeEvent != nullptr)
 					{
-						window->inFocus = false;
-						if (focusEvent != nullptr)
-							focusEvent(window, window->inFocus);
-						break;
+						resizeEvent(
+							window, vec2_t<uint16_t>(inEvent.xresizerequest.width, inEvent.xresizerequest.height));
 					}
+					break;
+				}
 
-				// when the window is back in focus (use to call restore callback?)
-				case FocusIn:
+			// when a request to configure the window is made
+			case ConfigureNotify:
+				{
+					// check if window was resized
+					if ((uint16_t)inEvent.xconfigure.width != window->settings.resolution.width || (uint16_t)inEvent.
+						xconfigure.height != window->settings.resolution.height)
 					{
-						window->inFocus = true;
-
-						if (focusEvent != nullptr)
-							focusEvent(window, window->inFocus);
-						break;
-					}
-
-				// when a request to resize the window is made either by
-				// dragging out the window or programmatically
-				case ResizeRequest:
-					{
-						window->settings.resolution.width  = inEvent.xresizerequest.width;
-						window->settings.resolution.height = inEvent.xresizerequest.height;
-
-						// kinda redundant for this to be here...
-						// glViewport(0, 0, window->settings.resolution.width,
-						// window->settings.resolution.height);
-
 						if (resizeEvent != nullptr)
 						{
-							resizeEvent(window, vec2_t<uint16_t>(inEvent.xresizerequest.width, inEvent.xresizerequest.height));
+							resizeEvent(window, vec2_t<uint16_t>(inEvent.xconfigure.width, inEvent.xconfigure.height));
 						}
-						break;
+
+
+						window->settings.resolution.width = inEvent.xconfigure.width;
+						window->settings.resolution.height = inEvent.xconfigure.height;
 					}
 
-				// when a request to configure the window is made
-				case ConfigureNotify:
+					// check if window was moved
+					if (inEvent.xconfigure.x != window->position.x || inEvent.xconfigure.y != window->position.y)
 					{
-						// check if window was resized
-						if ((uint16_t)inEvent.xconfigure.width != window->settings.resolution.width || (uint16_t)inEvent.xconfigure.height != window->settings.resolution.height)
-						{
-							if (resizeEvent != nullptr)
-							{
-								resizeEvent(window, vec2_t<uint16_t>(inEvent.xconfigure.width, inEvent.xconfigure.height));
-							}
+						if (movedEvent != nullptr)
+							movedEvent(window, vec2_t<int16_t>((int16_t)inEvent.xconfigure.x,
+							                                   (int16_t)inEvent.xconfigure.y));
 
-
-							window->settings.resolution.width  = inEvent.xconfigure.width;
-							window->settings.resolution.height = inEvent.xconfigure.height;
-						}
-
-						// check if window was moved
-						if (inEvent.xconfigure.x != window->position.x || inEvent.xconfigure.y != window->position.y)
-						{
-							if (movedEvent != nullptr)
-								movedEvent(window, vec2_t<int16_t>((int16_t)inEvent.xconfigure.x, (int16_t)inEvent.xconfigure.y));
-
-							window->position.x = (int16_t)inEvent.xconfigure.x;
-							window->position.y = (int16_t)inEvent.xconfigure.y;
-						}
-						break;
+						window->position.x = (int16_t)inEvent.xconfigure.x;
+						window->position.y = (int16_t)inEvent.xconfigure.y;
 					}
+					break;
+				}
 
-				case PropertyNotify:
+			case PropertyNotify:
+				{
+					// this is needed in order to read from the windows WM_STATE Atomic
+					// to determine if the property notify event was caused by a client
+					// iconify Event(window, minimizing the window), a maximise event, a focus
+					// event and an attention demand event. NOTE these should only be
+					// for events that are not triggered programatically
+
+					Atom type;
+					int format;
+					ulong numItems, bytesAfter;
+					unsigned char* properties = nullptr;
+
+					XGetWindowProperty(currentDisplay, inEvent.xproperty.window, window->AtomState, 0, LONG_MAX, false,
+					                   AnyPropertyType, &type, &format, &numItems, &bytesAfter, &properties);
+
+					if (properties && (format == 32))
 					{
-						// this is needed in order to read from the windows WM_STATE Atomic
-						// to determine if the property notify event was caused by a client
-						// iconify Event(window, minimizing the window), a maximise event, a focus
-						// event and an attention demand event. NOTE these should only be
-						// for events that are not triggered programatically
+						XWindowAttributes attributes;
+						XGetWindowAttributes(window->currentDisplay, window->windowHandle, &attributes);
+						window->settings.resolution.width = attributes.width;
+						window->settings.resolution.height = attributes.height;
 
-						Atom type;
-						int format;
-						ulong numItems, bytesAfter;
-						unsigned char* properties = nullptr;
-
-						XGetWindowProperty(currentDisplay, inEvent.xproperty.window, window->AtomState, 0, LONG_MAX, false, AnyPropertyType, &type, &format, &numItems, &bytesAfter, &properties);
-
-						if (properties && (format == 32))
+						// go through each property and match it to an existing Atomic state
+						for (ulong itemIndex = 0; itemIndex < numItems; itemIndex++)
 						{
-							XWindowAttributes attributes;
-							XGetWindowAttributes(window->currentDisplay, window->windowHandle, &attributes);
-							window->settings.resolution.width = attributes.width;
-							window->settings.resolution.height = attributes.height;
-						
-							// go through each property and match it to an existing Atomic state
-							for (ulong itemIndex = 0; itemIndex < numItems; itemIndex++)
+							Atom currentProperty = ((long*)(properties))[itemIndex];
+
+							if (currentProperty == window->AtomStateHidden)
 							{
-								Atom currentProperty = ((long*)(properties))[itemIndex];
-
-								if (currentProperty == window->AtomStateHidden)
+								// window was minimized
+								if (minimizedEvent != nullptr)
 								{
-									// window was minimized
-									if (minimizedEvent != nullptr)
-									{
-										// if the minimized callback for the window was set
-										minimizedEvent(window);
-									}
-								}
-
-								if (currentProperty == window->AtomStateMaximizedVert || currentProperty == window->AtomStateMaximizedHorz)
-								{
-									// window was maximized
-									if (maximizedEvent != nullptr)
-									{
-										// if the maximized callback for the window was set
-										maximizedEvent(window);
-									}
-								}
-
-								if (currentProperty == window->AtomDemandsAttention)
-								{
-									// the window demands user attention
+									// if the minimized callback for the window was set
+									minimizedEvent(window);
 								}
 							}
+
+							if (currentProperty == window->AtomStateMaximizedVert || currentProperty == window->
+								AtomStateMaximizedHorz)
+							{
+								// window was maximized
+								if (maximizedEvent != nullptr)
+								{
+									// if the maximized callback for the window was set
+									maximizedEvent(window);
+								}
+							}
+
+							if (currentProperty == window->AtomDemandsAttention)
+							{
+								// the window demands user attention
+							}
 						}
-
-						break;
 					}
 
-				case GravityNotify:
-					{
-						// this is only supposed to pop up when the parent of this window(if any)
-						// has something happen to it so that this window can react to said event
-						// as well.
-						break;
-					}
+					break;
+				}
 
-				// check for events that were created by the TinyWindow manager
-				case ClientMessage:
+			case GravityNotify:
+				{
+					// this is only supposed to pop up when the parent of this window(if any)
+					// has something happen to it so that this window can react to said event
+					// as well.
+					break;
+				}
+
+			// check for events that were created by the TinyWindow manager
+			case ClientMessage:
+				{
+					if (window != nullptr)
 					{
-						if (window != nullptr)
+						const char* atomName = XGetAtomName(currentDisplay, inEvent.xclient.message_type);
+						//printf("%s \n", atomName);
+						if (inEvent.xclient.message_type == window->AtomXDNDDrop)
 						{
-							const char* atomName = XGetAtomName(currentDisplay, inEvent.xclient.message_type);
-							//printf("%s \n", atomName);
-							if (inEvent.xclient.message_type == window->AtomXDNDDrop)
-							{
-								HandleDroppedFiles(window, inEvent);
-							}
-							if (inEvent.xclient.message_type == window->AtomXDNDPosition)
-							{
-								// Accept the drop and specify position
-								XClientMessageEvent response;
-								response.type		  = ClientMessage;
-								response.display	  = currentDisplay;
-								response.window		  = inEvent.xclient.data.l[0];
-								response.message_type = window->AtomXDNDStatus;
-								response.format		  = 32;
-								response.data.l[0]	  = window->windowHandle;
-								response.data.l[1]	  = 1;// Accept drop
-								response.data.l[2]	  = 0;// x,y coordinates for rectangle
-								response.data.l[3]	  = 0;// w,h coordinates for rectangle
-								response.data.l[4]	  = uriList;
-
-								XSendEvent(currentDisplay, inEvent.xclient.data.l[0], false, NoEventMask, (XEvent*)&response);
-							}
+							HandleDroppedFiles(window, inEvent);
 						}
-						break;
+						if (inEvent.xclient.message_type == window->AtomXDNDPosition)
+						{
+							// Accept the drop and specify position
+							XClientMessageEvent response;
+							response.type = ClientMessage;
+							response.display = currentDisplay;
+							response.window = inEvent.xclient.data.l[0];
+							response.message_type = window->AtomXDNDStatus;
+							response.format = 32;
+							response.data.l[0] = window->windowHandle;
+							response.data.l[1] = 1; // Accept drop
+							response.data.l[2] = 0; // x,y coordinates for rectangle
+							response.data.l[3] = 0; // w,h coordinates for rectangle
+							response.data.l[4] = uriList;
+
+							XSendEvent(currentDisplay, inEvent.xclient.data.l[0], false, NoEventMask,
+							           (XEvent*)&response);
+						}
 					}
-			default: {};
+					break;
+				}
+			default:
+				{
+				};
 			}
 		}
 
 		void HandleDroppedFiles(tWindow* window, XEvent& inEvent)
 		{
-			    // Request the dropped data
-			    Atom actualType;
-			    int actualFormat;
-			    unsigned long itemCount, remainingBytes;
-			    unsigned char* data = nullptr;
+			// Request the dropped data
+			Atom actualType;
+			int actualFormat;
+			unsigned long itemCount, remainingBytes;
+			unsigned char* data = nullptr;
 
-			    // Convert the XdndSelection to get the URI list
-			    XConvertSelection(currentDisplay,
-			                      window->AtomXDNDSelection, // Selection atom
-			                      window->AtomXDNDTextUriList,       // Target type (text/uri-list)
-			                      window->AtomXDNDSelection, // Property to store the data
-			                      window->windowHandle,      // Target window
-			                      inEvent.xclient.data.l[2]); // Timestamp
+			// Convert the XdndSelection to get the URI list
+			XConvertSelection(currentDisplay,
+			                  window->AtomXDNDSelection, // Selection atom
+			                  window->AtomXDNDTextUriList, // Target type (text/uri-list)
+			                  window->AtomXDNDSelection, // Property to store the data
+			                  window->windowHandle, // Target window
+			                  inEvent.xclient.data.l[2]); // Timestamp
 
-			    // Wait for the SelectionNotify event
-			    XEvent selEvent;
-			    while (true) {
-			        XNextEvent(currentDisplay, &selEvent);
-			        if (selEvent.type == SelectionNotify) {
-			            break;
-			        }
-			    }
+			// Wait for the SelectionNotify event
+			XEvent selEvent;
+			while (true)
+			{
+				XNextEvent(currentDisplay, &selEvent);
+				if (selEvent.type == SelectionNotify)
+				{
+					break;
+				}
+			}
 
-			    // Retrieve the data from the property
-			    if (selEvent.xselection.property != None) {
-			        XGetWindowProperty(currentDisplay,
-			                           window->windowHandle,
-			                           window->AtomXDNDSelection,
-			                           0,
-			                           LONG_MAX,
-			                           True, // Delete property after retrieval
-			                           AnyPropertyType,
-			                           &actualType,
-			                           &actualFormat,
-			                           &itemCount,
-			                           &remainingBytes,
-			                           &data);
+			// Retrieve the data from the property
+			if (selEvent.xselection.property != None)
+			{
+				XGetWindowProperty(currentDisplay,
+				                   window->windowHandle,
+				                   window->AtomXDNDSelection,
+				                   0,
+				                   LONG_MAX,
+				                   True, // Delete property after retrieval
+				                   AnyPropertyType,
+				                   &actualType,
+				                   &actualFormat,
+				                   &itemCount,
+				                   &remainingBytes,
+				                   &data);
 
-			        if (actualType == window->AtomXDNDTextUriList && data != nullptr) {
-			            // Process the URI list
-			            char* uriList = (char*)data;
+				if (actualType == window->AtomXDNDTextUriList && data != nullptr)
+				{
+					// Process the URI list
+					char* uriList = (char*)data;
 #if (DEBUG)
-			            printf("Dropped URIs:\n%s\n", uriList);
+					printf("Dropped URIs:\n%s\n", uriList);
 #endif
 
-			            // Parse the URI list (split by newlines)
-			            std::vector<std::string> files;
-			            std::istringstream stream(uriList);
-			            std::string uri;
-			            while (std::getline(stream, uri)) {
-			                if (!uri.empty() && uri != "\r") {
-			                    // Remove trailing \r if present
-			                    if (uri.back() == '\r') {
-			                        uri.pop_back();
-			                    }
-			                    // Convert file:// URI to a local path
-			                    if (uri.substr(0, 7) == "file://") {
-			                        uri = uri.substr(7); // Remove "file://"
-			                        // Decode URL-encoded characters if needed
-			                        files.push_back(uri);
-			                    }
-			                }
-			            }
+					// Parse the URI list (split by newlines)
+					std::vector<std::string> files;
+					std::istringstream stream(uriList);
+					std::string uri;
+					while (std::getline(stream, uri))
+					{
+						if (!uri.empty() && uri != "\r")
+						{
+							// Remove trailing \r if present
+							if (uri.back() == '\r')
+							{
+								uri.pop_back();
+							}
+							// Convert file:// URI to a local path
+							if (uri.substr(0, 7) == "file://")
+							{
+								uri = uri.substr(7); // Remove "file://"
+								// Decode URL-encoded characters if needed
+								files.push_back(uri);
+							}
+						}
+					}
 
-			            // Call your file drop event handler with the file list and mouse position
-			            if (fileDropEvent != nullptr) {
-			                // Assuming you stored x, y from XDNDPosition
-			                fileDropEvent(window, files);
-			            }
+					// Call your file drop event handler with the file list and mouse position
+					if (fileDropEvent != nullptr)
+					{
+						// Assuming you stored x, y from XDNDPosition
+						fileDropEvent(window, files);
+					}
+					XFree(data);
+				}
+			}
 
-			            XFree(data);
-			        }
-			    }
-
-			    // Send XDNDfinished to acknowledge the drop
-			    XClientMessageEvent finished;
-			    finished.type = ClientMessage;
-			    finished.display = currentDisplay;
-			    finished.window = inEvent.xclient.data.l[0]; // Source window
-			    finished.message_type = window->AtomXDNDFinished;
-				finished.format = 32;
-			    finished.data.l[0] = window->windowHandle;
-			    finished.data.l[1] = 1; // Success
-			    finished.data.l[2] = window->AtomXDNDTextUriList; // Action
-			    XSendEvent(currentDisplay, inEvent.xclient.data.l[0], False, NoEventMask, (XEvent*)&finished);
-
+			// Send XDNDfinished to acknowledge the drop
+			XClientMessageEvent finished;
+			finished.type = ClientMessage;
+			finished.display = currentDisplay;
+			finished.window = inEvent.xclient.data.l[0]; // Source window
+			finished.message_type = window->AtomXDNDFinished;
+			finished.format = 32;
+			finished.data.l[0] = window->windowHandle;
+			finished.data.l[1] = 1; // Success
+			finished.data.l[2] = window->AtomXDNDTextUriList; // Action
+			XSendEvent(currentDisplay, inEvent.xclient.data.l[0], False, NoEventMask, (XEvent*)&finished);
 		}
 
 		// debugging. used to determine what type of event was generated
@@ -4229,37 +4348,37 @@ namespace TinyWindow
 		{
 			switch (currentEvent.type)
 			{
-				case MotionNotify: return "Motion Notify Event\n";
-				case ButtonPress: return "Button Press Event\n";
-				case ButtonRelease: return "Button Release Event\n";
-				case ColormapNotify: return "Color Map Notify event \n";
-				case EnterNotify: return "Enter Notify Event\n";
-				case LeaveNotify: return "Leave Notify Event\n";
-				case Expose: return "Expose Event\n";
-				case GraphicsExpose: return "Graphics expose event\n";
-				case NoExpose: return "No Expose Event\n";
-				case FocusIn: return "Focus In Event\n";
-				case FocusOut: return "Focus Out Event\n";
-				case KeymapNotify: return "Key Map Notify Event\n";
-				case KeyPress: return "Key Press Event\n";
-				case KeyRelease: return "Key Release Event\n";
-				case PropertyNotify: return "Property Notify Event\n";
-				case ResizeRequest: return "Resize Property Event\n";
-				case CirculateNotify: return "Circulate Notify Event\n";
-				case ConfigureNotify: return "configure Notify Event\n";
-				case DestroyNotify: return "Destroy Notify Request\n";
-				case GravityNotify: return "Gravity Notify Event \n";
-				case MapNotify: return "Map Notify Event\n";
-				case ReparentNotify: return "Reparent Notify Event\n";
-				case UnmapNotify: return "Unmap notify event\n";
-				case MapRequest: return "Map request event\n";
-				case ClientMessage: return "Client Message Event\n";
-				case MappingNotify: return "Mapping notify event\n";
-				case SelectionClear: return "Selection Clear event\n";
-				case SelectionNotify: return "Selection Notify Event\n";
-				case SelectionRequest: return "Selection Request event\n";
-				case VisibilityNotify: return "Visibility Notify Event\n";
-				default: return nullptr;
+			case MotionNotify: return "Motion Notify Event\n";
+			case ButtonPress: return "Button Press Event\n";
+			case ButtonRelease: return "Button Release Event\n";
+			case ColormapNotify: return "Color Map Notify event \n";
+			case EnterNotify: return "Enter Notify Event\n";
+			case LeaveNotify: return "Leave Notify Event\n";
+			case Expose: return "Expose Event\n";
+			case GraphicsExpose: return "Graphics expose event\n";
+			case NoExpose: return "No Expose Event\n";
+			case FocusIn: return "Focus In Event\n";
+			case FocusOut: return "Focus Out Event\n";
+			case KeymapNotify: return "Key Map Notify Event\n";
+			case KeyPress: return "Key Press Event\n";
+			case KeyRelease: return "Key Release Event\n";
+			case PropertyNotify: return "Property Notify Event\n";
+			case ResizeRequest: return "Resize Property Event\n";
+			case CirculateNotify: return "Circulate Notify Event\n";
+			case ConfigureNotify: return "configure Notify Event\n";
+			case DestroyNotify: return "Destroy Notify Request\n";
+			case GravityNotify: return "Gravity Notify Event \n";
+			case MapNotify: return "Map Notify Event\n";
+			case ReparentNotify: return "Reparent Notify Event\n";
+			case UnmapNotify: return "Unmap notify event\n";
+			case MapRequest: return "Map request event\n";
+			case ClientMessage: return "Client Message Event\n";
+			case MappingNotify: return "Mapping notify event\n";
+			case SelectionClear: return "Selection Clear event\n";
+			case SelectionNotify: return "Selection Notify Event\n";
+			case SelectionRequest: return "Selection Request event\n";
+			case VisibilityNotify: return "Visibility Notify Event\n";
+			default: return nullptr;
 			}
 		}
 
@@ -4283,33 +4402,37 @@ namespace TinyWindow
 
 		void Linux_InitExtensions()
 		{
-			glXCreateContextAttribsARB = (PFNGLXCREATECONTEXTATTRIBSARBPROC)glXGetProcAddressARB((const unsigned char*)"glXCreateContextAttribsARB");
-			glXGetSwapIntervalMESA	   = (PFNGLXGETSWAPINTERVALMESAPROC)glXGetProcAddressARB((const unsigned char*)"glXGetSwapIntervalMESA");
-			glxSwapIntervalEXT		   = (PFNGLXSWAPINTERVALEXTPROC)glXGetProcAddressARB((const unsigned char*)"glXSwapIntervalEXT");
-			glxSwapIntervalMESA		   = (PFNGLXSWAPINTERVALMESAPROC)glXGetProcAddressARB((const unsigned char*)"glXSwapIntervalMESA");
+			glXCreateContextAttribsARB = (PFNGLXCREATECONTEXTATTRIBSARBPROC)glXGetProcAddressARB(
+				(const unsigned char*)"glXCreateContextAttribsARB");
+			glXGetSwapIntervalMESA = (PFNGLXGETSWAPINTERVALMESAPROC)glXGetProcAddressARB(
+				(const unsigned char*)"glXGetSwapIntervalMESA");
+			glxSwapIntervalEXT = (PFNGLXSWAPINTERVALEXTPROC)glXGetProcAddressARB(
+				(const unsigned char*)"glXSwapIntervalEXT");
+			glxSwapIntervalMESA = (PFNGLXSWAPINTERVALMESAPROC)glXGetProcAddressARB(
+				(const unsigned char*)"glXSwapIntervalMESA");
 		}
 
 		void GetBestFrameBufferConfig(tWindow* window)
 		{
 			const int visualAttributes[] =
-				{
-					GLX_X_RENDERABLE, true,
-					GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT,
-					GLX_X_VISUAL_TYPE, GLX_TRUE_COLOR,
-					GLX_RENDER_TYPE, GLX_RGBA_BIT,
-					GLX_RED_SIZE, window->settings.colorBits,
-					GLX_GREEN_SIZE, window->settings.colorBits,
-					GLX_BLUE_SIZE, window->settings.colorBits,
-					GLX_ALPHA_SIZE, window->settings.colorBits,
-					GLX_DEPTH_SIZE, window->settings.depthBits,
-					GLX_STENCIL_SIZE, window->settings.stencilBits,
-					GLX_BUFFER_SIZE, 32,
-					GLX_DOUBLEBUFFER, true,
-					None
-				};
+			{
+				GLX_X_RENDERABLE, true,
+				GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT,
+				GLX_X_VISUAL_TYPE, GLX_TRUE_COLOR,
+				GLX_RENDER_TYPE, GLX_RGBA_BIT,
+				GLX_RED_SIZE, window->settings.colorBits,
+				GLX_GREEN_SIZE, window->settings.colorBits,
+				GLX_BLUE_SIZE, window->settings.colorBits,
+				GLX_ALPHA_SIZE, window->settings.colorBits,
+				GLX_DEPTH_SIZE, window->settings.depthBits,
+				GLX_STENCIL_SIZE, window->settings.stencilBits,
+				GLX_BUFFER_SIZE, 32,
+				GLX_DOUBLEBUFFER, true,
+				None
+			};
 
 			int frameBufferCount = 0;
-			uint16_t bestBufferConfig = 0;//, bestNumSamples = 0;
+			uint16_t bestBufferConfig = 0; //, bestNumSamples = 0;
 			GLXFBConfig* configs = glXChooseFBConfig(window->currentDisplay, 0, visualAttributes, &frameBufferCount);
 
 			if (configs == nullptr || frameBufferCount == 0)
@@ -4320,7 +4443,8 @@ namespace TinyWindow
 
 
 			int currentConfigHighScore = 0;
-			for (int configIndex = 0; configIndex < frameBufferCount; configIndex++) //print out all the info for these for debugging
+			for (int configIndex = 0; configIndex < frameBufferCount; configIndex++)
+			//print out all the info for these for debugging
 			{
 				XVisualInfo* visualInfo = glXGetVisualFromFBConfig(window->currentDisplay, configs[configIndex]);
 
@@ -4334,7 +4458,8 @@ namespace TinyWindow
 
 				glXGetFBConfigAttrib(window->currentDisplay, configs[configIndex], GLX_STENCIL_SIZE, &stencilSize);
 				glXGetFBConfigAttrib(window->currentDisplay, configs[configIndex], GLX_SAMPLES, &numSamples);
-				glXGetFBConfigAttrib(window->currentDisplay, configs[configIndex], GLX_SAMPLE_BUFFERS, &numSampleBuffers);
+				glXGetFBConfigAttrib(window->currentDisplay, configs[configIndex], GLX_SAMPLE_BUFFERS,
+				                     &numSampleBuffers);
 
 #if defined(DEBUG)
 				printf("Config %d: R:%d G:%d B:%d A:%d \n", configIndex, r, g, b, a);
@@ -4378,7 +4503,8 @@ namespace TinyWindow
 			if (glXCreateContextAttribsARB != nullptr)
 			{
 				//GetBestFrameBufferConfig(window);
-				GLXContext dummyContext = glXCreateNewContext(window->currentDisplay, window->settings.bestFBConfig, GLX_RGBA_TYPE, nullptr, true);
+				GLXContext dummyContext = glXCreateNewContext(window->currentDisplay, window->settings.bestFBConfig,
+				                                              GLX_RGBA_TYPE, nullptr, true);
 
 				if (dummyContext == nullptr)
 				{
@@ -4388,15 +4514,18 @@ namespace TinyWindow
 
 				Linux_InitExtensions();
 
-				int attribs[] {GLX_CONTEXT_MAJOR_VERSION_ARB, window->settings.versionMajor,
-							   GLX_CONTEXT_MINOR_VERSION_ARB, window->settings.versionMinor,
-							   GLX_CONTEXT_PROFILE_MASK_ARB, window->settings.profile,
+				int attribs[]{
+					GLX_CONTEXT_MAJOR_VERSION_ARB, window->settings.versionMajor,
+					GLX_CONTEXT_MINOR_VERSION_ARB, window->settings.versionMinor,
+					GLX_CONTEXT_PROFILE_MASK_ARB, window->settings.profile,
 #if defined(_DEBUG)
-							   GLX_CONTEXT_FLAGS_ARB, GLX_CONTEXT_DEBUG_BIT_ARB,
+					GLX_CONTEXT_FLAGS_ARB, GLX_CONTEXT_DEBUG_BIT_ARB,
 #endif
-							   0};
+					0
+				};
 
-				window->context = glXCreateContextAttribsARB(window->currentDisplay, window->settings.bestFBConfig, nullptr, true, attribs);
+				window->context = glXCreateContextAttribsARB(window->currentDisplay, window->settings.bestFBConfig,
+				                                             nullptr, true, attribs);
 				glXDestroyContext(window->currentDisplay, dummyContext);
 
 				if (window->context == nullptr)
@@ -4437,9 +4566,9 @@ namespace TinyWindow
 			// throw in a vector of monitors and the output
 			std::string GPUName;
 			std::string monitorName;
-			auto rootDisplay						= XOpenDisplay(nullptr);
-			const auto rootWindow			= XDefaultRootWindow(rootDisplay);
-			XRRScreenResources* screenResources		= XRRGetScreenResources(rootDisplay, rootWindow);
+			auto rootDisplay = XOpenDisplay(nullptr);
+			const auto rootWindow = XDefaultRootWindow(rootDisplay);
+			XRRScreenResources* screenResources = XRRGetScreenResources(rootDisplay, rootWindow);
 
 			Atom edid_atom = XInternAtom(rootDisplay, RR_PROPERTY_RANDR_EDID, False);
 			unsigned char* edid_data;
@@ -4447,7 +4576,8 @@ namespace TinyWindow
 			unsigned long numItems, bytes_after;
 			Atom actual_type;
 
-			if (XRRGetOutputProperty(rootDisplay, inOutput, edid_atom, 0, 100, False, False, AnyPropertyType, &actual_type, &actual_format, &numItems, &bytes_after, &edid_data) == Success)
+			if (XRRGetOutputProperty(rootDisplay, inOutput, edid_atom, 0, 100, False, False, AnyPropertyType,
+			                         &actual_type, &actual_format, &numItems, &bytes_after, &edid_data) == Success)
 			{
 				std::vector<unsigned char> edid(edid_data, edid_data + numItems);
 
@@ -4455,9 +4585,9 @@ namespace TinyWindow
 				{
 					// Manufacturer ID (3 characters)
 					char mfg_id[4] = {0};
-					mfg_id[0]	   = ((edid[8] & 0x7C) >> 2) + '@';
-					mfg_id[1]	   = ((edid[8] & 0x03) << 3) + ((edid[9] & 0xE0) >> 5) + '@';
-					mfg_id[2]	   = (edid[9] & 0x1F) + '@';
+					mfg_id[0] = ((edid[8] & 0x7C) >> 2) + '@';
+					mfg_id[1] = ((edid[8] & 0x03) << 3) + ((edid[9] & 0xE0) >> 5) + '@';
+					mfg_id[2] = (edid[9] & 0x1F) + '@';
 
 					monitorName = std::string(mfg_id, 4);
 				}
@@ -4469,12 +4599,12 @@ namespace TinyWindow
 			// printf("output: %s \n", inMonitor->GetDisplayName()->c_str());
 
 			auto primaryOutput = XRRGetOutputPrimary(rootDisplay, rootWindow);
-			bool isPrimary	   = (inOutput == primaryOutput);
-			auto crtcInfo	   = XRRGetCrtcInfo(rootDisplay, screenResources, inInfo->crtc);
+			bool isPrimary = (inOutput == primaryOutput);
+			auto crtcInfo = XRRGetCrtcInfo(rootDisplay, screenResources, inInfo->crtc);
 
-			inMonitor->extents	  = vec4_t<uint16_t>(crtcInfo->x, crtcInfo->y, crtcInfo->width, crtcInfo->height);
+			inMonitor->extents = vec4_t<uint16_t>(crtcInfo->x, crtcInfo->y, crtcInfo->width, crtcInfo->height);
 			inMonitor->resolution = vec2_t<uint16_t>(crtcInfo->width, crtcInfo->height);
-			inMonitor->isPrimary  = isPrimary;
+			inMonitor->isPrimary = isPrimary;
 		}
 
 		void InitXRandR()
@@ -4488,7 +4618,7 @@ namespace TinyWindow
 			if (XineramaIsActive(rootDisplay) == true)
 			{
 				XineramaScreenInfo* xineramaInfo = nullptr;
-				xineramaInfo					 = XineramaQueryScreens(rootDisplay, &screenCount);
+				xineramaInfo = XineramaQueryScreens(rootDisplay, &screenCount);
 #if defined(_DEBUG)
 				printf("num screens: %i\n", screenCount);
 #endif
@@ -4502,7 +4632,7 @@ namespace TinyWindow
 				std::vector<monitorSetting_t> settings;
 
 				// Get screen resources
-				XRRScreenResources* screenResources		= XRRGetScreenResources(rootDisplay, root);
+				XRRScreenResources* screenResources = XRRGetScreenResources(rootDisplay, root);
 				XRRProviderResources* providerResources = XRRGetProviderResources(rootDisplay, root);
 
 				Rotation currentRotation;
@@ -4515,20 +4645,22 @@ namespace TinyWindow
 				{
 					for (size_t providerIter = 0; providerIter < providerResources->nproviders; providerIter++)
 					{
-						XRRProviderInfo* providerInfo = XRRGetProviderInfo(rootDisplay, screenResources, providerResources->providers[providerIter]);
+						XRRProviderInfo* providerInfo = XRRGetProviderInfo(
+							rootDisplay, screenResources, providerResources->providers[providerIter]);
 
 						if (providerInfo != nullptr)
 						{
 							// one monitor_t per valid output
 							for (size_t iter = 0; iter < providerInfo->noutputs; iter++)
 							{
-								auto outputInfo = XRRGetOutputInfo(rootDisplay, screenResources, providerInfo->outputs[iter]);
+								auto outputInfo = XRRGetOutputInfo(rootDisplay, screenResources,
+								                                   providerInfo->outputs[iter]);
 								// if there are valid modes
 								if (outputInfo->nmode > 0)
 								{
 									for (size_t crtcIter = 0; crtcIter < outputInfo->ncrtc; crtcIter++)
 									{
-										RRCrtc crtc			  = outputInfo->crtcs[crtcIter];
+										RRCrtc crtc = outputInfo->crtcs[crtcIter];
 										XRRCrtcInfo* crtcInfo = XRRGetCrtcInfo(rootDisplay, screenResources, crtc);
 
 										// now go through modes
@@ -4536,18 +4668,20 @@ namespace TinyWindow
 										{
 											XRRModeInfo currentMode = screenResources->modes[modeIter];
 											monitorSetting_t newSetting;
-											newSetting.resolution		= vec2_t<uint16_t>(currentMode.width, currentMode.height);
-											newSetting.displayFrequency = (uint16_t)((double)currentMode.dotClock / ((double)currentMode.hTotal * (double)currentMode.vTotal));
-											newSetting.output			= screenResources->outputs[iter];
-											newSetting.crtc				= crtc;
-											newSetting.mode				= currentMode.id;
+											newSetting.resolution = vec2_t<uint16_t>(
+												currentMode.width, currentMode.height);
+											newSetting.displayFrequency = (uint16_t)((double)currentMode.dotClock /
+												((double)currentMode.hTotal * (double)currentMode.vTotal));
+											newSetting.output = screenResources->outputs[iter];
+											newSetting.crtc = crtc;
+											newSetting.mode = currentMode.id;
 											settings.push_back(newSetting);
 											if (currentMode.id == crtcInfo->mode)
 												newMonitor.currentSetting = newSetting;
 										}
 									}
 									newMonitor.deviceName = std::string(providerInfo->name);
-									newMonitor.settings	  = settings;
+									newMonitor.settings = settings;
 									GetExtraMonitorData(outputInfo, providerInfo->outputs[iter], &newMonitor);
 									monitorList.push_back(newMonitor);
 									break;
@@ -4560,13 +4694,14 @@ namespace TinyWindow
 				{
 					for (size_t iter = 0; iter < screenResources->noutput; iter++)
 					{
-						XRROutputInfo* outputInfo = XRRGetOutputInfo(rootDisplay, screenResources, screenResources->outputs[iter]);
+						XRROutputInfo* outputInfo = XRRGetOutputInfo(rootDisplay, screenResources,
+						                                             screenResources->outputs[iter]);
 						// if there are valid modes
 						if (outputInfo->nmode > 0)
 						{
 							for (size_t crtcIter = 0; crtcIter < outputInfo->ncrtc; crtcIter++)
 							{
-								RRCrtc crtc			  = outputInfo->crtcs[crtcIter];
+								RRCrtc crtc = outputInfo->crtcs[crtcIter];
 								XRRCrtcInfo* crtcInfo = XRRGetCrtcInfo(rootDisplay, screenResources, crtc);
 
 								// now go through modes
@@ -4574,11 +4709,12 @@ namespace TinyWindow
 								{
 									XRRModeInfo currentMode = screenResources->modes[modeIter];
 									monitorSetting_t newSetting;
-									newSetting.resolution		= vec2_t<uint16_t>(currentMode.width, currentMode.height);
-									newSetting.displayFrequency = (uint16_t)((double)currentMode.dotClock / ((double)currentMode.hTotal * (double)currentMode.vTotal));
-									newSetting.output			= screenResources->outputs[iter];
-									newSetting.crtc				= crtc;
-									newSetting.mode				= currentMode.id;
+									newSetting.resolution = vec2_t<uint16_t>(currentMode.width, currentMode.height);
+									newSetting.displayFrequency = (uint16_t)((double)currentMode.dotClock / ((double)
+										currentMode.hTotal * (double)currentMode.vTotal));
+									newSetting.output = screenResources->outputs[iter];
+									newSetting.crtc = crtc;
+									newSetting.mode = currentMode.id;
 									settings.push_back(newSetting);
 									// printf("name %s \n", currentMode.name);
 									if (currentMode.id == crtcInfo->mode)
@@ -4586,7 +4722,7 @@ namespace TinyWindow
 								}
 							}
 							newMonitor.deviceName = std::string(outputInfo->name);
-							newMonitor.settings	  = settings;
+							newMonitor.settings = settings;
 
 							GetExtraMonitorData(outputInfo, screenResources->outputs[iter], &newMonitor);
 							monitorList.push_back(newMonitor);
@@ -4601,26 +4737,24 @@ namespace TinyWindow
 		{
 			// set window position and change style to popup
 			window->currentMonitor = monitor;
-			const auto rootDisplay	   = XOpenDisplay(nullptr);
+			const auto rootDisplay = XOpenDisplay(nullptr);
 
-			monitorSetting_t* monitorSetting = const_cast<monitorSetting_t*>(&monitor->GetMonitorSettings()->at(monitorSettingIndex));
-			const Window root						 = RootWindow(rootDisplay, 0);
+			monitorSetting_t* monitorSetting = const_cast<monitorSetting_t*>(&monitor->GetMonitorSettings()->at(
+				monitorSettingIndex));
+			const Window root = RootWindow(rootDisplay, 0);
 
 			// Get screen resources
 			XRRScreenResources* screenResources = XRRGetScreenResources(rootDisplay, root);
 
-			// Get the current screen configuration
-			XRRScreenConfiguration* conf = XRRGetScreenInfo(rootDisplay, root);
-			int result					 = 0;
-
+			int result = 0;
 			if (window->isFullscreen == false)
 			{
 				// Save the current window state
 				window->previousDimensions = window->settings.resolution; // Assuming currentDimensions exists
-				window->previousPosition = window->previousPosition;     // Assuming currentPosition exists
+				window->previousPosition = window->previousPosition; // Assuming currentPosition exists
 				result = XRRSetCrtcConfig(rootDisplay, screenResources, monitorSetting->crtc, CurrentTime,
-										  (int)monitor->extents.left, (int)monitor->extents.top,
-										  monitorSetting->mode, monitor->rotation, &monitorSetting->output, 1);
+				                          (int)monitor->extents.left, (int)monitor->extents.top,
+				                          monitorSetting->mode, monitor->rotation, &monitorSetting->output, 1);
 				XSync(rootDisplay, True);
 				if (result == Success)
 				{
@@ -4634,14 +4768,16 @@ namespace TinyWindow
 			else if (window->isFullscreen == true)
 			{
 				result = XRRSetCrtcConfig(rootDisplay, screenResources, monitor->currentSetting.crtc, CurrentTime,
-				(int)monitor->extents.left, (int)monitor->extents.top,
-				monitor->currentSetting.mode, monitor->rotation, &monitor->currentSetting.output, 1);
+				                          (int)monitor->extents.left, (int)monitor->extents.top,
+				                          monitor->currentSetting.mode, monitor->rotation,
+				                          &monitor->currentSetting.output, 1);
 
 				XSync(rootDisplay, True);
 				if (result == Success)
 				{
 					window->isFullscreen = false;
-					SetWindowSize(window, vec2_t<uint16_t>(window->previousDimensions.width, window->previousDimensions.height));
+					SetWindowSize(window, vec2_t<uint16_t>(window->previousDimensions.width,
+					                                       window->previousDimensions.height));
 					SetPosition(window, vec2_t<int16_t>(window->previousPosition.x, window->previousPosition.y));
 					SetDecorators(window, style_n::normal); // Restore original style if different
 				}
@@ -4650,9 +4786,9 @@ namespace TinyWindow
 
 		void InitializeAtoms()
 		{
-			clipboard  = XInternAtom(currentDisplay, "CLIPBOARD", False);
+			clipboard = XInternAtom(currentDisplay, "CLIPBOARD", False);
 			utf8String = XInternAtom(currentDisplay, "UTF8_STRING", False);
-			uriList	   = XInternAtom(currentDisplay, "text/uri-list", False);
+			uriList = XInternAtom(currentDisplay, "text/uri-list", False);
 			clipProperty = XInternAtom(currentDisplay, "CLIPBOARD_PROPERTY", False);
 
 			clipMultiple = XInternAtom(currentDisplay, "MULTIPLE", False);
@@ -4673,13 +4809,13 @@ namespace TinyWindow
 
 			Atom pairs[] =
 			{
-				uriList, propUriList,  // Prioritize URI list (files) first
+				uriList, propUriList, // Prioritize URI list (files) first
 				utf8String, propUtf8
 			};
 
 			// Put the pairs into propMultiple (type = XA_ATOM, format = 32)
 			XChangeProperty(currentDisplay, window->windowHandle, propMultiple, XA_ATOM, 32, PropModeReplace,
-							(unsigned char*)pairs, sizeof(pairs) / sizeof(pairs[0]));
+			                reinterpret_cast<unsigned char*>(pairs), std::size(pairs) / sizeof(pairs[0]));
 
 			// Request the clipboard selection with MULTIPLE
 			XConvertSelection(currentDisplay, clipboard, clipMultiple, propMultiple, window->windowHandle, CurrentTime);
@@ -4725,8 +4861,10 @@ namespace TinyWindow
 			if (multiple_success)
 			{
 				// MULTIPLE succeeded, process as before
-				int result_get = XGetWindowProperty(currentDisplay, window->windowHandle, propMultiple, 0, LONG_MAX / 4, False,
-												AnyPropertyType, &actualType, &actualFormat, &nitems, &bytesAfter, &data);
+				int result_get = XGetWindowProperty(currentDisplay, window->windowHandle, propMultiple, 0, LONG_MAX / 4,
+				                                    False,
+				                                    AnyPropertyType, &actualType, &actualFormat, &nitems, &bytesAfter,
+				                                    &data);
 
 				if (result_get != Success)
 				{
@@ -4744,8 +4882,10 @@ namespace TinyWindow
 
 				for (uint8_t i = 0; i < propPairs.size(); i++)
 				{
-					int localResult = XGetWindowProperty(currentDisplay, window->windowHandle, propPairs[i].second, 0, LONG_MAX / 4, False,
-														 AnyPropertyType, &actualType, &actualFormat, &nitems, &bytesAfter, &data);
+					int localResult = XGetWindowProperty(currentDisplay, window->windowHandle, propPairs[i].second, 0,
+					                                     LONG_MAX / 4, False,
+					                                     AnyPropertyType, &actualType, &actualFormat, &nitems,
+					                                     &bytesAfter, &data);
 
 					if (localResult != Success || !data || actualType == None)
 					{
@@ -4761,7 +4901,7 @@ namespace TinyWindow
 						XFree(data); // Free data before returning
 						return result;
 					}
-					else if (actualType == uriList)
+					if (actualType == uriList)
 					{
 						clipType = clipboard_e::files;
 						// Parse the text/uri-list data
@@ -4810,10 +4950,6 @@ namespace TinyWindow
 						}
 						return result;
 					}
-					else
-					{
-						XFree(data);
-					}
 				}
 			}
 			else
@@ -4844,8 +4980,10 @@ namespace TinyWindow
 
 				if (selectionReceived && received_property != None)
 				{
-					int localResult = XGetWindowProperty(currentDisplay, window->windowHandle, propUriList, 0, LONG_MAX / 4, False,
-														 AnyPropertyType, &actualType, &actualFormat, &nitems, &bytesAfter, &data);
+					int localResult = XGetWindowProperty(currentDisplay, window->windowHandle, propUriList, 0,
+					                                     LONG_MAX / 4, False,
+					                                     AnyPropertyType, &actualType, &actualFormat, &nitems,
+					                                     &bytesAfter, &data);
 
 					if (localResult == Success && data && actualType != None)
 					{
@@ -4875,7 +5013,8 @@ namespace TinyWindow
 														isxdigit(path[j + 1]) && isxdigit(path[j + 2]))
 													{
 														std::string hex = path.substr(j + 1, 2);
-														char decodedChar = static_cast<char>(std::stoi(hex, nullptr, 16));
+														char decodedChar = static_cast<char>(
+															std::stoi(hex, nullptr, 16));
 														decoded += decodedChar;
 														j += 2;
 													}
@@ -4922,8 +5061,10 @@ namespace TinyWindow
 
 				if (selectionReceived && received_property != None)
 				{
-					int localResult = XGetWindowProperty(currentDisplay, window->windowHandle, propUtf8, 0, LONG_MAX / 4, False,
-														 AnyPropertyType, &actualType, &actualFormat, &nitems, &bytesAfter, &data);
+					int localResult = XGetWindowProperty(currentDisplay, window->windowHandle, propUtf8, 0,
+					                                     LONG_MAX / 4, False,
+					                                     AnyPropertyType, &actualType, &actualFormat, &nitems,
+					                                     &bytesAfter, &data);
 
 					if (localResult == Success && data && actualType != None)
 					{
@@ -4947,7 +5088,7 @@ namespace TinyWindow
 #endif
 #pragma endregion
 	};
-}// namespace TinyWindow
+} // namespace TinyWindow
 
 #endif
 

@@ -273,7 +273,7 @@ int main()
 	//manager->resizeEvent = HandleResize;
 	manager->fileDropEvent = HandleFileDrop;
 	//manager->mouseMoveEvent = HandleMouseMovement;
-	manager->Initialize();
+
 	std::unique_ptr<tWindow> window(manager->AddWindow(defaultSetting));
 
 	PrintMonitorInfo(manager.get());
@@ -281,12 +281,11 @@ int main()
 	//printf("%s \n", manager->GetClipboardInfo().c_str());
 	glClearColor(0.25f, 0.25f, 0.25f, 1.0f);
 
-	bool toggleState = false;
-	while (!window->GetShouldClose())
+	while (window->GetShouldClose() == false)
 	{
 		manager->PollForEvents();
 		//HandleGamepadState(manager->GetGamepads()[0]);
-		if (spacePressed)
+		if (spacePressed == true)
 		{
 			//window->SetWindowSize(vec2_t<unsigned int>(manager->GetMonitors().back()->resolution.width, manager->GetMonitors().back()->resolution.height));
 			//manager->ToggleFullscreen(window.get(), &manager->GetMonitors().at(0), 2);
@@ -310,6 +309,7 @@ int main()
 						printf("%s \n", strings[0].c_str());
 						break;
 					}
+				default: break;
 				}
 			}
 
