@@ -289,7 +289,7 @@ int main()
 		if (spacePressed)
 		{
 			//window->SetWindowSize(vec2_t<unsigned int>(manager->GetMonitors().back()->resolution.width, manager->GetMonitors().back()->resolution.height));
-			//manager->ToggleFullscreen(window.get(), &manager->GetMonitors().at(0), 0);
+			//manager->ToggleFullscreen(window.get(), &manager->GetMonitors().at(0), 2);
 			/*clipboard_e clipType;
 			auto strings = manager->GetClipboardLatest(window.get(), clipType);
 			if (strings.size() > 0)
@@ -313,10 +313,10 @@ int main()
 				}
 			}*/
 
-			manager->SetMousePositionInScreen(vec2_t<int32_t>(500, 500), manager->GetMonitors().back());
-			//manager->SetCursorIcon(window.get(), iconData, iconDimensions);
+			//manager->SetMousePositionInScreen(vec2_t<int32_t>(500, 500), manager->GetMonitors().back());
+			manager->SetCursorIcon(window.get(), iconData, iconDimensions);
 
-			//manager->SetDecorators(window.get(), style_n::none);
+			//manager->SetDecorators(window.get(), style_n::bare);
 			//manager->DisableDecorators(window.get(), decorator_e::titleBar | decorator_e::icon);
 			//manager->SetTitleBar(window.get(), "poopoo");
 			//manager->SetWindowSwapInterval(window.get(), 0);

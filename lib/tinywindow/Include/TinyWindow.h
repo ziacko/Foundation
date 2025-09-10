@@ -1,14 +1,10 @@
+// created by Ziyad Barakat 2014 - 2025
 #ifndef TINYWINDOW_H
 #define TINYWINDOW_H
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "Simplify"
 #pragma ide diagnostic ignored "modernize-use-nodiscard"
-// created by Ziyad Barakat 2014 - 2025
-
-#include <cstdlib>
-#include <string>
-#include <sstream>
 
 #if defined(_WIN32) || defined(_WIN64)
 #define TW_WINDOWS
@@ -42,8 +38,8 @@
 #include <Windows.h>
 #endif
 #if !defined(TW_USE_VULKAN)
-#include "wglext.h"
 #include <gl/GL.h>
+#include "wglext.h"
 #ifdef USE_DINPUT
 #include <dinput.h>
 #endif// USE_DINPUT
@@ -111,6 +107,10 @@
 #include <functional>
 #include <memory>
 #include <vector>
+#include <bitset>
+#include <cstdlib>
+#include <string>
+#include <sstream>
 
 namespace TinyWindow
 {
@@ -538,9 +538,9 @@ namespace TinyWindow
 
 	enum class clipboard_e
 	{
-		text, /**< The clipboard contains text */
-		files, /**< The clipboard contains file paths */
-		invalid /**< The clipboard content is invalid */
+		text,	/**< The clipboard contains text */
+		files,	/**< The clipboard contains file paths */
+		invalid	/**< The clipboard content is invalid */
 	};
 
 	namespace style_n
@@ -552,7 +552,6 @@ namespace TinyWindow
 
 	enum class error_e
 	{
-		success,						/**< If a function call was successful*/
 		invalidWindowName,				/**< If an invalid window name was given */
 		invalidIconPath,				/**< If an invalid icon path was given */
 		invalidWindowIndex,				/**< If an invalid window index was given */
@@ -580,7 +579,10 @@ namespace TinyWindow
 		dummyCannotMakeCurrent,			/**< If the dummy cannot be made the current context */
 		cannotCreateCurrent, 			/**< cannot make context current */
 		invalidMonitorSettingIndex,		/**< If the provided monitor setting index is invalid */
+		InvalidIcon,					/**< invalid icon data */
 		functionNotImplemented,			/**< If the function has not yet been implemented in the current version of the API */
+		
+		//Linux
 		linuxCannotConnectXServer,		/**< Linux: If cannot connect to an X11 server */
 		linuxInvalidVisualinfo,			/**< Linux: If visual information given was invalid */
 		linuxCannotCreateWindow,		/**< Linux: When X11 fails to create a new window */
@@ -589,8 +591,9 @@ namespace TinyWindow
 		linuxCannotCreateAdvancedContext, /**< Linux: cannot create advanced context */
 		linuxNoValidFBConfig,				/**< Linux: cannot find a suitable Framebuffer config */
 		linuxNoHDRConfig, 					/**< Linux: cannot find HDR compatible FBConfig */
-		linuxInvalidIcon,					/**< Linux: invalid icon data */
 		LinuxCannotSetMouseScreenPosition,		/**< Linux: cannot set mouse position in screen */
+		
+		//Windows
 		windowsCannotCreateWindows,				/**< Windows: When Win32 cannot create a window */
 		windowsCannotInitialize,				/**< Windows: When Win32 cannot initialize */
 		windowsFullscreenBadDualView,			/**< Windows: The system is not DualView capable. whatever that means */
@@ -600,6 +603,7 @@ namespace TinyWindow
 		WindowsFullscreenChangeFailed,	/**< Windows: The display driver failed to implement the specified graphics mode */
 		WindowsFullscreenNotUpdated,	/**< Windows: Unable to write settings to the registry */
 		WindowsFullscreenNeedRestart,	/**< Windows: The computer must be restarted for the graphics mode to work */
+		Windows_NoDisplayDevicesFound,	/**< Windows: Unable to find any display devices */
 		windowsFunctionNotImplemented,	/**< Windows: When a function has yet to be implemented on the Windows platform in the current version of the API */
 	};
 
@@ -634,26 +638,29 @@ namespace TinyWindow
 		errorEntry(error_e::dummyCannotMakeCurrent, "Error: the dummy cannot be made the current context"),
 		errorEntry(error_e::cannotCreateCurrent, "Error: the context cannot be made current"),
 		errorEntry(error_e::invalidMonitorSettingIndex, "Error: the provided monitor setting index is invalid"),
-		errorEntry(error_e::linuxCannotConnectXServer, "Linux Error: cannot connect to X server"),
+		errorEntry(error_e::InvalidIcon, "Error: invalid icon data"),
+
+		//Linux
+		errorEntry(error_e::linuxNoHDRConfig, "Linux Error: failed to get HDR config"),
+		errorEntry(error_e::linuxNoValidFBConfig, "Linux Error: failed to get valid FBConfig"),
 		errorEntry(error_e::linuxInvalidVisualinfo, "Linux Error: Invalid visual information given"),
 		errorEntry(error_e::linuxCannotCreateWindow, "Linux Error: failed to create window"),
+		errorEntry(error_e::linuxCannotConnectXServer, "Linux Error: cannot connect to X server"),
 		errorEntry(error_e::linuxFunctionNotImplemented, "Linux Error: function not implemented on Linux platform yet"),
 		errorEntry(error_e::linuxCannotCreateDummyContext, "Linux Error: failed to create dummy context"),
-		errorEntry(error_e::linuxNoValidFBConfig, "Linux Error: failed to get valid FBConfig"),
-		errorEntry(error_e::linuxNoHDRConfig, "Linux Error: failed to get HDR config"),
-		errorEntry(error_e::linuxInvalidIcon, "Linux Error: invalid icon data"),
 		errorEntry(error_e::LinuxCannotSetMouseScreenPosition, "Linux Error: cannot set mouse position in screen"),
+
+		//Windows
 		errorEntry(error_e::windowsCannotInitialize, "Windows Error: failed to initialize"),
-		errorEntry(error_e::windowsCannotCreateWindows, "Windows Error: failed to create window"),
-		//errorEntry(error_e::windowsFullscreenBadDualView, "Windows Error: bad dual view value for fullscreen"),
-		errorEntry(error_e::windowsFullscreenBadFlags, "Windows Error: Bad display change flags"),
 		errorEntry(error_e::windowsFullscreenBadMode, "Windows Error: Bad display change mode"),
+		errorEntry(error_e::windowsFullscreenBadFlags, "Windows Error: Bad display change flags"),
 		errorEntry(error_e::WindowsFullscreenBadParam, "Windows Error: Bad display change Parameter"),
-		errorEntry(error_e::WindowsFullscreenChangeFailed, "Windows Error: The display driver failed to implement the specified graphics mode"),
+		errorEntry(error_e::windowsCannotCreateWindows, "Windows Error: failed to create window"),
 		errorEntry(error_e::WindowsFullscreenNotUpdated, "Windows Error: Unable to write settings to the registry"),
 		errorEntry(error_e::WindowsFullscreenNeedRestart, "Windows Error: The computer must be restarted for the graphics mode to work"),
+		errorEntry(error_e::WindowsFullscreenChangeFailed, "Windows Error: The display driver failed to implement the specified graphics mode"),
+		errorEntry(error_e::Windows_NoDisplayDevicesFound, "Windows Error: Unable to find any display devices"),
 		errorEntry(error_e::windowsFunctionNotImplemented, "Windows Error: function not implemented on Windows platform yet"),
-		errorEntry(error_e::success, "function call was successful"),
 	};
 
 	using key_c			 = std::function<void(const tWindow* window, const uint16_t& key, const keyState_e& keyState)>;
@@ -1427,7 +1434,7 @@ namespace TinyWindow
 #elif defined(TW_LINUX)
 			Linux_ToggleFullscreen(window, monitor, monitorSettingIndex);
 #endif
-			window->isFullscreen = !window->isFullscreen;
+			//window->isFullscreen = !window->isFullscreen;
 		}
 
 		/**
@@ -1566,11 +1573,11 @@ namespace TinyWindow
 		/**
 		* Set window titlebar icon
 		*/
-		void SetTitleBarIcon(const tWindow* window, const std::vector<uint32_t>& icon, const vec2_t<uint16_t>& dimensions)
+		void SetWindowIcon(const tWindow* window, const std::vector<uint32_t>& icon, const vec2_t<uint16_t>& dimensions)
 		{
 			if (icon.empty())
 			{
-				AddErrorLog(error_e::linuxInvalidIcon, __LINE__, __func__, window);
+				AddErrorLog(error_e::InvalidIcon, __LINE__, __func__, window);
 				return;
 			}
 
@@ -1582,8 +1589,77 @@ namespace TinyWindow
 			}
 
 #if defined(TW_WINDOWS)
-			AddErrorLog(error_e::functionNotImplemented, window);
-			// TODO: Implement with SetClassLongPtr or LoadIcon for Windows.
+
+			// Prepare a 32-bit BGRA DIB with alpha (top-down via negative height)
+			BITMAPV5HEADER bi = {};
+			bi.bV5Size        = sizeof(BITMAPV5HEADER);
+			bi.bV5Width       = dimensions.width;
+			bi.bV5Height      = -dimensions.height; // top-down
+			bi.bV5Planes      = 1;
+			bi.bV5BitCount    = 32;
+			bi.bV5Compression = BI_BITFIELDS;
+			bi.bV5RedMask     = 0x00FF0000;
+			bi.bV5GreenMask   = 0x0000FF00;
+			bi.bV5BlueMask    = 0x000000FF;
+			bi.bV5AlphaMask   = 0xFF000000;
+
+			void* dibBits = nullptr;
+			HDC hdc = GetDC(nullptr);
+			HBITMAP hbmColor = CreateDIBSection(hdc, reinterpret_cast<BITMAPINFO*>(&bi),
+												DIB_RGB_COLORS, &dibBits, nullptr, 0);
+			ReleaseDC(nullptr, hdc);
+			if (!hbmColor || !dibBits) {
+				//cannot create bitmap
+				if (hbmColor) DeleteObject(hbmColor);
+				return;
+			}
+			
+			// Convert ARGB -> premultiplied BGRA 
+			// Windows wants premultiplied alpha for 32bpp icons/bitmaps.
+			uint32_t* dst = static_cast<uint32_t*>(dibBits);
+			for (int i = 0; i < dimensions.width * dimensions.height; ++i) {
+				uint32_t p = icon[i];
+				uint8_t a = (uint8_t)((p >> 24) & 0xFF);
+				uint8_t r = (uint8_t)((p >> 16) & 0xFF);
+				uint8_t g = (uint8_t)((p >> 8) & 0xFF);
+				uint8_t b = (uint8_t)(p & 0xFF);
+
+				// Premultiply
+				uint32_t rp = (uint32_t)r * a / 255;
+				uint32_t gp = (uint32_t)g * a / 255;
+				uint32_t bp = (uint32_t)b * a / 255;
+
+				// BGRA in little-endian
+				dst[i] = (a << 24) | (rp << 16) | (gp << 8) | (bp);
+			}
+
+			// Create dummy monochrome mask (ignored when alpha present, but required)
+			HBITMAP hbmMask = CreateBitmap(dimensions.width, dimensions.height, 1, 1, nullptr);
+			if (!hbmMask) {
+				DeleteObject(hbmColor);
+				return; //cannot create monochrome mask
+			}
+
+			ICONINFO ii = {};
+			ii.fIcon    = TRUE;
+			ii.hbmMask  = hbmMask;
+			ii.hbmColor = hbmColor;
+
+			HICON hIcon = CreateIconIndirect(&ii);
+
+			// GDI makes its own copy; we can delete our bitmaps now
+			DeleteObject(hbmMask);
+			DeleteObject(hbmColor);
+
+			// Also create a small icon for title bar/Alt-Tab
+			int cxSmall = GetSystemMetrics(SM_CXSMICON);
+			int cySmall = GetSystemMetrics(SM_CYSMICON);
+			HICON hSmall = (HICON)CopyImage(hIcon, IMAGE_ICON, cxSmall, cySmall, 0);
+
+
+			SendMessage(window->windowHandle, WM_SETICON, ICON_BIG, reinterpret_cast<LPARAM>(hIcon));
+			SendMessage(window->windowHandle, WM_SETICON, ICON_SMALL, reinterpret_cast<LPARAM>(hSmall));
+			
 #elif defined(TW_LINUX)
 			// Allocate buffer: width + height + pixels (all 32-bit)
 
@@ -1617,7 +1693,7 @@ namespace TinyWindow
 		{
 			if (icon.empty())
 			{
-				AddErrorLog(error_e::linuxInvalidIcon, __LINE__, __func__, window);
+				AddErrorLog(error_e::InvalidIcon, __LINE__, __func__, window);
 				return;
 			}
 
@@ -1629,8 +1705,73 @@ namespace TinyWindow
 			}
 
 #if defined(TW_WINDOWS)
-			AddErrorLog(error_e::functionNotImplemented, window);
-			// TODO: Implement with SetClassLongPtr or LoadIcon for Windows.
+
+			// Prepare a 32-bit BGRA DIB with alpha (top-down via negative height)
+			BITMAPV5HEADER bi = {};
+			bi.bV5Size        = sizeof(BITMAPV5HEADER);
+			bi.bV5Width       = dimensions.width;
+			bi.bV5Height      = -dimensions.height; // top-down
+			bi.bV5Planes      = 1;
+			bi.bV5BitCount    = 32;
+			bi.bV5Compression = BI_BITFIELDS;
+			bi.bV5RedMask     = 0x00FF0000;
+			bi.bV5GreenMask   = 0x0000FF00;
+			bi.bV5BlueMask    = 0x000000FF;
+			bi.bV5AlphaMask   = 0xFF000000;
+
+			void* dibBits = nullptr;
+			HDC hdc = GetDC(nullptr);
+			HBITMAP hbmColor = CreateDIBSection(hdc, reinterpret_cast<BITMAPINFO*>(&bi),
+												DIB_RGB_COLORS, &dibBits, nullptr, 0);
+			ReleaseDC(nullptr, hdc);
+			if (!hbmColor || !dibBits) {
+				//cannot create bitmap
+				if (hbmColor) DeleteObject(hbmColor);
+				return;
+			}
+			
+			// Convert ARGB -> premultiplied BGRA 
+			// Windows wants premultiplied alpha for 32bpp icons/bitmaps.
+			uint32_t* dst = static_cast<uint32_t*>(dibBits);
+			for (int i = 0; i < dimensions.width * dimensions.height; ++i) {
+				uint32_t p = icon[i];
+				uint8_t a = (uint8_t)((p >> 24) & 0xFF);
+				uint8_t r = (uint8_t)((p >> 16) & 0xFF);
+				uint8_t g = (uint8_t)((p >> 8) & 0xFF);
+				uint8_t b = (uint8_t)(p & 0xFF);
+
+				// Premultiply
+				uint32_t rp = (uint32_t)r * a / 255;
+				uint32_t gp = (uint32_t)g * a / 255;
+				uint32_t bp = (uint32_t)b * a / 255;
+
+				// BGRA in little-endian
+				dst[i] = (a << 24) | (rp << 16) | (gp << 8) | (bp);
+			}
+
+			// Create dummy monochrome mask (ignored when alpha present, but required)
+			HBITMAP hbmMask = CreateBitmap(dimensions.width, dimensions.height, 1, 1, nullptr);
+			if (!hbmMask) {
+				DeleteObject(hbmColor);
+				return; //cannot create monochrome mask
+			}
+
+			ICONINFO ii = {};
+			ii.fIcon    = FALSE;
+			ii.hbmMask  = hbmMask;
+			ii.hbmColor = hbmColor;
+			ii.xHotspot = 0;
+			ii.yHotspot = 0;
+
+			HCURSOR hCur = (HCURSOR)CreateIconIndirect(&ii);
+
+			// GDI makes its own copy; we can delete our bitmaps now
+			DeleteObject(hbmMask);
+			DeleteObject(hbmColor);
+
+			HCURSOR prev = (HCURSOR)SetClassLongPtr(window->windowHandle, GCLP_HCURSOR, (LONG_PTR)hCur);
+
+
 #elif defined(TW_LINUX)
 			// Allocate buffer: width + height + pixels (all 32-bit)
 
@@ -2486,33 +2627,41 @@ namespace TinyWindow
 
 				case WM_DROPFILES:
 					{
-						// get the number of files that were dropped
-						uint16_t numfilesDropped = DragQueryFile((HDROP)wordParam, 0xFFFFFFFF, nullptr, 0);
+						// Get the number of files that were dropped
+						uint16_t numFilesDropped = DragQueryFile((HDROP)wordParam, 0xFFFFFFFF, nullptr, 0);
 						std::vector<std::string> files;
 
-						// for each file dropped store the path
-						for (size_t fileIter = 0; fileIter < numfilesDropped; fileIter++)
+						// For each file dropped, store the path
+						for (size_t fileIter = 0; fileIter < numFilesDropped; fileIter++)
 						{
-							char file[255]			= {0};
-							uint16_t stringSize = DragQueryFile((HDROP)wordParam, (UINT)fileIter, nullptr, 0);// get the size of the string
-							DragQueryFile((HDROP)wordParam, (UINT)fileIter, (wchar_t*)file, stringSize + 1);	  // get the string itself
-							files.emplace_back(file);
-						}
-						POINT mousePoint;
-						vec2_t<int16_t> mousePosition;
-						if (DragQueryPoint((HDROP)wordParam, &mousePoint))// get the mouse position where the file was dropped
-						{
-							mousePosition = vec2_t<int16_t>(mousePoint.x, mousePoint.y);
+							// Get the size of the file path (in characters, not bytes)
+							uint16_t stringSize = DragQueryFile((HDROP)wordParam, (UINT)fileIter, nullptr, 0);
+
+							// Allocate a buffer for wide characters (Unicode)
+							std::vector<wchar_t> fileBuffer(stringSize + 1, 0); // +1 for null terminator
+
+							// Get the file path as a wide string
+							DragQueryFileW((HDROP)wordParam, (UINT)fileIter, fileBuffer.data(), stringSize + 1);
+
+							// Convert wide string (UTF-16) to std::string (UTF-8 or ANSI)
+							std::wstring wideStr(fileBuffer.data());
+							std::string narrowStr;
+							if (!wideStr.empty())
+							{
+								// Convert wstring to string
+								narrowStr = std::wstring_convert<std::codecvt_utf8<wchar_t>>().to_bytes(wideStr);
+							}
+							files.emplace_back(narrowStr);
 						}
 
-						// release the memory
+						// Release the memory
 						DragFinish((HDROP)wordParam);
 
 						if (manager->fileDropEvent != nullptr)
 						{
-							manager->fileDropEvent(window, std::move(files), mousePosition);
+							manager->fileDropEvent(window, files);
 						}
-						break;
+					break;
 					}
 
 				default:
@@ -2633,7 +2782,7 @@ namespace TinyWindow
 			dummyWindowHandle = CreateWindow(dummyClass.lpszMenuName, dummyClass.lpszClassName, WS_OVERLAPPEDWINDOW, 0, 0, 1, 1, nullptr, nullptr, nullptr, nullptr);
 			if (dummyWindowHandle == nullptr)
 			{
-				AddErrorLog(error_e::invalidDummyWindow);
+				AddErrorLog(error_e::invalidDummyWindow, __LINE__, __func__);
 			}
 
 			ShowWindow(dummyWindowHandle, SW_HIDE);
@@ -2719,12 +2868,12 @@ namespace TinyWindow
 				if (pfd.iPixelType != PFD_TYPE_RGBA)
 					continue;
 
-				formatSetting_t* setting = new formatSetting_t(pfd.cRedBits, pfd.cGreenBits, pfd.cBlueBits, pfd.cAlphaBits,
+				formatSetting_t setting = formatSetting_t(pfd.cRedBits, pfd.cGreenBits, pfd.cBlueBits, pfd.cAlphaBits,
 					pfd.cDepthBits, pfd.cStencilBits, pfd.cAccumRedBits, pfd.cAccumGreenBits, pfd.cAccumBlueBits, pfd.cAccumAlphaBits,
 					pfd.cAuxBuffers, (pfd.dwFlags & PFD_STEREO) ? true : false, (pfd.dwFlags & PFD_DOUBLEBUFFER) ? true : false);
-				setting->handle			 = num;
+				setting.handle			 = num;
 
-				formatList.push_back(std::move(setting));
+				formatList.push_back(setting);
 				numCompatible++;
 			}
 
@@ -2764,7 +2913,7 @@ namespace TinyWindow
 
 			for (auto formatIter: formatList)
 			{
-				currentFormat = formatIter;
+				currentFormat = &formatIter;
 
 				// must have the same stereoscopic setting
 				if (desiredFormat->stereo && !currentFormat->stereo)
@@ -2922,23 +3071,23 @@ namespace TinyWindow
 
 			if (!DescribePixelFormat(dummyDeviceContextHandle, bestPFDHandle, sizeof(PIXELFORMATDESCRIPTOR), &pfd))
 			{
-				AddErrorLog(error_e::invalidDummyPixelFormat);
+				AddErrorLog(error_e::invalidDummyPixelFormat, __LINE__, __func__);
 			}
 
 			if (!SetPixelFormat(dummyDeviceContextHandle, bestPFDHandle, &pfd))
 			{
-				AddErrorLog(error_e::invalidDummyPixelFormat);
+				AddErrorLog(error_e::invalidDummyPixelFormat, __LINE__, __func__);
 			}
 
 			dummyGLContextHandle = wglCreateContext(dummyDeviceContextHandle);
 			if (!dummyGLContextHandle)
 			{
-				AddErrorLog(error_e::dummyCreationFailed);
+				AddErrorLog(error_e::dummyCreationFailed, __LINE__, __func__);
 			}
 
 			if (!wglMakeCurrent(dummyDeviceContextHandle, dummyGLContextHandle))
 			{
-				AddErrorLog(error_e::dummyCannotMakeCurrent);
+				AddErrorLog(error_e::dummyCannotMakeCurrent, __LINE__, __func__);
 			}
 		}
 
@@ -2950,77 +3099,82 @@ namespace TinyWindow
 			ZeroMemory(&devMode, sizeof(DEVMODE));
 			devMode.dmSize = sizeof(DEVMODE);
 			int err		   = 0;
+
+			std::wstring wDisplayName = std::wstring(monitor->displayName.begin(), monitor->displayName.end());
+			
 			if (window->isFullscreen)
 			{
-				err = ChangeDisplaySettingsEx((wchar_t*)window->currentMonitor->displayName.c_str(), nullptr, nullptr, CDS_FULLSCREEN, nullptr);
+				err = ChangeDisplaySettingsEx(wDisplayName.c_str(), nullptr, nullptr, NULL, nullptr);
 			}
 
-			else if (monitorSettingIndex < (monitor->settings.size() - 1))
+			else if (monitorSettingIndex > 0 && monitorSettingIndex < (monitor->settings.size() - 1))
 			{
 				monitorSetting_t selectedSetting = monitor->settings[monitorSettingIndex];
-				devMode.dmPelsWidth				 = selectedSetting.resolution.width;
-				devMode.dmPelsHeight			 = selectedSetting.resolution.height;
-				devMode.dmBitsPerPel			 = window->settings.colorBits * 4;
-				devMode.dmDisplayFrequency		 = selectedSetting.displayFrequency;
-				devMode.dmFields				 = DM_PELSWIDTH | DM_PELSHEIGHT | DM_BITSPERPEL | DM_DISPLAYFREQUENCY;
-				err								 = ChangeDisplaySettingsEx((wchar_t*)window->currentMonitor->displayName.c_str(), &devMode, nullptr, CDS_FULLSCREEN, nullptr);
-			}
-			else
-			{
-				AddErrorLog(window, error_e::invalidMonitorSettingIndex, __LINE__, __FUNCTION__);
-			}
+				devMode.dmPelsWidth = selectedSetting.resolution.width;
+				devMode.dmPelsHeight = selectedSetting.resolution.height;
+				//devMode.dmBitsPerPel = window->settings.colorBits * 4;
+				devMode.dmDisplayFrequency = selectedSetting.displayFrequency;
+				devMode.dmFields = DM_PELSWIDTH | DM_PELSHEIGHT | DM_DISPLAYFREQUENCY;
+				err = ChangeDisplaySettingsExW(wDisplayName.c_str(), &devMode, nullptr, CDS_FULLSCREEN | CDS_TEST, nullptr);
 
-			switch (err)
-			{
-				case DISP_CHANGE_SUCCESSFUL:
+				switch (err)
+				{
+				case DISP_CHANGE_SUCCESSFUL: 
+				{
+					ChangeDisplaySettingsExW(wDisplayName.c_str(), &devMode, nullptr, CDS_FULLSCREEN, nullptr);
+					window->isFullscreen = !window->isFullscreen;
+					if (window->isFullscreen)
 					{
-						window->isFullscreen = !window->isFullscreen;
-						if (window->isFullscreen)
-						{
-							SetStyle(window, style_e::popup);
-						}
-						else
-						{
-							SetStyle(window, style_e::normal);
-						}
-						break;
+						SetDecorators(window, style_n::none);
 					}
+					else
+					{
+						SetDecorators(window, style_n::normal);
+					} 
+					break;
+				}
 
 				case DISP_CHANGE_BADDUALVIEW:
-					{
-						AddErrorLog(window, error_e::windowsFullscreenBadDualView, __LINE__, __FUNCTION__);
-						break;
-					}
+				{
+					AddErrorLog(error_e::windowsFullscreenBadDualView, __LINE__, __func__, window);
+					break;
+				}
 				case DISP_CHANGE_BADFLAGS:
-					{
-						AddErrorLog(window, error_e::windowsFullscreenBadFlags, __LINE__, __FUNCTION__);
-						break;
-					}
+				{
+					AddErrorLog(error_e::windowsFullscreenBadFlags, __LINE__, __func__, window);
+					break;
+				}
 				case DISP_CHANGE_BADMODE:
-					{
-						AddErrorLog(window, error_e::windowsFullscreenBadMode, __LINE__, __FUNCTION__);
-						break;
-					}
+				{
+					AddErrorLog(error_e::windowsFullscreenBadMode, __LINE__, __func__, window);
+					break;
+				}
 				case DISP_CHANGE_BADPARAM:
-					{
-						AddErrorLog(window, error_e::WindowsFullscreenBadParam, __LINE__, __FUNCTION__);
-						break;
-					}
+				{
+					AddErrorLog(error_e::WindowsFullscreenBadParam, __LINE__, __func__, window);
+					break;
+				}
 				case DISP_CHANGE_FAILED:
-					{
-						AddErrorLog(window, error_e::WindowsFullscreenChangeFailed, __LINE__, __FUNCTION__);
-						break;
-					}
+				{
+					AddErrorLog(error_e::WindowsFullscreenChangeFailed, __LINE__, __func__, window);
+					break;
+				}
 				case DISP_CHANGE_NOTUPDATED:
-					{
-						AddErrorLog(window, error_e::WindowsFullscreenNotUpdated, __LINE__, __FUNCTION__);
-						break;
-					}
+				{
+					AddErrorLog(error_e::WindowsFullscreenNotUpdated, __LINE__, __func__, window);
+					break;
+				}
 
 				default:
-					{
-						break;
-					}
+				{
+					break;
+				}
+				}
+			}
+			
+			else
+			{
+				AddErrorLog(error_e::invalidMonitorSettingIndex, __LINE__, __func__, window);
 			}
 
 			SetPosition(window, vec2_t<int16_t>((int)monitor->extents.left, (int)monitor->extents.top));
@@ -3278,70 +3432,100 @@ namespace TinyWindow
 				(wchar_t*)icon, IMAGE_ICON, (int)width, (int)height, LR_LOADFROMFILE));
 		}
 
+		std::string WideToUtf8(const wchar_t* ws)
+		{
+			if (!ws) return {};
+			int size = ::WideCharToMultiByte(CP_UTF8, 0, ws, -1, nullptr, 0, nullptr, nullptr);
+			std::string out(static_cast<size_t>(size ? size - 1 : 0), '\0');
+			if (size > 1)
+				::WideCharToMultiByte(CP_UTF8, 0, ws, -1, out.data(), size, nullptr, nullptr);
+			return out;
+		}
+
+
 		void Windows_GetScreenInfo()
 		{
-			// get display device info
-			DISPLAY_DEVICE graphicsDevice;
-			graphicsDevice.cb		  = sizeof(DISPLAY_DEVICE);
-			graphicsDevice.StateFlags = DISPLAY_DEVICE_ATTACHED_TO_DESKTOP;
-			DWORD deviceNum			  = 0;
-			DWORD monitorNum		  = 0;
-			while (EnumDisplayDevices(nullptr, deviceNum, &graphicsDevice, EDD_GET_DEVICE_INTERFACE_NAME))
-			{
-				// get monitor info for the current display device
-				DISPLAY_DEVICE monitorDevice = {0};
-				monitorDevice.cb			 = sizeof(DISPLAY_DEVICE);
-				monitorDevice.StateFlags	 = DISPLAY_DEVICE_ATTACHED_TO_DESKTOP;
-				monitor_t* monitor			 = nullptr;
+		    for (uint16_t deviceNum = 0;; deviceNum++)
+		    {
+		        DISPLAY_DEVICEW graphicsDevice{};
+		        graphicsDevice.cb = sizeof(DISPLAY_DEVICEW);
 
-				// if it has children add them to the list, else, ignore them since those
-				// are only POTENTIAL monitors/devices
-				while (EnumDisplayDevices(graphicsDevice.DeviceName, monitorNum, &monitorDevice, EDD_GET_DEVICE_INTERFACE_NAME))
-				{
-					std::wstring wDeviceName(graphicsDevice.DeviceName);
-					std::string deviceName(wDeviceName.begin(), wDeviceName.end());
+		        if (EnumDisplayDevicesW(nullptr, deviceNum, &graphicsDevice, 0) == false)
+		        {
+		        	//no devices found
+		        	AddErrorLog(error_e::Windows_NoDisplayDevicesFound, __LINE__, __func__);
+			        break;
+		        }
 
-					std::wstring wDeviceString(graphicsDevice.DeviceString);
-					std::string deviceString(wDeviceString.begin(), wDeviceString.end());
+		        // Enumerate monitors of the display adapter
+		        for (uint16_t monitorNum = 0; ; monitorNum++)
+		        {
+		            DISPLAY_DEVICEW monitorDevice{};
+		            monitorDevice.cb = sizeof(DISPLAY_DEVICEW);
 
-					std::wstring wMonitorString(monitorDevice.DeviceString);
-					std::string monitorString(wMonitorString.begin(), wMonitorString.end());
+		            if (EnumDisplayDevicesW(graphicsDevice.DeviceName, monitorNum, &monitorDevice, 0) == false)
+		            {
+			            // no more monitors
+		                break;
+		            }
 
+		            if ((monitorDevice.StateFlags & DISPLAY_DEVICE_ATTACHED_TO_DESKTOP) == false)
+		            {
+		            	//display not attached to device. keep looking
+		            	continue;
+		            }
 
-					monitor = new monitor_t(deviceName, deviceString, monitorString, (graphicsDevice.StateFlags | DISPLAY_DEVICE_PRIMARY_DEVICE) ? true : false);
-					// get current display mode
-					DEVMODE devmode;
-					// get all display modes
-					uint16_t modeIndex = UINT_MAX;
-					while (EnumDisplaySettings(graphicsDevice.DeviceName, modeIndex, &devmode))
-					{
-						// get the current settings of the display
-						if (modeIndex == ENUM_CURRENT_SETTINGS)
-						{
-							monitor->currentSetting				 = monitorSetting_t(vec2_t<uint16_t>(devmode.dmPelsWidth, devmode.dmPelsHeight), devmode.dmDisplayFrequency);
-							monitor->currentSetting.displayFlags = devmode.dmDisplayFlags;
-							monitor->currentSetting.fixedOutput	 = devmode.dmDisplayFixedOutput;
-						}
-						// get the settings that are stored in the registry
-						else
-						{
-							monitorSetting_t* newSetting = new monitorSetting_t(vec2_t<uint16_t>(devmode.dmPelsWidth, devmode.dmPelsHeight), devmode.dmDisplayFrequency);
-							newSetting->displayFlags	 = devmode.dmDisplayFlags;
-							newSetting->fixedOutput		 = devmode.dmDisplayFixedOutput;
-							monitor->settings.insert(monitor->settings.begin(), *std::move(newSetting));
-						}
-						modeIndex++;
-					}
-					monitorList.push_back(*std::move(monitor));
-					monitorNum++;
-					monitorDevice.StateFlags = DISPLAY_DEVICE_ATTACHED_TO_DESKTOP;
-				}
-				deviceNum++;
-				monitorNum = 0;
-			}
-			// this is just to grab the monitor extents
-			EnumDisplayMonitors(nullptr, nullptr, MonitorEnumProcedure, (LPARAM)this);
+		            // Convert names to UTF-8 (or keep wstring)
+		            std::string deviceName = WideToUtf8(graphicsDevice.DeviceName);
+		            std::string deviceString = WideToUtf8(graphicsDevice.DeviceString);
+		            std::string monitorString = WideToUtf8(monitorDevice.DeviceString);
+
+		            const bool isPrimary = (graphicsDevice.StateFlags & DISPLAY_DEVICE_PRIMARY_DEVICE) != 0;
+		        	
+		            monitor_t mon(deviceName, deviceString, monitorString, isPrimary);
+		            // Get current settings
+		            {
+		                DEVMODEW dm{};
+		                dm.dmSize = sizeof(DEVMODEW);
+		                if (EnumDisplaySettingsW(graphicsDevice.DeviceName, ENUM_CURRENT_SETTINGS, &dm))
+		                {
+		                    mon.currentSetting = monitorSetting_t(
+		                        vec2_t<uint16_t>(static_cast<uint16_t>(dm.dmPelsWidth),
+		                                         static_cast<uint16_t>(dm.dmPelsHeight)),
+		                        static_cast<uint16_t>(dm.dmDisplayFrequency));
+		                    mon.currentSetting.displayFlags = dm.dmDisplayFlags;
+		                    mon.currentSetting.fixedOutput  = dm.dmDisplayFixedOutput;
+		                }
+		            }
+
+		            // Enumerate available modes
+		            for (DWORD modeNum = 0;; ++modeNum)
+		            {
+		                DEVMODEW dm{};
+		                dm.dmSize = sizeof(DEVMODEW);
+		                if (!EnumDisplaySettingsW(graphicsDevice.DeviceName, modeNum, &dm))
+		                {
+		                	//out of modes
+		                	break;
+		                }
+		            	
+		                monitorSetting_t setting(
+		                    vec2_t<uint16_t>(static_cast<uint16_t>(dm.dmPelsWidth),
+		                                     static_cast<uint16_t>(dm.dmPelsHeight)),
+		                    static_cast<uint16_t>(dm.dmDisplayFrequency));
+		                setting.displayFlags = dm.dmDisplayFlags;
+		                setting.fixedOutput  = dm.dmDisplayFixedOutput;
+
+                        //treat like a queue
+                        mon.settings.insert(mon.settings.begin(), setting);
+		            }
+
+		        	//ass the monitor in the list
+		            monitorList.push_back(mon);
+		        }
+		    }
 		}
+
 
 		bool Windows_ExtensionSupported(const char* extensionName)
 		{
@@ -3387,7 +3571,7 @@ namespace TinyWindow
 			wglGetExtensionsStringEXT = (PFNWGLGETEXTENSIONSSTRINGEXTPROC)wglGetProcAddress("wglGetExtensionsStringEXT");
 			if (wglGetExtensionsStringARB == nullptr && wglGetExtensionsStringEXT == nullptr)
 			{
-				AddErrorLog(error_e::noExtensions);
+				AddErrorLog(error_e::noExtensions, __LINE__, __func__);
 			}
 			wglChoosePixelFormatARB	   = (PFNWGLCHOOSEPIXELFORMATARBPROC)wglGetProcAddress("wglChoosePixelFormatARB");
 			wglChoosePixelFormatEXT	   = (PFNWGLCHOOSEPIXELFORMATEXTPROC)wglGetProcAddress("wglChoosePixelFormatEXT");
@@ -3430,12 +3614,12 @@ namespace TinyWindow
 					{
 						case ERROR_INVALID_VERSION_ARB:
 							{
-								AddErrorLog(window, error_e::invalidVersion, __LINE__, __FUNCTION__);
+								AddErrorLog(error_e::invalidVersion, __LINE__, __func__, window);
 							}
 
 						case ERROR_INVALID_PROFILE_ARB:
 							{
-								AddErrorLog(window, error_e::invalidProfile, __LINE__, __FUNCTION__);
+								AddErrorLog(error_e::invalidProfile, __LINE__, __func__, window);
 							}
 					}
 				}
@@ -3453,7 +3637,7 @@ namespace TinyWindow
 
 			if (!window->contextCreated)
 			{
-				AddErrorLog(window, error_e::invalidContext, __LINE__, __FUNCTION__);
+				AddErrorLog(error_e::invalidContext, __LINE__, __func__, window);
 			}
 		}
 
