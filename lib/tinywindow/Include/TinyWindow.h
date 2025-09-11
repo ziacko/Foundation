@@ -572,6 +572,7 @@ namespace TinyWindow
 	enum class error_e
 	{
 		InvalidIcon, /**< invalid icon data */
+
 		noExtensions, /**< If platform-specific window extensions have not been properly loaded */
 		windowInvalid, /**< If the window given was invalid */
 		invalidContext, /**< If the OpenGL context for the window is invalid */
@@ -583,6 +584,7 @@ namespace TinyWindow
 		invalidTitlebar, /**< If the Title-bar text given was invalid */
 		invalidCallback, /**< If the given event callback was invalid */
 		invalidInterval, /**< If a window swap interval setting is invalid */
+		moveWindowFailed, /**< If the window cannot be moved */
 		fullscreenFailed, /**< If setting the window to fullscreen has failed */
 		invalidExtension, /**< If a platform-specific window extension is not supported */
 		invalidDimensions, /**< If the provided dimensions are invalid */
@@ -596,6 +598,7 @@ namespace TinyWindow
 		dummyCreationFailed, /**< If the dummy context has failed to be created */
 		invalidDummyContext, /**< If the dummy context in invalid */
 		cannotCreateCurrent, /**< cannot make context current */
+
 		dummyCannotMakeCurrent, /**< If the dummy cannot be made the current context */
 		functionNotImplemented, /**< If the function has not yet been implemented in the current version of the API */
 		invalidDummyPixelFormat, /**< If the pixel format for the dummy context id invalid */
@@ -645,6 +648,7 @@ namespace TinyWindow
 		errorEntry(error_e::invalidInterval, "Error: invalid swap interval setting"),
 		errorEntry(error_e::invalidTitlebar, "Error: invalid title bar name (cannot be null or nullptr)"),
 		errorEntry(error_e::invalidIconPath, "Error: invalid icon path"),
+		errorEntry(error_e::moveWindowFailed, "Error: failed to move window"),
 		errorEntry(error_e::fullscreenFailed, "Error: failed to enter fullscreen mode"),
 		errorEntry(error_e::invalidExtension, "Error: Platform specific extension is not valid"),
 		errorEntry(error_e::invalidDimensions, "Error: invalid window dimensions"),
@@ -1097,15 +1101,8 @@ namespace TinyWindow
 			                          screenMousePosition.x, screenMousePosition.y);
 			XFlush(currentDisplay);
 
-			auto test = XDefaultRootWindow(currentDisplay);
-
-			printf("%i \n", test);
-
 			if (result != Success)
 			{
-				char errorText[256];
-				XGetErrorText(currentDisplay, result, errorText, sizeof(errorText));
-				printf("%s \n", errorText);
 				AddErrorLog(error_e::linuxCannotSetMouseScreenPosition, __LINE__, __func__);
 			}
 
@@ -1289,7 +1286,7 @@ namespace TinyWindow
 		/**
 		* Set the Position of the given window relative to screen co-ordinates
 		*/
-		void SetPosition(tWindow* window, vec2_t<int16_t> newPosition) const //lol, sure
+		void SetPosition(tWindow* window, vec2_t<int16_t> newPosition)
 		{
 			window->previousPosition = window->position;
 			window->position = newPosition;
@@ -1304,6 +1301,11 @@ namespace TinyWindow
 			windowChanges.y = newPosition.y;
 
 			int result = XConfigureWindow(currentDisplay, window->windowHandle, CWX | CWY, &windowChanges);
+
+			if (result != Success)
+			{
+				AddErrorLog(error_e::moveWindowFailed, __LINE__, __func__, window);
+			}
 #endif
 
 			//TODO: add code for error handling
@@ -1402,17 +1404,17 @@ namespace TinyWindow
 #if defined(TW_WINDOWS)
 				ShowWindow(window->windowHandle, SW_MAXIMIZE);
 #elif defined(TW_LINUX)
-				XEvent currentEvent = {};
+				XEvent localEvent = {};
 
-				currentEvent.xany.type = ClientMessage;
-				currentEvent.xclient.message_type = window->AtomState;
-				currentEvent.xclient.format = 32;
-				currentEvent.xclient.window = window->windowHandle;
-				currentEvent.xclient.data.l[0] = true;
-				currentEvent.xclient.data.l[1] = (long)window->AtomStateMaximizedVert;
-				currentEvent.xclient.data.l[2] = (long)window->AtomStateMaximizedVert;
+				localEvent.xany.type = ClientMessage;
+				localEvent.xclient.message_type = window->AtomState;
+				localEvent.xclient.format = 32;
+				localEvent.xclient.window = window->windowHandle;
+				localEvent.xclient.data.l[0] = true;
+				localEvent.xclient.data.l[1] = (long)window->AtomStateMaximizedVert;
+				localEvent.xclient.data.l[2] = (long)window->AtomStateMaximizedVert;
 
-				XSendEvent(currentDisplay, window->windowHandle, 0, SubstructureNotifyMask, &currentEvent);
+				XSendEvent(currentDisplay, window->windowHandle, 0, SubstructureNotifyMask, &localEvent);
 #endif
 			}
 			else
@@ -1421,17 +1423,17 @@ namespace TinyWindow
 #if defined(TW_WINDOWS)
 				ShowWindow(window->windowHandle, SW_RESTORE);
 #elif defined(TW_LINUX)
-				XEvent currentEvent = {};
+				XEvent localEvent = {};
 
-				currentEvent.xany.type = ClientMessage;
-				currentEvent.xclient.message_type = window->AtomState;
-				currentEvent.xclient.format = 32;
-				currentEvent.xclient.window = window->windowHandle;
-				currentEvent.xclient.data.l[0] = false;
-				currentEvent.xclient.data.l[1] = (long)window->AtomStateMaximizedVert;
-				currentEvent.xclient.data.l[2] = (long)window->AtomStateMaximizedVert;
+				localEvent.xany.type = ClientMessage;
+				localEvent.xclient.message_type = window->AtomState;
+				localEvent.xclient.format = 32;
+				localEvent.xclient.window = window->windowHandle;
+				localEvent.xclient.data.l[0] = false;
+				localEvent.xclient.data.l[1] = (long)window->AtomStateMaximizedVert;
+				localEvent.xclient.data.l[2] = (long)window->AtomStateMaximizedVert;
 
-				XSendEvent(currentDisplay, window->windowHandle, 0, SubstructureNotifyMask, &currentEvent);
+				XSendEvent(currentDisplay, window->windowHandle, 0, SubstructureNotifyMask, &localEvent);
 #endif
 			}
 		}
@@ -1455,17 +1457,16 @@ namespace TinyWindow
 
 #elif defined(TW_LINUX)
 
-			XEvent currentEvent;
-			memset(&currentEvent, 0, sizeof(currentEvent));
+			XEvent localEvent = {};
 
-			currentEvent.xany.type = ClientMessage;
-			currentEvent.xclient.message_type = window->AtomState;
-			currentEvent.xclient.format = 32;
-			currentEvent.xclient.window = window->windowHandle;
-			currentEvent.xclient.data.l[0] = window->settings.currentState == state_e::fullscreen;
-			currentEvent.xclient.data.l[1] = (long)window->AtomFullScreen;
+			localEvent.xany.type = ClientMessage;
+			localEvent.xclient.message_type = window->AtomState;
+			localEvent.xclient.format = 32;
+			localEvent.xclient.window = window->windowHandle;
+			localEvent.xclient.data.l[0] = window->settings.currentState == state_e::fullscreen;
+			localEvent.xclient.data.l[1] = (long)window->AtomFullScreen;
 
-			XSendEvent(currentDisplay, window->windowHandle, 0, SubstructureNotifyMask, &currentEvent);
+			XSendEvent(currentDisplay, window->windowHandle, 0, SubstructureNotifyMask, &localEvent);
 
 			//put a error handling path here
 #endif
@@ -3812,8 +3813,8 @@ namespace TinyWindow
 			glXGetFBConfigAttrib(window->currentDisplay, window->settings.bestFBConfig, GLX_DEPTH_SIZE, &depthBits);
 			glXGetFBConfigAttrib(window->currentDisplay, window->settings.bestFBConfig, GLX_BUFFER_SIZE, &totalBits);
 
-			printf("red: %i green: %i blue: %i \n", redBits, greenBits, blueBits);
-			printf("alpha: %i depth: %i totalBits %i \n", alphaBits, depthBits, totalBits);
+			//printf("red: %i green: %i blue: %i \n", redBits, greenBits, blueBits);
+			//printf("alpha: %i depth: %i totalBits %i \n", alphaBits, depthBits, totalBits);
 #endif
 
 			if (!window->visualInfo)
@@ -4213,7 +4214,7 @@ namespace TinyWindow
 				{
 					if (window != nullptr)
 					{
-						const char* atomName = XGetAtomName(currentDisplay, inEvent.xclient.message_type);
+						//const char* atomName = XGetAtomName(currentDisplay, inEvent.xclient.message_type);
 						//printf("%s \n", atomName);
 						if (inEvent.xclient.message_type == window->AtomXDNDDrop)
 						{
@@ -4246,7 +4247,7 @@ namespace TinyWindow
 			}
 		}
 
-		void HandleDroppedFiles(tWindow* window, XEvent& inEvent)
+		void HandleDroppedFiles(tWindow* window, XEvent& inEvent) const
 		{
 			// Request the dropped data
 			Atom actualType;
@@ -4292,14 +4293,14 @@ namespace TinyWindow
 				if (actualType == window->AtomXDNDTextUriList && data != nullptr)
 				{
 					// Process the URI list
-					char* uriList = (char*)data;
+					char* uriListBuffer = (char*)data;
 #if (DEBUG)
-					printf("Dropped URIs:\n%s\n", uriList);
+					//printf("Dropped URIs:\n%s\n", uriList);
 #endif
 
 					// Parse the URI list (split by newlines)
 					std::vector<std::string> files;
-					std::istringstream stream(uriList);
+					std::istringstream stream(uriListBuffer);
 					std::string uri;
 					while (std::getline(stream, uri))
 					{
@@ -4392,14 +4393,6 @@ namespace TinyWindow
 			return keySymbol;
 		}
 
-		void Linux_SetWindowIcon(tWindow* window)
-		{
-			/*std::unique_ptr<window_t> window, const char*
-				icon, uint16_t width, uint16_t height */
-			// sorry :(
-			AddErrorLog(error_e::linuxFunctionNotImplemented, __LINE__, __func__, window);
-		}
-
 		void Linux_InitExtensions()
 		{
 			glXCreateContextAttribsARB = (PFNGLXCREATECONTEXTATTRIBSARBPROC)glXGetProcAddressARB(
@@ -4458,16 +4451,15 @@ namespace TinyWindow
 
 				glXGetFBConfigAttrib(window->currentDisplay, configs[configIndex], GLX_STENCIL_SIZE, &stencilSize);
 				glXGetFBConfigAttrib(window->currentDisplay, configs[configIndex], GLX_SAMPLES, &numSamples);
-				glXGetFBConfigAttrib(window->currentDisplay, configs[configIndex], GLX_SAMPLE_BUFFERS,
-				                     &numSampleBuffers);
+				glXGetFBConfigAttrib(window->currentDisplay, configs[configIndex], GLX_SAMPLE_BUFFERS, &numSampleBuffers);
 
 #if defined(DEBUG)
-				printf("Config %d: R:%d G:%d B:%d A:%d \n", configIndex, r, g, b, a);
+				/*printf("Config %d: R:%d G:%d B:%d A:%d \n", configIndex, r, g, b, a);
 				printf("stencil size: %i \n", stencilSize);
 
 				printf("Bits per pixel: %i \n", visualInfo->bits_per_rgb);
 				printf("depth: %i \n", visualInfo->depth);
-				printf("color depth %i \n", visualInfo->colormap_size);
+				printf("color depth %i \n", visualInfo->colormap_size);*/
 #endif
 
 				//now from this point how we get the best configs to use?
@@ -4733,7 +4725,7 @@ namespace TinyWindow
 			}
 		}
 
-		void Linux_ToggleFullscreen(tWindow* window, monitor_t* monitor, const uint16_t& monitorSettingIndex) const
+		void Linux_ToggleFullscreen(tWindow* window, monitor_t* monitor, const uint16_t& monitorSettingIndex)
 		{
 			// set window position and change style to popup
 			window->currentMonitor = monitor;
@@ -4880,9 +4872,9 @@ namespace TinyWindow
 				}
 				if (data) XFree(data); // Free after extracting pairs
 
-				for (uint8_t i = 0; i < propPairs.size(); i++)
+				for (uint8_t propIter = 0; propIter < propPairs.size(); propIter++)
 				{
-					int localResult = XGetWindowProperty(currentDisplay, window->windowHandle, propPairs[i].second, 0,
+					int localResult = XGetWindowProperty(currentDisplay, window->windowHandle, propPairs[propIter].second, 0,
 					                                     LONG_MAX / 4, False,
 					                                     AnyPropertyType, &actualType, &actualFormat, &nitems,
 					                                     &bytesAfter, &data);

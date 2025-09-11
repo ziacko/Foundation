@@ -8,27 +8,27 @@ bool spacePressed = false;
 bool shouldQuit = false;
 void HandleKeyPresses(const tWindow* window, const unsigned int key, const keyState_e keyState)
 {
-	const auto& windowSetings = window->GetSettings();
+	const auto& windowSettings = window->GetSettings();
 	if(keyState == keyState_e::down)
 	{
 		switch (key)
 		{
 			case spacebar:
 			{
-				printf("Window: %s | spacebar has been pressed \n", windowSetings.name.c_str());
+				printf("Window: %s | spacebar has been pressed \n", windowSettings.name.c_str());
 				spacePressed = true;
 				break;
 			}
 
 		case leftShift:
 				{
-					printf("Window: %s | left shift has been pressed \n", windowSetings.name.c_str());
+					printf("Window: %s | left shift has been pressed \n", windowSettings.name.c_str());
 					break;
 				}
 
 			case rightShift:
 				{
-					printf("Window: %s | right shift has been pressed \n", windowSetings.name.c_str());
+					printf("Window: %s | right shift has been pressed \n", windowSettings.name.c_str());
 					break;
 				}
 
@@ -36,7 +36,7 @@ void HandleKeyPresses(const tWindow* window, const unsigned int key, const keySt
 			{
 				if (key < 255)
 				{
-					printf("Window: %s | %c | down\n", windowSetings.name.c_str(), key);
+					printf("Window: %s | %c | down\n", windowSettings.name.c_str(), key);
 				}
 				break;
 			}
@@ -49,7 +49,7 @@ void HandleKeyPresses(const tWindow* window, const unsigned int key, const keySt
 		{
 			case escape:
 			{
-				printf("Window: %s | escape has been pressed \n", windowSetings.name.c_str());
+				printf("Window: %s | escape has been pressed \n", windowSettings.name.c_str());
 				shouldQuit = true;
 				break;
 			}
@@ -57,7 +57,7 @@ void HandleKeyPresses(const tWindow* window, const unsigned int key, const keySt
 			{
 				if (key < 255)
 				{
-					printf("Window: %s | %c | up\n", windowSetings.name.c_str(), key);
+					printf("Window: %s | %c | up\n", windowSettings.name.c_str(), key);
 				}
 				break;
 			}
@@ -67,14 +67,14 @@ void HandleKeyPresses(const tWindow* window, const unsigned int key, const keySt
 
 void HandleMouseClick(const tWindow* window, const mouseButton_e button, const buttonState_e state)
 {
-	auto windowSetings = window->GetSettings();
+	auto windowSettings = window->GetSettings();
 	switch (button)
 	{
 	case mouseButton_e::left:
 	{
 		if (state == buttonState_e::down)
 		{
-			printf("Window: %s | left button down \n", windowSetings.name.c_str());
+			printf("Window: %s | left button down \n", windowSettings.name.c_str());
 		}
 		break;
 	}
@@ -83,7 +83,7 @@ void HandleMouseClick(const tWindow* window, const mouseButton_e button, const b
 	{
 		if (state == buttonState_e::down)
 		{
-			printf("Window: %s | middle button down \n", windowSetings.name.c_str());
+			printf("Window: %s | middle button down \n", windowSettings.name.c_str());
 		}
 		break;
 	}
@@ -92,7 +92,7 @@ void HandleMouseClick(const tWindow* window, const mouseButton_e button, const b
 	{
 		if (state == buttonState_e::down)
 		{
-			printf("Window: %s | right button down \n", windowSetings.name.c_str());
+			printf("Window: %s | right button down \n", windowSettings.name.c_str());
 		}
 		break;
 	}
@@ -124,18 +124,18 @@ void HandleMouseClick(const tWindow* window, const mouseButton_e button, const b
 
 void HandleMouseWheel(const tWindow* window, const mouseScroll_e mouseScrollDirection)
 {
-	auto windowSetings = window->GetSettings();
+	auto windowSettings = window->GetSettings();
 	switch (mouseScrollDirection)
 	{
 		case mouseScroll_e::down:
 		{
-			printf("Window: %s | mouse wheel down \n", windowSetings.name.c_str());
+			printf("Window: %s | mouse wheel down \n", windowSettings.name.c_str());
 			break;
 		}
 
 		case mouseScroll_e::up:
 		{
-			printf("Window: %s | mouse wheel up \n", windowSetings.name.c_str());
+			printf("Window: %s | mouse wheel up \n", windowSettings.name.c_str());
 			break;
 		}
 	}
@@ -196,7 +196,7 @@ void HandleManagerErrors(const std::string& newError)
 	printf("%s \n", newError.c_str());
 }
 
-void PrintMonitorInfo(windowManager* manager)
+void PrintMonitorInfo(const windowManager* manager)
 {
 	for (const auto& monitorIter : manager->GetMonitors())
 	{
@@ -291,7 +291,7 @@ int main()
 			//manager->ToggleFullscreen(window.get(), &manager->GetMonitors().at(0), 2);
 			clipboard_e clipType;
 			auto strings = manager->GetClipboardLatest(window.get(), clipType);
-			if (strings.size() > 0)
+			if (strings.empty() == false)
 			{
 				switch (clipType)
 				{
