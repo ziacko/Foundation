@@ -6,6 +6,7 @@ using namespace TinyWindow;
 
 bool spacePressed = false;
 bool shouldQuit = false;
+int spacePresses = 0;
 void HandleKeyPresses(const tWindow* window, const unsigned int key, const keyState_e keyState)
 {
 	const auto& windowSettings = window->GetSettings();
@@ -281,15 +282,18 @@ int main()
 	//printf("%s \n", manager->GetClipboardInfo().c_str());
 	glClearColor(0.25f, 0.25f, 0.25f, 1.0f);
 
+	manager->ToggleFullscreenMode(window.get(), fullscreenMode_e::borderless, &manager->GetMonitors().at(0));
+
 	while (window->GetShouldClose() == false)
 	{
 		manager->PollForEvents();
 		//HandleGamepadState(manager->GetGamepads()[0]);
 		if (spacePressed == true)
 		{
+			spacePresses++;
 			//window->SetWindowSize(vec2_t<unsigned int>(manager->GetMonitors().back()->resolution.width, manager->GetMonitors().back()->resolution.height));
 			//manager->ToggleFullscreen(window.get(), &manager->GetMonitors().at(0), 2);
-			clipboard_e clipType;
+			/*clipboard_e clipType;
 			auto strings = manager->GetClipboardLatest(window.get(), clipType);
 			if (strings.empty() == false)
 			{
@@ -311,11 +315,12 @@ int main()
 					}
 				default: break;
 				}
-			}
+			}*/
 
 			//manager->SetMousePositionInScreen(vec2_t<int32_t>(500, 500), manager->GetMonitors().back());
 			//manager->SetCursorIcon(window.get(), iconData, iconDimensions);
 
+			manager->ToggleFullscreenMode(window.get(), fullscreenMode_e::windowed, &manager->GetMonitors().at(0));
 			//manager->SetDecorators(window.get(), style_n::bare);
 			//manager->DisableDecorators(window.get(), decorator_e::titleBar | decorator_e::icon);
 			//manager->SetTitleBar(window.get(), "poopoo");

@@ -551,6 +551,7 @@ namespace TinyWindow
 		maximizeButton	= 1L << 5, /**< The maximize button decoration pf the window */
 		closeButton		= 1L << 6, /**< The close button decoration of the window */
 		sizeableBorder	= 1L << 7, /**< The sizable border decoration of the window */
+		movable			= 1L << 8, /**< Can the window be moved? */
 	};
 
 	enum class clipboard_e
@@ -565,9 +566,9 @@ namespace TinyWindow
 		/**< The window has no decorators */
 		constexpr uint32_t none = 0;
 		/**< The window has no decorators but the window border and title bar */
-		constexpr uint32_t bare = titleBar | border;
+		constexpr uint32_t bare = titleBar | border | movable;
 		/**< The default window style for the respective platform */
-		constexpr uint32_t normal = titleBar | border | closeButton | minimizeButton | maximizeButton | sizeableBorder;
+		constexpr uint32_t normal = titleBar | border | closeButton | minimizeButton | maximizeButton | sizeableBorder | movable;
 
 	}
 
@@ -580,6 +581,7 @@ namespace TinyWindow
 		notInitialized,				/**< If the window is being used without being initialized */
 		invalidVersion,				/**< If an invalid OpenGL version is being used */
 		invalidProfile,				/**< If an invalid OpenGL profile is being used */
+		invalidMonitor,				/**< If the provided monitor is invalid */
 		invalidIconPath,			/**< If an invalid icon path was given */
 		existingContext,			/**< If the window already has an OpenGL context */
 		invalidTitlebar,			/**< If the Title-bar text given was invalid */
@@ -599,10 +601,12 @@ namespace TinyWindow
 		dummyCreationFailed,		/**< If the dummy context has failed to be created */
 		invalidDummyContext,		/**< If the dummy context in invalid */
 		cannotCreateCurrent,		/**< If the context cannot be made the current one */
+		fullscreenModeInvalid,		/**< If the provided fullscreen mode is invalid */
 		dummyCannotMakeCurrent,		/**< If the dummy cannot be made the current context */
-		functionNotImplemented,		/**< If the function has not yet been implemented in the current version of the API */
+		functionNotImplemented,		/**< If the function has not yet been implemented in the current version of the library */
 		invalidDummyPixelFormat,	/**< If the pixel format for the dummy context id invalid */
 		invalidMonitorSettingIndex,	/**< If the provided monitor setting index is invalid */
+		invalidFullscreenMode,		/**< If the provided fullscreen mode is invalid */
 
 		//Linux
 		linuxNoHDRConfig,					/**< Linux: cannot find HDR compatible FBConfig */
@@ -610,7 +614,7 @@ namespace TinyWindow
 		linuxInvalidVisualinfo,				/**< Linux: If visual information given was invalid */
 		linuxCannotCreateWindow,			/**< Linux: When X11 fails to create a new window */
 		linuxCannotConnectXServer,			/**< Linux: If cannot connect to an X11 server */
-		linuxFunctionNotImplemented,		/**< Linux: When the function has not yet been implemented on the Linux in the current version of the API */
+		linuxFunctionNotImplemented,		/**< Linux: When the function has not yet been implemented on the Linux in the current version of the library */
 		linuxCannotCreateDummyContext,		/**< Linux: if a dummy OpenGL context cannot be created */
 		linuxCannotCreateAdvancedContext,	/**< Linux: cannot create advanced context */
 		linuxCannotSetMouseScreenPosition,	/**< Linux: cannot set mouse position in screen */
@@ -639,6 +643,7 @@ namespace TinyWindow
 		errorEntry(error_e::invalidProfile,				"Error: invalid OpenGL profile"),
 		errorEntry(error_e::invalidContext,				"Error: Failed to create OpenGL context"),
 		errorEntry(error_e::notInitialized,				"Error: Window manager not initialized"),
+		errorEntry(error_e::invalidMonitor,				"Error: invalid monitor"),
 		errorEntry(error_e::existingContext,				"Error: context already created"),
 		errorEntry(error_e::invalidCallback,				"Error: invalid event callback given"),
 		errorEntry(error_e::invalidInterval,				"Error: invalid swap interval setting"),
@@ -658,6 +663,8 @@ namespace TinyWindow
 		errorEntry(error_e::invalidDummyContext,			"Error: the dummy context in invalid"),
 		errorEntry(error_e::dummyCreationFailed,			"Error: the dummy context has failed to be created"),
 		errorEntry(error_e::cannotCreateCurrent,			"Error: the context cannot be made current"),
+		errorEntry(error_e::fullscreenModeInvalid,			"Error: the provided fullscreen mode is invalid"),
+		errorEntry(error_e::invalidFullscreenMode,			"Error: invalid fullscreen mode"),
 		errorEntry(error_e::dummyCannotMakeCurrent,		"Error: the dummy cannot be made the current context"),
 		errorEntry(error_e::functionNotImplemented,		"Error: I'm sorry but this function has not been implemented yet"),
 		errorEntry(error_e::invalidDummyPixelFormat,		"Error: the pixel format for the dummy context is invalid"),
@@ -771,49 +778,49 @@ namespace TinyWindow
 		using mouseButton_c = std::function<void(const tWindow* window, const mouseButton_e& mouseButton, const buttonState_e& buttonState)>;
 
 	public:
-		const bool& GetIsFocused() const						{ return inFocus; }
-		const keyState_e* GetKeyState() const					{ return keys; }
-		vec2_t<int16_t> GetPosition() const						{ return position; }
-		const bool& GetShouldClose() const						{ return shouldClose; }
-		const bool& GetIsFullscreen() const						{ return isFullscreen; }
-		const bool& GetIsInitialized() const					{ return initialized; }
-		const windowSetting_t& GetSettings() const				{ return settings; }
-		const uint32_t& GetCurrentStyle() const					{ return currentStyle; }
-		const bool& GetContextCreated() const					{ return contextCreated; }
-		const bool& GetIsCurrentContext() const					{ return isCurrentContext; }
-		const monitor_t* GetCurrentMonitor() const				{ return currentMonitor; }
-		const buttonState_e* GetMouseButtonState() const		{ return mouseButton; }
-		const vec2_t<int16_t>& GetMousePosition() const			{ return mousePosition; }
-		const uint16_t& GetCurrentScreenIndex() const			{ return currentScreenIndex; }
-		const vec2_t<int16_t>& GetPreviousPosition() const		{ return previousPosition; }
-		const vec2_t<uint16_t>& GetPreviousDimensions() const	{ return previousDimensions; }
-		const vec2_t<int16_t>& GetPreviousMousePosition() const	{ return previousMousePosition; }
+		const bool& GetIsFocused() const							{ return inFocus; }
+		const keyState_e* GetKeyState() const						{ return keys; }
+		vec2_t<int16_t> GetPosition() const							{ return position; }
+		const bool& GetShouldClose() const							{ return shouldClose; }
+		const bool& GetIsInitialized() const						{ return initialized; }
+		const windowSetting_t& GetSettings() const					{ return settings; }
+		const uint32_t& GetCurrentStyle() const						{ return currentStyle; }
+		const bool& GetContextCreated() const						{ return contextCreated; }
+		const bool& GetIsCurrentContext() const						{ return isCurrentContext; }
+		const monitor_t* GetCurrentMonitor() const					{ return currentMonitor; }
+		const buttonState_e* GetMouseButtonState() const			{ return mouseButton; }
+		const vec2_t<int16_t>& GetMousePosition() const				{ return mousePosition; }
+		const uint16_t& GetCurrentScreenIndex() const				{ return currentScreenIndex; }
+		const vec2_t<int16_t>& GetPreviousPosition() const			{ return previousPosition; }
+		const vec2_t<uint16_t>& GetPreviousDimensions() const		{ return previousDimensions; }
+		const vec2_t<int16_t>& GetPreviousMousePosition() const		{ return previousMousePosition; }
+		const fullscreenMode_e& GetCurrentFullscreenMode() const	{ return currentFullscreenMode; }
+		const fullscreenMode_e& GetPreviousFullscreenMode() const	{ return previousFullscreenMode; }
 
 		void SetShouldClose(const bool& inShouldClose) { shouldClose = inShouldClose; }
 
 	private:
-		bool inFocus;							/**< Whether the Window is currently in focus(if it is the current window be used) */
-		bool shouldClose;						/**< Whether the Window should be closing */
-		bool initialized;						/**< Whether the window has been successfully initialized */
-		bool isFullscreen;						/**< Whether the window is currently in fullscreen mode */
-		bool contextCreated;					/**< Whether the OpenGL context has been successfully created */
-		bool isCurrentContext;					/**< Whether the window is the current window being drawn to */
-		uint32_t currentStyle;					/**< The current style of the window */
-		uint32_t previousStyle;					/**< The previous style of the window (for restoration) */
-		keyState_e keys[last];					/**< Record of keys that are either pressed or released in the respective window */
-		vec2_t<int16_t> position;				/**< Position of the Window relative to the screen co-ordinates */
-		windowSetting_t settings;				/**< List of User-defined settings for this windowS */
-		monitor_t* currentMonitor;				/**< The monitor that the window is currently rendering to */
-		uint16_t currentScreenIndex;			/**< The Index of the screen currently being rendered to (fullscreen) */
-		vec2_t<int16_t> mousePosition;			/**< Position of the Mouse cursor relative to the window co-ordinates */
-		vec2_t<int16_t> previousPosition;		/**< Previous position of the window before being set as Fullscreen */
-		vec2_t<uint16_t> previousDimensions;	/**< Previous dimensions of the window before being set as Fullscreen */
-		vec2_t<int16_t> previousMousePosition;	/**< Previous mouse position relative to the window */
+		bool inFocus;								/**< Whether the Window is currently in focus(if it is the current window be used) */
+		bool shouldClose;							/**< Whether the Window should be closing */
+		bool initialized;							/**< Whether the window has been successfully initialized */
+		bool contextCreated;						/**< Whether the OpenGL context has been successfully created */
+		bool isCurrentContext;						/**< Whether the window is the current window being drawn to */
+		uint32_t currentStyle;						/**< The current style of the window */
+		uint32_t previousStyle;						/**< The previous style of the window (for restoration) */
+		keyState_e keys[last];						/**< Record of keys that are either pressed or released in the respective window */
+		vec2_t<int16_t> position;					/**< Position of the Window relative to the screen co-ordinates */
+		windowSetting_t settings;					/**< List of User-defined settings for this windowS */
+		monitor_t* currentMonitor;					/**< The monitor that the window is currently rendering to */
+		uint16_t currentScreenIndex;				/**< The Index of the screen currently being rendered to (fullscreen) */
+		vec2_t<int16_t> mousePosition;				/**< Position of the Mouse cursor relative to the window co-ordinates */
+		vec2_t<int16_t> previousPosition;			/**< Previous position of the window before being set as Fullscreen */
+		vec2_t<uint16_t> previousDimensions;		/**< Previous dimensions of the window before being set as Fullscreen */
+		vec2_t<int16_t> previousMousePosition;		/**< Previous mouse position relative to the window */
+		fullscreenMode_e currentFullscreenMode;		/**< Whether the window is currently in fullscreen mode */
+		fullscreenMode_e previousFullscreenMode;	/**< Whether the window was previously in fullscreen mode */
 
 		/**< Record of mouse buttons that are either presses or released */
 		buttonState_e mouseButton[(uint16_t)mouseButton_e::last]{};
-
-
 
 #if defined(TW_USE_VULKAN)
 		VkInstance vulkanInstanceHandle;
@@ -920,11 +927,12 @@ namespace TinyWindow
 			shouldClose = false;
 			initialized = false;
 			contextCreated = false;
-			currentStyle = titleBar | icon | border | minimizeButton | maximizeButton | closeButton | sizeableBorder;
+			currentStyle = titleBar | icon | border | minimizeButton | maximizeButton | closeButton | sizeableBorder | movable;
 			inFocus = false;
 			isCurrentContext = false;
 			currentScreenIndex = 0;
-			isFullscreen = false;
+			currentFullscreenMode = fullscreenMode_e::windowed;
+			previousFullscreenMode = fullscreenMode_e::windowed;
 			currentMonitor = nullptr;
 			previousStyle = currentStyle;
 			mousePosition = {0, 0};
@@ -1456,18 +1464,92 @@ namespace TinyWindow
 		}
 
 		/**
-		* Toggles full-screen mode for a window by parsing in a monitor and a monitor setting index
+		* Toggles full-screen mode for a window by parsing in a mode, then a monitor and a monitor setting index, if exclusive is used
 		*/
-		void ToggleFullscreen(tWindow* window, monitor_t* monitor, const uint16_t& monitorSettingIndex)
+		void ToggleFullscreenMode(tWindow* window, const fullscreenMode_e mode, monitor_t* monitor = nullptr, const uint16_t& monitorSettingIndex = 0)
 		{
-			monitor->previousSetting = monitor->currentSetting;
-			monitor->currentSetting = monitor->settings[monitorSettingIndex];
+			//safety checks
+			if (window == nullptr)
+			{
+				AddErrorLog(error_e::windowInvalid, __LINE__, __func__, window);
+				return;
+			}
+			//if the mode is the same, don't bother
+			if (window->currentFullscreenMode == mode)
+			{
+				AddErrorLog(error_e::invalidFullscreenMode, __LINE__, __func__, window);
+				return;
+			}
+
+			//if monitor is valid
+			if (monitor == nullptr)
+			{
+				AddErrorLog(error_e::invalidMonitor, __LINE__, __func__, window);
+				return;
+			}
+
+			//if the previous mode was exclusive and the current isn't, reset the monitor to the previous state
+			if (window->previousFullscreenMode == fullscreenMode_e::exclusive && mode != fullscreenMode_e::exclusive)
+			{
+				//reset the monitor to the previous setting
+				window->currentMonitor = monitor;
+				const auto rootDisplay = XOpenDisplay(nullptr);
+				const Window root = RootWindow(rootDisplay, 0);
+
+				// Get screen resources
+				XRRScreenResources* screenResources = XRRGetScreenResources(rootDisplay, root);
+
+				const int result = XRRSetCrtcConfig(rootDisplay, screenResources, monitor->previousSetting.crtc, CurrentTime,
+										  (int)monitor->extents.left, (int)monitor->extents.top,
+										  monitor->previousSetting.mode, monitor->rotation,
+										  &monitor->previousSetting.output, 1);
+
+				if (result == Success)
+				{
+					XSync(rootDisplay, True);
+				}
+			}
+			window->previousFullscreenMode = window->currentFullscreenMode;
+
+			switch (mode)
+			{
+				case fullscreenMode_e::windowed:
+					{
+						//Restore Window to windowed mode, size and position
+						SetDecorators(window, window->previousStyle);
+						SetWindowSize(window, window->previousDimensions);
+						SetPosition(window, window->previousPosition); // Use (0,0) as origin after mode change
+
+						window->currentFullscreenMode = fullscreenMode_e::windowed;
+						break;
+					}
+
+				case fullscreenMode_e::borderless:
+					{
+						//set size to match monitor
+						//set position to upper left corner of that monitor
+						//disable all decorators
+
+						SetDecorators(window, style_n::none);
+						SetWindowSize(window, vec2_t(monitor->resolution.width, monitor->resolution.height));
+						SetPosition(window, vec2_t<int16_t>(monitor->extents.left, monitor->extents.top)); // Use (0,0) as origin after mode change?
+
+						window->currentFullscreenMode = fullscreenMode_e::borderless;
+						break;
+					}
+
+			case fullscreenMode_e::exclusive:
+					{
 #if defined(TW_WINDOWS)
-			Windows_ToggleFullscreen(window, monitor, monitorSettingIndex);
+						Windows_ToggleFullscreen(window, monitor, monitorSettingIndex);
 #elif defined(TW_LINUX)
-			Linux_ToggleFullscreen(window, monitor, monitorSettingIndex);
+						Linux_ToggleExclusiveFullscreen(window, monitor, monitorSettingIndex);
 #endif
-			//window->isFullscreen = !window->isFullscreen;
+						monitor->previousSetting = monitor->currentSetting;
+						monitor->currentSetting = monitor->settings[monitorSettingIndex];
+						break;
+					}
+			}
 		}
 
 		/**
@@ -1563,7 +1645,7 @@ namespace TinyWindow
 			             window->settings.resolution.width, window->settings.resolution.height, SWP_FRAMECHANGED);
 #elif defined(TW_LINUX)
 
-			MWMHints_t hints;
+			MWMHints_t hints = {0};
 			hints.flags = MWM_HINTS_DECORATIONS | MWM_HINTS_FUNCTIONS;
 			hints.decorations = 0;
 			hints.functions = window->linuxDecorators;
@@ -1571,7 +1653,6 @@ namespace TinyWindow
 			if (decorators & titleBar)
 			{
 				hints.decorations |= MWM_DECOR_TITLE;
-				hints.functions |= MWM_FUNC_MOVE;
 			}
 			if (decorators & border)
 			{
@@ -1595,6 +1676,11 @@ namespace TinyWindow
 			{
 				hints.decorations |= MWM_DECOR_RESIZE;
 				hints.functions |= MWM_FUNC_RESIZE;
+			}
+
+			if (decorators & movable)
+			{
+				hints.functions |= MWM_FUNC_MOVE;
 			}
 
 			XChangeProperty(currentDisplay, window->windowHandle, window->AtomHints, window->AtomHints, 32,
@@ -3768,10 +3854,6 @@ namespace TinyWindow
 				GLX_RGBA, GLX_DOUBLEBUFFER, GLX_DEPTH_SIZE, window->settings.depthBits, None
 			};
 
-			window->linuxDecorators = 1;
-			window->currentStyle |= tWindow::linuxClose | tWindow::linuxMaximize | tWindow::linuxMinimize |
-				tWindow::linuxMove;
-
 			if (!currentDisplay)
 			{
 				AddErrorLog(error_e::linuxCannotConnectXServer, __LINE__, __func__, window);
@@ -4708,7 +4790,40 @@ namespace TinyWindow
 			}
 		}
 
-		void Linux_ToggleFullscreen(tWindow* window, monitor_t* monitor, const uint16_t& monitorSettingIndex)
+		int Linux_ChangeMonitorSetting(monitor_t* monitor, const uint16_t& monitorSettingIndex)
+		{
+			//is the monitor valid and does the setting at index exist?
+			if (monitor == nullptr)
+			{
+				AddErrorLog(error_e::invalidMonitor, __LINE__, __func__);
+				return 0;
+			}
+
+			if (monitorSettingIndex >= monitor->settings.size())
+			{
+				AddErrorLog(error_e::invalidMonitorSettingIndex, __LINE__, __func__);
+				return 0;
+			}
+
+			const auto rootDisplay = XOpenDisplay(nullptr);
+
+			monitorSetting_t* monitorSetting = const_cast<monitorSetting_t*>(&monitor->GetMonitorSettings()->at(
+				monitorSettingIndex));
+			const Window root = RootWindow(rootDisplay, 0);
+			// Get screen resources
+			XRRScreenResources* screenResources = XRRGetScreenResources(rootDisplay, root);
+			int result = 0;
+			result = XRRSetCrtcConfig(rootDisplay, screenResources, monitorSetting->crtc, CurrentTime,
+										  (int)monitor->extents.left, (int)monitor->extents.top,
+										  monitorSetting->mode, monitor->rotation, &monitorSetting->output, 1);
+			if (result == Success)
+			{
+				XSync(rootDisplay, True);
+			}
+			return result;
+		}
+
+		void Linux_ToggleExclusiveFullscreen(tWindow* window, monitor_t* monitor, const uint16_t& monitorSettingIndex)
 		{
 			// set window position and change style to popup
 			window->currentMonitor = monitor;
@@ -4722,40 +4837,23 @@ namespace TinyWindow
 			XRRScreenResources* screenResources = XRRGetScreenResources(rootDisplay, root);
 
 			int result = 0;
-			if (window->isFullscreen == false)
-			{
-				// Save the current window state
-				window->previousDimensions = window->settings.resolution; // Assuming currentDimensions exists
-				window->previousPosition = window->previousPosition; // Assuming currentPosition exists
-				result = XRRSetCrtcConfig(rootDisplay, screenResources, monitorSetting->crtc, CurrentTime,
-				                          (int)monitor->extents.left, (int)monitor->extents.top,
-				                          monitorSetting->mode, monitor->rotation, &monitorSetting->output, 1);
-				XSync(rootDisplay, True);
-				if (result == Success)
-				{
-					SetWindowSize(window, vec2_t<uint16_t>(monitor->resolution.width, monitor->resolution.height));
-					SetPosition(window, vec2_t<int16_t>(0, 0)); // Use (0,0) as origin after mode change
-					SetDecorators(window, style_n::none);
-					window->isFullscreen = true;
-				}
-			}
+			// Save the current window state
+			result = XRRSetCrtcConfig(rootDisplay, screenResources, monitorSetting->crtc, CurrentTime,
+			                          monitor->extents.left, monitor->extents.top,
+			                          monitorSetting->mode, monitor->rotation, &monitorSetting->output, 1);
 
-			else if (window->isFullscreen == true)
+			if (result == Success)
 			{
-				result = XRRSetCrtcConfig(rootDisplay, screenResources, monitor->currentSetting.crtc, CurrentTime,
-				                          (int)monitor->extents.left, (int)monitor->extents.top,
-				                          monitor->currentSetting.mode, monitor->rotation,
-				                          &monitor->currentSetting.output, 1);
-
 				XSync(rootDisplay, True);
-				if (result == Success)
-				{
-					window->isFullscreen = false;
-					SetWindowSize(window, vec2_t<uint16_t>(window->previousDimensions.width,
-					                                       window->previousDimensions.height));
-					SetPosition(window, vec2_t<int16_t>(window->previousPosition.x, window->previousPosition.y));
-					SetDecorators(window, style_n::normal); // Restore original style if different
-				}
+				//set size to match monitor
+				//set position to upper left corner of that monitor
+				//disable all decorators
+				SetDecorators(window, style_n::none);
+				SetWindowSize(window, vec2_t(monitor->resolution.width, monitor->resolution.height));
+				SetPosition(window, vec2_t<int16_t>(monitor->extents.left, monitor->extents.top)); // Use (0,0) as origin after mode change
+
+				window->previousFullscreenMode = window->currentFullscreenMode;
+				window->currentFullscreenMode = fullscreenMode_e::exclusive;
 			}
 		}
 
