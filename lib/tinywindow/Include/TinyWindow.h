@@ -1050,7 +1050,7 @@ namespace TinyWindow
 			return nullptr;
 		}
 
-		tWindow* AddSharedWindow(tWindow* sourceWindow, const windowSetting_t& windowSetting)
+		/*tWindow* AddSharedWindow(tWindow* sourceWindow, const windowSetting_t& windowSetting)
 		{
 			if (windowSetting.name.empty() == false)
 			{
@@ -1062,7 +1062,7 @@ namespace TinyWindow
 				return windowList.back().get();
 			}
 			return nullptr;
-		}
+		}*/
 
 		/**
 		* Return the total amount of windows the manager has
@@ -1982,8 +1982,7 @@ namespace TinyWindow
 		}
 
 		template <typename T = void>
-		void AddErrorLog(const error_e& newError, const uint32_t& fileLine, const std::string& functionName,
-		                 T* obj = nullptr)
+		void AddErrorLog(const error_e& newError, const uint32_t& fileLine, const std::string& functionName, T* obj = nullptr)
 		{
 			auto newString = errorLUT.at(newError);
 
@@ -4460,14 +4459,10 @@ namespace TinyWindow
 
 		void Linux_InitExtensions()
 		{
-			glXCreateContextAttribsARB = (PFNGLXCREATECONTEXTATTRIBSARBPROC)glXGetProcAddressARB(
-				(const unsigned char*)"glXCreateContextAttribsARB");
-			glXGetSwapIntervalMESA = (PFNGLXGETSWAPINTERVALMESAPROC)glXGetProcAddressARB(
-				(const unsigned char*)"glXGetSwapIntervalMESA");
-			glxSwapIntervalEXT = (PFNGLXSWAPINTERVALEXTPROC)glXGetProcAddressARB(
-				(const unsigned char*)"glXSwapIntervalEXT");
-			glxSwapIntervalMESA = (PFNGLXSWAPINTERVALMESAPROC)glXGetProcAddressARB(
-				(const unsigned char*)"glXSwapIntervalMESA");
+			glXCreateContextAttribsARB = (PFNGLXCREATECONTEXTATTRIBSARBPROC)glXGetProcAddressARB((const unsigned char*)"glXCreateContextAttribsARB");
+			glXGetSwapIntervalMESA = (PFNGLXGETSWAPINTERVALMESAPROC)glXGetProcAddressARB((const unsigned char*)"glXGetSwapIntervalMESA");
+			glxSwapIntervalEXT = (PFNGLXSWAPINTERVALEXTPROC)glXGetProcAddressARB((const unsigned char*)"glXSwapIntervalEXT");
+			glxSwapIntervalMESA = (PFNGLXSWAPINTERVALMESAPROC)glXGetProcAddressARB((const unsigned char*)"glXSwapIntervalMESA");
 		}
 
 		void GetBestFrameBufferConfig(tWindow* window)
