@@ -270,8 +270,20 @@ namespace TinyWindow
 #endif
 		}
 
+		const bool* GetIsPrimary() const { return &isPrimary; }
+		const vec4_t<uint16_t>* GetExtents() const { return &extents; }
+		const std::string* GetDeviceName() const { return &deviceName; }
+		const std::string* GetMonitorName() const { return &monitorName; }
+		const std::string* GetDisplayName() const { return &displayName; }
+		const vec2_t<uint16_t>* GetResolution() const { return &resolution; }
+		const monitorSetting_t* GetCurrentSetting() const { return &currentSetting; }
+		const monitorSetting_t* GetPreviousSetting() const { return &previousSetting; }
+		const std::vector<monitorSetting_t>* GetMonitorSettings() const { return &settings; }
+
+	protected:
+
 		explicit monitor_t(const std::string& displayName, const std::string& deviceName,
-		                   const std::string& monitorName, const bool& isPrimary = false)
+				   const std::string& monitorName, const bool& isPrimary = false)
 		{
 #if defined(TW_WINDOWS)
 			this->monitorHandle = nullptr;
@@ -285,16 +297,6 @@ namespace TinyWindow
 			this->displayName = displayName;
 			this->isPrimary = isPrimary;
 		}
-
-		const bool* GetIsPrimary() const { return &isPrimary; }
-		const vec4_t<uint16_t>* GetExtents() const { return &extents; }
-		const std::string* GetDeviceName() const { return &deviceName; }
-		const std::string* GetMonitorName() const { return &monitorName; }
-		const std::string* GetDisplayName() const { return &displayName; }
-		const vec2_t<uint16_t>* GetResolution() const { return &resolution; }
-		const monitorSetting_t* GetCurrentSetting() const { return &currentSetting; }
-		const monitorSetting_t* GetPreviousSetting() const { return &previousSetting; }
-		const std::vector<monitorSetting_t>* GetMonitorSettings() const { return &settings; }
 	};
 
 	struct formatSetting_t
@@ -366,10 +368,10 @@ namespace TinyWindow
 
 	enum class state_e
 	{
-		normal, /**< The window is in its default state */
-		maximized, /**< The window is currently maximized */
-		minimized, /**< The window is currently minimized */
-		fullscreen, /**< The window is currently full screen */
+		normal,		/**< The window is in its default state */
+		maximized,	/**< The window is currently maximized */
+		minimized,	/**< The window is currently minimized */
+		fullscreen,	/**< The window is currently full screen */
 	};
 
 	struct windowSetting_t
@@ -420,21 +422,20 @@ namespace TinyWindow
 		}
 
 		void* userData;
-		std::string name; /**< Name of the window */
-		bool enableSRGB; /**< whether the window will support an sRGB colorspace backbuffer */
-		state_e currentState;
-		/**< The current state of the window. these states include Normal, Minimized, Maximized and Full screen */
-		unsigned char colorBits; /**< Color format of the window. (defaults to 32 bit color) */
-		unsigned char depthBits; /**< Size of the Depth buffer. (defaults to 8 bit depth) */
-		unsigned char accumBits; /**< Size of the Accum buffer */
-		unsigned char stencilBits; /**< Size of the stencil buffer, (defaults to 8 bit) */
-		vec2_t<uint16_t> resolution; /**< Resolution/Size of the window stored in an array */
+		std::string name;				/**< Name of the window */
+		bool enableSRGB;				/**< whether the window will support an sRGB colorspace backbuffer */
+		state_e currentState;			/**< The current state of the window. these states include Normal, Minimized, Maximized and Full screen */
+		unsigned char colorBits;		/**< Color format of the window. (defaults to 32 bit color) */
+		unsigned char depthBits;		/**< Size of the Depth buffer. (defaults to 8 bit depth) */
+		unsigned char accumBits;		/**< Size of the Accum buffer */
+		unsigned char stencilBits;		/**< Size of the stencil buffer, (defaults to 8 bit) */
+		vec2_t<uint16_t> resolution;	/**< Resolution/Size of the window stored in an array */
 
 #if !defined(TW_USE_VULKAN)
-		GLint versionMajor; /**< Major OpenGL version*/
-		GLint versionMinor; /**< Minor OpenGL version*/
+		GLint versionMajor;	/**< Major OpenGL version*/
+		GLint versionMinor;	/**< Minor OpenGL version*/
 	private:
-		GLint profile; /**< Compatibility or core OpenGL profiles*/
+		GLint profile;	/**< Compatibility or core OpenGL profiles*/
 #if defined(TW_LINUX)
 		GLXFBConfig bestFBConfig;
 #endif
@@ -443,254 +444,246 @@ namespace TinyWindow
 
 	enum class keyState_e
 	{
-		bad, /**< If get key state fails (could not name it ERROR) */
-		up, /**< The key is currently up */
-		down, /**< The key is currently down */
+		bad,	/**< If get key state fails (could not name it ERROR) */
+		up,		/**< The key is currently up */
+		down,	/**< The key is currently down */
 	};
 
 	enum class fullscreenMode_e
 	{
-		windowed,
-		/**< The decorators and are restored (if applicable) alongside the window size and monitor resolution  */
-		borderless, /**< The decorators are removed and the window is resized to fit the screen */
-		exclusive, /**< The decorators are removed and the monitor resolution is set to match the window */
+		windowed,	/**< The decorators and are restored (if applicable) alongside the window size and monitor resolution  */
+		borderless,	/**< The decorators are removed and the window is resized to fit the screen */
+		exclusive,	/**< The decorators are removed and the monitor resolution is set to match the window */
 	};
 
 	enum key_e
 	{
-		bad = -1, /**< The key pressed is considered invalid */
-		first = 256 + 1, /**< The first key that is not a char */
-		F1, /**< The F1 key */
-		F2, /**< The F2 key */
-		F3, /**< The F3 key */
-		F4, /**< The F4 key */
-		F5, /**< The F5 key */
-		F6, /**< The F6 key */
-		F7, /**< The F7 key */
-		F8, /**< The F8 key */
-		F9, /**< The F9 key */
-		F10, /**< The F10 key */
-		F11, /**< The F11 key */
-		F12, /**< The F12 key */
-		capsLock, /**< The CapsLock key */
-		leftShift, /**< The left Shift key */
-		rightShift, /**< The right Shift key */
-		leftControl, /**< The left Control key */
-		rightControl, /**< The right Control key */
-		leftWindow, /**< The left Window key */
-		rightWindow, /**< The right Window key */
-		leftAlt, /**< The left Alternate key */
-		rightAlt, /**< The right Alternate key */
-		enter, /**< The Enter/Return key */
-		printScreen, /**< The PrintScreen key */
-		scrollLock, /**< The ScrollLock key */
-		numLock, /**< The NumLock key */
-		pause, /**< The pause/break key */
-		insert, /**< The insert key */
-		home, /**< The Home key */
-		end, /**< The End key */
-		pageUp, /**< The PageUp key */
-		pageDown, /**< The PageDown key */
-		arrowDown, /**< The ArrowDown key */
-		arrowUp, /**< The ArrowUp key */
-		arrowLeft, /**< The ArrowLeft key */
-		arrowRight, /**< The ArrowRight key */
-		keypadDivide, /**< The KeyPad Divide key */
-		keypadMultiply, /**< The Keypad Multiply key */
-		keypadSubtract, /**< The Keypad Subtract key */
-		keypadAdd, /**< The Keypad Add key */
-		keypadEnter, /**< The Keypad Enter key */
-		keypadPeriod, /**< The Keypad Period/Decimal key */
-		keypad0, /**< The Keypad 0 key */
-		keypad1, /**< The Keypad 1 key */
-		keypad2, /**< The Keypad 2 key */
-		keypad3, /**< The Keypad 3 key */
-		keypad4, /**< The Keypad 4 key */
-		keypad5, /**< The Keypad 5 key */
-		keypad6, /**< The Keypad 6 key */
-		keypad7, /**< The Keypad 7 key */
-		keypad8, /**< The keypad 8 key */
-		keypad9, /**< The Keypad 9 key */
-		backspace, /**< The Backspace key */
-		tab, /**< The Tab key */
-		del, /**< The Delete key */
-		spacebar, /**< The Spacebar key */
-		escape, /**< The Escape key */
-		apps, /**< The Applications key*/
-		last = apps, /**< The last key to be supported */
+		bad = -1,			/**< The key pressed is considered invalid */
+		first = 256 + 1,	/**< The first key that is not a char */
+		F1,					/**< The F1 key */
+		F2,					/**< The F2 key */
+		F3,					/**< The F3 key */
+		F4,					/**< The F4 key */
+		F5,					/**< The F5 key */
+		F6,					/**< The F6 key */
+		F7,					/**< The F7 key */
+		F8,					/**< The F8 key */
+		F9,					/**< The F9 key */
+		F10,				/**< The F10 key */
+		F11,				/**< The F11 key */
+		F12,				/**< The F12 key */
+		capsLock,			/**< The CapsLock key */
+		leftShift,			/**< The left Shift key */
+		rightShift,			/**< The right Shift key */
+		leftControl,		/**< The left Control key */
+		rightControl,		/**< The right Control key */
+		leftWindow,			/**< The left Window key */
+		rightWindow,		/**< The right Window key */
+		leftAlt,			/**< The left Alternate key */
+		rightAlt,			/**< The right Alternate key */
+		enter,				/**< The Enter/Return key */
+		printScreen,		/**< The PrintScreen key */
+		scrollLock,			/**< The ScrollLock key */
+		numLock,			/**< The NumLock key */
+		pause,				/**< The pause/break key */
+		insert,				/**< The insert key */
+		home,				/**< The Home key */
+		end,				/**< The End key */
+		pageUp,				/**< The PageUp key */
+		pageDown,			/**< The PageDown key */
+		arrowDown,			/**< The ArrowDown key */
+		arrowUp,			/**< The ArrowUp key */
+		arrowLeft,			/**< The ArrowLeft key */
+		arrowRight,			/**< The ArrowRight key */
+		keypadDivide,		/**< The KeyPad Divide key */
+		keypadMultiply,		/**< The Keypad Multiply key */
+		keypadSubtract,		/**< The Keypad Subtract key */
+		keypadAdd,			/**< The Keypad Add key */
+		keypadEnter,		/**< The Keypad Enter key */
+		keypadPeriod,		/**< The Keypad Period/Decimal key */
+		keypad0,			/**< The Keypad 0 key */
+		keypad1,			/**< The Keypad 1 key */
+		keypad2,			/**< The Keypad 2 key */
+		keypad3,			/**< The Keypad 3 key */
+		keypad4,			/**< The Keypad 4 key */
+		keypad5,			/**< The Keypad 5 key */
+		keypad6,			/**< The Keypad 6 key */
+		keypad7,			/**< The Keypad 7 key */
+		keypad8,			/**< The keypad 8 key */
+		keypad9,			/**< The Keypad 9 key */
+		backspace,			/**< The Backspace key */
+		tab,				/**< The Tab key */
+		del,				/**< The Delete key */
+		spacebar,			/**< The Spacebar key */
+		escape,				/**< The Escape key */
+		apps,				/**< The Applications key*/
+		last = apps,		/**< The last key to be supported */
 	};
 
 	enum class buttonState_e
 	{
-		up, /**< The mouse button is currently up */
-		down /**< The mouse button is currently down */
+		up,		/**< The mouse button is currently up */
+		down	/**< The mouse button is currently down */
 	};
 
 	enum class mouseButton_e
 	{
-		left, /**< The left mouse button */
-		right, /**< The right mouse button */
-		middle, /**< The middle mouse button / ScrollWheel */
-		XFirst, /**< The first mouse X button */
-		XSecond, /**< The second mouse X button */
-		last, /**< The last mouse button to be supported */
+		left,		/**< The left mouse button */
+		right,		/**< The right mouse button */
+		middle,		/**< The middle mouse button / ScrollWheel */
+		XFirst,		/**< The first mouse X button */
+		XSecond,	/**< The second mouse X button */
+		last,		/**< The last mouse button to be supported */
 	};
 
 	enum class mouseScroll_e
 	{
-		down, /**< The mouse wheel up */
-		up /**< The mouse wheel down */
+		down,	/**< The mouse wheel up */
+		up		/**< The mouse wheel down */
 	};
 
 	enum decorator_e
 	{
-		titleBar = 1L << 1, /**< The title bar decoration of the window */
-		icon = 1L << 2, /**< The icon decoration of the window */
-		border = 1L << 3, /**< The border decoration of the window */
-		minimizeButton = 1L << 4, /**< The minimize button decoration of the window */
-		maximizeButton = 1L << 5, /**< The maximize button decoration pf the window */
-		closeButton = 1L << 6, /**< The close button decoration of the window */
-		sizeableBorder = 1L << 7, /**< The sizable border decoration of the window */
+		titleBar		= 1L << 1, /**< The title bar decoration of the window */
+		icon			= 1L << 2, /**< The icon decoration of the window */
+		border			= 1L << 3, /**< The border decoration of the window */
+		minimizeButton	= 1L << 4, /**< The minimize button decoration of the window */
+		maximizeButton	= 1L << 5, /**< The maximize button decoration pf the window */
+		closeButton		= 1L << 6, /**< The close button decoration of the window */
+		sizeableBorder	= 1L << 7, /**< The sizable border decoration of the window */
 	};
 
 	enum class clipboard_e
 	{
-		text, /**< The clipboard contains text */
-		files, /**< The clipboard contains file paths */
-		invalid /**< The clipboard content is invalid */
+		text,	/**< The clipboard contains text */
+		files,	/**< The clipboard contains file paths */
+		invalid	/**< The clipboard content is invalid */
 	};
 
 	namespace style_n
 	{
-		constexpr uint32_t none = 0; /**< The window has no decorators */
-		constexpr uint32_t bare = titleBar | border;
+		/**< The window has no decorators */
+		constexpr uint32_t none = 0;
 		/**< The window has no decorators but the window border and title bar */
-		constexpr uint32_t normal = titleBar | border | closeButton | minimizeButton | maximizeButton | sizeableBorder;
+		constexpr uint32_t bare = titleBar | border;
 		/**< The default window style for the respective platform */
+		constexpr uint32_t normal = titleBar | border | closeButton | minimizeButton | maximizeButton | sizeableBorder;
+
 	}
 
 	enum class error_e
 	{
-		InvalidIcon, /**< invalid icon data */
-
-		noExtensions, /**< If platform-specific window extensions have not been properly loaded */
-		windowInvalid, /**< If the window given was invalid */
-		invalidContext, /**< If the OpenGL context for the window is invalid */
-		notInitialized, /**< If the window is being used without being initialized */
-		invalidVersion, /**< If an invalid OpenGL version is being used */
-		invalidProfile, /**< If an invalid OpenGL profile is being used */
-		invalidIconPath, /**< If an invalid icon path was given */
-		existingContext, /**< If the window already has an OpenGL context */
-		invalidTitlebar, /**< If the Title-bar text given was invalid */
-		invalidCallback, /**< If the given event callback was invalid */
-		invalidInterval, /**< If a window swap interval setting is invalid */
-		moveWindowFailed, /**< If the window cannot be moved */
-		fullscreenFailed, /**< If setting the window to fullscreen has failed */
-		invalidExtension, /**< If a platform-specific window extension is not supported */
-		invalidDimensions, /**< If the provided dimensions are invalid */
-		invalidResolution, /**< If an invalid window resolution was given */
-		invalidWindowName, /**< If an invalid window name was given */
-		invalidWindowIndex, /**< If an invalid window index was given */
-		invalidWindowState, /**< If an invalid window state was given */
-		invalidWindowStyle, /**< If the window style gives is invalid */
-		alreadyInitialized, /**< If the window was already initialized */
-		invalidDummyWindow, /**< If the dummy window creation has failed */
-		dummyCreationFailed, /**< If the dummy context has failed to be created */
-		invalidDummyContext, /**< If the dummy context in invalid */
-		cannotCreateCurrent, /**< cannot make context current */
-
-		dummyCannotMakeCurrent, /**< If the dummy cannot be made the current context */
-		functionNotImplemented, /**< If the function has not yet been implemented in the current version of the API */
-		invalidDummyPixelFormat, /**< If the pixel format for the dummy context id invalid */
-		invalidMonitorSettingIndex, /**< If the provided monitor setting index is invalid */
+		InvalidIcon,				/**< invalid icon data */
+		noExtensions,				/**< If platform-specific window extensions have not been properly loaded */
+		windowInvalid,				/**< If the window given was invalid */
+		invalidContext,				/**< If the OpenGL context for the window is invalid */
+		notInitialized,				/**< If the window is being used without being initialized */
+		invalidVersion,				/**< If an invalid OpenGL version is being used */
+		invalidProfile,				/**< If an invalid OpenGL profile is being used */
+		invalidIconPath,			/**< If an invalid icon path was given */
+		existingContext,			/**< If the window already has an OpenGL context */
+		invalidTitlebar,			/**< If the Title-bar text given was invalid */
+		invalidCallback,			/**< If the given event callback was invalid */
+		invalidInterval,			/**< If a window swap interval setting is invalid */
+		moveWindowFailed,			/**< If the window cannot be moved */
+		fullscreenFailed,			/**< If setting the window to fullscreen has failed */
+		invalidExtension,			/**< If a platform-specific window extension is not supported */
+		invalidDimensions,			/**< If the provided dimensions are invalid */
+		invalidResolution,			/**< If an invalid window resolution was given */
+		invalidWindowName,			/**< If an invalid window name was given */
+		invalidWindowIndex,			/**< If an invalid window index was given */
+		invalidWindowState,			/**< If an invalid window state was given */
+		invalidWindowStyle,			/**< If the window style gives is invalid */
+		alreadyInitialized,			/**< If the window was already initialized */
+		invalidDummyWindow,			/**< If the dummy window creation has failed */
+		dummyCreationFailed,		/**< If the dummy context has failed to be created */
+		invalidDummyContext,		/**< If the dummy context in invalid */
+		cannotCreateCurrent,		/**< If the context cannot be made the current one */
+		dummyCannotMakeCurrent,		/**< If the dummy cannot be made the current context */
+		functionNotImplemented,		/**< If the function has not yet been implemented in the current version of the API */
+		invalidDummyPixelFormat,	/**< If the pixel format for the dummy context id invalid */
+		invalidMonitorSettingIndex,	/**< If the provided monitor setting index is invalid */
 
 		//Linux
-		linuxNoHDRConfig, /**< Linux: cannot find HDR compatible FBConfig */
-		linuxNoValidFBConfig, /**< Linux: cannot find a suitable Framebuffer config */
-		linuxInvalidVisualinfo, /**< Linux: If visual information given was invalid */
-		linuxCannotCreateWindow, /**< Linux: When X11 fails to create a new window */
-		linuxCannotConnectXServer, /**< Linux: If cannot connect to an X11 server */
-		linuxFunctionNotImplemented,
-		/**< Linux: When the function has not yet been implemented on the Linux in the current version of the API */
-		linuxCannotCreateDummyContext, /**< Linux: if a dummy OpenGL context cannot be created */
-		linuxCannotCreateAdvancedContext, /**< Linux: cannot create advanced context */
-		linuxCannotSetMouseScreenPosition, /**< Linux: cannot set mouse position in screen */
+		linuxNoHDRConfig,					/**< Linux: cannot find HDR compatible FBConfig */
+		linuxNoValidFBConfig,				/**< Linux: cannot find a suitable Framebuffer config */
+		linuxInvalidVisualinfo,				/**< Linux: If visual information given was invalid */
+		linuxCannotCreateWindow,			/**< Linux: When X11 fails to create a new window */
+		linuxCannotConnectXServer,			/**< Linux: If cannot connect to an X11 server */
+		linuxFunctionNotImplemented,		/**< Linux: When the function has not yet been implemented on the Linux in the current version of the API */
+		linuxCannotCreateDummyContext,		/**< Linux: if a dummy OpenGL context cannot be created */
+		linuxCannotCreateAdvancedContext,	/**< Linux: cannot create advanced context */
+		linuxCannotSetMouseScreenPosition,	/**< Linux: cannot set mouse position in screen */
 
 		//Windows
-
-		windowsCannotInitialize, /**< Windows: When Win32 cannot initialize */
-		windowsFullscreenBadMode, /**< Windows: Bad display change mode */
-		windowsFullscreenBadFlags, /**< Windows: Bad display change flags */
-		WindowsFullscreenBadParam, /**< Windows: Bad display change Parameter */
-		windowsCannotCreateWindows, /**< Windows: When Win32 cannot create a window */
-		WindowsFullscreenNotUpdated, /**< Windows: Unable to write settings to the registry */
-		WindowsFullscreenNeedRestart, /**< Windows: The computer must be restarted for the graphics mode to work */
-		windowsFullscreenBadDualView, /**< Windows: The system is not DualView capable. whatever that means */
-		WindowsFullscreenChangeFailed,
-		/**< Windows: The display driver failed to implement the specified graphics mode */
-		Windows_NoDisplayDevicesFound, /**< Windows: Unable to find any display devices */
-		windowsFunctionNotImplemented,
-		/**< Windows: When a function has yet to be implemented on the Windows platform in the current version of the API */
+		windowsCannotInitialize,		/**< Windows: When Win32 cannot initialize */
+		windowsFullscreenBadMode,		/**< Windows: Bad display change mode */
+		windowsFullscreenBadFlags,		/**< Windows: Bad display change flags */
+		WindowsFullscreenBadParam,		/**< Windows: Bad display change Parameter */
+		windowsCannotCreateWindows,		/**< Windows: When Win32 cannot create a window */
+		WindowsFullscreenNotUpdated,	/**< Windows: Unable to write settings to the registry */
+		WindowsFullscreenNeedRestart,	/**< Windows: The computer must be restarted for the graphics mode to work */
+		windowsFullscreenBadDualView,	/**< Windows: The system is not DualView capable. whatever that means */
+		WindowsFullscreenChangeFailed,	/**< Windows: The display driver failed to implement the specified graphics mode */
+		Windows_NoDisplayDevicesFound,	/**< Windows: Unable to find any display devices */
+		windowsFunctionNotImplemented,	/**< Windows: When a function has yet to be implemented on the Windows platform in the current version of the API */
 	};
 
 	typedef std::pair<error_e, std::string> errorEntry;
 	const std::unordered_map errorLUT =
 	{
-		errorEntry(error_e::InvalidIcon, "Error: invalid icon data"),
-		errorEntry(error_e::noExtensions, "Error: Platform extensions have not been loaded correctly"),
-		errorEntry(error_e::windowInvalid, "Error: window was not found"),
-		errorEntry(error_e::invalidVersion, "Error: invalid OpenGL version"),
-		errorEntry(error_e::invalidProfile, "Error: invalid OpenGL profile"),
-		errorEntry(error_e::invalidContext, "Error: Failed to create OpenGL context"),
-		errorEntry(error_e::notInitialized, "Error: Window manager not initialized"),
-		errorEntry(error_e::existingContext, "Error: context already created"),
-		errorEntry(error_e::invalidCallback, "Error: invalid event callback given"),
-		errorEntry(error_e::invalidInterval, "Error: invalid swap interval setting"),
-		errorEntry(error_e::invalidTitlebar, "Error: invalid title bar name (cannot be null or nullptr)"),
-		errorEntry(error_e::invalidIconPath, "Error: invalid icon path"),
-		errorEntry(error_e::moveWindowFailed, "Error: failed to move window"),
-		errorEntry(error_e::fullscreenFailed, "Error: failed to enter fullscreen mode"),
-		errorEntry(error_e::invalidExtension, "Error: Platform specific extension is not valid"),
-		errorEntry(error_e::invalidDimensions, "Error: invalid window dimensions"),
-		errorEntry(error_e::invalidResolution, "Error: invalid resolution"),
-		errorEntry(error_e::invalidWindowName, "Error: invalid window name"),
-		errorEntry(error_e::invalidWindowStyle, "Error: invalid window style given"),
-		errorEntry(error_e::alreadyInitialized, "Error: window has already been initialized"),
-		errorEntry(error_e::invalidWindowIndex, "Error: invalid window index"),
-		errorEntry(error_e::invalidWindowState, "Error: invalid window state"),
-		errorEntry(error_e::invalidDummyWindow, "Error: the dummy window failed to be created"),
-		errorEntry(error_e::invalidDummyContext, "Error: the dummy context in invalid"),
-		errorEntry(error_e::dummyCreationFailed, "Error: the dummy context has failed to be created"),
-		errorEntry(error_e::cannotCreateCurrent, "Error: the context cannot be made current"),
-		errorEntry(error_e::dummyCannotMakeCurrent, "Error: the dummy cannot be made the current context"),
-		errorEntry(error_e::functionNotImplemented, "Error: I'm sorry but this function has not been implemented yet"),
-		errorEntry(error_e::invalidDummyPixelFormat, "Error: the pixel format for the dummy context is invalid"),
-		errorEntry(error_e::invalidMonitorSettingIndex, "Error: the provided monitor setting index is invalid"),
+		errorEntry(error_e::InvalidIcon,					"Error: invalid icon data"),
+		errorEntry(error_e::noExtensions,					"Error: Platform extensions have not been loaded correctly"),
+		errorEntry(error_e::windowInvalid,					"Error: window was not found"),
+		errorEntry(error_e::invalidVersion,				"Error: invalid OpenGL version"),
+		errorEntry(error_e::invalidProfile,				"Error: invalid OpenGL profile"),
+		errorEntry(error_e::invalidContext,				"Error: Failed to create OpenGL context"),
+		errorEntry(error_e::notInitialized,				"Error: Window manager not initialized"),
+		errorEntry(error_e::existingContext,				"Error: context already created"),
+		errorEntry(error_e::invalidCallback,				"Error: invalid event callback given"),
+		errorEntry(error_e::invalidInterval,				"Error: invalid swap interval setting"),
+		errorEntry(error_e::invalidTitlebar,				"Error: invalid title bar name (cannot be null or nullptr)"),
+		errorEntry(error_e::invalidIconPath,				"Error: invalid icon path"),
+		errorEntry(error_e::moveWindowFailed,				"Error: failed to move window"),
+		errorEntry(error_e::fullscreenFailed,				"Error: failed to enter fullscreen mode"),
+		errorEntry(error_e::invalidExtension,				"Error: Platform specific extension is not valid"),
+		errorEntry(error_e::invalidDimensions,				"Error: invalid window dimensions"),
+		errorEntry(error_e::invalidResolution,				"Error: invalid resolution"),
+		errorEntry(error_e::invalidWindowName,				"Error: invalid window name"),
+		errorEntry(error_e::invalidWindowStyle,			"Error: invalid window style given"),
+		errorEntry(error_e::alreadyInitialized,			"Error: window has already been initialized"),
+		errorEntry(error_e::invalidWindowIndex,			"Error: invalid window index"),
+		errorEntry(error_e::invalidWindowState,			"Error: invalid window state"),
+		errorEntry(error_e::invalidDummyWindow,			"Error: the dummy window failed to be created"),
+		errorEntry(error_e::invalidDummyContext,			"Error: the dummy context in invalid"),
+		errorEntry(error_e::dummyCreationFailed,			"Error: the dummy context has failed to be created"),
+		errorEntry(error_e::cannotCreateCurrent,			"Error: the context cannot be made current"),
+		errorEntry(error_e::dummyCannotMakeCurrent,		"Error: the dummy cannot be made the current context"),
+		errorEntry(error_e::functionNotImplemented,		"Error: I'm sorry but this function has not been implemented yet"),
+		errorEntry(error_e::invalidDummyPixelFormat,		"Error: the pixel format for the dummy context is invalid"),
+		errorEntry(error_e::invalidMonitorSettingIndex,	"Error: the provided monitor setting index is invalid"),
 
 		//Linux
-		errorEntry(error_e::linuxNoHDRConfig, "Linux Error: failed to get HDR config"),
-		errorEntry(error_e::linuxNoValidFBConfig, "Linux Error: failed to get valid FBConfig"),
-		errorEntry(error_e::linuxInvalidVisualinfo, "Linux Error: Invalid visual information given"),
-		errorEntry(error_e::linuxCannotCreateWindow, "Linux Error: failed to create window"),
-		errorEntry(error_e::linuxCannotConnectXServer, "Linux Error: cannot connect to X server"),
-		errorEntry(error_e::linuxFunctionNotImplemented, "Linux Error: function not implemented on Linux platform yet"),
-		errorEntry(error_e::linuxCannotCreateDummyContext, "Linux Error: failed to create dummy context"),
-		errorEntry(error_e::linuxCannotSetMouseScreenPosition, "Linux Error: cannot set mouse position in screen"),
+		errorEntry(error_e::linuxNoHDRConfig,					"Linux Error: failed to get HDR config"),
+		errorEntry(error_e::linuxNoValidFBConfig,				"Linux Error: failed to get valid FBConfig"),
+		errorEntry(error_e::linuxInvalidVisualinfo,			"Linux Error: Invalid visual information given"),
+		errorEntry(error_e::linuxCannotCreateWindow,			"Linux Error: failed to create window"),
+		errorEntry(error_e::linuxCannotConnectXServer,			"Linux Error: cannot connect to X server"),
+		errorEntry(error_e::linuxFunctionNotImplemented,		"Linux Error: function not implemented on Linux platform yet"),
+		errorEntry(error_e::linuxCannotCreateDummyContext,		"Linux Error: failed to create dummy context"),
+		errorEntry(error_e::linuxCannotSetMouseScreenPosition,	"Linux Error: cannot set mouse position in screen"),
 
 		//Windows
-		errorEntry(error_e::windowsCannotInitialize, "Windows Error: failed to initialize"),
-		errorEntry(error_e::windowsFullscreenBadMode, "Windows Error: Bad display change mode"),
-		errorEntry(error_e::windowsFullscreenBadFlags, "Windows Error: Bad display change flags"),
-		errorEntry(error_e::WindowsFullscreenBadParam, "Windows Error: Bad display change Parameter"),
-		errorEntry(error_e::windowsCannotCreateWindows, "Windows Error: failed to create window"),
-		errorEntry(error_e::WindowsFullscreenNotUpdated, "Windows Error: Unable to write settings to the registry"),
-		errorEntry(error_e::WindowsFullscreenNeedRestart,
-		           "Windows Error: The computer must be restarted for the graphics mode to work"),
-		errorEntry(error_e::WindowsFullscreenChangeFailed,
-		           "Windows Error: The display driver failed to implement the specified graphics mode"),
-		errorEntry(error_e::Windows_NoDisplayDevicesFound, "Windows Error: Unable to find any display devices"),
-		errorEntry(error_e::windowsFunctionNotImplemented,
-		           "Windows Error: function not implemented on Windows platform yet"),
+		errorEntry(error_e::windowsCannotInitialize,		"Windows Error: failed to initialize"),
+		errorEntry(error_e::windowsFullscreenBadMode,		"Windows Error: Bad display change mode"),
+		errorEntry(error_e::windowsFullscreenBadFlags,		"Windows Error: Bad display change flags"),
+		errorEntry(error_e::WindowsFullscreenBadParam,		"Windows Error: Bad display change Parameter"),
+		errorEntry(error_e::windowsCannotCreateWindows,	"Windows Error: failed to create window"),
+		errorEntry(error_e::WindowsFullscreenNotUpdated,	"Windows Error: Unable to write settings to the registry"),
+		errorEntry(error_e::WindowsFullscreenNeedRestart,	"Windows Error: The computer must be restarted for the graphics mode to work"),
+		errorEntry(error_e::WindowsFullscreenChangeFailed,	"Windows Error: The display driver failed to implement the specified graphics mode"),
+		errorEntry(error_e::Windows_NoDisplayDevicesFound,	"Windows Error: Unable to find any display devices"),
+		errorEntry(error_e::windowsFunctionNotImplemented,	"Windows Error: function not implemented on Windows platform yet"),
 	};
 
 #ifdef TW_WINDOWS
@@ -756,11 +749,9 @@ namespace TinyWindow
 	using destroyed_c = std::function<void(const tWindow* window)>;
 	using maximized_c = std::function<void(const tWindow* window)>;
 	using minimized_c = std::function<void(const tWindow* window)>;
-	using mouseMove_c = std::function<void(const tWindow* window, const vec2_t<int16_t>& windowMousePosition,
-	                                       const vec2_t<int16_t>& screenMousePosition)>;
+	using mouseMove_c = std::function<void(const tWindow* window, const vec2_t<int16_t>& windowMousePosition, const vec2_t<int16_t>& screenMousePosition)>;
 	using mouseWheel_c = std::function<void(const tWindow* window, const mouseScroll_e& mouseScrollDirection)>;
-	using mouseButton_c = std::function<void(const tWindow* window, const mouseButton_e& mouseButton,
-	                                         const buttonState_e& buttonState)>;
+	using mouseButton_c = std::function<void(const tWindow* window, const mouseButton_e& mouseButton, const buttonState_e& buttonState)>;
 	using windowError_c = std::function<void(const tWindow* window, const std::string& entry)>;
 	using managerError_c = std::function<void(const std::string& entry)>;
 
@@ -772,57 +763,56 @@ namespace TinyWindow
 		using focus_c = std::function<void(const tWindow* window, bool isFocused)>;
 		using moved_c = std::function<void(const tWindow* window, vec2_t<int16_t> windowPosition)>;
 		using resize_c = std::function<void(const tWindow* window, vec2_t<uint16_t> windowResolution)>;
-		using mouseMove_c = std::function<void(const tWindow* window, vec2_t<int16_t> windowMousePosition,
-		                                       vec2_t<int16_t> screenMousePosition)>;
+		using mouseMove_c = std::function<void(const tWindow* window, vec2_t<int16_t> windowMousePosition, vec2_t<int16_t> screenMousePosition)>;
 		using destroyed_c = std::function<void(const tWindow* window)>;
 		using maximized_c = std::function<void(const tWindow* window)>;
 		using minimized_c = std::function<void(const tWindow* window)>;
 		using mouseWheel_c = std::function<void(const tWindow* window, const mouseScroll_e& mouseScrollDirection)>;
-		using mouseButton_c = std::function<void(const tWindow* window, const mouseButton_e& mouseButton,
-		                                         const buttonState_e& buttonState)>;
+		using mouseButton_c = std::function<void(const tWindow* window, const mouseButton_e& mouseButton, const buttonState_e& buttonState)>;
 
 	public:
-		const bool& GetIsFocused() const { return inFocus; }
-		const keyState_e* GetKeyState() const { return keys; }
-		vec2_t<int16_t> GetPosition() const { return position; }
-		const bool& GetShouldClose() const { return shouldClose; }
-		const bool& GetIsFullscreen() const { return isFullscreen; }
-		const bool& GetIsInitialized() const { return initialized; }
-		const windowSetting_t& GetSettings() const { return settings; }
-		const uint32_t& GetCurrentStyle() const { return currentStyle; }
-		const bool& GetContextCreated() const { return contextCreated; }
-		const bool& GetIsCurrentContext() const { return isCurrentContext; }
-		const monitor_t* GetCurrentMonitor() const { return currentMonitor; }
-		const buttonState_e* GetMouseButtonState() const { return mouseButton; }
-		const vec2_t<int16_t>& GetMousePosition() const { return mousePosition; }
-		const uint16_t& GetCurrentScreenIndex() const { return currentScreenIndex; }
-		const vec2_t<int16_t>& GetPreviousPosition() const { return previousPosition; }
-		const vec2_t<uint16_t>& GetPreviousDimensions() const { return previousDimensions; }
-		const vec2_t<int16_t>& GetPreviousMousePosition() const { return previousMousePosition; }
+		const bool& GetIsFocused() const						{ return inFocus; }
+		const keyState_e* GetKeyState() const					{ return keys; }
+		vec2_t<int16_t> GetPosition() const						{ return position; }
+		const bool& GetShouldClose() const						{ return shouldClose; }
+		const bool& GetIsFullscreen() const						{ return isFullscreen; }
+		const bool& GetIsInitialized() const					{ return initialized; }
+		const windowSetting_t& GetSettings() const				{ return settings; }
+		const uint32_t& GetCurrentStyle() const					{ return currentStyle; }
+		const bool& GetContextCreated() const					{ return contextCreated; }
+		const bool& GetIsCurrentContext() const					{ return isCurrentContext; }
+		const monitor_t* GetCurrentMonitor() const				{ return currentMonitor; }
+		const buttonState_e* GetMouseButtonState() const		{ return mouseButton; }
+		const vec2_t<int16_t>& GetMousePosition() const			{ return mousePosition; }
+		const uint16_t& GetCurrentScreenIndex() const			{ return currentScreenIndex; }
+		const vec2_t<int16_t>& GetPreviousPosition() const		{ return previousPosition; }
+		const vec2_t<uint16_t>& GetPreviousDimensions() const	{ return previousDimensions; }
+		const vec2_t<int16_t>& GetPreviousMousePosition() const	{ return previousMousePosition; }
 
 		void SetShouldClose(const bool& inShouldClose) { shouldClose = inShouldClose; }
 
 	private:
-		bool inFocus; /**< Whether the Window is currently in focus(if it is the current window be used) */
-		bool shouldClose; /**< Whether the Window should be closing */
-		bool initialized; /**< Whether the window has been successfully initialized */
-		bool isFullscreen; /**< Whether the window is currently in fullscreen mode */
-		bool contextCreated; /**< Whether the OpenGL context has been successfully created */
-		bool isCurrentContext; /**< Whether the window is the current window being drawn to */
-		uint32_t currentStyle; /**< The current style of the window */
-		uint32_t previousStyle; /**< The previous style of the window (for restoration) */
-		keyState_e keys[last]; /**< Record of keys that are either pressed or released in the respective window */
-		vec2_t<int16_t> position; /**< Position of the Window relative to the screen co-ordinates */
-		windowSetting_t settings; /**< List of User-defined settings for this windowS */
-		monitor_t* currentMonitor; /**< The monitor that the window is currently rendering to */
-		uint16_t currentScreenIndex; /**< The Index of the screen currently being rendered to (fullscreen) */
-		vec2_t<int16_t> mousePosition; /**< Position of the Mouse cursor relative to the window co-ordinates */
-		vec2_t<int16_t> previousPosition; /**< Previous position of the window before being set as Fullscreen */
-		vec2_t<uint16_t> previousDimensions; /**< Previous dimensions of the window before being set as Fullscreen */
-		vec2_t<int16_t> previousMousePosition; /**< Previous mouse position relative to the window */
+		bool inFocus;							/**< Whether the Window is currently in focus(if it is the current window be used) */
+		bool shouldClose;						/**< Whether the Window should be closing */
+		bool initialized;						/**< Whether the window has been successfully initialized */
+		bool isFullscreen;						/**< Whether the window is currently in fullscreen mode */
+		bool contextCreated;					/**< Whether the OpenGL context has been successfully created */
+		bool isCurrentContext;					/**< Whether the window is the current window being drawn to */
+		uint32_t currentStyle;					/**< The current style of the window */
+		uint32_t previousStyle;					/**< The previous style of the window (for restoration) */
+		keyState_e keys[last];					/**< Record of keys that are either pressed or released in the respective window */
+		vec2_t<int16_t> position;				/**< Position of the Window relative to the screen co-ordinates */
+		windowSetting_t settings;				/**< List of User-defined settings for this windowS */
+		monitor_t* currentMonitor;				/**< The monitor that the window is currently rendering to */
+		uint16_t currentScreenIndex;			/**< The Index of the screen currently being rendered to (fullscreen) */
+		vec2_t<int16_t> mousePosition;			/**< Position of the Mouse cursor relative to the window co-ordinates */
+		vec2_t<int16_t> previousPosition;		/**< Previous position of the window before being set as Fullscreen */
+		vec2_t<uint16_t> previousDimensions;	/**< Previous dimensions of the window before being set as Fullscreen */
+		vec2_t<int16_t> previousMousePosition;	/**< Previous mouse position relative to the window */
 
-		buttonState_e mouseButton[(uint16_t)mouseButton_e::last]{};
 		/**< Record of mouse buttons that are either presses or released */
+		buttonState_e mouseButton[(uint16_t)mouseButton_e::last]{};
+
 
 
 #if defined(TW_USE_VULKAN)
@@ -852,39 +842,39 @@ namespace TinyWindow
 		uint16_t linuxDecorators; /**< Enabled window decorators */
 		XSetWindowAttributes setAttributes; /**< The attributes to be set for the window */
 
-		/* these atoms are needed to change window states via the extended window manager */
-		Atom AtomIcon; /**< Atom for the icon of the window */
+		/**< these atoms are needed to change window states via the extended window manager */
+		Atom AtomIcon;					/**< Atom for the icon of the window */
 		Atom AtomState;
-		Atom AtomHints; /**< Atom for the window decorations */
-		Atom AtomClose; /**< Atom for closing the window */
-		Atom AtomCursor; /**< Atom for the mouse cursor */
-		Atom AtomActive; /**< Atom for the active window */
-		Atom AtomCardinal; /**< Atom for cardinal coordinates */
-		Atom AtomFullScreen; /**< Atom for the full screen state of the window */
+		Atom AtomHints;					/**< Atom for the window decorations */
+		Atom AtomClose;					/**< Atom for closing the window */
+		Atom AtomCursor;				/**< Atom for the mouse cursor */
+		Atom AtomActive;				/**< Atom for the active window */
+		Atom AtomCardinal;				/**< Atom for cardinal coordinates */
+		Atom AtomFullScreen;			/**< Atom for the full screen state of the window */
 		Atom AtomStateHidden;
-		Atom AtomDesktopGeometry; /**< Atom for Desktop Geometry */
-		Atom AtomDemandsAttention; /**< Atom for when the window demands attention */
+		Atom AtomDesktopGeometry;		/**< Atom for Desktop Geometry */
+		Atom AtomDemandsAttention;		/**< Atom for when the window demands attention */
 		Atom AtomStateMaximizedVert;
 		Atom AtomStateMaximizedHorz;
 
-		//DND Atoms
-		Atom AtomXDNDAware; /**< Atom for making the window Drag and Drop aware */
-		Atom AtomXDNDEnter; /**< Atom for when a Drag and Drop selection enters the client area */
-		Atom AtomXDNDPosition; /**< Atom the position of the mouse when a Drag and Drop Event occurs */
-		Atom AtomXDNDStatus; /**< Atom for the DND status when a drag and drop event occurs */
-		Atom AtomXDNDDrop; /**< Atom for when a Drag and Drop selection occurs */
-		Atom AtomXDNDFinished; /**< Atom for when a DND event finishes */
-		Atom AtomXDNDLeave; /**< Atom for when the mouse leaves the window client area during a DND event */
-		Atom AtomXDNDSelection; /**< Atom for the DND selection of files when a DND event occurs */
-		Atom AtomXDNDTextUriList; /**< Atom for the list of file strings when a DND event occurs */
+		/**< DND Atoms */
+		Atom AtomXDNDAware;			/**< Atom for making the window Drag and Drop aware */
+		Atom AtomXDNDEnter;			/**< Atom for when a Drag and Drop selection enters the client area */
+		Atom AtomXDNDPosition;		/**< Atom the position of the mouse when a Drag and Drop Event occurs */
+		Atom AtomXDNDStatus;		/**< Atom for the DND status when a drag and drop event occurs */
+		Atom AtomXDNDDrop;			/**< Atom for when a Drag and Drop selection occurs */
+		Atom AtomXDNDFinished;		/**< Atom for when a DND event finishes */
+		Atom AtomXDNDLeave;			/**< Atom for when the mouse leaves the window client area during a DND event */
+		Atom AtomXDNDSelection;		/**< Atom for the DND selection of files when a DND event occurs */
+		Atom AtomXDNDTextUriList;	/**< Atom for the list of file strings when a DND event occurs */
 
 		enum decorator_e
 		{
-			linuxMove = 1L << 1,
-			linuxClose = 1L << 2,
-			linuxBorder = 1L << 3,
-			linuxMinimize = 1L << 4,
-			linuxMaximize = 1L << 5,
+			linuxMove		= 1L << 1,
+			linuxClose		= 1L << 2,
+			linuxBorder		= 1L << 3,
+			linuxMinimize	= 1L << 4,
+			linuxMaximize	= 1L << 5,
 		};
 
 		enum hint_e
@@ -942,7 +932,7 @@ namespace TinyWindow
 			previousDimensions = {0, 0};
 			previousPosition = {0, 0};
 
-			std::fill(keys, keys + last, keyState_e::up); // = { keyState_e.bad };
+			std::fill(keys, keys + last, keyState_e::up);
 			std::fill_n(mouseButton, static_cast<uint16_t>(mouseButton_e::last), buttonState_e::up);
 
 #if defined(TW_WINDOWS)
@@ -994,26 +984,19 @@ namespace TinyWindow
 	class windowManager
 	{
 	public:
-		key_c keyEvent; /**< This is the callback to be used when a key has been pressed */
-		focus_c focusEvent;
-		/**< This is the callback to be used when the window has been given focus in a non-programmatic fashion */
-		moved_c movedEvent;
-		/**< This is the callback to be used the window has been moved in a non-programmatic fashion */
-		resize_c resizeEvent;
-		/**< This is the callback to be used when the window has been resized in a non-programmatic fashion */
-		fileDrop_c fileDropEvent; /**< This is the callback to be used when files have been dragged onto a window */
-		destroyed_c destroyedEvent;
-		/**< This is the callback to be used when the window has been closed in a non-programmatic fashion */
-		maximized_c maximizedEvent;
-		/**< This is the callback to be used when the window has been maximized in a non-programmatic fashion */
-		minimized_c minimizedEvent;
-		/**< This is the callback to be used when the window has been minimized in a non-programmatic fashion */
-		mouseMove_c mouseMoveEvent; /**< This is the callback to be used when the mouse has been moved */
-		mouseWheel_c mouseWheelEvent; /**< This is the callback to be used when the mouse wheel has been scrolled. */
-		mouseButton_c mouseButtonEvent; /**< This is the callback to be used when a mouse button has been pressed */
-		windowError_c windowErrorEvent; /**< This is the callback to be used when an error has occurred */
-		managerError_c managerErrorEvent;
-		/**< This is the callback to be used when a manager specific error has occurred */
+		key_c keyEvent;						/**< This is the callback to be used when a key has been pressed */
+		focus_c focusEvent;					/**< This is the callback to be used when the window has been given focus in a non-programmatic fashion */
+		moved_c movedEvent;					/**< This is the callback to be used the window has been moved in a non-programmatic fashion */
+		resize_c resizeEvent;				/**< This is the callback to be used when the window has been resized in a non-programmatic fashion */
+		fileDrop_c fileDropEvent;			/**< This is the callback to be used when files have been dragged onto a window */
+		destroyed_c destroyedEvent;			/**< This is the callback to be used when the window has been closed in a non-programmatic fashion */
+		maximized_c maximizedEvent;			/**< This is the callback to be used when the window has been maximized in a non-programmatic fashion */
+		minimized_c minimizedEvent;			/**< This is the callback to be used when the window has been minimized in a non-programmatic fashion */
+		mouseMove_c mouseMoveEvent;			/**< This is the callback to be used when the mouse has been moved */
+		mouseWheel_c mouseWheelEvent;		/**< This is the callback to be used when the mouse wheel has been scrolled. */
+		mouseButton_c mouseButtonEvent;		/**< This is the callback to be used when a mouse button has been pressed */
+		windowError_c windowErrorEvent;		/**< This is the callback to be used when an error has occurred */
+		managerError_c managerErrorEvent;	/**< This is the callback to be used when a manager specific error has occurred */
 
 		windowManager() { Initialize(); }
 
@@ -3704,53 +3687,53 @@ namespace TinyWindow
 		typedef std::pair<uint32_t, key_e> keyEntry;
 		const std::unordered_map<uint32_t, key_e> keyLUT =
 		{
-			keyEntry(XK_Escape, escape),
-			keyEntry(XK_space, spacebar),
-			keyEntry(XK_Home, home),
-			keyEntry(XK_Left, arrowLeft),
-			keyEntry(XK_Right, arrowRight),
-			keyEntry(XK_Up, arrowUp),
-			keyEntry(XK_Down, arrowDown),
-			keyEntry(XK_Page_Up, pageUp),
-			keyEntry(XK_Page_Down, pageDown),
-			keyEntry(XK_End, end),
-			keyEntry(XK_Print, printScreen),
-			keyEntry(XK_Insert, insert),
-			keyEntry(XK_Num_Lock, numLock),
-			keyEntry(XK_KP_Multiply, keypadMultiply),
-			keyEntry(XK_KP_Add, keypadAdd),
-			keyEntry(XK_KP_Subtract, keypadSubtract),
-			keyEntry(XK_KP_Decimal, keypadPeriod),
-			keyEntry(XK_KP_Divide, keypadDivide),
-			keyEntry(XK_KP_0, keypad0),
-			keyEntry(XK_KP_1, keypad1),
-			keyEntry(XK_KP_2, keypad2),
-			keyEntry(XK_KP_3, keypad3),
-			keyEntry(XK_KP_4, keypad4),
-			keyEntry(XK_KP_5, keypad5),
-			keyEntry(XK_KP_6, keypad6),
-			keyEntry(XK_KP_7, keypad7),
-			keyEntry(XK_KP_8, keypad8),
-			keyEntry(XK_KP_9, keypad9),
-			keyEntry(XK_F1, F1),
-			keyEntry(XK_F2, F2),
-			keyEntry(XK_F3, F3),
-			keyEntry(XK_F4, F4),
-			keyEntry(XK_F5, F5),
-			keyEntry(XK_F6, F6),
-			keyEntry(XK_F7, F7),
-			keyEntry(XK_F8, F8),
-			keyEntry(XK_F9, F9),
-			keyEntry(XK_F10, F10),
-			keyEntry(XK_F11, F11),
-			keyEntry(XK_F12, F12),
-			keyEntry(XK_Shift_L, leftShift),
-			keyEntry(XK_Shift_R, rightShift),
-			keyEntry(XK_Control_R, rightControl),
-			keyEntry(XK_Control_L, leftControl),
-			keyEntry(XK_Caps_Lock, capsLock),
-			keyEntry(XK_Alt_L, leftAlt),
-			keyEntry(XK_Alt_R, rightAlt),
+			keyEntry(XK_Escape,		escape),
+			keyEntry(XK_space,			spacebar),
+			keyEntry(XK_Home,			home),
+			keyEntry(XK_Left,			arrowLeft),
+			keyEntry(XK_Right,			arrowRight),
+			keyEntry(XK_Up,			arrowUp),
+			keyEntry(XK_Down,			arrowDown),
+			keyEntry(XK_Page_Up,		pageUp),
+			keyEntry(XK_Page_Down,		pageDown),
+			keyEntry(XK_End,			end),
+			keyEntry(XK_Print,			printScreen),
+			keyEntry(XK_Insert,		insert),
+			keyEntry(XK_Num_Lock,		numLock),
+			keyEntry(XK_KP_Multiply,	keypadMultiply),
+			keyEntry(XK_KP_Add,		keypadAdd),
+			keyEntry(XK_KP_Subtract,	keypadSubtract),
+			keyEntry(XK_KP_Decimal,	keypadPeriod),
+			keyEntry(XK_KP_Divide,		keypadDivide),
+			keyEntry(XK_KP_0,			keypad0),
+			keyEntry(XK_KP_1,			keypad1),
+			keyEntry(XK_KP_2,			keypad2),
+			keyEntry(XK_KP_3,			keypad3),
+			keyEntry(XK_KP_4,			keypad4),
+			keyEntry(XK_KP_5,			keypad5),
+			keyEntry(XK_KP_6,			keypad6),
+			keyEntry(XK_KP_7,			keypad7),
+			keyEntry(XK_KP_8,			keypad8),
+			keyEntry(XK_KP_9,			keypad9),
+			keyEntry(XK_F1,			F1),
+			keyEntry(XK_F2,			F2),
+			keyEntry(XK_F3,			F3),
+			keyEntry(XK_F4,			F4),
+			keyEntry(XK_F5,			F5),
+			keyEntry(XK_F6,			F6),
+			keyEntry(XK_F7,			F7),
+			keyEntry(XK_F8,			F8),
+			keyEntry(XK_F9,			F9),
+			keyEntry(XK_F10,			F10),
+			keyEntry(XK_F11,			F11),
+			keyEntry(XK_F12,			F12),
+			keyEntry(XK_Shift_L,		leftShift),
+			keyEntry(XK_Shift_R,		rightShift),
+			keyEntry(XK_Control_R,		rightControl),
+			keyEntry(XK_Control_L,		leftControl),
+			keyEntry(XK_Caps_Lock,		capsLock),
+			keyEntry(XK_Alt_L,			leftAlt),
+			keyEntry(XK_Alt_R,			rightAlt),
 		};
 
 		tWindow* GetWindowByEvent(const XEvent& inEvent) const

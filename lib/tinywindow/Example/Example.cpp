@@ -252,13 +252,6 @@ int main()
 		iconData[iter] = (iconTest[index + 3] << 24) | (iconTest[index] << 16) | (iconTest[index + 1] << 8) | iconTest[index + 2];  // RGBA -> ARGB
 	}
 
-	windowSetting_t defaultSetting;
-	defaultSetting.name = "example window";
-	defaultSetting.resolution = vec2_t<unsigned short>(1280, 720);
-	defaultSetting.SetProfile(profile_e::core);
-	defaultSetting.currentState = state_e::maximized;
-	defaultSetting.enableSRGB = false;
-
 	std::unique_ptr<windowManager> manager(new windowManager());
 	manager->keyEvent = HandleKeyPresses;
 	manager->mouseButtonEvent = HandleMouseClick;
@@ -274,9 +267,16 @@ int main()
 	manager->fileDropEvent = HandleFileDrop;
 	//manager->mouseMoveEvent = HandleMouseMovement;
 
-	std::unique_ptr<tWindow> window(manager->AddWindow(defaultSetting));
-
 	PrintMonitorInfo(manager.get());
+
+	windowSetting_t defaultSetting;
+	defaultSetting.name = "example window";
+	defaultSetting.resolution = vec2_t<unsigned short>(1280, 720);
+	defaultSetting.SetProfile(profile_e::core);
+	defaultSetting.currentState = state_e::maximized;
+	defaultSetting.enableSRGB = false;
+
+	std::unique_ptr<tWindow> window(manager->AddWindow(defaultSetting));
 
 	//printf("%s \n", manager->GetClipboardInfo().c_str());
 	glClearColor(0.25f, 0.25f, 0.25f, 1.0f);
@@ -330,6 +330,9 @@ int main()
 	manager->ShutDown();
 	const tWindow* tempWindow = window.release();
 	delete tempWindow;
+
+	const windowManager* tempManager = manager.release();
+	delete tempManager;
 	
 	return 0;
 }
