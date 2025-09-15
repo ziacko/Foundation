@@ -282,7 +282,7 @@ int main()
 	//printf("%s \n", manager->GetClipboardInfo().c_str());
 	glClearColor(0.25f, 0.25f, 0.25f, 1.0f);
 
-	manager->ToggleFullscreenMode(window.get(), fullscreenMode_e::borderless, &manager->GetMonitors().at(0));
+	//manager->ToggleFullscreenMode(window.get(), fullscreenMode_e::borderless, &manager->GetMonitors().at(0), 4);
 
 	while (window->GetShouldClose() == false)
 	{
@@ -320,7 +320,8 @@ int main()
 			//manager->SetMousePositionInScreen(vec2_t<int32_t>(500, 500), manager->GetMonitors().back());
 			//manager->SetCursorIcon(window.get(), iconData, iconDimensions);
 
-			manager->ToggleFullscreenMode(window.get(), fullscreenMode_e::windowed, &manager->GetMonitors().at(0));
+			//manager->ToggleFullscreenMode(window.get(), fullscreenMode_e::windowed, &manager->GetMonitors().at(0));
+			manager->ChangeMonitorSetting(&manager->GetMonitors().at(0), 3);
 			//manager->SetDecorators(window.get(), style_n::bare);
 			//manager->DisableDecorators(window.get(), decorator_e::titleBar | decorator_e::icon);
 			//manager->SetTitleBar(window.get(), "poopoo");

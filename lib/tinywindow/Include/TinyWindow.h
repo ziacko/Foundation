@@ -693,60 +693,6 @@ namespace TinyWindow
 		errorEntry(error_e::windowsFunctionNotImplemented,	"Windows Error: function not implemented on Windows platform yet"),
 	};
 
-#ifdef TW_WINDOWS
-	//create a LUT for win32 keys
-	typedef std::pair<WPARAM, key_e> keyEntry;
-	const std::unordered_map<WPARAM, key_e> keyLUT =
-	{
-		keyEntry(VK_BACK, backspace),
-		keyEntry(VK_TAB, tab),
-		keyEntry(VK_RETURN, enter),
-		keyEntry(VK_ESCAPE, escape),
-		keyEntry(VK_SPACE, spacebar),
-		keyEntry(VK_HOME, home),
-		keyEntry(VK_LEFT, arrowLeft),
-		keyEntry(VK_RIGHT, arrowRight),
-		keyEntry(VK_UP, arrowUp),
-		keyEntry(VK_DOWN, arrowDown),
-		keyEntry(VK_PRIOR, pageUp),
-		keyEntry(VK_NEXT, pageDown),
-		keyEntry(VK_END, end),
-		keyEntry(VK_PRINT, printScreen),
-		keyEntry(VK_INSERT, insert),
-		keyEntry(VK_NUMLOCK, numLock),
-		keyEntry(VK_MULTIPLY, keypadMultiply),
-		keyEntry(VK_ADD, keypadAdd),
-		keyEntry(VK_SUBTRACT, keypadSubtract),
-		keyEntry(VK_DECIMAL, keypadPeriod),
-		keyEntry(VK_DIVIDE, keypadDivide),
-		keyEntry(VK_NUMPAD0, keypad0),
-		keyEntry(VK_NUMPAD1, keypad1),
-		keyEntry(VK_NUMPAD2, keypad2),
-		keyEntry(VK_NUMPAD3, keypad3),
-		keyEntry(VK_NUMPAD4, keypad4),
-		keyEntry(VK_NUMPAD5, keypad5),
-		keyEntry(VK_NUMPAD6, keypad6),
-		keyEntry(VK_NUMPAD7, keypad7),
-		keyEntry(VK_NUMPAD8, keypad8),
-		keyEntry(VK_NUMPAD9, keypad9),
-		keyEntry(VK_F1, F1),
-		keyEntry(VK_F2, F2),
-		keyEntry(VK_F3, F3),
-		keyEntry(VK_F4, F4),
-		keyEntry(VK_F5, F5),
-		keyEntry(VK_F6, F6),
-		keyEntry(VK_F7, F7),
-		keyEntry(VK_F8, F8),
-		keyEntry(VK_F9, F9),
-		keyEntry(VK_F10, F10),
-		keyEntry(VK_F11, F11),
-		keyEntry(VK_F12, F12),
-		keyEntry(VK_SHIFT, leftShift),
-		keyEntry(VK_SHIFT, rightShift),
-		keyEntry(VK_CAPITAL, capsLock),
-	};
-#endif // TW_WINDOWS
-
 
 	using key_c = std::function<void(const tWindow* window, const uint16_t& key, const keyState_e& keyState)>;
 	using focus_c = std::function<void(const tWindow* window, const bool& isFocused)>;
@@ -1466,7 +1412,7 @@ namespace TinyWindow
 		/**
 		* Toggles full-screen mode for a window by parsing in a mode, then a monitor and a monitor setting index, if exclusive is used
 		*/
-		void ToggleFullscreenMode(tWindow* window, const fullscreenMode_e mode, monitor_t* monitor = nullptr, const uint16_t& monitorSettingIndex = 0)
+		void ToggleFullscreenMode(tWindow* window, const fullscreenMode_e mode, monitor_t* monitor, const uint16_t& monitorSettingIndex = 0)
 		{
 			//safety checks
 			if (window == nullptr)
@@ -1482,15 +1428,41 @@ namespace TinyWindow
 			}
 
 			//if monitor is valid
-			if (monitor == nullptr)
+			if (monitor == nullptr && mode == fullscreenMode_e::exclusive)
 			{
 				AddErrorLog(error_e::invalidMonitor, __LINE__, __func__, window);
 				return;
 			}
 
 			//if the previous mode was exclusive and the current isn't, reset the monitor to the previous state
-			if (window->previousFullscreenMode == fullscreenMode_e::exclusive && mode != fullscreenMode_e::exclusive)
+			if (window->currentFullscreenMode == fullscreenMode_e::exclusive && mode != fullscreenMode_e::exclusive)
 			{
+#if defined(TW_WINDOWS)
+
+				//using win32 API to reset the monitor to the previous setting
+				window->currentMonitor = monitor;
+				DEVMODE previousMode = {};
+				previousMode.dmSize = sizeof(DEVMODE);
+
+				std::wstring wDisplayName = std::wstring(monitor->displayName.begin(), monitor->displayName.end());
+
+
+				//previousMode.dmBitsPerPel = monitor->previousSetting.;
+				previousMode.dmPelsWidth = monitor->previousSetting.resolution.width;
+				previousMode.dmPelsHeight = monitor->previousSetting.resolution.height;
+				previousMode.dmDisplayFrequency = monitor->previousSetting.displayFrequency;
+				previousMode.dmFields = DM_PELSWIDTH | DM_PELSHEIGHT | DM_DISPLAYFREQUENCY;
+				auto result = ChangeDisplaySettingsEx(wDisplayName.c_str(), &previousMode, nullptr, CDS_FULLSCREEN, nullptr);
+
+				//if result is not DISP_CHANGE_SUCCESSFUL then log an error
+				if (result != DISP_CHANGE_SUCCESSFUL)
+				{
+					AddErrorLog(error_e::WindowsFullscreenChangeFailed, __LINE__, __func__);
+					return;
+				}
+
+#elif defined(TW_LINUX)
+
 				//reset the monitor to the previous setting
 				window->currentMonitor = monitor;
 				const auto rootDisplay = XOpenDisplay(nullptr);
@@ -1500,14 +1472,15 @@ namespace TinyWindow
 				XRRScreenResources* screenResources = XRRGetScreenResources(rootDisplay, root);
 
 				const int result = XRRSetCrtcConfig(rootDisplay, screenResources, monitor->previousSetting.crtc, CurrentTime,
-										  (int)monitor->extents.left, (int)monitor->extents.top,
-										  monitor->previousSetting.mode, monitor->rotation,
-										  &monitor->previousSetting.output, 1);
+					(int)monitor->extents.left, (int)monitor->extents.top,
+					monitor->previousSetting.mode, monitor->rotation,
+					&monitor->previousSetting.output, 1);
 
 				if (result == Success)
 				{
 					XSync(rootDisplay, True);
 				}
+#endif
 			}
 			window->previousFullscreenMode = window->currentFullscreenMode;
 
@@ -1541,12 +1514,15 @@ namespace TinyWindow
 			case fullscreenMode_e::exclusive:
 					{
 #if defined(TW_WINDOWS)
-						Windows_ToggleFullscreen(window, monitor, monitorSettingIndex);
+						Windows_ToggleExclusiveFullscreen(window, monitor, monitorSettingIndex);
 #elif defined(TW_LINUX)
 						Linux_ToggleExclusiveFullscreen(window, monitor, monitorSettingIndex);
 #endif
+						SetWindowSize(window, vec2_t(monitor->resolution.width, monitor->resolution.height));
+						SetPosition(window, vec2_t<int16_t>(monitor->extents.left, monitor->extents.top)); // Use (0,0) as origin after mode change?
 						monitor->previousSetting = monitor->currentSetting;
 						monitor->currentSetting = monitor->settings[monitorSettingIndex];
+						window->currentFullscreenMode = fullscreenMode_e::exclusive;
 						break;
 					}
 			}
@@ -1934,6 +1910,15 @@ namespace TinyWindow
 		const std::vector<formatSetting_t>* GetFormatList() const
 		{
 			return &formatList;
+		}
+
+		void ChangeMonitorSetting(monitor_t* monitor, uint16_t monitorSettingIndex)
+		{
+#if defined(TW_WINDOWS)
+			Windows_ChangeMonitorSetting(monitor, monitorSettingIndex);
+#elif defined(TW_LINUX)
+			Windows_ChangeMonitorSetting(monitor, monitorSettingIndex);
+#endif
 		}
 
 	private:
@@ -3287,94 +3272,10 @@ namespace TinyWindow
 			}
 		}
 
-		void Windows_ToggleFullscreen(tWindow* window, monitor_t* monitor, uint16_t monitorSettingIndex)
+		void Windows_ToggleExclusiveFullscreen(tWindow* window, monitor_t* monitor, uint16_t monitorSettingIndex)
 		{
 			window->currentMonitor = monitor;
-
-			DEVMODE devMode;
-			ZeroMemory(&devMode, sizeof(DEVMODE));
-			devMode.dmSize = sizeof(DEVMODE);
-			int err = 0;
-
-			std::wstring wDisplayName = std::wstring(monitor->displayName.begin(), monitor->displayName.end());
-
-			if (window->isFullscreen)
-			{
-				err = ChangeDisplaySettingsEx(wDisplayName.c_str(), nullptr, nullptr, NULL, nullptr);
-			}
-
-			else if (monitorSettingIndex > 0 && monitorSettingIndex < (monitor->settings.size() - 1))
-			{
-				monitorSetting_t selectedSetting = monitor->settings[monitorSettingIndex];
-				devMode.dmPelsWidth = selectedSetting.resolution.width;
-				devMode.dmPelsHeight = selectedSetting.resolution.height;
-				//devMode.dmBitsPerPel = window->settings.colorBits * 4;
-				devMode.dmDisplayFrequency = selectedSetting.displayFrequency;
-				devMode.dmFields = DM_PELSWIDTH | DM_PELSHEIGHT | DM_DISPLAYFREQUENCY;
-				err = ChangeDisplaySettingsExW(wDisplayName.c_str(), &devMode, nullptr, CDS_FULLSCREEN | CDS_TEST,
-				                               nullptr);
-
-				switch (err)
-				{
-				case DISP_CHANGE_SUCCESSFUL:
-					{
-						ChangeDisplaySettingsExW(wDisplayName.c_str(), &devMode, nullptr, CDS_FULLSCREEN, nullptr);
-						window->isFullscreen = !window->isFullscreen;
-						if (window->isFullscreen)
-						{
-							SetDecorators(window, style_n::none);
-						}
-						else
-						{
-							SetDecorators(window, style_n::normal);
-						}
-						break;
-					}
-
-				case DISP_CHANGE_BADDUALVIEW:
-					{
-						AddErrorLog(error_e::windowsFullscreenBadDualView, __LINE__, __func__, window);
-						break;
-					}
-				case DISP_CHANGE_BADFLAGS:
-					{
-						AddErrorLog(error_e::windowsFullscreenBadFlags, __LINE__, __func__, window);
-						break;
-					}
-				case DISP_CHANGE_BADMODE:
-					{
-						AddErrorLog(error_e::windowsFullscreenBadMode, __LINE__, __func__, window);
-						break;
-					}
-				case DISP_CHANGE_BADPARAM:
-					{
-						AddErrorLog(error_e::WindowsFullscreenBadParam, __LINE__, __func__, window);
-						break;
-					}
-				case DISP_CHANGE_FAILED:
-					{
-						AddErrorLog(error_e::WindowsFullscreenChangeFailed, __LINE__, __func__, window);
-						break;
-					}
-				case DISP_CHANGE_NOTUPDATED:
-					{
-						AddErrorLog(error_e::WindowsFullscreenNotUpdated, __LINE__, __func__, window);
-						break;
-					}
-
-				default:
-					{
-						break;
-					}
-				}
-			}
-
-			else
-			{
-				AddErrorLog(error_e::invalidMonitorSettingIndex, __LINE__, __func__, window);
-			}
-
-			SetPosition(window, vec2_t<int16_t>((int)monitor->extents.left, (int)monitor->extents.top));
+			Windows_ChangeMonitorSetting(monitor, monitorSettingIndex);
 		}
 
 		static int RetrieveDataFromWin32Pointer(LPARAM longParam, uint16_t depth)
@@ -3424,6 +3325,57 @@ namespace TinyWindow
 
 		static uint16_t Windows_TranslateKey(WPARAM wordParam)
 		{
+			typedef std::pair<WPARAM, key_e> keyEntry;
+			static std::unordered_map<WPARAM, key_e> keyLUT =
+			{
+				keyEntry(VK_BACK, backspace),
+				keyEntry(VK_TAB, tab),
+				keyEntry(VK_RETURN, enter),
+				keyEntry(VK_ESCAPE, escape),
+				keyEntry(VK_SPACE, spacebar),
+				keyEntry(VK_HOME, home),
+				keyEntry(VK_LEFT, arrowLeft),
+				keyEntry(VK_RIGHT, arrowRight),
+				keyEntry(VK_UP, arrowUp),
+				keyEntry(VK_DOWN, arrowDown),
+				keyEntry(VK_PRIOR, pageUp),
+				keyEntry(VK_NEXT, pageDown),
+				keyEntry(VK_END, end),
+				keyEntry(VK_PRINT, printScreen),
+				keyEntry(VK_INSERT, insert),
+				keyEntry(VK_NUMLOCK, numLock),
+				keyEntry(VK_MULTIPLY, keypadMultiply),
+				keyEntry(VK_ADD, keypadAdd),
+				keyEntry(VK_SUBTRACT, keypadSubtract),
+				keyEntry(VK_DECIMAL, keypadPeriod),
+				keyEntry(VK_DIVIDE, keypadDivide),
+				keyEntry(VK_NUMPAD0, keypad0),
+				keyEntry(VK_NUMPAD1, keypad1),
+				keyEntry(VK_NUMPAD2, keypad2),
+				keyEntry(VK_NUMPAD3, keypad3),
+				keyEntry(VK_NUMPAD4, keypad4),
+				keyEntry(VK_NUMPAD5, keypad5),
+				keyEntry(VK_NUMPAD6, keypad6),
+				keyEntry(VK_NUMPAD7, keypad7),
+				keyEntry(VK_NUMPAD8, keypad8),
+				keyEntry(VK_NUMPAD9, keypad9),
+				keyEntry(VK_F1, F1),
+				keyEntry(VK_F2, F2),
+				keyEntry(VK_F3, F3),
+				keyEntry(VK_F4, F4),
+				keyEntry(VK_F5, F5),
+				keyEntry(VK_F6, F6),
+				keyEntry(VK_F7, F7),
+				keyEntry(VK_F8, F8),
+				keyEntry(VK_F9, F9),
+				keyEntry(VK_F10, F10),
+				keyEntry(VK_F11, F11),
+				keyEntry(VK_F12, F12),
+				keyEntry(VK_SHIFT, leftShift),
+				keyEntry(VK_SHIFT, rightShift),
+				keyEntry(VK_CAPITAL, capsLock),
+			};
+
 			return keyLUT.at(wordParam);
 		}
 
@@ -3495,6 +3447,8 @@ namespace TinyWindow
 								static_cast<uint16_t>(dm.dmDisplayFrequency));
 							mon.currentSetting.displayFlags = dm.dmDisplayFlags;
 							mon.currentSetting.fixedOutput = dm.dmDisplayFixedOutput;
+							mon.resolution = mon.currentSetting.resolution;
+							mon.previousSetting = mon.currentSetting;
 						}
 					}
 
@@ -3515,6 +3469,8 @@ namespace TinyWindow
 							static_cast<uint16_t>(dm.dmDisplayFrequency));
 						setting.displayFlags = dm.dmDisplayFlags;
 						setting.fixedOutput = dm.dmDisplayFixedOutput;
+						//also get extents
+						//setting. = vec4_t<uint16_t>(dm.dmPosition.x, dm.dmPosition.y, dm.dmPelsWidth, dm.dmPelsHeight);
 
 						//treat like a queue
 						mon.settings.insert(mon.settings.begin(), setting);
@@ -3561,6 +3517,89 @@ namespace TinyWindow
 			for (auto iter : monitorList)
 			{
 				ChangeDisplaySettingsEx((wchar_t*)iter.displayName.c_str(), nullptr, nullptr, CDS_FULLSCREEN, nullptr);
+			}
+		}
+
+		void Windows_ChangeMonitorSetting(monitor_t* monitor, const uint16_t& monitorSettingIndex)
+		{
+			//is the monitor valid and does the setting at index exist?
+			if (monitor == nullptr)
+			{
+				AddErrorLog(error_e::invalidMonitor, __LINE__, __func__);
+				return;
+			}
+
+			if (monitorSettingIndex >= monitor->settings.size())
+			{
+				AddErrorLog(error_e::invalidMonitorSettingIndex, __LINE__, __func__);
+				return;
+			}
+
+			DEVMODE devMode;
+			ZeroMemory(&devMode, sizeof(DEVMODE));
+			devMode.dmSize = sizeof(DEVMODE);
+			int err = 0;
+
+			std::wstring wDisplayName = std::wstring(monitor->displayName.begin(), monitor->displayName.end());
+
+			if (monitorSettingIndex >= 0 && monitorSettingIndex < (monitor->settings.size() - 1))
+			{
+				monitorSetting_t selectedSetting = monitor->settings[monitorSettingIndex];
+				devMode.dmPelsWidth = selectedSetting.resolution.width;
+				devMode.dmPelsHeight = selectedSetting.resolution.height;
+				//devMode.dmBitsPerPel = window->settings.colorBits;
+				devMode.dmDisplayFrequency = selectedSetting.displayFrequency;
+				devMode.dmFields = DM_PELSWIDTH | DM_PELSHEIGHT | DM_DISPLAYFREQUENCY;
+				err = ChangeDisplaySettingsExW(wDisplayName.c_str(), &devMode, nullptr, CDS_FULLSCREEN | CDS_TEST, nullptr);
+
+				switch (err)
+				{
+				case DISP_CHANGE_SUCCESSFUL:
+					{
+						ChangeDisplaySettingsExW(wDisplayName.c_str(), &devMode, nullptr, CDS_FULLSCREEN, nullptr);
+						break;
+					}
+
+				case DISP_CHANGE_BADDUALVIEW:
+					{
+						AddErrorLog(error_e::windowsFullscreenBadDualView, __LINE__, __func__);
+						break;
+					}
+				case DISP_CHANGE_BADFLAGS:
+					{
+						AddErrorLog(error_e::windowsFullscreenBadFlags, __LINE__, __func__);
+						break;
+					}
+				case DISP_CHANGE_BADMODE:
+					{
+						AddErrorLog(error_e::windowsFullscreenBadMode, __LINE__, __func__);
+						break;
+					}
+				case DISP_CHANGE_BADPARAM:
+					{
+						AddErrorLog(error_e::WindowsFullscreenBadParam, __LINE__, __func__);
+						break;
+					}
+				case DISP_CHANGE_FAILED:
+					{
+						AddErrorLog(error_e::WindowsFullscreenChangeFailed, __LINE__, __func__);
+						break;
+					}
+				case DISP_CHANGE_NOTUPDATED:
+					{
+						AddErrorLog(error_e::WindowsFullscreenNotUpdated, __LINE__, __func__);
+						break;
+					}
+
+				default:
+					{
+						break;
+					}
+				}
+			}
+			else
+			{
+				AddErrorLog(error_e::invalidMonitorSettingIndex, __LINE__, __func__);
 			}
 		}
 
