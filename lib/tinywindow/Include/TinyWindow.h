@@ -1917,7 +1917,7 @@ namespace TinyWindow
 #if defined(TW_WINDOWS)
 			Windows_ChangeMonitorSetting(monitor, monitorSettingIndex);
 #elif defined(TW_LINUX)
-			Windows_ChangeMonitorSetting(monitor, monitorSettingIndex);
+			Linux_ChangeMonitorSetting(monitor, monitorSettingIndex);
 #endif
 		}
 
