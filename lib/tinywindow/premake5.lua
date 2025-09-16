@@ -15,8 +15,8 @@ end
 local RD = path.getabsolute("./") .. "/"
 
 includedirs(RD .. "Include/")
-includedirs(RD .. "Dependencies")
-includedirs(RD .. "Examples/dependencies")
+includedirs(RD .. "Example")
+includedirs(RD .. "Example/include")
 
 intermediateDir = RD .. "Intermediate"
 
