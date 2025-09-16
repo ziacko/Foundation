@@ -6,9 +6,8 @@ if os.host() == "linux" then
     --}
 
     location "proj/make"
-    else if os.host() == "windows" then
+elseif os.host() == "windows" then
     location "proj/vs"
-    end
 end
 
 
@@ -37,7 +36,6 @@ solution "TinyWindow"
     project "Example"
         kind "ConsoleApp"
         language "C++"
-        debugdir "./Example"
         files { sources }
         cppdialect "C++20"
         toolset "clang"
@@ -48,6 +46,7 @@ solution "TinyWindow"
     targetname "Example_Debug"
     optimize "Off"
     targetdir "bin/Debug"
+    debugdir "bin/Debug"
 
     filter {"configurations:Release"}
     defines {}
@@ -55,6 +54,7 @@ solution "TinyWindow"
     optimize "on"
     targetname "Example"
     targetdir "bin/Release"
+    debugdir "bin/Release"
 
 
     filter {"platforms:Win64"}
