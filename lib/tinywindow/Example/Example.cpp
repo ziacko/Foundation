@@ -277,7 +277,7 @@ int main()
 	defaultSetting.currentState = state_e::maximized;
 	defaultSetting.enableSRGB = false;
 
-	std::unique_ptr<tWindow> window(manager->AddWindow(defaultSetting));
+	tWindow* window = manager->AddWindow(defaultSetting);
 
 	//printf("%s \n", manager->GetClipboardInfo().c_str());
 	glClearColor(0.25f, 0.25f, 0.25f, 1.0f);
@@ -329,16 +329,14 @@ int main()
 			spacePressed = false;
 		}
 		
-		manager->SwapDrawBuffers(window.get());
+		manager->SwapDrawBuffers(window);
 		glClear(GL_COLOR_BUFFER_BIT);
 	}
 
 	manager->ShutDown();
-	const tWindow* tempWindow = window.release();
-	delete tempWindow;
 
-	const windowManager* tempManager = manager.release();
-	delete tempManager;
+	//const windowManager* tempManager = manager.release();
+	//delete tempManager;
 	
 	return 0;
 }

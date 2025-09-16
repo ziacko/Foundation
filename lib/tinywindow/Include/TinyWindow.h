@@ -407,6 +407,18 @@ namespace TinyWindow
 			this->bestFBConfig = nullptr;
 #endif
 		}
+		~windowSetting_t() noexcept
+		{
+			// Pseudocode:
+			// - No dynamically allocated resources are owned by windowSetting_t.
+			// - On Linux/GLX builds we store a GLXFBConfig handle selected elsewhere.
+			// - To avoid any accidental dangling references, explicitly null the handle on destruction.
+			// - All other cleanup is handled by owning systems (X11/Win32/windowManager).
+
+#if defined(TW_LINUX) && !defined(TW_USE_VULKAN)
+			bestFBConfig = nullptr;
+#endif
+		}
 
 		void SetProfile(profile_e inProfile)
 		{
@@ -905,6 +917,93 @@ namespace TinyWindow
 			context = nullptr;
 #endif
 		}
+			
+        ~tWindow()
+        {
+        // Cleanup resources defensively. windowManager::ShutdownWindow() normally releases these,
+        // but the destructor ensures no leaks if called without explicit shutdown.
+        #if defined(TW_USE_VULKAN)
+        // Destroy Vulkan surface if present. Instance lifetime is managed externally.
+        if (vulkanSurfaceHandle != VK_NULL_HANDLE && vulkanInstanceHandle != VK_NULL_HANDLE)
+        {
+        vkDestroySurfaceKHR(vulkanInstanceHandle, vulkanSurfaceHandle, nullptr);
+        vulkanSurfaceHandle = VK_NULL_HANDLE;
+        }
+        #endif
+
+        #if defined(TW_WINDOWS)
+        // Release GL context
+        if (glRenderingContextHandle)
+        {
+	        wglMakeCurrent(nullptr, nullptr);
+	        wglDeleteContext(glRenderingContextHandle);
+	        glRenderingContextHandle = nullptr;
+        }
+
+        // Release palette (if any)
+        if (paletteHandle)
+        {
+	        DeleteObject(paletteHandle);
+	        paletteHandle = nullptr;
+        }
+
+        // Release DC
+        if (deviceContextHandle && windowHandle)
+        {
+	        ReleaseDC(windowHandle, deviceContextHandle);
+	        deviceContextHandle = nullptr;
+        }
+
+        // Destroy window if still alive
+        if (windowHandle)
+        {
+	        DestroyWindow(windowHandle);
+	        windowHandle = nullptr;
+        }
+
+        // Do not unregister class or free module here (handled by windowManager)
+        #elif defined(TW_LINUX)
+        // Destroy GLX context
+        if (context && currentDisplay)
+        {
+        glXMakeCurrent(currentDisplay, None, nullptr);
+        glXDestroyContext(currentDisplay, context);
+        context = nullptr;
+        }
+
+        // Destroy Window
+        if (windowHandle && currentDisplay)
+        {
+        XUnmapWindow(currentDisplay, windowHandle);
+        XDestroyWindow(currentDisplay, windowHandle);
+        windowHandle = 0;
+        }
+
+        // Free colormap if we created one
+        if (setAttributes.colormap && currentDisplay)
+        {
+        XFreeColormap(currentDisplay, setAttributes.colormap);
+        setAttributes.colormap = 0;
+        }
+
+        // Free visual info
+        if (visualInfo)
+        {
+        XFree(visualInfo);
+        visualInfo = nullptr;
+        }
+
+        // Free attribute array
+        if (attributes)
+        {
+        delete[] attributes;
+        attributes = nullptr;
+        }
+
+        // Do not close Display here; managed by windowManager
+        #endif
+        }
+		
 
 	private:
 #pragma region Windows
