@@ -1,0 +1,3 @@
+[submodule "lib/TinyWindow"]
+	path = lib/TinyWindow
+	url = https://github.com/ziacko/TinyWindow
