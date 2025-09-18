@@ -1,0 +1,13 @@
+# CMake generation dependency list for this directory.
+C:/Program Files/CMake/share/cmake-3.19/Modules/CMakeCInformation.cmake
+C:/Program Files/CMake/share/cmake-3.19/Modules/CMakeCommonLanguageInclude.cmake
+C:/Program Files/CMake/share/cmake-3.19/Modules/CMakeLanguageInformation.cmake
+C:/Program Files/CMake/share/cmake-3.19/Modules/Compiler/CMakeCommonCompilerMacros.cmake
+C:/Program Files/CMake/share/cmake-3.19/Modules/Compiler/MSVC-C.cmake
+C:/Program Files/CMake/share/cmake-3.19/Modules/FindOpenGL.cmake
+C:/Program Files/CMake/share/cmake-3.19/Modules/FindPackageHandleStandardArgs.cmake
+C:/Program Files/CMake/share/cmake-3.19/Modules/FindPackageMessage.cmake
+C:/Program Files/CMake/share/cmake-3.19/Modules/Platform/Windows-MSVC-C.cmake
+C:/Program Files/CMake/share/cmake-3.19/Modules/Platform/Windows-MSVC.cmake
+D:/projects/Portfolio/CMakeFiles/3.19.1/CMakeCCompiler.cmake
+D:/projects/Portfolio/examples/lazerTest/CMakeLists.txt

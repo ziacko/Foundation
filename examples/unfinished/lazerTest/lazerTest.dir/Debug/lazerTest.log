@@ -1,0 +1,10 @@
+﻿  Building Custom Rule D:/projects/Portfolio/examples/lazerTest/CMakeLists.txt
+  main.cpp
+D:\projects\Portfolio\dependencies\tinywindow\Include\TinyWindow.h(35,10): fatal error C1083: Cannot open include file: 'gl/wglext.h': No such file or directory
+  UArduinoComms.cpp
+D:\projects\Portfolio\examples\lazerTest\include\UArduinoComms.h(5,10): fatal error C1083: Cannot open include file: 'Object.h': No such file or directory
+  imgui.cpp
+  imgui_draw.cpp
+  imgui_demo.cpp
+  imgui_widgets.cpp
+  Generating Code...
