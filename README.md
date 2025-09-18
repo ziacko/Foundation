@@ -7,3 +7,5 @@ Notes:
 to build project files:
 Windows: premake vs2022
 Linux: premake cmake
+
+to clone, please use: git clone --recurse-submodules --remote-submodules <repo-URL>
