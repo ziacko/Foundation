@@ -22,7 +22,7 @@ public:
 		defaultTexture.LoadTexture();
 	}
 
-	virtual void BuildGUI(tWindow* window, ImGuiIO io) override
+	virtual void BuildGUI(tWindow* window, const ImGuiIO& io) override
 	{
 		scene::BuildGUI(window, io);
 	}
@@ -44,7 +44,7 @@ public:
 
 		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 		glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
-		glUseProgram(this->programGLID);
+		glUseProgram(defProgram.handle);
 		defaultTexture.SetActive(0);
 
 		glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -56,7 +56,7 @@ public:
 	virtual void SetupCallbacks() override
 	{
 		scene::SetupCallbacks();
-		manager->fileDropEvent = std::bind(&texturedScene::HandleFileDrop, this, _1, _2, _3);
+		manager->fileDropEvent = std::bind(&texturedScene::HandleFileDrop, this, _1, _2);
 	}
 
 protected:

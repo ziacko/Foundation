@@ -66,7 +66,7 @@ public:
 
 	golScene(float dimensions = 100.0f, GLdouble tickDelay = 0.1f, GLuint randomSeed = 666,
 		GLuint cellProbability = 90, const char* windowName = "Ziyad Barakat's portfolio (game of life)",
-		camera_t* golCamera = new camera_t(), const char* shaderConfigPath = SHADER_CONFIG_DIR)
+		camera_t golCamera = camera_t(), const char* shaderConfigPath = SHADER_CONFIG_DIR)
 		: scene(windowName, golCamera, shaderConfigPath)
 	{
 		this->tickDelay = tickDelay;
@@ -92,25 +92,19 @@ protected:
 	GLuint								cellProbability;
 	glm::vec2							cellDimensions;
 
-	void SetupVertexBuffer() override
-	{
-		cellDimensions = glm::vec2(defaultPayload.data.resolution.x / gol.data.dimensions, defaultPayload.data.resolution.y / gol.data.dimensions);
-
-		defaultVertexBuffer = new vertexBuffer_t(cellDimensions);
-	}
 
 	void Update() override
 	{
 		scene::Update();
 		gol.Update();
-		cellBuffer.Update(gl_shader_storage_buffer, gl_dynamic_draw, sizeof(int) * cellBuffer.data.cells.size(), cellBuffer.data.cells.data());
+		cellBuffer.Update(GL_SHADER_STORAGE_BUFFER, GL_DYNAMIC_DRAW, sizeof(int) * cellBuffer.data.cells.size(), cellBuffer.data.cells.data());
 		//UpdateBuffer(gol, gol->bufferHandle, sizeof(*gol), gl_uniform_buffer, gl_dynamic_draw);
 		//UpdateBuffer(cellBuffer->cells.data(), cellBuffer->bufferHandle, sizeof(int) * cellBuffer->cells.size(), gl_shader_storage_buffer, gl_dynamic_draw);
 		//UpdateDefaultBuffer();
 
 		if (currentTickDelay < tickDelay)
 		{
-			currentTickDelay += clock->GetDeltaTime();
+			currentTickDelay += clock.GetDeltaTime();
 		}
 
 		else
@@ -122,7 +116,7 @@ protected:
 
 	void Draw() override
 	{	
-		glUseProgram(this->programGLID);
+		glUseProgram(defProgram.handle);
 		glDrawArraysInstanced(GL_TRIANGLES, 0, 6, gol.data.dimensions * gol.data.dimensions);
 		
 		DrawGUI(window);
@@ -308,9 +302,12 @@ protected:
 	{
 		scene::InitializeUniforms();
 		gol.Initialize(1);
-		cellBuffer.Initialize(0, gl_shader_storage_buffer);
+		cellBuffer.Initialize(0, GL_SHADER_STORAGE_BUFFER);
 		//SetupBuffer(gol, gol->bufferHandle, sizeof(*gol), 1, gl_uniform_buffer, gl_dynamic_draw);
 		//SetupBuffer(cellBuffer, cellBuffer->bufferHandle, GLuint(sizeof(int) * cellBuffer->cells.size()), 0, gl_shader_storage_buffer, gl_dynamic_draw);
+		cellDimensions = glm::vec2(defaultPayload.data.resolution.x / gol.data.dimensions, defaultPayload.data.resolution.y / gol.data.dimensions);
+
+		defaultVertexBuffer.SetupCustom((cellDimensions));
 	}
 
 	virtual void Resize(const tWindow* window, glm::ivec2 dimensions = glm::ivec2(0)) override
@@ -320,20 +317,20 @@ protected:
 		defaultPayload.data.projection = glm::ortho(0.0f, (GLfloat)window->GetSettings().resolution.x, (GLfloat)window->GetSettings().resolution.y, 0.0f, 0.01f, 10.0f);
 		cellDimensions = glm::ivec2(defaultPayload.data.resolution.x / gol.data.dimensions, defaultPayload.data.resolution.y / gol.data.dimensions);
 
-		defaultPayload.Update(gl_uniform_buffer, gl_dynamic_draw);
+		defaultPayload.Update(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW);
 		//UpdateBuffer(defaultUniform, defaultUniform->bufferHandle, sizeof(*defaultUniform), gl_uniform_buffer, gl_dynamic_draw);
 		if (dimensions == glm::ivec2(0))
 		{
-			defaultVertexBuffer->UpdateBuffer(defaultPayload.data.resolution);
+			defaultVertexBuffer.UpdateBuffer(defaultPayload.data.resolution);
 		}
 
 		else
 		{
-			defaultVertexBuffer->UpdateBuffer(cellDimensions);
+			defaultVertexBuffer.UpdateBuffer(cellDimensions);
 		}
 	}
 
-	virtual void HandleWindowResize(const tWindow* window, TinyWindow::vec2_t<unsigned int> dimensions) override
+	virtual void HandleWindowResize(const tWindow* window, const TinyWindow::vec2_t<uint16_t>& dimensions) override
 	{
 		Resize(window, cellDimensions);
 	}

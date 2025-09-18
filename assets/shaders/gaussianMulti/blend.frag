@@ -7,6 +7,19 @@ in defaultBlock
 	vec2 fullUV;
 } inBlock;
 
+layout(std140, binding = 0) uniform defaultSettings
+{
+	mat4		projection;
+	mat4		view;
+	mat4		translation;
+	vec2		resolution;
+	vec2		mousePosition;
+	float		deltaTime;
+	float		totalTime;
+	float 		framesPerSecond;
+	uint		totalFrames;
+};
+
 out vec4 outColor;
 
 layout(binding = 0) uniform sampler2D vertical;

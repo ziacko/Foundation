@@ -85,9 +85,9 @@ class edgeDetectionScene : public texturedScene
 public:
 	//this was never finished so I'm going to leave it for last
 	edgeDetectionScene(edgeFilters_t edgeFilter = SOBEL,
-		texture* defaultTexture = new texture(),
+		texture defaultTexture = texture(),
 		const char* windowName = "Ziyad Barakat's Portfolio (edge detection)",
-		camera_t* edgeCamera = new camera_t(),
+		camera_t edgeCamera = camera_t(),
 		const char* shaderConfigPath = SHADER_CONFIG_DIR)
 		: texturedScene(defaultTexture, windowName, edgeCamera, shaderConfigPath)
 	{
@@ -104,63 +104,70 @@ public:
 	{
 		texturedScene::Initialize();
 
-		programGLID = shaderProgramsMap["sobel"].handle;
-		laplacianProgramGLID = shaderProgramsMap["laplacian"].handle;
-		prewittProgramGLID = shaderProgramsMap["prewitt"].handle;
-		freiChenProgramGLID = shaderProgramsMap["freiChen"].handle;
+		defProgram = shaderProgramsMap["sobel"];
+		laplacianProgram = shaderProgramsMap["laplacian"];
+		prewittProgram = shaderProgramsMap["prewitt"];
+		freiChenProgram = shaderProgramsMap["freiChen"];
 	}
 
-	void BuildGUI(tWindow* window, ImGuiIO io) override
+	void BuildGUI(tWindow* window, const ImGuiIO& io) override
 	{
 		texturedScene::BuildGUI(window, io);
+		if (ImGui::BeginTabItem("edge detection settings"))
+		{
+			ImGui::ListBox("edge detection types", &currentEdgeDetection, edgeDetectionSettings.data(), edgeDetectionSettings.size());
+			switch (currentEdgeDetection)
+			{
+			case SOBEL:
+			{
+				//sobelSettingsBuffer = new sobelSettings_t();
+				BuildSobelGUI();
+				break;
+			}
 
-		ImGui::ListBox("edge detection types", &currentEdgeDetection, edgeDetectionSettings.data(), edgeDetectionSettings.size());
-		switch (currentEdgeDetection)
-		{
-		case SOBEL:
-		{
-			//sobelSettingsBuffer = new sobelSettings_t();
-			BuildSobelGUI();
-			break;
+			case LAPLACIAN:
+			{
+				BuildLaplacianGUI();
+				break;
+			}
+
+			case PREWITT:
+			{
+				BuildPrewittGUI();
+				break;
+			}
+
+			case FREI_CHEN:
+			{
+				BuildFreiChen();
+				break;
+			}
+
+			default:
+				break;
+			}
+
+
+			ImGui::EndTabItem();
 		}
 
-		case LAPLACIAN:
-		{
-			BuildLaplacianGUI();
-			break;
-		}
-
-		case PREWITT:
-		{
-			BuildPrewittGUI();
-			break;
-		}
-
-		case FREI_CHEN:
-		{
-			BuildFreiChen();
-			break;
-		}
-
-		default:
-			break;
-		}
 	}
 
 	void BuildSobelGUI()
 	{
-		ImGui::Begin("sobel settings");
-		ImGui::SliderFloat("red modifier", &sobelBuffer.data.redModifier, -1.0f, 1.0f);
-		ImGui::SliderFloat("green modifier", &sobelBuffer.data.greenModifier, -1.0f, 1.0f);
-		ImGui::SliderFloat("blue modifier", &sobelBuffer.data.blueModifier, -1.0f, 1.0f);
-		ImGui::SliderFloat("cell distance", &sobelBuffer.data.cellDistance, -1.0f, 1.0f);
-
-		ImGui::End();
+		if (ImGui::BeginTabBar("sobel settings"))
+		{
+			ImGui::SliderFloat("red modifier", &sobelBuffer.data.redModifier, -1.0f, 1.0f);
+			ImGui::SliderFloat("green modifier", &sobelBuffer.data.greenModifier, -1.0f, 1.0f);
+			ImGui::SliderFloat("blue modifier", &sobelBuffer.data.blueModifier, -1.0f, 1.0f);
+			ImGui::SliderFloat("cell distance", &sobelBuffer.data.cellDistance, -1.0f, 1.0f);
+			ImGui::EndTabBar();
+		}
 	}
 
 	void BuildLaplacianGUI()
 	{
-		ImGui::Begin("laplacian settings");
+		ImGui::BeginTabBar("laplacian settings");
 		ImGui::SliderFloat("kernel 1", &laplacianBuffer.data.kernel1, -1.0f, 1.0f);
 		ImGui::SliderFloat("kernel 2", &laplacianBuffer.data.kernel2, -1.0f, 1.0f);
 		ImGui::SliderFloat("kernel 3", &laplacianBuffer.data.kernel3, -1.0f, 1.0f);
@@ -171,21 +178,21 @@ public:
 		ImGui::SliderFloat("kernel 8", &laplacianBuffer.data.kernel8, -1.0f, 1.0f);
 		ImGui::SliderFloat("kernel 9", &laplacianBuffer.data.kernel9, -1.0f, 1.0f);
 		ImGui::SliderFloat("filter level", &laplacianBuffer.data.filterLevel, 0.0f, 1.0f);
-		ImGui::End();
+		ImGui::EndTabBar();
 	}
 
 	void BuildPrewittGUI()
 	{
-		ImGui::Begin("prewitt settings");
+		ImGui::BeginTabBar("prewitt settings");
 		ImGui::SliderFloat("filter level", &prewittBuffer.data, 0.0f, 1.0f);
-		ImGui::End();
+		ImGui::EndTabBar();
 	}
 
 	void BuildFreiChen()
 	{
-		ImGui::Begin("frei-chen settings");
+		ImGui::BeginTabBar("frei-chen settings");
 		ImGui::SliderFloat("filter level", &freiChenBuffer.data, 0.0f, 1.0f);
-		ImGui::End();
+		ImGui::EndTabBar();
 	}
 
 	void InitializeUniforms() override
@@ -204,29 +211,29 @@ public:
 		{
 		case SOBEL:
 		{
-			glUseProgram(programGLID);
-			sobelBuffer.Update(gl_uniform_buffer, gl_dynamic_draw);
+			glUseProgram(defProgram.handle);
+			sobelBuffer.Update(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW);
 			break;
 		}
 
 		case LAPLACIAN:
 		{
-			glUseProgram(laplacianProgramGLID);
-			laplacianBuffer.Update(gl_uniform_buffer, gl_dynamic_draw);
+			glUseProgram(laplacianProgram.handle);
+			laplacianBuffer.Update(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW);
 			break;
 		}
 
 		case PREWITT:
 		{
-			glUseProgram(prewittProgramGLID);
-			prewittBuffer.Update(gl_uniform_buffer, gl_dynamic_draw);
+			glUseProgram(prewittProgram.handle);
+			prewittBuffer.Update(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW);
 			break;
 		}
 
 		case FREI_CHEN:
 		{
-			glUseProgram(freiChenProgramGLID);
-			freiChenBuffer.Update(gl_uniform_buffer, gl_dynamic_draw);
+			glUseProgram(freiChenProgram.handle);
+			freiChenBuffer.Update(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW);
 			break;
 		}
 		}
@@ -236,36 +243,36 @@ public:
 	{
 		manager->SwapDrawBuffers(window);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glBindVertexArray(defaultVertexBuffer->vertexArrayHandle);
+		glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
 		switch (currentEdgeDetection)
 		{
 		case SOBEL:
 		{
-			glUseProgram(this->programGLID);
+			glUseProgram(defProgram.handle);
 			break;
 		}
 
 		case LAPLACIAN:
 		{
-			glUseProgram(this->laplacianProgramGLID);
+			glUseProgram(laplacianProgram.handle);
 			break;
 		}
 
 		case PREWITT:
 		{
-			glUseProgram(this->prewittProgramGLID);
+			glUseProgram(prewittProgram.handle);
 			break;
 		}
 
 		case FREI_CHEN:
 		{
-			glUseProgram(this->freiChenProgramGLID);
+			glUseProgram(freiChenProgram.handle);
 			break;
 		}
 		default:
 			break;
 		}
-		defaultTexture->SetActive(0);
+		defaultTexture.SetActive(0);
 
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
@@ -279,11 +286,11 @@ protected:
 	bufferHandler_t<float>					prewittBuffer;
 	bufferHandler_t<float>					freiChenBuffer;
 
-	std::vector<const char*>		edgeDetectionSettings = { "sobel", "laplacian", "prewitt", "frei chen" };
-	int								currentEdgeDetection;
-	GLuint							laplacianProgramGLID;
-	GLuint							prewittProgramGLID;
-	GLuint							freiChenProgramGLID;
+	std::vector<const char*>				edgeDetectionSettings = { "sobel", "laplacian", "prewitt", "frei chen" };
+	int										currentEdgeDetection;
+	shaderProgram_t							laplacianProgram;
+	shaderProgram_t							prewittProgram;
+	shaderProgram_t							freiChenProgram;
 
 };
 #endif

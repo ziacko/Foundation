@@ -25,10 +25,10 @@ public:
 
 	parallaxScene(
 		bufferHandler_t<parallax_t> parallaxSettings = bufferHandler_t<parallax_t>(),
-		texture* defaultTexture = new texture(),
-		texture* heightMap = new texture(),
+		texture defaultTexture = texture("textures\rocks.jpg"),
+		texture heightMap = texture("textures\rocks_NM_height.tga"),
 		const char* windowName = "Ziyad Barakat's portfolio (parallax mapping)",
-		camera_t* parallaxCamera = new camera_t(),
+		camera_t parallaxCamera = camera_t(),
 		const char* shaderConfigPath = SHADER_CONFIG_DIR) :
 		texturedScene(defaultTexture, windowName, parallaxCamera, shaderConfigPath)
 	{
@@ -39,7 +39,7 @@ public:
 	void Initialize() override
 	{
 		texturedScene::Initialize();
-		heightMap->LoadTexture();
+		heightMap.LoadTexture();
 	}
 
 	~parallaxScene(){};
@@ -47,13 +47,15 @@ public:
 protected:
 
 	bufferHandler_t<parallax_t>		parallax;
-	texture*						heightMap;
+	texture							heightMap;
 	int								heightMapIndex = 0;
 
-	void BuildGUI(tWindow* window, ImGuiIO io) override
+	void BuildGUI(tWindow* window, const ImGuiIO& io) override
 	{
 		//this one's gonna be trickier
 		scene::BuildGUI(window, io);
+
+		static int currentTextureIndex = 0;
 
 		std::vector<const char*> tempTextureDirs;
 		for (auto & textureDir : textureDirs)
@@ -63,16 +65,16 @@ protected:
 
 		if (ImGui::ListBox("textures", &currentTextureIndex, tempTextureDirs.data(), tempTextureDirs.size()))
 		{
-			delete defaultTexture; //remove the old one from memory
-			defaultTexture = new texture(tempTextureDirs[currentTextureIndex], texture::textureType_t::diffuse, "diffuseMap", textureDescriptor());
-			defaultTexture->LoadTexture();
+			//delete defaultTexture; //remove the old one from memory
+			defaultTexture = texture(tempTextureDirs[currentTextureIndex], texture::textureType_t::diffuse, "diffuseMap", textureDescriptor());
+			defaultTexture.LoadTexture();
 		}
 
 		if (ImGui::ListBox("heightmap", &heightMapIndex, tempTextureDirs.data(), tempTextureDirs.size()))
 		{
-			delete heightMap; //remove the old one from memory
-			heightMap = new texture(tempTextureDirs[heightMapIndex], texture::textureType_t::diffuse, "heightMap", textureDescriptor());
-			heightMap->LoadTexture();
+			//delete heightMap; //remove the old one from memory
+			heightMap = texture(tempTextureDirs[heightMapIndex], texture::textureType_t::diffuse, "heightMap", textureDescriptor());
+			heightMap.LoadTexture();
 		}
 
 		ImGui::SliderFloat("parallax scale", &parallax.data.scale, 0.f, 10.0f);
@@ -90,13 +92,13 @@ protected:
 	void SetupParallaxUniforms()
 	{
 		parallax.Initialize(1);
-		glUniformBlockBinding(this->programGLID, parallax.uniformHandle, 1);
+		glUniformBlockBinding(defProgram.handle, parallax.uniformHandle, 1);
 	}
 
 	void bindTextures()
 	{
-		defaultTexture->GetUniformLocation(programGLID); //ok so heightmap is fine. just diffuse map is screwed
-		heightMap->GetUniformLocation(programGLID);
+		defaultTexture.GetUniformLocation(defProgram.handle); //ok so heightmap is fine. just diffuse map is screwed
+		heightMap.GetUniformLocation(defProgram.handle);
 	}
 
 	void Update() override
@@ -108,10 +110,10 @@ protected:
 	void Draw() override
 	{
 		
-		glBindVertexArray(defaultVertexBuffer->vertexArrayHandle);
-		glUseProgram(this->programGLID);
-		defaultTexture->GetUniformLocation(this->programGLID);
-		heightMap->GetUniformLocation(this->programGLID);
+		glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
+		glUseProgram(defProgram.handle);
+		defaultTexture.GetUniformLocation(defProgram.handle);
+		heightMap.GetUniformLocation(defProgram.handle);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 		DrawGUI(window);
 		manager->SwapDrawBuffers(window);

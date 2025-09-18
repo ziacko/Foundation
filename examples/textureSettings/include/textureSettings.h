@@ -9,16 +9,16 @@ using wrapSettings_t = enum { CLAMP_TO_EDGE = 0, MIRROR_CLAMP_TO_EDGE, CLAMP_TO_
 class textureSettingsScene : public texturedScene
 {
 public:
-	textureSettingsScene(texture* defaultTexture = new texture("textures/crate_sideup.png"),
+	textureSettingsScene(texture defaultTexture = texture("textures/crate_sideup.png"),
 		const char* windowName = "Ziyad Barakat's Portfolio (texture settings)",
-		camera_t* textureCamera = new camera_t(),
+		camera_t textureCamera = camera_t(),
 		const char* shaderConfigPath = SHADER_CONFIG_DIR) :
 		texturedScene(defaultTexture, windowName, textureCamera, shaderConfigPath)
 	{
 
 	}
 
-	void BuildGUI(tWindow* window, ImGuiIO io) override
+	void BuildGUI(tWindow* window, const ImGuiIO& io) override
 	{
 		//texturedScene::BuildGUI(io);
 		DrawTextureSettings();
@@ -29,24 +29,24 @@ public:
 	{
 		if (ImGui::ListBox("mag filter setting", &magFilterIndex, magFilterSettings.data(), magFilterSettings.size()))
 		{
-			defaultTexture->SetMagFilter(magFilterSetting);
+			defaultTexture.SetMagFilter(magFilterSetting);
 		}
 
 		//min
 		if (ImGui::ListBox("min filter setting", &minFilterIndex, minFilterSettings.data(), minFilterSettings.size()))
 		{
-			defaultTexture->SetMinFilter(minFilterIndex);
+			defaultTexture.SetMinFilter(minFilterIndex);
 		}
 
 		//S wrap setting
 		if (ImGui::ListBox("S wrap texture setting", &sWrapIndex, wrapSettings.data(), wrapSettings.size()))
 		{
-			defaultTexture->SetWrapS(sWrapIndex);
+			defaultTexture.SetWrapS(sWrapIndex);
 		}
 		//T wrap setting
 		if (ImGui::ListBox("T wrap texture setting", &tWrapIndex, wrapSettings.data(), wrapSettings.size()))
 		{
-			defaultTexture->SetWrapT(tWrapIndex);
+			defaultTexture.SetWrapT(tWrapIndex);
 		}
 		//R wrap setting (3D textures) //not doing 3D right now so I'll leave it out
 		/*if (ImGui::ListBox("R wrap texture setting", &rWrapIndex, wrapSettings.data(), wrapSettings.size()))

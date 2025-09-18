@@ -22,7 +22,7 @@ class perlinScene3D : public perlinScene
 public:
 
 	perlinScene3D(const char* windowName = "Ziyad Barakat's Portfolio ( Perlin3D noise )",
-		camera_t* perlinCamera = new camera_t(),
+		camera_t perlinCamera = camera_t(),
 		const GLchar* shaderConfigPath = SHADER_CONFIG_DIR)
 		: perlinScene(windowName, perlinCamera, shaderConfigPath)
 	{
@@ -35,17 +35,17 @@ public:
 		scene::Initialize();
 
 		FBODescriptor perlinDesc;
-		perlinDesc.target = gl_texture_3d;
+		perlinDesc.target = GL_TEXTURE_3D;
 		perlinDesc.dataType = GL_FLOAT;
 		perlinDesc.format = GL_RED;
-		perlinDesc.internalFormat = gl_r16;
+		perlinDesc.internalFormat = GL_R16;
 		perlinDesc.dimensions = glm::ivec3(50);
 
 		//don't make this a rendertarget. just regular texture
 		perlinTex = new frameBuffer::attachment_t("perlin", perlinDesc);
 
-		perlinProgram = shaderProgramsMap["Perlin3D"].handle;
-		this->programGLID = shaderProgramsMap["final"].handle;
+		perlinProgram = shaderProgramsMap["Perlin3D"];
+		defProgram = shaderProgramsMap["final"];
 
 		scene::InitializeUniforms();
 		perlin3D.Initialize(1);
@@ -54,13 +54,13 @@ public:
 
 protected:
 
-	unsigned int							perlinProgram;
+	shaderProgram_t							perlinProgram;
 	frameBuffer::attachment_t*				perlinTex;
 	bufferHandler_t<perlinSettings3D_t>		perlin3D;
 
-	void BuildGUI(tWindow* window, ImGuiIO io) override
+	void BuildGUI(tWindow* window, const ImGuiIO& io) override
 	{
-		perlinScene::BuildGUI(window, io); 
+		scene::BuildGUI(window, io); 
 		ImGui::SliderFloat3("uvw Scale", &perlin3D.data.uvwScale[0], 0.01f, 100);
 		ImGui::SliderInt("layer", &perlin3D.data.layer, 0, 50);
 	}
@@ -83,8 +83,8 @@ protected:
 
 	void SetPerlinUniforms()
 	{
-		perlin3D.SetupUniforms(this->programGLID, "perlin3DSettings", 1);
-		perlin3D.SetupUniforms(this->programGLID, "perlinSettings", 2);
+		perlin3D.SetupUniforms(defProgram.handle, "perlin3DSettings", 1);
+		perlin3D.SetupUniforms(defProgram.handle, "perlinSettings", 2);
 	}
 
 	void Update() override
@@ -97,14 +97,14 @@ protected:
 	void PerlinCalc() const
 	{
 		perlinTex->BindAsImage(0);
-		glUseProgram(perlinProgram);
+		glUseProgram(perlinProgram.handle);
 		glDispatchCompute(2, 2, 2);
 	}
 
 	void FinalPass()
 	{
 		perlinTex->SetActive(0);
-		glUseProgram(this->programGLID);
+		glUseProgram(defProgram.handle);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
 

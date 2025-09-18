@@ -9,7 +9,7 @@ class GOLCompute : public golScene
 public:
 
 	GOLCompute(const char* windowName = "Ziyad Barakat's portfolio (game of life (compute)",
-		camera_t* golCamera = new camera_t(), const char* shaderConfigPath = SHADER_CONFIG_DIR)
+		camera_t golCamera = camera_t(), const char* shaderConfigPath = SHADER_CONFIG_DIR)
 		: golScene(100.0f, 0.3, 666, 90, windowName, golCamera, shaderConfigPath)
 	{
 
@@ -20,13 +20,13 @@ public:
 	void Initialize() override
 	{
 		golScene::Initialize();
-		programGLID =		shaderProgramsMap["GOL"].handle;
-		computeProgram =	shaderProgramsMap["GOLCompute"].handle;
+		defProgram =		shaderProgramsMap["GOL"];
+		computeProgram =	shaderProgramsMap["GOLCompute"];
 	}
 
 protected:
 
-	unsigned int computeProgram = 0;
+	shaderProgram_t computeProgram;
 
 	void Update() override
 	{
@@ -34,12 +34,12 @@ protected:
 
 		if (currentTickDelay < tickDelay)
 		{
-			currentTickDelay += clock->GetDeltaTime();
+			currentTickDelay += clock.GetDeltaTime();
 		}
 
 		else
 		{
-			glUseProgram(computeProgram);
+			glUseProgram(computeProgram.handle);
 			glDispatchCompute(25, 25, 1);
 			currentTickDelay = 0;
 		}
@@ -48,6 +48,6 @@ protected:
 	void InitializeUniforms() override
 	{
 		golScene::InitializeUniforms();
-		cellBuffer.Update(gl_shader_storage_buffer, gl_dynamic_draw, sizeof(int) * cellBuffer.data.cells.size(), cellBuffer.data.cells.data());
+		cellBuffer.Update(GL_SHADER_STORAGE_BUFFER, GL_DYNAMIC_DRAW, sizeof(int) * cellBuffer.data.cells.size(), cellBuffer.data.cells.data());
 	}
 };

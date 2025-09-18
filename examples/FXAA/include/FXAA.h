@@ -40,7 +40,7 @@ public:
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LEQUAL);
-		glHint(gl_generate_mipmap_hint, GL_NICEST);
+		glHint(GL_GENERATE_MIPMAP_HINT, GL_NICEST);
 
 		geometryBuffer = new frameBuffer();
 		FXAABuffer = new frameBuffer();
@@ -58,23 +58,23 @@ public:
 		depthDesc.target = GL_TEXTURE_2D;
 		depthDesc.dataType = GL_FLOAT;
 		depthDesc.format = GL_DEPTH_COMPONENT;
-		depthDesc.internalFormat = gl_depth_component24;
+		depthDesc.internalFormat = GL_DEPTH_COMPONENT24;
 		depthDesc.attachmentType = FBODescriptor::attachmentType_e::depth;
 		depthDesc.dimensions = glm::ivec3(window->GetSettings().resolution.width, window->GetSettings().resolution.height, 1);
 
 		geometryBuffer->Initialize();
 		geometryBuffer->Bind();
 
-		geometryBuffer->AddAttachment(new frameBuffer::attachment_t("color"));
-		geometryBuffer->AddAttachment(new frameBuffer::attachment_t("depth", depthDesc));
+		geometryBuffer->AddAttachment(frameBuffer::attachment_t("color"));
+		geometryBuffer->AddAttachment(frameBuffer::attachment_t("depth", depthDesc));
 
 		FXAABuffer->Initialize();
 		FXAABuffer->Bind();
-		FXAABuffer->AddAttachment(new frameBuffer::attachment_t("FXAA"));
+		FXAABuffer->AddAttachment(frameBuffer::attachment_t("FXAA"));
 
 		frameBuffer::Unbind();
 
-		programGLID = shaderProgramsMap["geometryProgram"].handle;
+		defProgram = shaderProgramsMap["geometryProgram"];
 		FXAAProgram = shaderProgramsMap["FXAAProgram"].handle;
 		compareProgram = shaderProgramsMap["compareProgram"].handle;
 		finalProgram = shaderProgramsMap["finalProgram"].handle;
@@ -112,7 +112,7 @@ protected:
 		defaultPayload.data.totalFrames++;
 
 		FXAA.Update();
-		defaultVertexBuffer.UpdateBuffer(defaultPayload.data.resolution);
+		//defaultVertexBuffer.UpdateBuffer(defaultPayload.data.resolution);
 	}
 
 	void UpdateDefaultBuffer()
@@ -134,7 +134,7 @@ protected:
 		defaultPayload.data.framesPerSec = (float)(1.0 / clock.GetDeltaTime());
 
 		defaultPayload.Update();
-		defaultVertexBuffer.UpdateBuffer(defaultPayload.data.resolution);
+		//defaultVertexBuffer.UpdateBuffer(defaultPayload.data.resolution);
 	}
 
 	void Draw() override
@@ -147,11 +147,12 @@ protected:
 		GeometryPass(); //render current scene with jitter
 
 		camera.ChangeProjection(camera_t::projection_e::orthographic);
+		camera.Update();
 		UpdateDefaultBuffer();
 		
 		FXAAPass(); //use the positions, colors, depth and velocity to smooth the final image
 
-		FinalPass(FXAABuffer->attachments[0], geometryBuffer->attachments[0]);
+		FinalPass(&FXAABuffer->attachments["FXAA"], &geometryBuffer->attachments["color"]);
 		
 		DrawGUI(window);
 
@@ -166,7 +167,7 @@ protected:
 		geometryBuffer->Bind();
 
 		GLenum drawbuffers[1] = {
-			geometryBuffer->attachments[0]->FBODesc.attachmentFormat, //color
+			geometryBuffer->attachments["color"].FBODesc.attachmentFormat, //color
 		};
 
 		glDrawBuffers(1, drawbuffers);
@@ -179,11 +180,16 @@ protected:
 				continue;
 			}
 
-			testModel.meshes[iter].textures[iter].SetActive(0);
+			for (uint8_t textureIter = 0; textureIter < testModel.meshes[iter].textures.size(); textureIter++)
+			{
+				testModel.meshes[iter].textures[textureIter].SetActive(textureIter);
+			}
+
 			//add the previous depth?
 
 			glBindVertexArray(testModel.meshes[iter].vertexArrayHandle);
-			glUseProgram(this->programGLID);
+			glUseProgram(defProgram.handle);
+			glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 
 			glCullFace(GL_BACK);
 
@@ -202,12 +208,12 @@ protected:
 	{
 		FXAABuffer->Bind();
 		GLenum drawBuffers[1] = {
-			FXAABuffer->attachments[0]->FBODesc.attachmentFormat
+			FXAABuffer->attachments["FXAA"].FBODesc.attachmentFormat
 		};
 		glDrawBuffers(1, drawBuffers);
 
 		//current frame
-		geometryBuffer->attachments[0]->SetActive(0); // color
+		geometryBuffer->attachments["color"].SetActive(0); // color
 		
 		glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
 		glUseProgram(FXAAProgram);
@@ -238,7 +244,7 @@ protected:
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
 
-	virtual void BuildGUI(tWindow* window, ImGuiIO io) override
+	virtual void BuildGUI(tWindow* window, const ImGuiIO& io) override
 	{
 		scene3D::BuildGUI(window, io);
 
@@ -248,52 +254,57 @@ protected:
 
 	void DrawFXAASettings()
 	{
-		ImGui::Begin("FXAA Settings");
-		ImGui::Checkbox("enable Compare", &enableCompare);
-		ImGui::SliderFloat("Sub pixel drift", &FXAA.data.pixelShift, 0.0f, 1.0f, "%.1f");
-		ImGui::SliderFloat("vertex Offset", &FXAA.data.vxOffset, 0.0f, 1.0f, "%.3f");
-		ImGui::SliderFloat("max span", &FXAA.data.maxSpan, 0.0f, 10.0f, "%.1f");
-		ImGui::SliderFloat("reduce multiplier", &FXAA.data.reduceMul, 0.0f, 1.0f, "%.5f");
-		ImGui::SliderFloat("reduce minimizer", &FXAA.data.reduceMin, 0.0f, 1.0f, "%.8f");
+		if (ImGui::BeginTabItem("FXAA Settings"))
+		{
+			ImGui::Checkbox("enable Compare", &enableCompare);
+			ImGui::SliderFloat("Sub pixel drift", &FXAA.data.pixelShift, 0.0f, 1.0f, "%.1f");
+			ImGui::SliderFloat("vertex Offset", &FXAA.data.vxOffset, 0.0f, 1.0f, "%.3f");
+			ImGui::SliderFloat("max span", &FXAA.data.maxSpan, 0.0f, 10.0f, "%.1f");
+			ImGui::SliderFloat("reduce multiplier", &FXAA.data.reduceMul, 0.0f, 1.0f, "%.5f");
+			ImGui::SliderFloat("reduce minimizer", &FXAA.data.reduceMin, 0.0f, 1.0f, "%.8f");
 
-		ImGui::End();
+			ImGui::EndTabItem();
+		}
 	}
 
 	virtual void DrawBufferAttachments()
 	{
-		ImGui::Begin("framebuffers");
-		for (auto iter : geometryBuffer->attachments)
+		if (ImGui::BeginTabItem("framebuffers"))
 		{
-			ImGui::Image((ImTextureID)iter->GetHandle(), ImVec2(512, 288),
-				ImVec2(0, 1), ImVec2(1, 0));
-			ImGui::SameLine();
-			ImGui::Text("%s\n", iter->GetUniformName().c_str());
-		}
+			for (auto iter : geometryBuffer->attachments)
+			{
+				ImGui::Image((ImTextureID)iter.second.GetHandle(), ImVec2(512, 288),
+					ImVec2(0, 1), ImVec2(1, 0));
+				ImGui::SameLine();
+				ImGui::Text("%s\n", iter.second.GetUniformName().c_str());
+			}
 
-		for (auto iter : FXAABuffer->attachments)
-		{
-			ImGui::Image((ImTextureID)iter->GetHandle(), ImVec2(512, 288),
-				ImVec2(0, 1), ImVec2(1, 0));
-			ImGui::SameLine();
-			ImGui::Text("%s\n", iter->GetUniformName().c_str());
-		}
+			for (auto iter : FXAABuffer->attachments)
+			{
+				ImGui::Image((ImTextureID)iter.second.GetHandle(), ImVec2(512, 288),
+					ImVec2(0, 1), ImVec2(1, 0));
+				ImGui::SameLine();
+				ImGui::Text("%s\n", iter.second.GetUniformName().c_str());
+			}
 
-		ImGui::End();
+			ImGui::EndTabItem();
+		}
 	}
 
 	virtual void DrawCameraStats() override
 	{
 		//set up the view matrix
-		ImGui::Begin("camera", &isGUIActive);
+		if (ImGui::BeginTabItem("camera", &isGUIActive))
+		{
+			ImGui::DragFloat("near plane", &camera.nearPlane);
+			ImGui::DragFloat("far plane", &camera.farPlane);
+			ImGui::SliderFloat("Field of view", &camera.fieldOfView, 0, 90, "%.0f");
 
-		ImGui::DragFloat("near plane", &camera.nearPlane);
-		ImGui::DragFloat("far plane", &camera.farPlane);
-		ImGui::SliderFloat("Field of view", &camera.fieldOfView, 0, 90, "%.0f");
-
-		ImGui::InputFloat("camera speed", &camera.speed, 0.f);
-		ImGui::InputFloat("x sensitivity", &camera.xSensitivity, 0.f);
-		ImGui::InputFloat("y sensitivity", &camera.ySensitivity, 0.f);
-		ImGui::End();
+			ImGui::InputFloat("camera speed", &camera.speed, 0.f);
+			ImGui::InputFloat("x sensitivity", &camera.xSensitivity, 0.f);
+			ImGui::InputFloat("y sensitivity", &camera.ySensitivity, 0.f);
+			ImGui::EndTabItem();
+		}
 	}
 
 	virtual void ClearBuffers()
@@ -302,12 +313,12 @@ protected:
 		float clearColor1[4] = { 0.25f, 0.25f, 0.25f, 1.0f };
 
 		geometryBuffer->Bind();
-		geometryBuffer->ClearTexture(geometryBuffer->attachments[0], clearColor1);
+		geometryBuffer->ClearTexture(geometryBuffer->attachments["color"], clearColor1);
 		glClear(GL_DEPTH_BUFFER_BIT);
 		geometryBuffer->Unbind();
 
 		FXAABuffer->Bind();
-		FXAABuffer->ClearTexture(FXAABuffer->attachments[0], clearColor1);
+		FXAABuffer->ClearTexture(FXAABuffer->attachments["FXAA"], clearColor1);
 		FXAABuffer->Unbind();
 
 		camera.ChangeProjection(camera_t::projection_e::perspective);
@@ -317,13 +328,13 @@ protected:
 	{
 		for (auto iter : geometryBuffer->attachments)
 		{
-			iter->Resize(glm::ivec3(resolution, 1));
+			iter.second.Resize(glm::ivec3(resolution, 1));
 		}
 
-		FXAABuffer->attachments[0]->Resize(glm::ivec3(resolution, 1));
+		FXAABuffer->attachments["FXAA"].Resize(glm::ivec3(resolution, 1));
 	}
 
-	virtual void HandleWindowResize(const tWindow* window, TinyWindow::vec2_t<unsigned int> dimensions) override
+	virtual void HandleWindowResize(const tWindow* window, const TinyWindow::vec2_t<uint16_t>& dimensions) override
 	{
 		defaultPayload.data.resolution = glm::ivec2(dimensions.width, dimensions.height);	
 		ResizeBuffers(glm::ivec2(dimensions.x, dimensions.y));
@@ -348,7 +359,7 @@ protected:
 		defaultPayload.Initialize(0);
 		FXAA.Initialize(5);
 
-		SetupVertexBuffer();
+		defaultVertexBuffer.SetupDefault();
 	}
 };
 #endif

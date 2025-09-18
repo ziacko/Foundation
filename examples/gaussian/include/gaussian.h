@@ -41,41 +41,47 @@ class gaussianScene : public texturedScene
 public:
 
 	gaussianScene(bufferHandler_t<gaussianSettings_t> gaussian = bufferHandler_t<gaussianSettings_t>(),
-		texture* defaultTexture = new texture(),
+		texture defaultTexture = texture(),
 		const char* windowName = "Ziyad Barakat's Portfolio (gaussian blurring)",
-		camera_t* textureCamera = new camera_t(),
+		camera_t textureCamera = camera_t(),
 		const char* shaderConfigPath = SHADER_CONFIG_DIR) :
 		texturedScene(defaultTexture, windowName, textureCamera, shaderConfigPath)
 	{
 		this->gaussian = gaussian;
 	}
 
-	~gaussianScene(void){};
+	~gaussianScene(){};
 
 protected:
 
 	bufferHandler_t<gaussianSettings_t>		gaussian;
 
-	void BuildGUI(tWindow* window, ImGuiIO io) override
+	void BuildGUI(tWindow* window, const ImGuiIO& io) override
 	{
 		texturedScene::BuildGUI(window, io);
-		
-		ImGui::PushItemWidth(100.0f);
-		ImGui::SliderFloat("weight1", &gaussian.data.weight1, 0.0f, 0.25f, "%.10f");	 
-		ImGui::SameLine();		
-		ImGui::SliderFloat("weight2", &gaussian.data.weight2, 0.0f, 0.25f, "%.10f");
-		
-		ImGui::SliderFloat("weight3", &gaussian.data.weight3, 0.0f, 0.25f, "%.10f");
-		ImGui::SameLine();
-		ImGui::SliderFloat("weight4", &gaussian.data.weight4, 0.0f, 0.25f, "%.10f");
-		ImGui::SliderFloat("weight5", &gaussian.data.weight5, 0.0f, 0.25f, "%.10f");
-		ImGui::PopItemWidth();
 
-		ImGui::SliderInt("offset1", &gaussian.data.offset1, 0, 100);
-		ImGui::SliderInt("offset2", &gaussian.data.offset2, 0, 100);
-		ImGui::SliderInt("offset3", &gaussian.data.offset3, 0, 100);
-		ImGui::SliderInt("offset4", &gaussian.data.offset4, 0, 100);
-		ImGui::SliderInt("offset5", &gaussian.data.offset5, 0, 100);
+		if (ImGui::BeginTabItem("gaussian settings"))
+		{
+			ImGui::PushItemWidth(100.0f);
+			ImGui::SliderFloat("weight1", &gaussian.data.weight1, 0.0f, 0.25f, "%.10f");
+			ImGui::SameLine();
+			ImGui::SliderFloat("weight2", &gaussian.data.weight2, 0.0f, 0.25f, "%.10f");
+
+			ImGui::SliderFloat("weight3", &gaussian.data.weight3, 0.0f, 0.25f, "%.10f");
+			ImGui::SameLine();
+			ImGui::SliderFloat("weight4", &gaussian.data.weight4, 0.0f, 0.25f, "%.10f");
+			ImGui::SliderFloat("weight5", &gaussian.data.weight5, 0.0f, 0.25f, "%.10f");
+			ImGui::PopItemWidth();
+
+			ImGui::SliderInt("offset1", &gaussian.data.offset1, 0, 100);
+			ImGui::SliderInt("offset2", &gaussian.data.offset2, 0, 100);
+			ImGui::SliderInt("offset3", &gaussian.data.offset3, 0, 100);
+			ImGui::SliderInt("offset4", &gaussian.data.offset4, 0, 100);
+			ImGui::SliderInt("offset5", &gaussian.data.offset5, 0, 100);
+			ImGui::EndTabItem();
+		}
+		
+
 	}
 
 	void InitializeUniforms() override

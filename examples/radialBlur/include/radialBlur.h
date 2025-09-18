@@ -28,9 +28,9 @@ class radialScene : public texturedScene
 public:
 
 	radialScene(bufferHandler_t<radialBlur_t> radial = bufferHandler_t<radialBlur_t>(),
-		texture* defaultTexture = new texture(),
+		texture defaultTexture = texture(),
 		const char* windowName = "Ziyad Barakat's Portfolio (radial blur)",
-		camera_t* radialCamera = new camera_t(),
+		camera_t radialCamera = camera_t(),
 		const char* shaderConfigPath = SHADER_CONFIG_DIR) :
 		texturedScene(defaultTexture, windowName, radialCamera, shaderConfigPath)
 	{
@@ -43,7 +43,7 @@ protected:
 
 	bufferHandler_t<radialBlur_t>		radialBlur;
 
-	void BuildGUI(tWindow* window, ImGuiIO io) override
+	void BuildGUI(tWindow* window, const ImGuiIO& io) override
 	{
 		texturedScene::BuildGUI(window, io);
 		//ImGui::SliderFloat("exposure", &radialBlur.data.exposure, 0.0f, 1.0f);

@@ -9,9 +9,9 @@ public:
 
 	contrastScene(
 		bufferHandler_t<float> contrastSettings = bufferHandler_t<float>(1.2f),
-		texture* defaultTexture = new texture(),
+		texture defaultTexture = texture(),
 		const char* windowName = "Ziyad Barakat's portfolio (contrast)",
-		camera_t* contrastCamera = new camera_t(),
+		camera_t contrastCamera = camera_t(),
 		const char* shaderConfigPath = SHADER_CONFIG_DIR)
 		: texturedScene(defaultTexture, windowName, contrastCamera, shaderConfigPath)
 	{
@@ -24,7 +24,7 @@ protected:
 
 	bufferHandler_t<float>		contrastSettings;
 
-	void BuildGUI(tWindow* window, ImGuiIO io) override
+	void BuildGUI(tWindow* window, const ImGuiIO& io) override
 	{
 		texturedScene::BuildGUI(window, io);
 		ImGui::SliderFloat("contrast level", &contrastSettings.data, 0.0f, 10.0f);
@@ -39,7 +39,7 @@ protected:
 	void Update() override
 	{
 		scene::Update();
-		contrastSettings.Update(gl_uniform_buffer, gl_dynamic_draw);
+		contrastSettings.Update(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW);
 	}
 };
 

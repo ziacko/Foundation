@@ -24,7 +24,7 @@ public:
 
 	bubbleScene(
 		bufferHandler_t<bubbleSettings_t> bubbleSettings = bufferHandler_t<bubbleSettings_t>(),
-		texture* defaultTexture = new texture(),
+		texture defaultTexture = texture(),
 		const char* windowName = "Ziyad Barakat's Portfolio ( bubble displacement )",		
 		camera_t bubbleCamera = camera_t(),
 		const char* shaderConfigPath = SHADER_CONFIG_DIR, GLfloat attenuation = 1.0f,
@@ -40,7 +40,7 @@ public:
 
 protected:
 
-	void BuildGUI(tWindow* window, ImGuiIO io) override
+	void BuildGUI(tWindow* window, const ImGuiIO& io) override
 	{
 		texturedScene::BuildGUI(window, io);
 		ImGui::Checkbox("enable wireframe", &enableWireframe);
@@ -81,24 +81,24 @@ protected:
 		bubble.Initialize(1);
 	}
 
-	void SetupVertexBuffer() override
+	void SetupVertexBuffer()
 	{ 
 		GLfloat cellWidth = defaultPayload.data.resolution.x / bubble.data.gridDimensions;
 		GLfloat cellHeight = defaultPayload.data.resolution.y / bubble.data.gridDimensions;
 
-		defaultVertexBuffer = new vertexBuffer_t(glm::vec2(cellWidth, cellHeight));
+		defaultVertexBuffer.SetupCustom(glm::vec2(cellWidth, cellHeight));
 	}
 
 	void Update() override
 	{
 		scene::Update();
-		bubble.Update(gl_uniform_buffer, gl_dynamic_draw);
+		bubble.Update(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW);
 	}
 
 	void Draw()	override
 	{
-		defaultTexture->GetUniformLocation(programGLID);
-		glUseProgram(this->programGLID);
+		defaultTexture.GetUniformLocation(defProgram.handle);
+		glUseProgram(defProgram.handle);
 		if (enableWireframe)
 		{
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);

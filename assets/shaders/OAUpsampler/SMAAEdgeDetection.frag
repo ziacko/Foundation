@@ -91,16 +91,9 @@ float3 SMAAGatherNeighbours(float2 texcoord,
 float2 SMAALumaEdgeDetectionPS(float2 texcoord,
                                float4 offset[3],
                                SMAATexture2D(colorTex)
-                               #if SMAA_PREDICATION
-                               , SMAATexture2D(predicationTex)
-                               #endif
                                ) {
     // Calculate the threshold:
-    #if SMAA_PREDICATION
-    float2 threshold = SMAACalculatePredicatedThreshold(texcoord, offset, SMAATexturePass2D(predicationTex));
-    #else
     float2 threshold = float2(inThreshold, inThreshold);
-    #endif
 
     // Calculate lumas:
     float3 weights = float3(0.2126, 0.7152, 0.0722);
@@ -150,16 +143,10 @@ float2 SMAALumaEdgeDetectionPS(float2 texcoord,
 float2 SMAAColorEdgeDetectionPS(float2 texcoord,
                                 float4 offset[3],
                                 SMAATexture2D(colorTex)
-                                #if SMAA_PREDICATION
-                                , SMAATexture2D(predicationTex)
-                                #endif
+
                                 ) {
     // Calculate the threshold:
-    #if SMAA_PREDICATION
-    float2 threshold = SMAACalculatePredicatedThreshold(texcoord, offset, predicationTex);
-    #else
     float2 threshold = float2(inThreshold, inThreshold);
-    #endif
 
     // Calculate color deltas:
     float4 delta;

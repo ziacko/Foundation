@@ -23,11 +23,11 @@ protected:
 	int currentTexture = 0;
 	std::vector<const char*> textureNames;
 
-	virtual void BuildGUI(tWindow* window, ImGuiIO io) override
+	virtual void BuildGUI(tWindow* window, const ImGuiIO& io) override
 	{
 		scene3D::BuildGUI(window, io);
 		ImGui::Begin("textures");
-		if (ImGui::SliderInt("active index:", &currentTexture, 0, testModel->meshes[0].textures.size() - 1))
+		if (ImGui::SliderInt("active index:", &currentTexture, 0, testModel.meshes[0].textures.size() - 1))
 		{
 			testModel.meshes[0].textures[currentTexture].UnbindTexture();
 			testModel.meshes[0].textures[currentTexture].BindTexture();
@@ -51,7 +51,7 @@ protected:
 		for (const auto& iter : testModel.meshes)
 		{
 			glBindVertexArray(iter.vertexArrayHandle);
-			glUseProgram(this->programGLID);
+			glUseProgram(defProgram.handle);
 
 			glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 

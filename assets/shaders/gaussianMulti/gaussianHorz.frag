@@ -20,11 +20,11 @@ layout(std140, binding = 0) uniform defaultSettings
 	uint		totalFrames;
 };
 
-layout(binding = 1) uniform horzSettings
+/*layout(binding = 1) uniform horzSettings
 {
 	int			offsets[5];	
 	float		weights[5];
-};
+};*/
 
 out vec4 outColor;
 
@@ -32,8 +32,8 @@ uniform sampler2D defaultTexture;
 
 float pixelOffsets[5] = float[](1, 2, 3, 4, 5);
 
-//uniform float offset[5] = float[]( 0.0, 1.0, 2.0, 3.0, 4.0 );
-//uniform float weights[5] = float[]( 0.2270270270, 0.1945945946, 0.1216216216, 0.0540540541, 0.0162162162 );
+float offsets[5] = float[]( 0.0, 1.0, 2.0, 3.0, 4.0 );
+float weights[5] = float[]( 0.2270270270, 0.1945945946, 0.1216216216, 0.0540540541, 0.0162162162 );
 
 
 vec4 Gaussian()
@@ -55,5 +55,5 @@ vec4 Gaussian()
 
 void main()
 {
-	outColor =  Gaussian();
+	outColor = Gaussian();
 }

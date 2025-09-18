@@ -5,7 +5,7 @@
 
 struct gaussianSettings_t
 {
-	int			offsets[5];
+	GLint		offsets[5];
 	GLfloat		weights[5];
 
 	GLuint		bufferHandle;
@@ -32,9 +32,9 @@ class gaussianMultiScene : public texturedScene
 {
 public:
 
-	gaussianMultiScene(texture* defaultTexture = new texture(),
+	gaussianMultiScene(texture defaultTexture = texture(),
 		const char* windowName = "Ziyad Barakat's Portfolio (gaussian blurring)",
-		camera_t* textureCamera = new camera_t(),
+		camera_t textureCamera = camera_t(),
 		const char* shaderConfigPath = SHADER_CONFIG_DIR) :
 		texturedScene(defaultTexture, windowName, textureCamera, shaderConfigPath)
 	{
@@ -62,13 +62,13 @@ public:
 
 		//add 2 render textures, one for the first pass and one for the second?
 		//or just one and keep passing it through
-		gaussBuffer->AddAttachment(new frameBuffer::attachment_t("vertical", gaussDesc));
-		gaussBuffer->AddAttachment(new frameBuffer::attachment_t("horizontal", gaussDesc));
+		gaussBuffer->AddAttachment(frameBuffer::attachment_t("vertical", gaussDesc));
+		gaussBuffer->AddAttachment(frameBuffer::attachment_t("horizontal", gaussDesc));
 
 		compareBuffer->Initialize();
 		compareBuffer->Bind();
 
-		compareBuffer->AddAttachment(new frameBuffer::attachment_t("compare", gaussDesc));
+		compareBuffer->AddAttachment(frameBuffer::attachment_t("compare", gaussDesc));
 
 		frameBuffer::Unbind();
 	}
@@ -76,12 +76,12 @@ public:
 	void VerticalPass()
 	{
 		gaussBuffer->Bind();
-		gaussBuffer->attachments[0]->Draw();
+		gaussBuffer->attachments["vertical"].Draw();
 
-		defaultTexture->SetActive(0);
+		defaultTexture.SetActive(0);
 
 		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
-		glBindVertexArray(defaultVertexBuffer->vertexArrayHandle);
+		glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
 		glUseProgram(verticalProgram);
 		
 		glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -90,12 +90,12 @@ public:
 	void HorizontalPass()
 	{
 		gaussBuffer->Bind();
-		gaussBuffer->attachments[1]->Draw();
+		gaussBuffer->attachments["horizontal"].Draw();
 
-		defaultTexture->SetActive(0);
+		defaultTexture.SetActive(0);
 
 		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
-		glBindVertexArray(defaultVertexBuffer->vertexArrayHandle);
+		glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
 		glUseProgram(horizontalProgram);
 		
 		glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -105,13 +105,13 @@ public:
 	{
 		//draw to backbuffer
 		compareBuffer->Bind();
-		compareBuffer->attachments[0]->Draw();
+		compareBuffer->attachments["compare"].Draw();
 
-		glBindVertexArray(defaultVertexBuffer->vertexArrayHandle);
+		glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
 		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 
-		gaussBuffer->attachments[0]->SetActive(0);
-		gaussBuffer->attachments[1]->SetActive(1);
+		gaussBuffer->attachments["vertical"].SetActive(0);
+		gaussBuffer->attachments["horizontal"].SetActive(1);
 
 		glUseProgram(finalProgam);
 
@@ -123,7 +123,7 @@ public:
 	{
 		//draw directly to backbuffer
 		frameBuffer::Unbind();
-		glBindVertexArray(defaultVertexBuffer->vertexArrayHandle);
+		glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
 		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 
 		tex1->SetActive(0);
@@ -136,7 +136,7 @@ public:
 
 	virtual void Draw() override
 	{
-		//ok first do the the vertical pass
+		//ok first do the vertical pass
 		//then the horizontal pass
 		//then draw the final image?
 		VerticalPass();
@@ -145,7 +145,7 @@ public:
 
 		BlendPass();
 
-		FinalPass(defaultTexture, compareBuffer->attachments[0]);
+		FinalPass(&defaultTexture, &compareBuffer->attachments["compare"]);
 
 		DrawGUI(window);
 		manager->SwapDrawBuffers(window);
@@ -169,48 +169,62 @@ protected:
 	unsigned int						finalProgam;
 	unsigned int						compareProgram;
 
-	void BuildGUI(tWindow* window, ImGuiIO io) override
+	void BuildGUI(tWindow* window, const ImGuiIO& io) override
 	{
 		texturedScene::BuildGUI(window, io);
 
-		ImGui::Begin("horizontal");
-		for(size_t iter = 0; iter < 5; iter++)
+		//if (ImGui::BeginTabItem("gaussian multi pass"))
 		{
-			std::string num = std::to_string(iter);
-			ImGui::DragInt(std::string("offset# " + num).c_str(),
-				&gaussianHorz.data.offsets[iter], 1.0f, 0.0f, 10.0f);
-		}
-		ImGui::Separator();
-		for (size_t iter = 0; iter < 5; iter++)
-		{
-			std::string num = std::to_string(iter);
-			ImGui::DragFloat(std::string("weight# " + num).c_str(),
-				&gaussianHorz.data.weights[iter], 0.001f, 0.0f, 1.0f);
-		}
-		ImGui::End();
+			if (ImGui::BeginTabItem("horizontal"))
+			{
 
-		ImGui::Begin("vertical");
-		for (size_t iter = 0; iter < 5; iter++)
-		{
-			std::string num = std::to_string(iter);
-			ImGui::DragInt(std::string("offset# " + num).c_str(),
-				&gaussianVert.data.offsets[iter], 1.0f, 0.0f, 10.0f);
+
+				for (size_t iter = 0; iter < 5; iter++)
+				{
+					std::string num = std::to_string(iter);
+					ImGui::DragInt(std::string("offset# " + num).c_str(),
+						&gaussianHorz.data.offsets[iter], 1.0f, 0.0f, 10.0f);
+				}
+				ImGui::Separator();
+				for (size_t iter = 0; iter < 5; iter++)
+				{
+					std::string num = std::to_string(iter);
+					ImGui::DragFloat(std::string("weight# " + num).c_str(),
+						&gaussianHorz.data.weights[iter], 0.001f, 0.0f, 1.0f);
+				}
+				//ImGui::EndTabBar();
+				ImGui::EndTabItem();
+			}
+
+			if (ImGui::BeginTabItem("vertical"))
+			{
+
+
+				for (size_t iter = 0; iter < 5; iter++)
+				{
+					std::string num = std::to_string(iter);
+					ImGui::DragInt(std::string("offset# " + num).c_str(),
+						&gaussianVert.data.offsets[iter], 1.0f, 0.0f, 10.0f);
+				}
+				ImGui::Separator();
+				for (size_t iter = 0; iter < 5; iter++)
+				{
+					std::string num = std::to_string(iter);
+					ImGui::DragFloat(std::string("weight# " + num).c_str(),
+						&gaussianVert.data.weights[iter], 0.001f, 0.0f, 1.0f);
+				}
+
+				ImGui::EndTabItem();
+			}
 		}
-		ImGui::Separator();
-		for (size_t iter = 0; iter < 5; iter++)
-		{
-			std::string num = std::to_string(iter);
-			ImGui::DragFloat(std::string("weight# " + num).c_str(),
-				&gaussianVert.data.weights[iter], 0.001f, 0.0f, 1.0f);
-		}
-		ImGui::End();
+
 	}
 
 	void InitializeUniforms() override
 	{
 		scene::InitializeUniforms();
-		gaussianHorz.Initialize(1);
-		gaussianVert.Initialize(2);
+		gaussianHorz.Initialize(2);
+		gaussianVert.Initialize(1);
 		//SetupBuffer(gaussian, gaussian->bufferHandle, sizeof(*gaussian), 1, gl_uniform_buffer, gl_dynamic_draw);
 	}
 
@@ -224,16 +238,17 @@ protected:
 
 	void ClearBuffers()
 	{
-		float clearColor1[4] = { 0.25f, 0.25f, 0.25f, 0.25f };
+		float clearColor1[4] = { 0.25f, 0.25f, 0.25f, 1.0f };
 
 		gaussBuffer->Bind();
-		gaussBuffer->ClearTexture(gaussBuffer->attachments[0], clearColor1);
+		gaussBuffer->ClearTexture(gaussBuffer->attachments["vertical"], clearColor1);
+		gaussBuffer->ClearTexture(gaussBuffer->attachments["horizontal"], clearColor1);
 		//geometryBuffer->ClearTexture(geometryBuffer->attachments[1], clearColor1);
 		glClear(GL_DEPTH_BUFFER_BIT);
 		frameBuffer::Unbind();
 	}
 
-	virtual void HandleWindowResize(const tWindow* window, TinyWindow::vec2_t<unsigned int> dimensions) override
+	virtual void HandleWindowResize(const tWindow* window, const TinyWindow::vec2_t<uint16_t>& dimensions) override
 	{
 		defaultPayload.data.resolution = glm::ivec2(dimensions.width, dimensions.height);
 		ResizeBuffers(glm::ivec2(dimensions.x, dimensions.y));

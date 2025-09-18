@@ -37,21 +37,26 @@ public:
 	void Initialize() override
 	{
 		texturedScene::Initialize();
-		programGLID = shaderProgramsMap["bubbleProgram"].handle;
+		defProgram = shaderProgramsMap["bubbleProgram"];
 	}
 
 	~bubbleScene( void ){}
 
 protected:
 
-	void BuildGUI(tWindow* window, ImGuiIO io) override
+	void BuildGUI(tWindow* window, const ImGuiIO &io) override
 	{
 		texturedScene::BuildGUI(window, io);
-		ImGui::Checkbox("enable wireframe", &enableWireframe);
-		
-		ImGui::SliderFloat("Attenuation", &bubble.data.attenuation, 0.0f, 1.0f);
-		ImGui::SliderFloat("grid dimensions", &bubble.data.gridDimensions, 0.0f, 1000.0f, "%.0f");
-		ImGui::SliderFloat("offset", &bubble.data.offset, 0.0f, 1.0f);
+		if (ImGui::BeginTabItem("bubble"))
+		{
+			ImGui::Checkbox("enable wireframe", &enableWireframe);
+
+			ImGui::SliderFloat("Attenuation", &bubble.data.attenuation, 0.0f, 1.0f);
+			ImGui::SliderFloat("grid dimensions", &bubble.data.gridDimensions, 0.0f, 1000.0f, "%.0f");
+			ImGui::SliderFloat("offset", &bubble.data.offset, 0.0f, 1.0f);
+			ImGui::EndTabItem();
+		}
+
 	}
 
 	bufferHandler_t<bubbleSettings_t>			bubble;
@@ -65,25 +70,25 @@ protected:
 		bubble.Initialize(1);
 	}
 
-	void SetupVertexBuffer() override
+	void SetupVertexBuffer()
 	{ 
 		GLfloat cellWidth = defaultPayload.data.resolution.x / bubble.data.gridDimensions;
 		GLfloat cellHeight = defaultPayload.data.resolution.y / bubble.data.gridDimensions;
 
-		defaultVertexBuffer = vertexBuffer_t(glm::vec2(cellWidth, cellHeight));
+		defaultVertexBuffer.SetupCustom(glm::vec2(cellWidth, cellHeight));
 	}
 
 	void Update() override
 	{
 		scene::Update();
-		bubble.Update(gl_uniform_buffer, gl_dynamic_draw);
+		bubble.Update(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW);
 	}
 
 	void Draw()	override
 	{
 
-		defaultTexture.GetUniformLocation(programGLID);
-		glUseProgram(this->programGLID);
+		defaultTexture.GetUniformLocation(defProgram.handle);
+		glUseProgram(defProgram.handle);
 		if (enableWireframe)
 		{
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);

@@ -2,7 +2,7 @@
 
 int main()
 {
-	radialBlurScene* exampleScene = new radialBlurScene();
+	radialScene* exampleScene = new radialScene();
 	exampleScene->Initialize();
 	exampleScene->Run();
 

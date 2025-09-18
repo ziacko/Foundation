@@ -106,7 +106,7 @@ private:
 	/**
 	 * get the amount of time the computer has been running
 	 */
-	double GetRawTime() const
+	double GetRawTime()
 	{
 #if defined (TC_WINDOWS)
 			return (double)Windows_GetRawTime();

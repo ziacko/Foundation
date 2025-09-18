@@ -24,9 +24,9 @@ public:
 
 	chromaticScene(
 		chromaticSettings_t chromaticSettings = chromaticSettings_t(),
-		texture* defaultTexture = new texture(),
+		texture defaultTexture = texture(),
 		const char* windowName = "Ziyad Barakat's portfolio (chromatic aberration)",
-		camera_t* chromaticCamera = new camera_t(),
+		camera_t chromaticCamera = camera_t(),
 		const char* shaderConfigPath = SHADER_CONFIG_DIR) : texturedScene(defaultTexture, windowName, chromaticCamera, shaderConfigPath)
 	{
 		this->chromaticSettings = chromaticSettings;
@@ -38,13 +38,18 @@ protected:
 
 	bufferHandler_t<chromaticSettings_t>	chromaticSettings;
 
-	void BuildGUI(tWindow* window, ImGuiIO io) override
+	void BuildGUI(tWindow* window, const ImGuiIO& io) override
 	{
 		texturedScene::BuildGUI(window, io);
 
-		ImGui::SliderFloat("red offset", &chromaticSettings.data.redOffset, -1.0f, 1.0f, "%0.10f");
-		ImGui::SliderFloat("green offset", &chromaticSettings.data.greenOffset, -1.0f, 1.0f, "%0.10f");
-		ImGui::SliderFloat("blue offset", &chromaticSettings.data.blueOffset, -1.0f, 1.0f, "%0.10f");
+		if (ImGui::BeginTabItem("chromatic Abberration"))
+		{
+			ImGui::SliderFloat("red offset", &chromaticSettings.data.redOffset, -1.0f, 1.0f, "%0.10f");
+			ImGui::SliderFloat("green offset", &chromaticSettings.data.greenOffset, -1.0f, 1.0f, "%0.10f");
+			ImGui::SliderFloat("blue offset", &chromaticSettings.data.blueOffset, -1.0f, 1.0f, "%0.10f");
+
+			ImGui::EndTabItem();
+		}
 	}
 
 	void InitializeUniforms() override
@@ -56,7 +61,7 @@ protected:
 	void Update() override
 	{
 		scene::Update();
-		chromaticSettings.Update(gl_uniform_buffer, gl_dynamic_draw);
+		chromaticSettings.Update(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW);
 	}
 };
 #endif

@@ -41,9 +41,9 @@ public:
 
 	sharpenScene(
 		bufferHandler_t<sharpenSettings_t> sharpenSettings = bufferHandler_t<sharpenSettings_t>(),
-		texture* defaultTexture = new texture(),
+		texture defaultTexture = texture(),
 		const char* windowName = "Ziyad Barakat's portfolio (sharpen)",
-		camera_t* sharpencamera = new camera_t(),
+		camera_t sharpencamera = camera_t(),
 		const char* shaderConfigPath = SHADER_CONFIG_DIR)
 		: texturedScene(defaultTexture, windowName, sharpencamera, shaderConfigPath)
 	{
@@ -56,12 +56,15 @@ protected:
 
 	bufferHandler_t<sharpenSettings_t>		sharpen;
 
-	void BuildGUI(tWindow* window, ImGuiIO io) override
+	void BuildGUI(tWindow* window, const ImGuiIO& io) override
 	{
 		texturedScene::BuildGUI(window, io);
-
-		ImGui::SliderFloat("kernel 1", &sharpen.data.kernel1, -10.0f, 10.0f);
-		ImGui::SliderFloat("kernel 2", &sharpen.data.kernel2, -10.0f, 10.0f);
+		if (ImGui::BeginTabItem("sharpen"))
+		{
+			ImGui::SliderFloat("kernel 1", &sharpen.data.kernel1, -10.0f, 10.0f);
+			ImGui::SliderFloat("kernel 2", &sharpen.data.kernel2, -10.0f, 10.0f);
+			ImGui::EndTabItem();
+		}
 	}
 
 	void InitializeUniforms() override

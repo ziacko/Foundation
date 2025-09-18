@@ -26,9 +26,9 @@ class cheapBlurScene : public texturedScene
 public:
 
 	cheapBlurScene(bufferHandler_t<jitterSettings_t> jitterSet = bufferHandler_t<jitterSettings_t>(),
-		texture* defaultTexture = new texture(),
+		texture defaultTexture = texture(),
 		const char* windowName = "Ziyad Barakat's Portfolio (Cheap blur)",
-		camera_t* textureCamera = new camera_t(),
+		camera_t textureCamera = camera_t(),
 		const char* shaderConfigPath = SHADER_CONFIG_DIR) :
 		texturedScene(defaultTexture, windowName, textureCamera, shaderConfigPath)
 	{
@@ -59,14 +59,19 @@ protected:
 	float accumReturn;
 	float accumMult;
 
-	void BuildGUI(tWindow* window, ImGuiIO io) override
+	void BuildGUI(tWindow* window, const ImGuiIO& io) override
 	{
 		texturedScene::BuildGUI(window, io);
-		ImGui::SliderFloat("blur strength", &jitterSettings.data.haltonScale, 0.0f, 50.0f);
-		ImGui::SliderFloat("accum strength", &accum, -1.0f, 1.0f);
-		ImGui::SliderFloat("accum return strength", &accumReturn, -1.0f, 1.0f);
-		ImGui::SliderFloat("accum mult strength", &accumMult, -1.0f, 1.0f);
-		ImGui::SliderFloat("dither scale", &jitterSettings.data.ditheringScale, 0.0f, 1.0f);
+		if (ImGui::BeginTabItem("cheap blur"))
+		{
+			ImGui::SliderFloat("blur strength", &jitterSettings.data.haltonScale, 0.0f, 50.0f);
+			ImGui::SliderFloat("accum strength", &accum, -1.0f, 1.0f);
+			ImGui::SliderFloat("accum return strength", &accumReturn, -1.0f, 1.0f);
+			ImGui::SliderFloat("accum mult strength", &accumMult, -1.0f, 1.0f);
+			ImGui::SliderFloat("dither scale", &jitterSettings.data.ditheringScale, 0.0f, 1.0f);
+			ImGui::EndTabItem();
+		}
+
 	}
 
 	void InitializeUniforms() override
@@ -77,10 +82,10 @@ protected:
 
 	void Draw() override
 	{
-		glBindVertexArray(defaultVertexBuffer->vertexArrayHandle);
-		glUseProgram(this->programGLID);
+		glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
+		glUseProgram(defProgram.handle);
 
-		defaultTexture->SetActive(0);
+		defaultTexture.SetActive(0);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
 		glAccum(GL_ACCUM, accum); //adding the current frame to the buffer
@@ -95,7 +100,7 @@ protected:
 	void Update() override
 	{
 		scene::Update();
-		jitterSettings.Update(gl_uniform_buffer, gl_dynamic_draw);
+		jitterSettings.Update(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW);
 	}
 };
 

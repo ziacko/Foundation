@@ -128,13 +128,13 @@ public:
 		FBODescriptor perlinDesc;
 		perlinDesc.dataType = GL_FLOAT;
 		perlinDesc.format = GL_RGBA;
-		perlinDesc.internalFormat = gl_rgba16_snorm;
+		perlinDesc.internalFormat = GL_RGBA16_SNORM;
 		perlinDesc.dimensions = glm::ivec3(window->GetSettings().resolution.width, window->GetSettings().resolution.height, 1);
 
-		perlinBuffer->AddAttachment(new frameBuffer::attachment_t("perlin", perlinDesc));
+		perlinBuffer->AddAttachment(frameBuffer::attachment_t("perlin", perlinDesc));
 
-		programGLID = shaderProgramsMap["perlin"].handle;
-		finalProgram = shaderProgramsMap["textured"].handle;
+		defProgram = shaderProgramsMap["perlin"];
+		finalProgram = shaderProgramsMap["textured"];
 
 		frameBuffer::Unbind();
 	}
@@ -143,9 +143,9 @@ protected:
 
 	bufferHandler_t<perlinSettings_t>		perlin;
 	frameBuffer* perlinBuffer;
-	unsigned int finalProgram = 0;
+	shaderProgram_t finalProgram;
 
-	void BuildGUI(tWindow* window, ImGuiIO io) override
+	void BuildGUI(tWindow* window, const ImGuiIO& io) override
 	{
 		scene::BuildGUI(window, io); 
 
@@ -203,7 +203,7 @@ protected:
 
 	void SetPerlinUniforms()
 	{
-		perlin.SetupUniforms(this->programGLID, "perlinSettings", 1);
+		perlin.SetupUniforms(defProgram.handle, "perlinSettings", 1);
 	}
 
 	void Update() override
@@ -215,12 +215,12 @@ protected:
 	void PerlinPass()
 	{
 		perlinBuffer->Bind();
-		perlinBuffer->attachments[0]->Draw();
+		perlinBuffer->attachments["perlin"].Draw();
 
 		glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
 		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 
-		glUseProgram(this->programGLID);
+		glUseProgram(defProgram.handle);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
 
@@ -231,8 +231,8 @@ protected:
 		glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
 		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 
-		perlinBuffer->attachments[0]->SetActive(0);
-		glUseProgram(finalProgram);
+		perlinBuffer->attachments["perlin"].SetActive(0);
+		glUseProgram(finalProgram.handle);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
 

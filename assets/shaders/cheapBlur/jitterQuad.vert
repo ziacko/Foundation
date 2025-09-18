@@ -42,10 +42,10 @@ void main()
 
 	jitterm[2][0] += jitter.x;
 	jitterm[2][1] += jitter.y;
-	gl_Position = jitterm * projection * view * translation * position;
+	gl_Position = jitterm * position;
 
 
-	outBlock.position = projection * view * translation * position;
+	outBlock.position = position;
 	outBlock.uv = outBlock.position.xy * 0.5f + 0.5f;
 	//outBlock.position.xy += jitter;
 	//gl_Position = outBlock.position;//.xy + jitter;

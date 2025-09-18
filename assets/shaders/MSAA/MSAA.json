@@ -1,24 +1,50 @@
 [
-    {
-        "name": "MSAA",
-        "outputs": [
-            "outColor"
-        ],
-        "shaders": [
-            {
-                "name": "defaultVertex",
-                "path": "default.vert",
-                "type": "vertex"
-            },
-            {
-                "name": "defaultFragment",
-                "path": "default.frag",
-                "type": "fragment"
-            }
-        ],
-        "vertex attributes": [
-            "position",
-            "UV"
-        ]
-    }
+  {
+    "name": "MSAA",
+    "outputs": [
+      "outColor"
+    ],
+    "shaders": [
+      {
+        "name": "defaultVertex",
+        "path": "default.vert",
+        "type": "vertex"
+      },
+      {
+        "name": "defaultFragment",
+        "path": "default.frag",
+        "type": "fragment"
+      }
+    ],
+    "vertex attributes": [
+      "position",
+      "UV"
+    ]
+  },
+  {
+    "name": "geometryProgram",
+    "outputs": [
+      "outColor",
+      "outVelocity"
+    ],
+    "shaders": [
+      {
+        "name": "treeVertex",
+        "path": "Model.vert",
+        "type": "vertex"
+      },
+      {
+        "name": "treeFragment",
+        "path": "SpeedTree.frag",
+        "type": "fragment"
+      }
+    ],
+    "vertex attributes": [
+      "positon",
+      "normal",
+      "tangent",
+      "biTangent",
+      "uv"
+    ]
+  }
 ]

@@ -20,22 +20,42 @@ static void LoadShaderProgramsFromConfigFile(tsl::robin_map<std::string, shaderP
     if (std::filesystem::exists(fullPath) && std::filesystem::is_regular_file(fullPath))
     {
         //first load the json file from JSON into a string
-        FILE* pConfigFile = fopen(fullPath.string().c_str(), "r");
-        fseek(pConfigFile, 0, SEEK_END);
+        FILE* pConfigFile = fopen(fullPath.string().c_str(), "rb");
+        if (!pConfigFile) {
+#if defined(DEBUG)
+            fprintf(stderr, "Failed to open JSON: %s\n", fullPath.string().c_str());
+#endif
+            return;
+        }
+        if (fseek(pConfigFile, 0, SEEK_END) != 0) { fclose(pConfigFile); return; }
 
-        long fileSize = ftell(pConfigFile);
-
-        fseek(pConfigFile, 0, SEEK_SET);
+        long fileSizeLong = ftell(pConfigFile);
+        if (fileSizeLong <= 0) { fclose(pConfigFile); return; }
+        const size_t fileSize = static_cast<size_t>(fileSizeLong);
+        rewind(pConfigFile);
 
         std::string tempBuffer;
         tempBuffer.resize(fileSize);
-        fread(&tempBuffer[0], fileSize, 1, pConfigFile);
+        size_t bytesRead = fread(tempBuffer.data(), 1, fileSize, pConfigFile);
         fclose(pConfigFile);
 
-        //now the JSON part
+        // Use exactly the bytes actually read
+        tempBuffer.resize(bytesRead);
 
-        yyjson_doc* jsonDoc = yyjson_read(tempBuffer.c_str(), tempBuffer.size(), 0);
-        assert(jsonDoc != nullptr);
+        //now the JSON part
+        constexpr size_t kJsonFlags =
+            YYJSON_READ_ALLOW_COMMENTS | YYJSON_READ_ALLOW_TRAILING_COMMAS;
+
+        yyjson_read_err err;
+        yyjson_doc* jsonDoc = yyjson_read_opts(tempBuffer.data(), tempBuffer.size(), kJsonFlags, nullptr, &err);
+        if (!jsonDoc) {
+#if defined(DEBUG)
+            fprintf(stderr, "JSON parse failed (%s) at pos %zu in %s\n",
+                    err.msg ? err.msg : "unknown", err.pos,
+                    fullPath.string().c_str());
+#endif
+            return;
+        }
 
         yyjson_val* root = yyjson_doc_get_root(jsonDoc);
         assert(root != nullptr);

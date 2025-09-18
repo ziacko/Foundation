@@ -46,9 +46,9 @@ public:
 
 	sepiaScene(
 		bufferHandler_t<sepiaSettings_t> sepiaSettings = bufferHandler_t<sepiaSettings_t>(),
-		texture* defaultTexture = new texture(),
+		texture defaultTexture = texture(),
 		const char* windowName = "Ziyad Barakat's portfolio (sepia)",
-		camera_t* sepiaCamera = new camera_t(),
+		camera_t sepiaCamera = camera_t(),
 		const char* shaderConfigPath = SHADER_CONFIG_DIR)
 		: texturedScene(defaultTexture, windowName, sepiaCamera, shaderConfigPath)
 	{
@@ -61,23 +61,28 @@ protected:
 
 	bufferHandler_t<sepiaSettings_t>  sepiaSettings;
 
-	void BuildGUI(tWindow* window, ImGuiIO io) override
+	void BuildGUI(tWindow* window, const ImGuiIO& io) override
 	{
 		texturedScene::BuildGUI(window, io);
 
-		ImGui::SliderFloat("factor", &sepiaSettings.data.factor, 0.0f, 1.0f);
+		if (ImGui::BeginTabItem("sepia"))
+		{
+			ImGui::SliderFloat("factor", &sepiaSettings.data.factor, 0.0f, 1.0f);
 
-		ImGui::SliderFloat("red modifier 1", &sepiaSettings.data.redModifier1, 0.0f, 1.0f);
-		ImGui::SliderFloat("red modifier 2", &sepiaSettings.data.redModifier2, 0.0f, 1.0f);
-		ImGui::SliderFloat("red modifier 3", &sepiaSettings.data.redModifier3, 0.0f, 1.0f);
+			ImGui::SliderFloat("red modifier 1", &sepiaSettings.data.redModifier1, 0.0f, 1.0f);
+			ImGui::SliderFloat("red modifier 2", &sepiaSettings.data.redModifier2, 0.0f, 1.0f);
+			ImGui::SliderFloat("red modifier 3", &sepiaSettings.data.redModifier3, 0.0f, 1.0f);
 
-		ImGui::SliderFloat("green modifier 1", &sepiaSettings.data.greenModifier1, 0.0f, 1.0f);
-		ImGui::SliderFloat("green modifier 2", &sepiaSettings.data.greenModifier2, 0.0f, 1.0f);
-		ImGui::SliderFloat("green modifier 3", &sepiaSettings.data.greenModifier3, 0.0f, 1.0f);
+			ImGui::SliderFloat("green modifier 1", &sepiaSettings.data.greenModifier1, 0.0f, 1.0f);
+			ImGui::SliderFloat("green modifier 2", &sepiaSettings.data.greenModifier2, 0.0f, 1.0f);
+			ImGui::SliderFloat("green modifier 3", &sepiaSettings.data.greenModifier3, 0.0f, 1.0f);
 
-		ImGui::SliderFloat("blue modifier 1", &sepiaSettings.data.blueModifier1, 0.0f, 1.0f);
-		ImGui::SliderFloat("blue modifier 2", &sepiaSettings.data.blueModifier2, 0.0f, 1.0f);
-		ImGui::SliderFloat("blue modifier 3", &sepiaSettings.data.blueModifier3, 0.0f, 1.0f);
+			ImGui::SliderFloat("blue modifier 1", &sepiaSettings.data.blueModifier1, 0.0f, 1.0f);
+			ImGui::SliderFloat("blue modifier 2", &sepiaSettings.data.blueModifier2, 0.0f, 1.0f);
+			ImGui::SliderFloat("blue modifier 3", &sepiaSettings.data.blueModifier3, 0.0f, 1.0f);
+
+			ImGui::EndTabItem();
+		}
 	}
 
 	void InitializeUniforms() override

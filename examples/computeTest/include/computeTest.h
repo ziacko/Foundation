@@ -6,7 +6,7 @@ struct dispatchStruct
 {
 	std::vector<float> dispatchArray;
 
-	dispatchStruct(int size = 10)
+	dispatchStruct(uint16_t size = 10)
 	{
 		for (size_t iter = 0; iter < size; iter++)
 		{
@@ -21,7 +21,7 @@ public:
 
 	computeTestScene(
 		const char* windowName = "Ziyad Barakat's portfolio (compute shader test)",
-		camera_t* cam = new camera_t(),
+		camera_t cam = camera_t(),
 		const char* shaderConfigPath = SHADER_CONFIG_DIR)
 		: scene(windowName, cam, shaderConfigPath)
 	{
@@ -31,7 +31,7 @@ public:
 
 	~computeTestScene() {};
 
-	unsigned int computeProgram = 0;
+	shaderProgram_t computeProgram;
 
 	bufferHandler_t<dispatchStruct> disp;
 
@@ -40,9 +40,8 @@ public:
 	virtual void Initialize() override
 	{
 		scene::Initialize();
-		programGLID = shaderProgramsMap["scene"].handle;
-		computeProgram = shaderProgramsMap[PROJECT_NAME].handle;
-		printf("%i \n", computeProgram);
+		defProgram = shaderProgramsMap["scene"];
+		computeProgram = shaderProgramsMap[PROJECT_NAME];
 	}
 
 	virtual void Draw() override
@@ -55,7 +54,7 @@ protected:
 	void InitializeUniforms() override
 	{
 		scene::InitializeUniforms();
-		disp.Initialize(0, gl_shader_storage_buffer);
+		disp.Initialize(0, GL_SHADER_STORAGE_BUFFER);
 	}
 
 	void Update() override
@@ -64,8 +63,8 @@ protected:
 
 		if(loadFromBuffer)
 		{
-			glBindBuffer(gl_shader_storage_buffer, disp.bufferHandle);
-			glGetBufferSubData(gl_shader_storage_buffer, 0, disp.data.dispatchArray.size(), disp.data.dispatchArray.data());
+			glBindBuffer(GL_SHADER_STORAGE_BUFFER, disp.bufferHandle);
+			glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, disp.data.dispatchArray.size(), disp.data.dispatchArray.data());
 			for(size_t iter = 0; iter < 10; iter++)
 			{
 				printf("%f \t", disp.data.dispatchArray[0]);
@@ -75,18 +74,22 @@ protected:
 		}
 	}
 
-	void BuildGUI(tWindow* window, ImGuiIO io) override
+	void BuildGUI(tWindow* window, const ImGuiIO& io) override
 	{
 		scene::BuildGUI(window, io);
 
-		ImGui::Begin("compute dispatcher");
-		if(ImGui::Button("dispatch"))
+		if (ImGui::BeginTabItem("compute dispatcher"))
 		{
-			glUseProgram(computeProgram);
-			glDispatchCompute(10, 1, 1);
-			loadFromBuffer = true;
+			if (ImGui::Button("dispatch"))
+			{
+				glUseProgram(computeProgram.handle);
+				glDispatchCompute(10, 1, 1);
+				loadFromBuffer = true;
+			}
+
+			ImGui::EndTabItem();
 		}
-		ImGui::End();
+
 	}
 };
 

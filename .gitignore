@@ -507,3 +507,5 @@
 /lib/tinywindow/bin/Debug/Example_Debug.rdi
 /lib/tinywindow/proj/vs
 /lib/tinywindow/premake5.exe
+/bin/Debug
+/proj/vs

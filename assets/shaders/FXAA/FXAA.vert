@@ -36,7 +36,7 @@ void main()
 {
 	vec2 deltaRes = vec2(1.0 / resolution.x, 1.0 / resolution.y);
 
-	outBlock.position = projection * view * translation * position;
+	outBlock.position = position;
 	outBlock.uv = outBlock.position.xy * 0.5f + 0.5f;
 	gl_Position = outBlock.position;
 

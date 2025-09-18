@@ -1,0 +1,137 @@
+[
+    {
+        "name": "geometry",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "jitterVertex",
+                "path": "model.vert",
+                "type": "vertex"
+            },
+            {
+                "name": "treeFragment",
+                "path": "speedTree.frag",
+                "type": "fragment"
+            }
+        ],
+        "vertex attributes": [
+            "positon",
+            "normal",
+            "tangent",
+            "biTangent",
+            "uv"
+        ]
+    },
+    {
+        "name": "edgeDetection",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "edgeVertex",
+                "path": "edgeDetection.vert",
+                "type": "vertex"
+            },
+            {
+                "name": "edgeDetection",
+                "path": "SMAAEdgeDetection.frag",
+                "type": "fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "uv"
+        ]
+    },
+    {
+        "name": "blendingWeight",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "blendVertex",
+                "path": "blendingWeight.vert",
+                "type": "vertex"
+            },
+            {
+                "name": "blendingWeight",
+                "path": "blendingWeight.frag",
+                "type": "fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "uv"
+        ]
+    },
+    {
+        "name": "SMAA",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "NeighborVertex",
+                "path": "SMAA.vert",
+                "type": "vertex"
+            },
+            {
+                "name": "SMAAResolve",
+                "path": "SMAAResolve.frag",
+                "type": "fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "uv"
+        ]
+    },
+    {
+        "name": "compare",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "defaultVertex1",
+                "path": "default.vert",
+                "type": "vertex"
+            },
+            {
+                "name": "compare",
+                "path": "compare.frag",
+                "type": "fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "uv"
+        ]
+    },
+    {
+        "name": "final",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "defaultVertex2",
+                "path": "default.vert",
+                "type": "vertex"
+            },
+            {
+                "name": "texturedFragment",
+                "path": "textured.frag",
+                "type": "fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "uv"
+        ]
+    }
+]

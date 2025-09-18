@@ -1,4 +1,3 @@
-#version 450
 #define SMAATexture2D(tex) sampler2D tex
 #define SMAATexturePass2D(tex) tex
 #define SMAASampleLevelZero(tex, coord) textureLod(tex, coord, 0.0)
@@ -94,7 +93,6 @@ void SMAAMovc(bool4 cond, inout float4 variable, float4 value) {
 //-----------------------------------------------------------------------------
 // Diagonal Search Functions
 
-#if !defined(SMAA_DISABLE_DIAG_DETECTION)
 
 /**
  * Allows to decode two binary values from a bilinear-filtered access.
@@ -128,7 +126,7 @@ float4 SMAADecodeDiagBilinearAccess(float4 e) {
 float2 SMAASearchDiag1(SMAATexture2D(edgesTex), float2 texcoord, float2 dir, out float2 e) {
     float4 coord = float4(texcoord, -1.0, 1.0);
     float3 t = float3(rtMetrics.xy, 1.0);
-    while (coord.z < float(maxSearchStepsDiag - 1) &&
+    while (coord.z < (float(maxSearchStepsDiag) - 1.0) &&
            coord.w > 0.9) {
         coord.xyz = mad(t, float3(dir, 1.0), coord.xyz);
         e = SMAASampleLevelZero(edgesTex, coord.xy).rg;
@@ -141,7 +139,7 @@ float2 SMAASearchDiag2(SMAATexture2D(edgesTex), float2 texcoord, float2 dir, out
     float4 coord = float4(texcoord, -1.0, 1.0);
     coord.x += 0.25 * rtMetrics.x; // See @SearchDiag2Optimization
     float3 t = float3(rtMetrics.xy, 1.0);
-    while (coord.z < float(maxSearchStepsDiag - 1) &&
+    while (coord.z < (float(maxSearchStepsDiag) - 1.0) &&
            coord.w > 0.9) {
         coord.xyz = mad(t, float3(dir, 1.0), coord.xyz);
 
@@ -249,7 +247,6 @@ float2 SMAACalculateDiagWeights(SMAATexture2D(edgesTex), SMAATexture2D(areaTex),
 
     return weights;
 }
-#endif
 
 //-----------------------------------------------------------------------------
 // Horizontal/Vertical Search Functions
@@ -372,7 +369,6 @@ float2 SMAAArea(SMAATexture2D(areaTex), float2 dist, float e1, float e2, float o
 // Corner Detection Functions
 
 void SMAADetectHorizontalCornerPattern(SMAATexture2D(edgesTex), inout float2 weights, float4 texcoord, float2 d) {
-    #if !defined(SMAA_DISABLE_CORNER_DETECTION)
     float2 leftRight = step(d.xy, d.yx);
     float2 rounding = (1.0 - SMAA_CORNER_ROUNDING_NORM) * leftRight;
 
@@ -385,11 +381,9 @@ void SMAADetectHorizontalCornerPattern(SMAATexture2D(edgesTex), inout float2 wei
     factor.y -= rounding.y * SMAASampleLevelZeroOffset(edgesTex, texcoord.zw, int2(1, -2)).r;
 
     weights *= saturate(factor);
-    #endif
 }
 
 void SMAADetectVerticalCornerPattern(SMAATexture2D(edgesTex), inout float2 weights, float4 texcoord, float2 d) {
-    #if !defined(SMAA_DISABLE_CORNER_DETECTION)
     float2 leftRight = step(d.xy, d.yx);
     float2 rounding = (1.0 - SMAA_CORNER_ROUNDING_NORM) * leftRight;
 
@@ -402,7 +396,6 @@ void SMAADetectVerticalCornerPattern(SMAATexture2D(edgesTex), inout float2 weigh
     factor.y -= rounding.y * SMAASampleLevelZeroOffset(edgesTex, texcoord.zw, int2(-2, 1)).g;
 
     weights *= saturate(factor);
-    #endif
 }
 
 //-----------------------------------------------------------------------------
@@ -421,16 +414,6 @@ float4 SMAABlendingWeightCalculationPS(float2 texcoord,
 
     SMAA_BRANCH
     if (e.g > 0.0) { // Edge at north
-        #if !defined(SMAA_DISABLE_DIAG_DETECTION)
-        // Diagonals have both north and west edges, so searching for them in
-        // one of the boundaries is enough.
-        weights.rg = SMAACalculateDiagWeights(SMAATexturePass2D(edgesTex), SMAATexturePass2D(areaTex), texcoord, e, subsampleIndices);
-
-        // We give priority to diagonals, so if we find a diagonal we skip 
-        // horizontal/vertical processing.
-        SMAA_BRANCH
-        if (weights.r == -weights.g) { // weights.r + weights.g == 0.0
-        #endif
 
         float2 d;
 
@@ -467,11 +450,6 @@ float4 SMAABlendingWeightCalculationPS(float2 texcoord,
         // Fix corners:
         coords.y = texcoord.y;
         SMAADetectHorizontalCornerPattern(SMAATexturePass2D(edgesTex), weights.rg, coords.xyzy, d);
-
-        #if !defined(SMAA_DISABLE_DIAG_DETECTION)
-        } else
-            e.r = 0.0; // Skip vertical processing.
-        #endif
     }
 
     SMAA_BRANCH

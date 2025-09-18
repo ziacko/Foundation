@@ -26,9 +26,9 @@ class cellShadingScene : public texturedScene
 public:
 
 	cellShadingScene(bufferHandler_t<cellShadeSettings_t> cellShade = bufferHandler_t<cellShadeSettings_t>(),
-		texture* defaultTexture = new texture(),
+		texture defaultTexture = texture(),
 		const char* windowName = "Ziyad Barakat's Portfolio (Cell Shading)",
-		camera_t* textureCamera = new camera_t(),
+		camera_t textureCamera = camera_t(),
 		const char* shaderConfigPath = SHADER_CONFIG_DIR) :
 		texturedScene(defaultTexture, windowName, textureCamera, shaderConfigPath)
 	{
@@ -46,13 +46,17 @@ protected:
 
 	bufferHandler_t<cellShadeSettings_t>		cellBuffer;
 
-	void BuildGUI(tWindow* window, ImGuiIO io) override
+	void BuildGUI(tWindow* window, const ImGuiIO& io) override
 	{
 		texturedScene::BuildGUI(window, io);
-		ImGui::SliderFloat("red modifier", &cellBuffer.data.redModifier, 0.0f, 1.0f);
-		ImGui::SliderFloat("green modifier", &cellBuffer.data.greenModifier, 0.0f, 1.0f);
-		ImGui::SliderFloat("blue modifier", &cellBuffer.data.blueModifier, 0.0f, 1.0f);
-		ImGui::SliderFloat("cell distance", &cellBuffer.data.cellDistance, 0.0f, 1.0f);
+		if (ImGui::BeginTabItem("cell shading"))
+		{
+			ImGui::SliderFloat("red modifier", &cellBuffer.data.redModifier, 0.0f, 1.0f);
+			ImGui::SliderFloat("green modifier", &cellBuffer.data.greenModifier, 0.0f, 1.0f);
+			ImGui::SliderFloat("blue modifier", &cellBuffer.data.blueModifier, 0.0f, 1.0f);
+			ImGui::SliderFloat("cell distance", &cellBuffer.data.cellDistance, 0.0f, 1.0f);
+			ImGui::EndTabItem();
+		}
 	}
 
 	void InitializeUniforms() override
@@ -64,7 +68,7 @@ protected:
 	void Update() override
 	{
 		scene::Update();
-		cellBuffer.Update(gl_uniform_buffer, gl_dynamic_draw);
+		cellBuffer.Update(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW);
 	}
 };
 

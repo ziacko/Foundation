@@ -37,11 +37,16 @@ protected:
 
 	bufferHandler_t<erosionSettings_t>	erosion;
 
-	void BuildGUI(tWindow* window, ImGuiIO io) override
+	void BuildGUI(tWindow* window, const ImGuiIO& io) override
 	{
 		texturedScene::BuildGUI(window, io);
-		ImGui::SliderFloat("erosion strength X", &erosion.data.strengthX, 0.0f, 10.0f);
-		ImGui::SliderFloat("erosion strength Y", &erosion.data.strengthY, 0.0f, 10.0f);
+
+		if (ImGui::BeginTabItem("erosion"))
+		{
+			ImGui::SliderFloat("erosion strength X", &erosion.data.strengthX, 0.0f, 10.0f);
+			ImGui::SliderFloat("erosion strength Y", &erosion.data.strengthY, 0.0f, 10.0f);
+			ImGui::EndTabItem();
+		}
 	}
 
 	void InitializeUniforms() override
@@ -53,7 +58,7 @@ protected:
 	void Update() override
 	{
 		scene::Update();
-		erosion.Update(gl_uniform_buffer, gl_dynamic_draw);
+		erosion.Update(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW);
 	}
 };
 

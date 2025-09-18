@@ -95,7 +95,7 @@ public:
 		manager->mouseWheelEvent = std::bind(&scene::HandleMouseWheel, this, _1, _2);
 		manager->maximizedEvent = std::bind(&scene::HandleMaximize, this, _1);
 		manager->keyEvent = std::bind(&scene::HandleKey, this, _1, _2, _3);
-		//manager->fileDropEvent = std::bind(&scene::HandleFileDrop, this, _1, _2);
+		manager->fileDropEvent = std::bind(&scene::HandleFileDrop, this, _1, _2);
 
 		//tinywindow
 		manager->managerErrorEvent = std::bind(&scene::HandleTWErrors, this, _1);
@@ -486,7 +486,7 @@ protected:
 		}
 	}
 
-	virtual void HandleFileDrop(const tWindow* window, const std::vector<std::string>& files, const vec2_t<int16_t>& windowMousePosition)
+	virtual void HandleFileDrop(const tWindow* window, const std::vector<std::string>& files)
 	{
 		//for each file dropped in
 		//make sure it's a texture

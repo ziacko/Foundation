@@ -3,7 +3,7 @@
 in defaultBlock
 {
 	vec4 position;
-	vec2 UV;
+	vec2 uv;
 	vec2 fullUV;
 } inBlock;
 

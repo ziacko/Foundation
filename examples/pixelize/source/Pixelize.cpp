@@ -1,4 +1,4 @@
-#include "Pixelize.h"
+#include "pixelize.h"
 
 int main()
 {
