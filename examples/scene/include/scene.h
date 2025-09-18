@@ -33,8 +33,6 @@ public:
 		setting.SetProfile(profile_e::core);
 		//setting.enableSRGB = true;
 
-		manager->Initialize();
-
 		window = manager->AddWindow(setting);
 		assert(window != nullptr);
 		scene::InitImGUI(window);
@@ -97,7 +95,7 @@ public:
 		manager->mouseWheelEvent = std::bind(&scene::HandleMouseWheel, this, _1, _2);
 		manager->maximizedEvent = std::bind(&scene::HandleMaximize, this, _1);
 		manager->keyEvent = std::bind(&scene::HandleKey, this, _1, _2, _3);
-		manager->fileDropEvent = std::bind(&scene::HandleFileDrop, this, _1, _2, _3);
+		//manager->fileDropEvent = std::bind(&scene::HandleFileDrop, this, _1, _2);
 
 		//tinywindow
 		manager->managerErrorEvent = std::bind(&scene::HandleTWErrors, this, _1);
@@ -242,7 +240,7 @@ protected:
 
 			if(ImGui::Button("Toggle Fullscreen"))
 			{
-				manager->ToggleFullscreen(window, &manager->GetMonitors()[0], 0);
+				//manager->ToggleFullscreen(window, &manager->GetMonitors()[0], 0);
 				glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 			}
 

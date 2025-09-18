@@ -26,9 +26,9 @@ protected:
 
 	bufferHandler_t<node_t>		nodes;
 
-	void SetupVertexBuffer() override
+	void SetupVertexBuffer()
 	{
-		defaultVertexBuffer = vertexBuffer_t(glm::vec2(defaultPayload.data.resolution / nodes.data.scaler));
+		defaultVertexBuffer.SetupDefault();
 	}
 
 	void Draw() override
@@ -36,12 +36,12 @@ protected:
 		//just draw twice. don't over-think it
 		nodes.data.flipper = 0;
 		nodes.Update();
-		glUseProgram(this->programGLID);
+		glUseProgram(defProgram.handle);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
 		nodes.data.flipper = 1;
 		nodes.Update();
-		glUseProgram(this->programGLID);
+		glUseProgram(defProgram.handle);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 		
 		DrawGUI(window);
@@ -65,7 +65,7 @@ protected:
 		defaultPayload.data.deltaTime = (float)clock.GetDeltaTime();
 		defaultPayload.data.totalTime = (float)clock.GetTotalTime();
 		defaultPayload.data.framesPerSec = (float)(1.0 / clock.GetDeltaTime());
-		defaultPayload.Update(gl_uniform_buffer, gl_dynamic_draw);
+		defaultPayload.Update(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW);
 	}
 
 	void InitializeUniforms() override 
@@ -77,13 +77,13 @@ protected:
 		defaultPayload.data.projection = glm::ortho(0.0f, resolution.x, resolution.y, 0.0f, 0.01f, 10.0f);
 
 		SetupVertexBuffer();
-		SetupBuffer(gl_uniform_buffer, gl_dynamic_draw);
+		SetupBuffer(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW);
 
 		SetupDefaultUniforms();
 		nodes.Initialize(1);
 	}
 
-	void BuildGUI(tWindow* window, ImGuiIO io) override
+	void BuildGUI(tWindow* window, const ImGuiIO& io) override
 	{
 		scene::BuildGUI(window, io);
 
@@ -146,7 +146,7 @@ protected:
 
 		defaultPayload.data.projection = glm::ortho(0.0f, resolution.x, resolution.y, 0.0f, 0.01f, 10.0f);
 
-		defaultPayload.Update(gl_uniform_buffer, gl_dynamic_draw);
+		defaultPayload.Update(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW);
 		defaultVertexBuffer.UpdateBuffer(glm::ivec2(defaultPayload.data.resolution / nodes.data.scaler));
 	}
 };
