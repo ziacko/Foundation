@@ -1,0 +1,3 @@
+/mnt/F0F004F7F004C5B6/projects/Portfolio/Foundation/lib/tinywindow/build/CMakeFiles/Example.dir
+/mnt/F0F004F7F004C5B6/projects/Portfolio/Foundation/lib/tinywindow/build/CMakeFiles/edit_cache.dir
+/mnt/F0F004F7F004C5B6/projects/Portfolio/Foundation/lib/tinywindow/build/CMakeFiles/rebuild_cache.dir

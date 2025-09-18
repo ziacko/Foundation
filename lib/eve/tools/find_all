@@ -1,0 +1,22 @@
+##==================================================================================================
+##  EVE - Expressive Vector Engine
+##  Copyright : EVE Project Contributors
+##  SPDX-License-Identifier: BSL-1.0
+##==================================================================================================
+#!/bin/bash
+# Usage:
+#
+#  find_all.sh <name> <root_path>
+#
+
+if [[ "$#" -lt 2 ]]; then
+  root_path=`pwd`
+else
+  root_path=$2
+fi
+
+for i in `find ${root_path} -name $1`
+do
+  echo Found $i
+  subl ${i} &
+done
