@@ -4,3 +4,6 @@
 [submodule "lib/TinyExtender"]
 	path = lib/TinyExtender
 	url = https://github.com/ziacko/TinyExtender
+[submodule "lib/TinyShaders"]
+	path = lib/TinyShaders
+	url = https://github.com/ziacko/TinyShaders
