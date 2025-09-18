@@ -1,0 +1,24 @@
+[
+    {
+        "name": "gameOfLife",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "GOLVertex",
+                "path": "GOL.vert",
+                "type": "vertex"
+            },
+            {
+                "name": "GOLFragment",
+                "path": "GOL.frag",
+                "type": "fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "uv"
+        ]
+    }
+]

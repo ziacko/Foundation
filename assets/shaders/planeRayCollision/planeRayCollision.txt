@@ -1,0 +1,14 @@
+1
+GOLProgram
+2
+position
+uv
+1
+outColor
+2
+PRCVertex
+Vertex
+../../resources/shaders/planeRayCollision/PRC.vert
+PRCFragment
+Fragment
+../../resources/shaders/planeRayCollision/PRC.frag

@@ -1,0 +1,46 @@
+[
+    {
+        "name": "perlin",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "defaultVertex",
+                "path": "default.vert",
+                "type": "vertex"
+            },
+            {
+                "name": "perlinFragment",
+                "path": "perlinHighP.frag",
+                "type": "fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "uv"
+        ]
+    },
+    {
+        "name": "heat",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "heatVertex",
+                "path": "default.vert",
+                "type": "vertex"
+            },
+            {
+                "name": "texturedFragment",
+                "path": "bubble.frag",
+                "type": "fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "uv"
+        ]
+    }
+]

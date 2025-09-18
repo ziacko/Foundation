@@ -1,0 +1,52 @@
+[
+    {
+        "name": "ModelProgram",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "ModelVertex",
+                "path": "../../resources/shaders/anim/AnimTest.vert",
+                "type": "Vertex"
+            },
+            {
+                "name": "ModelFragment",
+                "path": "../../resources/shaders/anim/Model.frag",
+                "type": "Fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "normal",
+            "tangent",
+            "biTangent",
+            "uv"
+        ]
+    },
+    {
+        "name": "OGLProgram",
+        "outputs": [
+            "FragColor"
+        ],
+        "shaders": [
+            {
+                "name": "OGLVertex",
+                "path": "../../resources/shaders/anim/skinning.vs",
+                "type": "Vertex"
+            },
+            {
+                "name": "OGLFragment",
+                "path": "../../resources/shaders/anim/skinning.fs",
+                "type": "Fragment"
+            }
+        ],
+        "vertex attributes": [
+            "Position",
+            "TexCoord",
+            "Normal",
+            "BoneIDs",
+            "Weights"
+        ]
+    }
+]

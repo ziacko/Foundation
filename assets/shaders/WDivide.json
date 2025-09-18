@@ -1,0 +1,24 @@
+[
+    {
+        "name": "WDivideProgram",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "WDivideVertex",
+                "path": "../../resources/shaders/WDivide.vert",
+                "type": "Vertex"
+            },
+            {
+                "name": "ModelFragment",
+                "path": "../../resources/shaders/Model.frag",
+                "type": "Fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "uv"
+        ]
+    }
+]

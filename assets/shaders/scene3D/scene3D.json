@@ -1,0 +1,27 @@
+[
+    {
+        "name": "scene3D",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "modelVertex",
+                "path": "model.vert",
+                "type": "vertex"
+            },
+            {
+                "name": "modelFragment",
+                "path": "model.frag",
+                "type": "fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "normal",
+            "tangent",
+            "biTangent",
+            "uv"
+        ]
+    }
+]

@@ -1,0 +1,36 @@
+[
+    {
+        "name": "GOL",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "GOLVertex",
+                "path": "GOL.vert",
+                "type": "vertex"
+            },
+            {
+                "name": "GOLFragment",
+                "path": "GOL.frag",
+                "type": "fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "uv"
+        ]
+    },
+    {
+        "name": "GOLCompute",
+        "outputs": [],
+        "shaders": [
+            {
+                "name": "GOLCompute",
+                "path": "GOLComp.comp",
+                "type": "compute"
+            }
+        ],
+        "vertex attributes": []
+    }
+]

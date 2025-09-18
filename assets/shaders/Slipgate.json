@@ -1,0 +1,62 @@
+[
+    {
+        "name": "geometryProgram",
+        "outputs": [
+            "outColor",
+            "outVelocity"
+        ],
+        "shaders": [
+            {
+                "name": "ModelVertex",
+                "path": "../../resources/shaders/Model.vert",
+                "type": "Vertex"
+            },
+            {
+                "name": "ModelFragment",
+                "path": "../../resources/shaders/TexturedModel.frag",
+                "type": "Fragment"
+            }
+        ],
+        "vertex attributes": [
+            "positon",
+            "normal",
+            "tangent",
+            "biTangent",
+            "uv"
+        ]
+    },
+    {
+        "name": "finalProgram",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "DefaultVertex",
+                "path": "../../resources/shaders/Default.vert",
+                "type": "Vertex"
+            },
+            {
+                "name": "TexturedFragment",
+                "path": "../../resources/shaders/Textured.frag",
+                "type": "Fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "uv"
+        ]
+    },
+    {
+        "name": "ComputeProgram",
+        "outputs": [],
+        "shaders": [
+            {
+                "name": "SlipgateCompute",
+                "path": "../../resources/shaders/Slipgate.comp",
+                "type": "Compute"
+            }
+        ],
+        "vertex attributes": []
+    }
+]

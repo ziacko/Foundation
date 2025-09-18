@@ -1,0 +1,90 @@
+[
+    {
+        "name": "sobel",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "defaultVertex",
+                "path": "default.vert",
+                "type": "vertex"
+            },
+            {
+                "name": "sobelFragment",
+                "path": "sobel.frag",
+                "type": "fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "uv"
+        ]
+    },
+    {
+        "name": "laplacian",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "defaultVertex",
+                "path": "default.vert",
+                "type": "vertex"
+            },
+            {
+                "name": "laplacianFragment",
+                "path": "laplacian.frag",
+                "type": "fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "uv"
+        ]
+    },
+    {
+        "name": "prewitt",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "defaultVertex",
+                "path": "default.vert",
+                "type": "vertex"
+            },
+            {
+                "name": "prewittFragment",
+                "path": "prewitt.frag",
+                "type": "fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "uv"
+        ]
+    },
+    {
+        "name": "freiChen",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "defaultVertex",
+                "path": "default.vert",
+                "type": "vertex"
+            },
+            {
+                "name": "freiChenFragment",
+                "path": "freiChen.frag",
+                "type": "fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "uv"
+        ]
+    }
+]

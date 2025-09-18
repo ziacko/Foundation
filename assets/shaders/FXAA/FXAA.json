@@ -1,0 +1,94 @@
+[
+    {
+        "name": "geometryProgram",
+        "outputs": [
+            "outColor",
+            "outVelocity"
+        ],
+        "shaders": [
+            {
+                "name": "treeVertex",
+                "path": "Model.vert",
+                "type": "vertex"
+            },
+            {
+                "name": "treeFragment",
+                "path": "SpeedTree.frag",
+                "type": "fragment"
+            }
+        ],
+        "vertex attributes": [
+            "positon",
+            "normal",
+            "tangent",
+            "biTangent",
+            "uv"
+        ]
+    },
+    {
+        "name": "FXAAProgram",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "FXAAVertex",
+                "path": "FXAA.vert",
+                "type": "vertex"
+            },
+            {
+                "name": "FXAAFragment",
+                "path": "FXAA.frag",
+                "type": "fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "uv"
+        ]
+    },
+    {
+        "name": "compareProgram",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "DefaultVertex",
+                "path": "default.vert",
+                "type": "vertex"
+            },
+            {
+                "name": "compareFragment",
+                "path": "Compare.frag",
+                "type": "fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "uv"
+        ]
+    },
+    {
+        "name": "finalProgram",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "finalVertex",
+                "path": "default.vert",
+                "type": "vertex"
+            },
+            {
+                "name": "finalFragment",
+                "path": "Textured.frag",
+                "type": "fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "uv"
+        ]
+    }
+]

@@ -1,0 +1,49 @@
+[
+    {
+        "name": "geometryProgram",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "modelVertex",
+                "path": "../../resources/shaders/Model.vert",
+                "type": "Vertex"
+            },
+            {
+                "name": "TreeFragment",
+                "path": "../../resources/shaders/SpeedTree.frag",
+                "type": "Fragment"
+            }
+        ],
+        "vertex attributes": [
+            "positon",
+            "normal",
+            "tangent",
+            "biTangent",
+            "uv"
+        ]
+    },
+    {
+        "name": "MSAAProgram",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "DefaultVertex",
+                "path": "../../resources/shaders/Default.vert",
+                "type": "Vertex"
+            },
+            {
+                "name": "MSAAFragment",
+                "path": "../../resources/shaders/MSAA.frag",
+                "type": "Fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "uv"
+        ]
+    }
+]

@@ -1,0 +1,219 @@
+#version 450
+
+layout(local_size_x = 32, local_size_y = 32) in;
+
+layout(binding = 0, rgba8) writeonly uniform image2D outputImage;
+
+layout(binding = 1, rgba8) readonly uniform image2D topLeft;
+layout(binding = 2, rgba8) readonly uniform image2D topRight;
+layout(binding = 3, rgba8) readonly uniform image2D bottomRight;
+layout(binding = 4, rgba8) readonly uniform image2D bottomLeft;
+layout(binding = 5, rg16)  readonly uniform image2D velocity;
+layout(binding = 6, r32f) readonly uniform image2D depth;
+
+
+layout(std140, binding = 0) uniform defaultSettings
+{
+	mat4		projection;
+	mat4		view;
+	mat4		translation;
+	vec2		resolution;
+	vec2		mousePosition;
+	float		deltaTime;
+	float		totalTime;
+	float 	    framesPerSecond;
+	uint		totalFrames;
+};
+
+layout(std140, binding = 3) uniform upsampleSettings
+{
+	vec4 metrics; //Z and W are output resolution, xy = rcp(zw). calculate rcp on c++ side
+	vec2 resolutionScaler;
+	float blendingFactor;
+	float reproSharpness;	
+	float spatialFlickerTime;
+	float timeMax;
+	float timeMin;
+	float edgeThreshold;
+	float maxDepthFalloff;
+};
+
+const ivec2 kOffsets3x3[9] =
+{
+	ivec2(-1, -1), //upper left
+	ivec2( 0, -1), //up
+	ivec2( 1, -1), //upper right
+	ivec2(-1,  0), //left
+	ivec2( 0,  0), // K
+	ivec2( 1,  0), //right
+	ivec2(-1,  1), //lower left
+	ivec2( 0,  1), //down
+	ivec2( 1,  1), //lower right
+}; //k is index 4
+
+const uint kNeighborsCount = 9;
+
+bool ShouldntClip(ivec2 uv)
+{
+    float averageDepth = 0;
+    //get the average depth of neighbors
+    for(uint iter = 0; iter < kNeighborsCount; iter++)
+    {
+        ivec2 newUV = uv + kOffsets3x3[iter];// * deltaRes);
+        averageDepth += imageLoad(depth, newUV).r;
+    }
+
+    averageDepth /= kNeighborsCount;
+
+    //if average depth is below threshold then allow history to be used
+    return (averageDepth < maxDepthFalloff);
+}
+
+vec4 FreiChenEdge(ivec2 uv)
+{
+		//vec2 texel = vec2(1.0 / resolution.x, 1.0 / resolution.y);
+		//if I were to put all these into imGUI it would be about 81 (9x9) uniforms!
+		mat3 G[9] = 
+		{
+			mat3( 0.3535533845424652, 0, -0.3535533845424652, 0.5, 0, -0.5, 0.3535533845424652, 0, -0.3535533845424652 ),
+			mat3( 0.3535533845424652, 0.5, 0.3535533845424652, 0, 0, 0, -0.3535533845424652, -0.5, -0.3535533845424652 ),
+			mat3( 0, 0.3535533845424652, -0.5, -0.3535533845424652, 0, 0.3535533845424652, 0.5, -0.3535533845424652, 0 ),
+			mat3( 0.5, -0.3535533845424652, 0, -0.3535533845424652, 0, 0.3535533845424652, 0, 0.3535533845424652, -0.5 ),
+			mat3( 0, -0.5, 0, 0.5, 0, 0.5, 0, -0.5, 0 ),
+			mat3( -0.5, 0, 0.5, 0, 0, 0, 0.5, 0, -0.5 ),
+			mat3( 0.1666666716337204, -0.3333333432674408, 0.1666666716337204, -0.3333333432674408, 0.6666666865348816, -0.3333333432674408, 0.1666666716337204, -0.3333333432674408, 0.1666666716337204 ),
+			mat3( -0.3333333432674408, 0.1666666716337204, -0.3333333432674408, 0.1666666716337204, 0.6666666865348816, 0.1666666716337204, -0.3333333432674408, 0.1666666716337204, -0.3333333432674408 ),
+			mat3( 0.3333333432674408, 0.3333333432674408, 0.3333333432674408, 0.3333333432674408, 0.3333333432674408, 0.3333333432674408, 0.3333333432674408, 0.3333333432674408, 0.3333333432674408 ),
+		};
+
+		mat3 I;
+		float cnv[9];
+		vec3 tex;
+
+		for(uint i = 0; i < 3; i++)
+		{
+			for(uint j = 0; j < 3; j++)
+			{            
+                if((uv.x % 2) == 0 && (uv.y % 2) == 0) //top left
+                {
+                    tex = imageLoad(topLeft, uv * ivec2(i - 1, j - 1)).rgb;        
+                }
+
+                else if((uv.x % 2) != 0 && (uv.y % 2) == 0) //top right
+                {
+                    tex = imageLoad(topRight, uv * ivec2(i - 1, j - 1)).rgb;      
+                }
+
+                else if((uv.x % 2) != 0 && (uv.y % 2) != 0) //bottom right
+                {
+                    tex = imageLoad(bottomRight, uv * ivec2(i - 1, j - 1)).rgb;      
+                }
+
+                else if((uv.x % 2) == 0 && (uv.y % 2) != 0) //bottom left
+                {
+                    tex = imageLoad(bottomLeft, uv * ivec2(i - 1, j - 1)).rgb;      
+                }
+
+				//tex = imageLoad(current, uv * ivec2(i - 1, j - 1)).rgb;
+				I[int(i)][int(j)] = length(tex);
+			}
+		}
+
+		for(int i = 0; i < 9; i++)
+		{
+			float dp3 = dot(G[i][0], I[0]) + dot(G[i][1], I[1]) + dot(G[i][2], I[2]) * edgeThreshold;
+			cnv[i] = dp3 * dp3;
+		}
+
+		float M = (cnv[0] + cnv[1]) + (cnv[2] + cnv[3]);
+		float S = (cnv[4] + cnv[5]) + (cnv[6] + cnv[7]) + (cnv[8] + M);
+
+		return vec4(vec3(sqrt(M/S)), 1);
+}
+
+void main()
+{
+        ivec2 uv = ivec2(gl_GlobalInvocationID.xy);
+        vec4 col = vec4(1, 0, 0, 1);
+
+        uint toLoad = 0;
+
+      //let's grab depth and check neighbor pixels to determine if we are at the edge, 
+      //if there's nothing wrong, 
+
+      //float blarg = length(FreiChenEdge(uv));
+
+    //match pixel to jitter index to cut down flickering
+      if((uv.x % 2) == 0 && (uv.y % 2) == 0) //top left
+      {
+          toLoad = 0;
+         col = imageLoad(topLeft, uv / 2);          
+      }
+
+      else if((uv.x % 2) != 0 && (uv.y % 2) == 0) //top right
+      {
+          toLoad = 1;
+          col = imageLoad(topRight, uv / 2);
+      }
+
+      else if((uv.x % 2) != 0 && (uv.y % 2) != 0) //bottom right
+      {
+            toLoad = 2;
+          col = imageLoad(bottomRight, uv / 2);
+      }
+
+      else if((uv.x % 2) == 0 && (uv.y % 2) != 0) //bottom left
+      {
+          toLoad = 3;
+          col = imageLoad(bottomLeft, uv / 2);
+      }
+
+      imageStore(outputImage, uv, col);    
+
+          /*  if(blarg < maxDepthFalloff)
+            {
+                imageStore(outputImage, uv, vec4(1, 0, 0, 1));
+            }
+
+            else
+            {
+                  
+
+            }
+
+            
+
+        if(ShouldntClip(uv / 2))
+        {
+            imageStore(outputImage, uv, col);            
+        }
+
+        else
+        {
+            switch(toLoad)
+            {
+                case 1: //top right
+                {
+                    uv.x += 1;
+                    break;
+                }
+
+                case 2: //bottom right
+                {
+                    uv += 1;
+                    break;
+                }
+
+                case 3: //bottom left
+                {
+                    uv.y += 1;
+                    break;
+                }
+            }
+
+
+
+            
+        }   */
+      
+}

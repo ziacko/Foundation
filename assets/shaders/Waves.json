@@ -1,0 +1,122 @@
+[
+    {
+        "name": "initializeProgram",
+        "outputs": [
+            "outBuffer"
+        ],
+        "shaders": [
+            {
+                "name": "initVertex",
+                "path": "../../resources/shaders/Init.vert",
+                "type": "Vertex"
+            },
+            {
+                "name": "initFragment",
+                "path": "../../resources/shaders/Init.frag",
+                "type": "Fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "uv"
+        ]
+    },
+    {
+        "name": "variancesProgram",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "varianceVertex",
+                "path": "../../resources/shaders/variances.vert",
+                "type": "Vertex"
+            },
+            {
+                "name": "varianceFrag",
+                "path": "../../resources/shaders/variances.frag",
+                "type": "Fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "uv"
+        ]
+    },
+    {
+        "name": "fftXProgram",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "fftXVertex",
+                "path": "../../resources/shaders/fftX.vert",
+                "type": "Vertex"
+            },
+            {
+                "name": "fftXGeometry",
+                "path": "../../resources/shaders/fftX.geom",
+                "type": "Geometry"
+            },
+            {
+                "name": "fftXFragment",
+                "path": "../../resources/shaders/fftX.frag",
+                "type": "Fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "uv"
+        ]
+    },
+    {
+        "name": "fftYProgram",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "fftYVertex",
+                "path": "../../resources/shaders/fftY.vert",
+                "type": "Vertex"
+            },
+            {
+                "name": "fftYGeometry",
+                "path": "../../resources/shaders/fftY.geom",
+                "type": "Geometry"
+            },
+            {
+                "name": "fftYFragment",
+                "path": "../../resources/shaders/fftY.frag",
+                "type": "Fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "uv"
+        ]
+    },
+    {
+        "name": "oceanProgram",
+        "outputs": [
+            "u",
+            "p"
+        ],
+        "shaders": [
+            {
+                "name": "oceanVertex",
+                "path": "../../resources/shaders/ocean.vert",
+                "type": "Vertex"
+            },
+            {
+                "name": "oceanFragment",
+                "path": "../../resources/shaders/ocean.frag",
+                "type": "Fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position"
+        ]
+    }
+]

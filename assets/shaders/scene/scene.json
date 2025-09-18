@@ -1,0 +1,24 @@
+[
+    {
+        "name": "scene",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "defaultVert",
+                "path": "default.vert",
+                "type": "vertex"
+            },
+            {
+                "name": "defaultFrag",
+                "path": "default.frag",
+                "type": "fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "UV"
+        ]
+    }
+]

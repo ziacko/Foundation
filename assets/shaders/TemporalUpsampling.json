@@ -1,0 +1,131 @@
+[
+    {
+        "name": "geometryProgram",
+        "outputs": [
+            "outColor",
+            "outVelocity"
+        ],
+        "shaders": [
+            {
+                "name": "jitterVertex",
+                "path": "../../resources/shaders/Jitter3.vert",
+                "type": "Vertex"
+            },
+            {
+                "name": "TreeFragment",
+                "path": "../../resources/shaders/Velocity.frag",
+                "type": "Fragment"
+            }
+        ],
+        "vertex attributes": [
+            "positon",
+            "normal",
+            "tangent",
+            "biTangent",
+            "uv"
+        ]
+    },
+    {
+        "name": "AntiGhosting",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "DefaultVertex",
+                "path": "../../resources/shaders/DynRes.vert",
+                "type": "Vertex"
+            },
+            {
+                "name": "TexturedFragment",
+                "path": "../../resources/shaders/AntiGhosting.frag",
+                "type": "Fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "uv"
+        ]
+    },
+    {
+        "name": "treeProgram",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "modelVertex",
+                "path": "../../resources/shaders/Model.vert",
+                "type": "Vertex"
+            },
+            {
+                "name": "TreeFragment",
+                "path": "../../resources/shaders/SpeedTree.frag",
+                "type": "Fragment"
+            }
+        ],
+        "vertex attributes": [
+            "positon",
+            "normal",
+            "tangent",
+            "biTangent",
+            "uv"
+        ]
+    },
+    {
+        "name": "BSCUpsamplerProgram",
+        "outputs": [],
+        "shaders": [
+            {
+                "name": "BSCUpsampler",
+                "path": "../../resources/shaders/BSCUpsampler.comp",
+                "type": "Compute"
+            }
+        ],
+        "vertex attributes": []
+    },
+    {
+        "name": "compareProgram",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "DefaultVertex",
+                "path": "../../resources/shaders/DynRes.vert",
+                "type": "Vertex"
+            },
+            {
+                "name": "TexturedFragment",
+                "path": "../../resources/shaders/Compare.frag",
+                "type": "Fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "uv"
+        ]
+    },
+    {
+        "name": "finalProgram",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "DefaultVertex",
+                "path": "../../resources/shaders/Default.vert",
+                "type": "Vertex"
+            },
+            {
+                "name": "TexturedFragment",
+                "path": "../../resources/shaders/Textured.frag",
+                "type": "Fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "uv"
+        ]
+    }
+]

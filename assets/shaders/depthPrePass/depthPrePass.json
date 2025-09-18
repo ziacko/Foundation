@@ -1,0 +1,98 @@
+[
+    {
+        "name": "geometry",
+        "outputs": [
+            "outColor",
+            "outVelocity"
+        ],
+        "shaders": [
+            {
+                "name": "jitterVertex",
+                "path": "model.vert",
+                "type": "vertex"
+            },
+            {
+                "name": "treeFragment",
+                "path": "speedTree.frag",
+                "type": "fragment"
+            }
+        ],
+        "vertex attributes": [
+            "positon",
+            "normal",
+            "tangent",
+            "biTangent",
+            "uv"
+        ]
+    },
+    {
+        "name": "earlyDepth",
+        "outputs": [
+            "outColor",
+            "outVelocity"
+        ],
+        "shaders": [
+            {
+                "name": "jitterVertex",
+                "path": "model.vert",
+                "type": "vertex"
+            },
+            {
+                "name": "treeFragment",
+                "path": "earlyDepth.frag",
+                "type": "fragment"
+            }
+        ],
+        "vertex attributes": [
+            "positon",
+            "normal",
+            "tangent",
+            "biTangent",
+            "uv"
+        ]
+    },
+    {
+        "name": "compare",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "defaultVertex",
+                "path": "default.vert",
+                "type": "vertex"
+            },
+            {
+                "name": "texturedFragment",
+                "path": "compare.frag",
+                "type": "fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "uv"
+        ]
+    },
+    {
+        "name": "final",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "defaultVertex",
+                "path": "default.vert",
+                "type": "vertex"
+            },
+            {
+                "name": "texturedFragment",
+                "path": "textured.frag",
+                "type": "fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "uv"
+        ]
+    }
+]
