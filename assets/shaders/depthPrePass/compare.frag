@@ -63,8 +63,8 @@ vec3 rgb_to_srgb(vec3 rgb) {
 
 void main()
 {
-	vec4 defaultColor = texture2D(defaultTexture, inBlock.uv);// * resolutionScale);
-	vec4 compareColor = texture2D(compareTexture, inBlock.uv);// * resolutionScale);
+	vec4 defaultColor = texture(defaultTexture, inBlock.uv);// * resolutionScale);
+	vec4 compareColor = texture(compareTexture, inBlock.uv);// * resolutionScale);
 
 	if(gl_FragCoord.x < mousePosition.x)
 	{

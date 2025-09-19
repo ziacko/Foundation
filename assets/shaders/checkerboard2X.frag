@@ -179,7 +179,7 @@ vec4 lanczos(vec4 current, vec4 history, vec4 currN[4], vec4 histN[4])
     //n2[VXAA_N] = currN[VXAA_N];
     //n2[VXAA_S] = current;
 
-	vec4 fragColor = texture2D(currentColor, inBlock.uv) * magicValue1;
+    vec4 fragColor = texture(currentColor, inBlock.uv) * magicValue1;
 	
 	fragColor += n1[VXAA_W] * magicValue2;
 	fragColor += n1[VXAA_E] * magicValue3;

@@ -34,7 +34,7 @@ void main()
 {
 	if(gl_FragCoord.x < mousePosition.x)
 	{
-		outColor = texture2D(defaultTexture, inBlock.uv);
+		outColor = texture(defaultTexture, inBlock.uv);
 	}
 
 	else
@@ -45,6 +45,6 @@ void main()
 		vec2 uv = vec2(deltaX * floor(inBlock.uv.x / deltaX),
 		deltaY * floor(inBlock.uv.y / deltaY));
 
-		outColor = texture2D(defaultTexture, uv);
+		outColor = texture(defaultTexture, uv);
 	}
 }

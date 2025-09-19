@@ -77,12 +77,12 @@ vec3 FxaaPixelShader(
         //can these texture lookups be optimized?
 /*--------------------------------------------------------*/
     vec3 rgbA = (1.0/2.0) * (
-        texture2D(tex, posPos.xy + dir * (1.0/3.0 - 0.5)).xyz +
-        texture2D(tex, posPos.xy + dir * (2.0/3.0 - 0.5)).xyz);
+        texture(tex, posPos.xy + dir * (1.0/3.0 - 0.5)).xyz +
+        texture(tex, posPos.xy + dir * (2.0/3.0 - 0.5)).xyz);
 
     vec3 rgbB = rgbA * (1.0/2.0) + (1.0/4.0) * (
-        texture2D(tex, posPos.xy + dir * (0.0/3.0 - 0.5)).xyz +
-        texture2D(tex, posPos.xy + dir * (3.0/3.0 - 0.5)).xyz);
+        texture(tex, posPos.xy + dir * (0.0/3.0 - 0.5)).xyz +
+        texture(tex, posPos.xy + dir * (3.0/3.0 - 0.5)).xyz);
 
     float lumaB = dot(rgbB, luma);
 

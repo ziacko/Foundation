@@ -34,5 +34,5 @@ uniform sampler2D diffuse;
 
 void main()
 {
-	outColor =  texture2D(diffuse, inBlock.uv);
+	outColor =  texture(diffuse, inBlock.uv);
 }

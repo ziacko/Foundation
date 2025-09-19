@@ -105,7 +105,7 @@ vec4 FreiChenEdge(sampler2D current)
 		{
 			for(float j = 0.0; j < 3.0; j++)
 			{
-				tex = texture2D(current, inBlock.uv + texel * vec2(i - 1.0, j - 1.0)).rgb;
+				tex = texture(current, inBlock.uv + texel * vec2(i - 1.0, j - 1.0)).rgb;
 				I[int(i)][int(j)] = length(tex);
 			}
 		}
@@ -130,34 +130,34 @@ void main()
     vec4 col = vec4(1, 0, 0, 1);
 
     float blarg = length(FreiChenEdge(upsampled).xyz);
-    col = texture2D(upsampled, inBlock.uv);   
+	col = texture(upsampled, inBlock.uv);   
     if((totalFrames % 4) == 0) //top left
     {
        // blarg = length(FreiChenEdge(topLeft).xyz);
-        col = texture2D(topLeft, inBlock.uv);          
+		col = texture(topLeft, inBlock.uv);          
     }
 
     else if((totalFrames % 4) == 1) //top right
     {
        // blarg = length(FreiChenEdge(topRight).xyz);
-        col = texture2D(topRight, inBlock.uv);
+		col = texture(topRight, inBlock.uv);
     }
 
     else if((totalFrames % 4) == 2) //bottom right
     {
        // blarg = length(FreiChenEdge(bottomRight).xyz);
-        col = texture2D(bottomRight, inBlock.uv);
+		col = texture(bottomRight, inBlock.uv);
     }
 
     else if((totalFrames % 4) == 3) //bottom left
     {
         //blarg = length(FreiChenEdge(bottomLeft).xyz);
-        col = texture2D(bottomLeft, inBlock.uv);
+		col = texture(bottomLeft, inBlock.uv);
     }
 
 	if(blarg < maxDepthFalloff)
 	{
-		outColor = texture2D(upsampled, inBlock.uv);
+		outColor = texture(upsampled, inBlock.uv);
 	}
 
 	else

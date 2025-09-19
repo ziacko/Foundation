@@ -61,7 +61,7 @@ void main()
 
 	//if(distancefromMouse < (attenuation + offset) && distancefromMouse > attenuation)
     outBlock.uv = quad[gl_VertexID].xy * 0.5f + 0.5f;
-    float perlinLevel = texture2D(perlin, vec2(outBlock.uv.x, 1 - outBlock.uv.y)).r;
+	float perlinLevel = texture(perlin, vec2(outBlock.uv.x, 1 - outBlock.uv.y)).r;
 	if(perlinLevel > 0.0f)
     {
 		vec2 pushVector = normalize(quad[gl_VertexID].xy) * perlinLevel * offset;

@@ -55,6 +55,6 @@ void main()
 
 	else
 	{
-		outColor = texture2D(defaultTexture, inBlock.uv);
+		outColor = texture(defaultTexture, inBlock.uv);
 	}	
 }

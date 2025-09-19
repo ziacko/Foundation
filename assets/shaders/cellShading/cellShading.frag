@@ -65,12 +65,12 @@ void main()
 
 		else
 		{
-			outColor = texture2D(defaultTexture, inBlock.uv);
+			outColor = texture(defaultTexture, inBlock.uv);
 		}
 	}
 
 	else
 	{
-		outColor = texture2D(defaultTexture, inBlock.uv); // SOIL doesn't flip the image automatically and Freeimage wont compile waaaaaaaaaagh
+		outColor = texture(defaultTexture, inBlock.uv); // SOIL doesn't flip the image automatically and Freeimage wont compile waaaaaaaaaagh
 	}
 }

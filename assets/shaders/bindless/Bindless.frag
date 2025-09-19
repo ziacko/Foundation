@@ -17,6 +17,6 @@ layout(binding = 1) uniform textures
 
 void main()
 {
-	outColor = texture2D(defaultTexture, inBlock.uv);
+	outColor = texture(defaultTexture, inBlock.uv);
     //outColor = vec4(1, 0, 0, 1);
 }

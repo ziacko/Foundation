@@ -94,7 +94,7 @@ vec2 GetClosestUV(in sampler2D depths)
 	{
 		vec2 newUV = inBlock.uv + (kOffsets3x3[iter] * deltaRes);
 
-		float depth = texture2D(depths, newUV).x;
+		float depth = texture(depths, newUV).x;
 
 		if(depth < closestDepth)
 		{
@@ -207,9 +207,9 @@ vec4 Inside2Resolve(sampler2D currColorTex, sampler2D prevColorTex, vec2 velocit
 	{
 		vec2 newUV = inBlock.uv + (kOffsets3x3[iter] * deltaRes);
 
-		current3x3Colors[iter] = texture2D(currColorTex, newUV);
+		current3x3Colors[iter] = texture(currColorTex, newUV);
 
-		previous3x3Colors[iter] = texture2D(prevColorTex, newUV + velocity);
+		previous3x3Colors[iter] = texture(prevColorTex, newUV + velocity);
 	}
 
 	vec4 rounded3x3Min = MinColors2(current3x3Colors);
@@ -222,9 +222,9 @@ vec4 Inside2Resolve(sampler2D currColorTex, sampler2D prevColorTex, vec2 velocit
 	{
 		vec2 newUV = inBlock.uv + (kOffsets2x2[iter] * deltaRes);
 
-		current2x2Colors[iter] = texture2D(currColorTex, newUV);
+		current2x2Colors[iter] = texture(currColorTex, newUV);
 
-		previous2x2Colors[iter] = texture2D(prevColorTex, newUV + velocity);
+		previous2x2Colors[iter] = texture(prevColorTex, newUV + velocity);
 	}
 
 	vec4 min2 = MinColors(current2x2Colors);
@@ -271,7 +271,7 @@ vec4 Custom2Resolve(in float preNeighborDepths[kNeighborsCount], in float curNei
 
 	else
 	{
-		res = texture2D(currentColorTex, inBlock.uv);;
+		res = texture(currentColorTex, inBlock.uv);;
 	}
 
 	return res;
@@ -284,14 +284,14 @@ void main()
 
 	vec2 deltaRes = vec2(1.0 / resolution.x, 1.0 / resolution.y);
 
-	vec2 closestVec = -texture2D(velocityTex, GetClosestUV(currentDepthTex)).rg;
+	vec2 closestVec = -texture(velocityTex, GetClosestUV(currentDepthTex)).rg;
 
 	for(uint iter = 0; iter < kNeighborsCount; iter++)
 	{
 		vec2 newUV = inBlock.uv + (kOffsets3x3[iter] * deltaRes);
 
-		currentDepths[iter] = texture2D(currentDepthTex, newUV).x;
-		previousDepths[iter] = texture2D(previousDepthTex, newUV + closestVec).x;
+		currentDepths[iter] = texture(currentDepthTex, newUV).x;
+		previousDepths[iter] = texture(previousDepthTex, newUV + closestVec).x;
 	}
 
 	outColor = Custom2Resolve(previousDepths, currentDepths, closestVec);

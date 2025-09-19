@@ -56,7 +56,7 @@ void main()
 	//or sample the surrounding texels, if the difference is high enough, boost tesselation
 	//that way we don't over-tesselate areas
 
-	vec4 displacement = texture2D(displacementMap, outBlock[gl_InvocationID].uv);
+	vec4 displacement = texture(displacementMap, outBlock[gl_InvocationID].uv);
 	float tessStrength = 1;
 	if(displacement.r < 1 && displacement.r > 0)
 	{

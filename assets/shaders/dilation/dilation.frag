@@ -48,7 +48,7 @@ void main()
 
 		for(int iter = 0; iter < 9; iter++)
 		{
-			maxValue = max(texture2D(defaultTexture, inBlock.uv + offsets[iter]), maxValue);
+			maxValue = max(texture(defaultTexture, inBlock.uv + offsets[iter]), maxValue);
 		}
 
 		outColor = maxValue;
@@ -56,6 +56,6 @@ void main()
 
 	else
 	{
-		outColor = texture2D(defaultTexture, inBlock.uv);
+		outColor = texture(defaultTexture, inBlock.uv);
 	}
 }

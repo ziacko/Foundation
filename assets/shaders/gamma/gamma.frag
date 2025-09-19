@@ -33,11 +33,11 @@ void main()
 {
 	if(gl_FragCoord.x > mousePosition.x)
 	{
-		outColor = texture2D(defaultTexture, inBlock.uv);
+		outColor = texture(defaultTexture, inBlock.uv);
 	}
 
 	else
 	{
-		outColor = pow( texture2D(defaultTexture, inBlock.uv), 1.0 / gamma);
+		outColor = pow( texture(defaultTexture, inBlock.uv), 1.0 / gamma);
 	}
 }

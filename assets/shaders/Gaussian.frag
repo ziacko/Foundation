@@ -49,22 +49,22 @@ vec4 Gaussian()
 {
 	vec2 delta = vec2(gl_FragCoord.xy / resolution);
 	
-	vec4 sum = texture2D(defaultTexture, delta) * weight1;
+	vec4 sum = texture(defaultTexture, delta) * weight1;
 
-	sum += texture2D(defaultTexture, delta + (vec2(offset1, offset1) / resolution )) * weight1;
-	sum += texture2D(defaultTexture, delta - (vec2(offset1, offset1) / resolution )) * weight1;
+	sum += texture(defaultTexture, delta + (vec2(offset1, offset1) / resolution )) * weight1;
+	sum += texture(defaultTexture, delta - (vec2(offset1, offset1) / resolution )) * weight1;
 
-	sum += texture2D(defaultTexture, delta + (vec2(offset2, offset2) / resolution )) * weight2;
-	sum += texture2D(defaultTexture, delta - (vec2(offset2, offset2) / resolution )) * weight2;
+	sum += texture(defaultTexture, delta + (vec2(offset2, offset2) / resolution )) * weight2;
+	sum += texture(defaultTexture, delta - (vec2(offset2, offset2) / resolution )) * weight2;
 
-	sum += texture2D(defaultTexture, delta + (vec2(offset3, offset3) / resolution )) * weight3;
-	sum += texture2D(defaultTexture, delta - (vec2(offset3, offset3) / resolution )) * weight3;
+	sum += texture(defaultTexture, delta + (vec2(offset3, offset3) / resolution )) * weight3;
+	sum += texture(defaultTexture, delta - (vec2(offset3, offset3) / resolution )) * weight3;
 
-	sum += texture2D(defaultTexture, delta + (vec2(offset4, offset4) / resolution )) * weight4;
-	sum += texture2D(defaultTexture, delta - (vec2(offset4, offset4) / resolution )) * weight4;
+	sum += texture(defaultTexture, delta + (vec2(offset4, offset4) / resolution )) * weight4;
+	sum += texture(defaultTexture, delta - (vec2(offset4, offset4) / resolution )) * weight4;
 
-	sum += texture2D(defaultTexture, delta + (vec2(offset5, offset5) / resolution )) * weight5;
-	sum += texture2D(defaultTexture, delta - (vec2(offset5, offset5) / resolution )) * weight5;
+	sum += texture(defaultTexture, delta + (vec2(offset5, offset5) / resolution )) * weight5;
+	sum += texture(defaultTexture, delta - (vec2(offset5, offset5) / resolution )) * weight5;
 
 	return sum;
 }

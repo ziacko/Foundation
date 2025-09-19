@@ -78,5 +78,5 @@ void main()
 	}
 
 	vec2 finalCoords = inBlock.uv + currentOffset;
-	outColor = texture2D(diffuseMap, finalCoords);
+	outColor = texture(diffuseMap, finalCoords);
 }

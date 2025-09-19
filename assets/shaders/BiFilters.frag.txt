@@ -230,13 +230,13 @@ vec4 SampleTextureCatmullRom( sampler2D tex, vec2 uv, vec2 texSize )
 
 void main()
 {
-    //vec4 col = texture2D(defaultTexture, inBlock.uv);
+    //vec4 col = texture(defaultTexture, inBlock.uv);
     vec4 texelSize = vec4(1.0f / textureSize(defaultTexture, 0).xy, textureSize(defaultTexture, 0));
     vec4 bil = texture_Bilinear(defaultTexture, inBlock.uv);
     vec4 bic = texture_Bicubic(defaultTexture, inBlock.uv, texelSize);
     vec4 bicm = SampleTextureCatmullRom(defaultTexture, inBlock.uv, textureSize(defaultTexture, 0));
 
-    outColor = texture2D(defaultTexture, inBlock.uv);
+    outColor = texture(defaultTexture, inBlock.uv);
     switch(biFilterIndex)
     {
         case 0:

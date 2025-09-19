@@ -38,7 +38,7 @@ void main()
 	vec4 normal = (inBlock[0].normal * p.x) + (inBlock[1].normal * p.y) + (inBlock[2].normal * p.z);
 	vec2 uv = (inBlock[0].uv * p.x) + (inBlock[1].uv * p.y) + (inBlock[2].uv * p.z);
 
-	vec4 displacement = texture2D(displacementMap, uv);
+	vec4 displacement = texture(displacementMap, uv);
 	float tessStrength = mix(1, 10, displacement.r);
 	float test = smoothstep(1, 10, tessStrength); //redundant
 

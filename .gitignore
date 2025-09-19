@@ -509,3 +509,12 @@
 /lib/tinywindow/premake5.exe
 /bin/Debug
 /proj/vs
+/proj/
+assets/shaders/FXAA/FXAA.frag
+proj/cmake/.idea/vcs.xml
+proj/cmake/.idea/modules.xml
+proj/cmake/.idea/misc.xml
+proj/cmake/.idea/editor.xml
+proj/cmake/.idea/.name
+proj/cmake/.idea/cmake.iml
+proj/cmake/.idea/.gitignore

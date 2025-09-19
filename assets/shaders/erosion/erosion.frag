@@ -48,7 +48,7 @@ void main()
 
 		for(int iter = 0; iter < 9; iter++)
 		{
-			minValue = min(texture2D(defaultTexture, inBlock.uv + offsets[iter]), minValue);
+			minValue = min(texture(defaultTexture, inBlock.uv + offsets[iter]), minValue);
 		}
 
 		outColor = minValue;
@@ -56,6 +56,6 @@ void main()
 
 	else
 	{
-		outColor = texture2D(defaultTexture, inBlock.uv);
+		outColor = texture(defaultTexture, inBlock.uv);
 	}	
 }

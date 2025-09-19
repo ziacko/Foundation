@@ -28,7 +28,7 @@ layout(binding = 1) uniform usampler2D stencilTexture;
 void main()
 {
     uint stencil = texture(stencilTexture, inBlock.uv).r;
-	vec4 defaultColor = texture2D(defaultTexture, inBlock.uv);
+	vec4 defaultColor = texture(defaultTexture, inBlock.uv);
 
 	if(gl_FragCoord.x < mousePosition.x)
 	{

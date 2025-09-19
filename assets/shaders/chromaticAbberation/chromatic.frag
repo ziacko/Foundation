@@ -21,9 +21,9 @@ uniform sampler2D defaultTexture;
 void main()
 {
 	
-	vec4 redValue = texture2D(defaultTexture, inBlock.uv - redOffset);
-	vec4 greenValue = texture2D(defaultTexture, inBlock.uv - greenOffset);
-	vec4 blueValue = texture2D(defaultTexture, inBlock.uv - blueOffset);
+	vec4 redValue = texture(defaultTexture, inBlock.uv - redOffset);
+	vec4 greenValue = texture(defaultTexture, inBlock.uv - greenOffset);
+	vec4 blueValue = texture(defaultTexture, inBlock.uv - blueOffset);
 
 	outColor = vec4( redValue.r, greenValue.g, blueValue.b, 1.0f);
 }

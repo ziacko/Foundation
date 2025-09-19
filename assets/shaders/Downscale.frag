@@ -41,19 +41,19 @@ layout(binding = 0) uniform sampler2D defaultTexture;
 
 vec4 lanczos()
 {
-	vec4 fragColor = texture2D(defaultTexture, inBlock.uv) * magicValue1;
+	vec4 fragColor = texture(defaultTexture, inBlock.uv) * magicValue1;
 	
-	fragColor += texture2D(defaultTexture, lancBlock.LStep1UV) * magicValue2;
-	fragColor += texture2D(defaultTexture, lancBlock.RStep1UV) * magicValue2;
+	fragColor += texture(defaultTexture, lancBlock.LStep1UV) * magicValue2;
+	fragColor += texture(defaultTexture, lancBlock.RStep1UV) * magicValue2;
 
-	fragColor += texture2D(defaultTexture, lancBlock.LStep2UV) * magicValue3;
-	fragColor += texture2D(defaultTexture, lancBlock.RStep2UV) * magicValue3;
+	fragColor += texture(defaultTexture, lancBlock.LStep2UV) * magicValue3;
+	fragColor += texture(defaultTexture, lancBlock.RStep2UV) * magicValue3;
 
-	fragColor += texture2D(defaultTexture, lancBlock.LStep3UV) * magicValue4;
-	fragColor += texture2D(defaultTexture, lancBlock.RStep3UV) * magicValue4;
+	fragColor += texture(defaultTexture, lancBlock.LStep3UV) * magicValue4;
+	fragColor += texture(defaultTexture, lancBlock.RStep3UV) * magicValue4;
 
-	fragColor += texture2D(defaultTexture, lancBlock.LStep4UV) * magicValue5;
-	fragColor += texture2D(defaultTexture, lancBlock.RStep4UV) * magicValue5;	
+	fragColor += texture(defaultTexture, lancBlock.LStep4UV) * magicValue5;
+	fragColor += texture(defaultTexture, lancBlock.RStep4UV) * magicValue5;
 
 	return fragColor;
 }
@@ -65,7 +65,7 @@ void main()
 
 	if(downsampleMode == 0)
 	{
-		result = texture2D(defaultTexture, inBlock.uv);
+		result = texture(defaultTexture, inBlock.uv);
 	}
 
 	else if (downsampleMode == 1)

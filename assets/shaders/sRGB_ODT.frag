@@ -35,7 +35,7 @@ vec3 rgb_to_srgb(vec3 rgb) {
 
 void main()
 {
-	vec4 v = texture2D(defaultTexture, inBlock.uv);
+    vec4 v = texture(defaultTexture, inBlock.uv);
 	outColor.xyz = rgb_to_srgb ( v.xyz );
 	outColor.x += 0.5f;
 	outColor.a = 1.0f;

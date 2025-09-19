@@ -40,5 +40,5 @@ vec3 fog5(in vec3 fogColor, in float distanceToPoint, in vec3 cameraToPoint, in 
 
 void main()
 {
-	outColor = texture2D(diffuse, inBlock.uv);
+	outColor = texture(diffuse, inBlock.uv);
 }

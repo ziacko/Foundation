@@ -13,5 +13,5 @@ layout(binding = 0) uniform sampler2D defaultTexture;
 
 void main()
 {
-	outColor = texture2D(defaultTexture, inBlock.uv);
+	outColor = texture(defaultTexture, inBlock.uv);
 }

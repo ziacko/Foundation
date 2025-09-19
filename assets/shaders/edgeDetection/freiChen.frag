@@ -57,7 +57,7 @@ void main()
 		{
 			for(float j = 0.0; j < 3.0; j++)
 			{
-				tex = texture2D(defaultTexture, inBlock.uv + texel * vec2(i - 1.0, j - 1.0)).rgb;
+				tex = texture(defaultTexture, inBlock.uv + texel * vec2(i - 1.0, j - 1.0)).rgb;
 				I[int(i)][int(j)] = length(tex);
 			}
 		}
@@ -76,6 +76,6 @@ void main()
 
 	else
 	{
-		outColor = texture2D(defaultTexture, inBlock.uv);
+		outColor = texture(defaultTexture, inBlock.uv);
 	}
 }

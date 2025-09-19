@@ -35,7 +35,7 @@ uniform sampler2D defaultTexture;
 
 vec4 radialBlur()
 {
-	vec4 color = texture2D(defaultTexture, inBlock.uv);
+	vec4 color = texture(defaultTexture, inBlock.uv);
 	vec2 deltaCoord = vec2(gl_FragCoord.x - mousePosition.x, mousePosition.y - gl_FragCoord.y);
 	deltaCoord *= 1.0 /  float(samples) * density;
 	float startDecay = 1.0;
@@ -46,7 +46,7 @@ vec4 radialBlur()
 	{
 		uv -= deltaCoord;
 
-		vec4 radialTex = texture2D(defaultTexture, uv );
+		vec4 radialTex = texture(defaultTexture, uv );
 		radialTex *= startDecay * weight;
 		color += radialTex;
 		startDecay *= decay;
@@ -58,5 +58,5 @@ vec4 radialBlur()
 
 void main()
 {
-	outColor = texture2D(defaultTexture, inBlock.uv) + radialBlur();
+	outColor = texture(defaultTexture, inBlock.uv) + radialBlur();
 }

@@ -39,7 +39,7 @@ void main()
   //  vec2 zoomedUV = clamp(inBlock.uv * uvScale, inBlock.uv, vec2(1));
    // uint zoomedStencil = texture(stencilTexture, zoomedUV).r;
 
-	vec4 defaultColor = texture2D(defaultTexture, inBlock.uv);
+	vec4 defaultColor = texture(defaultTexture, inBlock.uv);
 
 	uint leftStencil = texture(stencilTexture, inBlock.uv + vec2(-deltaResolution.x, 0.0f)).r;
 	uint rightStencil = texture(stencilTexture, inBlock.uv + vec2(deltaResolution.x, 0.0f)).r;
