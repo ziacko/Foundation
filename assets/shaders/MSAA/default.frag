@@ -1,10 +1,9 @@
-#version 440
+#version 450
 
 in defaultBlock
 {
 	vec4 position;
 	vec2 uv;
-	vec2 fullUV;
 } inBlock;
 
 layout(std140, binding = 0) uniform defaultSettings
@@ -22,7 +21,17 @@ layout(std140, binding = 0) uniform defaultSettings
 
 out vec4 outColor;
 
+// We are sampling from a multisampled texture produced by the geometry pass
+layout(binding = 0) uniform sampler2DMS defaultTexture;
+
 void main()
 {
-	outColor = vec4(0.25f, 0.25f, 0.0f, 1.0f);
+    ivec2 texel = ivec2(gl_FragCoord.xy);
+    int samples = textureSamples(defaultTexture);
+    vec4 accum = vec4(0.0);
+    for (int i = 0; i < samples; ++i)
+    {
+        accum += texelFetch(defaultTexture, texel, i);
+    }
+    outColor = accum / float(max(samples, 1));
 }

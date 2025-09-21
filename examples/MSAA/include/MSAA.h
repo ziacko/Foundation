@@ -20,6 +20,7 @@ public:
 		glDepthFunc(GL_LESS);
 		glHint(GL_GENERATE_MIPMAP_HINT, GL_NICEST);
 
+
 		geometryBuffer = frameBuffer();
 	}
 
@@ -48,12 +49,12 @@ public:
 		depthDesc.dimensions = glm::ivec3(window->GetSettings().resolution.width, window->GetSettings().resolution.height, 1);
 
 		geometryBuffer.AddAttachment(frameBuffer::attachment_t("color", colorDesc));
-
 		geometryBuffer.AddAttachment(frameBuffer::attachment_t("depth", depthDesc));
 
-		finalProgram = shaderProgramsMap["MSAA"];
-		
 		frameBuffer::Unbind();
+
+		defProgram = shaderProgramsMap["geometryProgram"];
+		finalProgram = shaderProgramsMap["MSAA"];
 	}
 
 protected:
@@ -75,9 +76,10 @@ protected:
 			clock.UpdateClockAdaptive();
 		}
 
-		defaultPayload.data.deltaTime = (float)clock.GetDeltaTime();
+		float dt = (float)clock.GetDeltaTime();
+		defaultPayload.data.deltaTime = dt;
 		defaultPayload.data.totalTime = (float)clock.GetTotalTime();
-		defaultPayload.data.framesPerSec = (float)(1.0 / clock.GetDeltaTime());
+		defaultPayload.data.framesPerSec = (dt > 0.0f) ? (1.0f / dt) : 0.0f;
 		defaultPayload.data.totalFrames++;
 		defaultPayload.Update();
 	}
@@ -96,12 +98,13 @@ protected:
 		{
 			defaultPayload.data.translation = camera.translation;
 		}
-		defaultPayload.data.deltaTime = (float)clock.GetDeltaTime();
+		float dt2 = (float)clock.GetDeltaTime();
+		defaultPayload.data.deltaTime = dt2;
 		defaultPayload.data.totalTime = (float)clock.GetTotalTime();
-		defaultPayload.data.framesPerSec = (float)(1.0 / clock.GetDeltaTime());
+		defaultPayload.data.framesPerSec = (dt2 > 0.0f) ? (1.0f / dt2) : 0.0f;
 
 		defaultPayload.Update();
-		defaultVertexBuffer.UpdateBuffer(defaultPayload.data.resolution);
+		//defaultVertexBuffer.UpdateBuffer(defaultPayload.data.resolution);
 	}
 
 	virtual void Draw()
@@ -116,7 +119,9 @@ protected:
 		camera.ChangeProjection(camera_t::projection_e::orthographic);
 		UpdateDefaultBuffer();
 
-		FinalPass(&geometryBuffer.attachments["color"]);
+		auto finalTexture = geometryBuffer.attachments["color"];
+
+		FinalPass(&finalTexture);
 		
 		DrawGUI(window);
 
@@ -127,6 +132,8 @@ protected:
 
 	virtual void GeometryPass()
 	{
+		glEnable(GL_SAMPLE_SHADING);
+		glMinSampleShading(1.0f);
 		geometryBuffer.Bind();
 
 		GLenum drawbuffers[1] = {
@@ -134,10 +141,6 @@ protected:
 		};
 
 		glDrawBuffers(1, drawbuffers);
-
-		glEnable(GL_SAMPLE_SHADING);
-		glMinSampleShading(1.0f);
-
 
 		for (size_t iter = 0; iter < 1; iter++)
 		{
@@ -162,14 +165,13 @@ protected:
 		}
 
 		glDisable(GL_SAMPLE_SHADING);
-
 		geometryBuffer.Unbind();
 	}
 
 	void FinalPass(texture* tex1)
 	{
 		//draw directly to backbuffer
-		geometryBuffer.attachments["color"].SetActive(0);
+		tex1->SetActive(0);
 		
 		glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
 		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
@@ -188,12 +190,12 @@ protected:
 	virtual void DrawBufferAttachments()
 	{
 		/*ImGui::Begin("framebuffers");
-		for (auto iter : geometryBuffer->attachments)
+		for (auto iter : geometryBuffer.attachments)
 		{
-			ImGui::Image((ImTextureID*)iter->GetHandle(), ImVec2(512, 288),
+			ImGui::Image((ImTextureID*)iter.second.GetHandle(), ImVec2(512, 288),
 				ImVec2(0, 1), ImVec2(1, 0));
 			ImGui::SameLine();
-			ImGui::Text("%s\n", iter->GetUniformName().c_str());
+			ImGui::Text("%s\n", iter.second.GetUniformName().c_str());
 		}
 
 		ImGui::End();*/
@@ -202,16 +204,17 @@ protected:
 	virtual void DrawCameraStats() override
 	{
 		//set up the view matrix
-		ImGui::Begin("camera", &isGUIActive);
+		if (ImGui::BeginTabItem("camera", &isGUIActive))
+		{
+			ImGui::DragFloat("near plane", &camera.nearPlane);
+			ImGui::DragFloat("far plane", &camera.farPlane);
+			ImGui::SliderFloat("Field of view", &camera.fieldOfView, 0, 90, "%.0f");
 
-		ImGui::DragFloat("near plane", &camera.nearPlane);
-		ImGui::DragFloat("far plane", &camera.farPlane);
-		ImGui::SliderFloat("Field of view", &camera.fieldOfView, 0, 90, "%.0f");
-
-		ImGui::InputFloat("camera speed", &camera.speed, 0.f);
-		ImGui::InputFloat("x sensitivity", &camera.xSensitivity, 0.f);
-		ImGui::InputFloat("y sensitivity", &camera.ySensitivity, 0.f);
-		ImGui::End();
+			ImGui::InputFloat("camera speed", &camera.speed, 0.f);
+			ImGui::InputFloat("x sensitivity", &camera.xSensitivity, 0.f);
+			ImGui::InputFloat("y sensitivity", &camera.ySensitivity, 0.f);
+			ImGui::EndTabItem();
+		}
 	}
 
 	virtual void ClearBuffers()

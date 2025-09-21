@@ -98,7 +98,9 @@ function scene_project(name, parents)
         filter { "system:linux" }
             toolset "clang"
             links { "GL", "X11", "Xrandr", "Xinerama", "pthread" } -- Added pthread for Abseil
-            -- working directory already set globally via initial debugdir call
+
+            -- Add CMake working directory
+            debugdir(_SCRIPT_DIR)
 
         --communal settings for all projects
         filter { "configurations:Debug" }
@@ -106,24 +108,11 @@ function scene_project(name, parents)
             symbols "on"
             optimize "Off"
             targetdir (_SCRIPT_DIR .. "/bin/Debug")
-            debugdir (_SCRIPT_DIR) -- ensure CLion (CMake) picks workspace root as wd for Debug
-            filter { "system:linux", "configurations:Debug" }
-                postbuildcommands {
-                    -- create a convenience symlink to assets inside Debug output (idempotent)
-                    string.format('ln -sfn "%s/assets" "%s/bin/Debug/assets"', _SCRIPT_DIR, _SCRIPT_DIR)
-                }
-            filter {}
 
         filter { "configurations:Release" }
             optimize "on"
             symbols "off"
             targetdir (_SCRIPT_DIR .. "/bin/Release")
-            debugdir (_SCRIPT_DIR) -- ensure CLion (CMake) picks workspace root as wd for Release
-            filter { "system:linux", "configurations:Release" }
-                postbuildcommands {
-                    string.format('ln -sfn "%s/assets" "%s/bin/Release/assets"', _SCRIPT_DIR, _SCRIPT_DIR)
-                }
-            filter {}
 
         filter { "toolset:clang"}
             configurations { "Debug", "Release" }
@@ -162,7 +151,7 @@ workspace "Portfolio"
 --base scene project
 
 
---ok now make a new command for "punlishing" a project
+--ok now make a new command for "publishing" a project
 -- this will create the project files, shaders, source and header files
 --then move the necessary library 
 
@@ -257,7 +246,7 @@ scene_project("scene")
 scene_project("textured")
 scene_project("perlin")
 --scene_project("bindless", {"textured"})
-scene_project("bubble", {"textured"})
+scene_project("bubble", {"textured"}) 
 scene_project("cellShading", {"textured"})
 scene_project("cheapBlur", {"textured"})
 scene_project("chromaticAbberation", {"textured"})

@@ -71,42 +71,45 @@ public:
 			this->texDesc = (textureDescriptor)FBODesc;
 			this->FBODesc = FBODesc;
 
-			glCreateTextures(this->FBODesc.target, 1, &handle);
-			glBindTexture(this->FBODesc.target, handle);
-			switch (this->FBODesc.target)
-			{
-			case GL_TEXTURE_2D_MULTISAMPLE:
-			{
+				glCreateTextures(this->FBODesc.target, 1, &handle);
+				glBindTexture(this->FBODesc.target, handle);
+				switch (this->FBODesc.target)
+				{
+				case GL_TEXTURE_2D_MULTISAMPLE:
+				{
+					glTextureStorage2DMultisample(handle, this->FBODesc.sampleCount, this->FBODesc.internalFormat, this->FBODesc.dimensions.x, this->FBODesc.dimensions.y, true);
+					break;
+				}
 
-				glTextureStorage2DMultisample(handle, this->FBODesc.sampleCount, this->FBODesc.internalFormat, this->FBODesc.dimensions.x, this->FBODesc.dimensions.y, true);
-				break;
-			}
+				case GL_TEXTURE_2D:
+				{
+					//parse internal format as bits per pixel
+					glTexImage2D(this->FBODesc.target, this->FBODesc.currentMipmapLevel, this->FBODesc.internalFormat, this->FBODesc.dimensions.x, this->FBODesc.dimensions.y, this->FBODesc.border, this->FBODesc.format, this->FBODesc.dataType, nullptr);
+					break;
+				}
 
-			case GL_TEXTURE_2D:
-			{
-				//parse internal format as bits per pixel
-				glTexImage2D(this->FBODesc.target, this->FBODesc.currentMipmapLevel, this->FBODesc.internalFormat, this->FBODesc.dimensions.x, this->FBODesc.dimensions.y, this->FBODesc.border, this->FBODesc.format, this->FBODesc.dataType, nullptr);
-				break;
-			}
+				case GL_TEXTURE_2D_ARRAY:
+				case GL_TEXTURE_3D:
+				{
+					TinyExtender::glTexImage3D(this->FBODesc.target, this->FBODesc.currentMipmapLevel, this->FBODesc.internalFormat, this->FBODesc.dimensions.x, this->FBODesc.dimensions.y, this->FBODesc.dimensions.z, this->FBODesc.border, static_cast<GLenum>(this->FBODesc.format), static_cast<GLenum>(this->FBODesc.dataType), nullptr);
+					break;
+				}
+				default: break;
+				}
 
-			case GL_TEXTURE_2D_ARRAY:
-			case GL_TEXTURE_3D:
-			{
-				TinyExtender::glTexImage3D(this->FBODesc.target, this->FBODesc.currentMipmapLevel, this->FBODesc.internalFormat, this->FBODesc.dimensions.x, this->FBODesc.dimensions.y, this->FBODesc.dimensions.z, this->FBODesc.border, static_cast<GLenum>(this->FBODesc.format), static_cast<GLenum>(this->FBODesc.dataType), nullptr);
-				break;
-			}
-			default: break;
-			}
-
-			glTexParameteri(this->FBODesc.target, GL_TEXTURE_MIN_FILTER, this->FBODesc.minFilterSetting);
-			glTexParameteri(this->FBODesc.target, GL_TEXTURE_MAG_FILTER, this->FBODesc.magFilterSetting);
-			glTexParameteri(this->FBODesc.target, GL_TEXTURE_WRAP_S, this->FBODesc.wrapSSetting);
-			glTexParameteri(this->FBODesc.target, GL_TEXTURE_WRAP_T, this->FBODesc.wrapTSetting);
-			if(this->FBODesc.mipmapLevels > 0)
-			{
-				glGenerateMipmap(this->FBODesc.target);
-			}
-			UnbindTexture();
+				// For multisample textures, filtering/wrapping params and mipmaps are invalid
+				if (this->FBODesc.target != GL_TEXTURE_2D_MULTISAMPLE)
+				{
+					glTexParameteri(this->FBODesc.target, GL_TEXTURE_MIN_FILTER, this->FBODesc.minFilterSetting);
+					glTexParameteri(this->FBODesc.target, GL_TEXTURE_MAG_FILTER, this->FBODesc.magFilterSetting);
+					glTexParameteri(this->FBODesc.target, GL_TEXTURE_WRAP_S, this->FBODesc.wrapSSetting);
+					glTexParameteri(this->FBODesc.target, GL_TEXTURE_WRAP_T, this->FBODesc.wrapTSetting);
+					if(this->FBODesc.mipmapLevels > 0)
+					{
+						glGenerateMipmap(this->FBODesc.target);
+					}
+				}
+				UnbindTexture();
 		}
 
 		void Initialize(GLenum attachmentFormat)
@@ -149,44 +152,6 @@ public:
 			{
 				break;
 			}
-			}
-		}
-
-		void Resize(glm::ivec2 newSize, bool unbind = true)
-		{
-			texDesc.dimensions = glm::ivec3(newSize, 1);
-			FBODesc.dimensions = glm::ivec3(newSize, 1);
-
-			switch (FBODesc.target)
-			{
-			case GL_TEXTURE_2D_MULTISAMPLE:
-				{
-					BindTexture();
-					glDeleteTextures(1, &handle);
-					glCreateTextures(FBODesc.target, 1, &handle);
-					BindTexture();
-					glTextureStorage2DMultisample(handle, this->FBODesc.sampleCount, this->FBODesc.internalFormat, this->FBODesc.dimensions.x, this->FBODesc.dimensions.y, true);
-					UnbindTexture();
-					break;
-				}
-
-			case GL_TEXTURE_2D:
-				{
-					BindTexture();
-					glTexImage2D(FBODesc.target, FBODesc.currentMipmapLevel, FBODesc.internalFormat, FBODesc.dimensions.x, FBODesc.dimensions.y, FBODesc.border, FBODesc.format, FBODesc.dataType, nullptr);
-					UnbindTexture();
-					break;
-				}
-
-			case GL_TEXTURE_3D:
-			case GL_TEXTURE_2D_ARRAY:
-				{
-					BindTexture();
-					//glTexImage3D(this->FBODesc.target, this->FBODesc.currentMipmapLevel, this->FBODesc.internalFormat, this->FBODesc.dimensions.x, this->FBODesc.dimensions.y, this->FBODesc.dimensions.z, this->FBODesc.border, this->FBODesc.format, this->FBODesc.dataType, nullptr);
-					UnbindTexture();
-					break;
-				}
-			default: break;
 			}
 		}
 
@@ -342,10 +307,30 @@ public:
 
 	void Resize(glm::ivec3 newSize/*, bool unbind = true*/)
 	{
-		//resize the buffers
-		for (auto val : attachments | std::views::values)
+		// Ensure this framebuffer is bound while resizing and reattaching
+		int currentBuffer = 0;
+		glGetIntegerv(GL_FRAMEBUFFER_BINDING, &currentBuffer);
+		if ((GLuint)currentBuffer != bufferHandle)
+		{
+			Bind();
+		}
+
+		// Resize the buffers and reattach them (important for MSAA where storage is recreated)
+		for (attachment_t val : attachments | std::views::values)
 		{
 			val.Resize(newSize);
+
+			if (val.FBODesc.layers > 0)
+			{
+				for (size_t layer = 0; layer < val.FBODesc.layers; ++layer)
+				{
+					glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + (GLint)layer, val.handle, val.FBODesc.currentMipmapLevel, (GLint)layer);
+				}
+			}
+			else
+			{
+				glFramebufferTexture(GL_FRAMEBUFFER, val.FBODesc.attachmentFormat, val.handle, val.FBODesc.currentMipmapLevel);
+			}
 		}
 	}
 

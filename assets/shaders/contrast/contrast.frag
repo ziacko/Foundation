@@ -40,6 +40,4 @@ void main()
 	{
 		outColor = texture(defaultTexture, inBlock.uv);
 	}
-
-	
 }
