@@ -61,7 +61,7 @@ public:
 		depthDesc.internalFormat = GL_DEPTH_COMPONENT24;
 		depthDesc.attachmentType = FBODescriptor::attachmentType_e::depth;
 		depthDesc.dimensions = glm::ivec3(window->GetSettings().resolution.width, window->GetSettings().resolution.height, 1);
-
+hjhj
 		geometryBuffer->Initialize();
 		geometryBuffer->Bind();
 
