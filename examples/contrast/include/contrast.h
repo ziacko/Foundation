@@ -7,7 +7,7 @@ class contrastScene : public texturedScene
 {
 public:
 
-	contrastScene(
+	explicit contrastScene(
 		bufferHandler_t<float> contrastSettings = bufferHandler_t<float>(1.2f),
 		texture defaultTexture = texture(),
 		const char* windowName = "Ziyad Barakat's portfolio (contrast)",
@@ -18,7 +18,7 @@ public:
 		this->contrastSettings = contrastSettings;
 	}
 
-	~contrastScene(){};
+	~contrastScene() override {};
 
 protected:
 

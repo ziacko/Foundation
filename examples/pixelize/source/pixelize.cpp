@@ -2,9 +2,9 @@
 
 int main()
 {
-	pixelizeScene* exampleScene = new pixelizeScene();
-	exampleScene->Initialize();
-	exampleScene->Run();
+	pixelizeScene exampleScene = pixelizeScene();
+	exampleScene.Initialize();
+	exampleScene.Run();
 
 	return 0;
 }

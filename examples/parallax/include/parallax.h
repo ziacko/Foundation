@@ -25,8 +25,8 @@ public:
 
 	parallaxScene(
 		bufferHandler_t<parallax_t> parallaxSettings = bufferHandler_t<parallax_t>(),
-		texture defaultTexture = texture("textures\rocks.jpg"),
-		texture heightMap = texture("textures\rocks_NM_height.tga"),
+		texture defaultTexture = texture("textures/rocks.jpg", texture::textureType_t::image, "diffuseMap"),
+		texture heightMap = texture("textures/rocks_NM_height.tga", texture::textureType_t::image, "heightMap"),
 		const char* windowName = "Ziyad Barakat's portfolio (parallax mapping)",
 		camera_t parallaxCamera = camera_t(),
 		const char* shaderConfigPath = SHADER_CONFIG_DIR) :
