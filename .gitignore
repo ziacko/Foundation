@@ -518,3 +518,18 @@ proj/cmake/.idea/editor.xml
 proj/cmake/.idea/.name
 proj/cmake/.idea/cmake.iml
 proj/cmake/.idea/.gitignore
+
+# ---- Consolidated ignore patterns (added) ----
+# Build caches and compiler indexes
+.cache/
+
+# Local build output directories
+bin/
+build/
+
+# Project generation / IDE project files
+proj/
+
+# IDE metadata inside shaders subtree
+assets/shaders/.idea/
+
