@@ -78,7 +78,7 @@ public:
 
 		LoadShaderProgramsFromConfigFile(&shaderProgramsMap);
 
-		defProgram = shaderProgramsMap[PROJECT_NAME]; //need a better way to automate this
+		defProgram = shaderProgramsMap[PROJECT_NAME]; //need a better way to automate this. maybe a callback?
 
 		glUseProgram(defProgram.handle);
 

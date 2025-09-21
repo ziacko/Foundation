@@ -38,13 +38,26 @@ public:
 	void Update(const GLenum& target = GL_UNIFORM_BUFFER, const GLenum& usage = GL_DYNAMIC_DRAW, const size_t& dataSize = 0, const void* inData = nullptr)
 	{
 		glBindBuffer(target, bufferHandle);
-		if(dataSize > 0 && inData != nullptr)
+		if (dataSize > 0 && inData != nullptr)
 		{
+			// caller provides explicit size and data
 			glBufferData(target, dataSize, inData, usage);
 		}
 		else
 		{
-			glBufferData(target, sizeof(data), &data, usage);
+			// default path uses the embedded data field
+			size_t size = sizeof(data);
+			if (target == GL_UNIFORM_BUFFER && size < 16)
+			{
+				// In std140, uniform blocks are rounded up to a multiple of 16 bytes.
+				// Allocate a 16-byte buffer, then upload the actual data with SubData.
+				glBufferData(target, 16, nullptr, usage);
+				glBufferSubData(target, 0, size, &data);
+			}
+			else
+			{
+				glBufferData(target, size, &data, usage);
+			}
 		}
 		
 		//printf("%i \n", sizeof(data));

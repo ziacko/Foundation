@@ -11,7 +11,12 @@ out vec4 outColor;
 
 layout(binding = 0) uniform sampler2D defaultTexture;
 
+layout(std140, binding = 1) uniform mipSettings
+{
+    float		mipLevel;
+};
+
 void main()
 {
-	outColor = texture(defaultTexture, inBlock.uv);
+    outColor = textureLod(defaultTexture, inBlock.uv, mipLevel);
 }

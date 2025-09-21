@@ -197,16 +197,7 @@ public:
 
 	virtual void SetMinFilter(const GLenum& minFilterSetting)
 	{
-		switch (minFilterSetting)
-		{
-			case 0: texDesc.minFilterSetting = GL_LINEAR; break;
-			case 1: texDesc.minFilterSetting = GL_NEAREST; break;
-			case 2: texDesc.minFilterSetting = GL_NEAREST_MIPMAP_NEAREST; break;
-			case 3: texDesc.minFilterSetting = GL_NEAREST_MIPMAP_LINEAR; break;
-			case 4: texDesc.minFilterSetting = GL_LINEAR_MIPMAP_NEAREST; break;
-			case 5: texDesc.minFilterSetting = GL_LINEAR_MIPMAP_LINEAR; break;
-			default: break;
-		}
+		texDesc.minFilterSetting = minFilterSetting;
 		BindTexture();
 		glTexParameteri(texDesc.target, GL_TEXTURE_MIN_FILTER, texDesc.minFilterSetting);
 		//UnbindTexture();
@@ -214,16 +205,7 @@ public:
 
 	virtual void SetMagFilter(const GLenum& magFilterSetting)
 	{
-		switch (magFilterSetting)
-		{
-			case 0: texDesc.magFilterSetting = GL_LINEAR; break;
-			case 1: texDesc.magFilterSetting = GL_NEAREST; break;
-			case 2: texDesc.magFilterSetting = GL_NEAREST_MIPMAP_NEAREST; break;
-			case 3: texDesc.magFilterSetting = GL_NEAREST_MIPMAP_LINEAR; break;
-			case 4: texDesc.magFilterSetting = GL_LINEAR_MIPMAP_NEAREST; break;
-			case 5: texDesc.magFilterSetting = GL_LINEAR_MIPMAP_LINEAR; break;
-			default: break;
-		}
+		texDesc.magFilterSetting = magFilterSetting;
 
 		BindTexture();
 		glTexParameteri(texDesc.target, GL_TEXTURE_MAG_FILTER, texDesc.magFilterSetting);
@@ -347,6 +329,8 @@ private:
 		image,
 		texture
 	};
+
+
 
 	void stbLoad(const char* data, const bool& reload = false)
 	{
@@ -577,3 +561,5 @@ private:
 
 	//ok let's maybe use a temp
 };
+
+

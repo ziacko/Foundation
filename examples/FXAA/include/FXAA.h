@@ -61,7 +61,7 @@ public:
 		depthDesc.internalFormat = GL_DEPTH_COMPONENT24;
 		depthDesc.attachmentType = FBODescriptor::attachmentType_e::depth;
 		depthDesc.dimensions = glm::ivec3(window->GetSettings().resolution.width, window->GetSettings().resolution.height, 1);
-hjhj
+
 		geometryBuffer->Initialize();
 		geometryBuffer->Bind();
 
@@ -75,10 +75,9 @@ hjhj
 		frameBuffer::Unbind();
 
 		defProgram = shaderProgramsMap["geometryProgram"];
-		FXAAProgram = shaderProgramsMap["FXAAProgram"].handle;
-		compareProgram = shaderProgramsMap["compareProgram"].handle;
-		finalProgram = shaderProgramsMap["finalProgram"].handle;
-		auto testShader = shaderProgramsMap["finalProgram"];
+		FXAAProgram = shaderProgramsMap["FXAAProgram"];
+		compareProgram = shaderProgramsMap["compareProgram"];
+		finalProgram = shaderProgramsMap["finalProgram"];
 	}
 
 protected:
@@ -86,9 +85,9 @@ protected:
 	frameBuffer* geometryBuffer;
 	frameBuffer* FXAABuffer;
 
-	unsigned int FXAAProgram = 0;
-	unsigned int compareProgram = 0;
-	unsigned int finalProgram = 0;
+	shaderProgram_t FXAAProgram;
+	shaderProgram_t compareProgram;
+	shaderProgram_t finalProgram;
 
 	bool enableCompare = true;
 
@@ -188,7 +187,7 @@ protected:
 			//add the previous depth?
 
 			glBindVertexArray(testModel.meshes[iter].vertexArrayHandle);
-			glUseProgram(defProgram.handle);
+			defProgram.Use();
 			glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 
 			glCullFace(GL_BACK);
@@ -216,7 +215,7 @@ protected:
 		geometryBuffer->attachments["color"].SetActive(0); // color
 		
 		glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
-		glUseProgram(FXAAProgram);
+		FXAAProgram.Use();
 		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
@@ -233,12 +232,12 @@ protected:
 		if (enableCompare)
 		{
 			tex2->SetActive(1);
-			glUseProgram(compareProgram);
+			compareProgram.Use();
 		}
 
 		else
 		{
-			glUseProgram(finalProgram);
+			finalProgram.Use();
 		}
 	
 		glDrawArrays(GL_TRIANGLES, 0, 6);

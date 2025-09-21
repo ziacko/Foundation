@@ -1,5 +1,5 @@
 #version 440
-#extension GL_ARB_texture_query_lod : enable
+//#extension GL_ARB_texture_query_lod : enable
 in defaultBlock
 {
 	vec4 position;
@@ -31,6 +31,6 @@ layout(binding = 0) uniform sampler2D defaultTexture;
 
 void main()
 {
-	float mipMapLevel = textureQueryLod(defaultTexture, inBlock.uv).x;
+	//float mipMapLevel = textureQueryLod(defaultTexture, inBlock.uv).x;
 	outColor = textureLod(defaultTexture, inBlock.uv, mipLevel);
 }

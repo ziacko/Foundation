@@ -20,12 +20,12 @@ layout(std140, binding = 0) uniform defaultSettings
 	uint		totalFrames;
 };
 
-layout(std140, binding = 1) uniform contrastSettings
+layout(binding = 1) uniform contrastSettings
 {
 	float		contrast;
 };
 
-out vec4 outColor;
+layout(location = 0) out vec4 outColor;
 
 uniform sampler2D defaultTexture;
 
