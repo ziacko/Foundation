@@ -1,0 +1,118 @@
+[
+    {
+        "name": "geometryProgram",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "jitterVertex",
+                "path": "Model.vert",
+                "type": "vertex"
+            },
+            {
+                "name": "TreeFragment",
+                "path": "SpeedTree.frag",
+                "type": "fragment"
+            }
+        ],
+        "vertex attributes": [
+            "positon",
+            "normal",
+            "tangent",
+            "biTangent",
+            "uv"
+        ]
+    },
+    {
+        "name": "downscaleProgram",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "DefaultVertex",
+                "path": "Downscale.vert",
+                "type": "vertex"
+            },
+            {
+                "name": "TexturedFragment",
+                "path": "Downscale.frag",
+                "type": "fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "uv"
+        ]
+    },
+    {
+        "name": "treeProgram",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "modelVertex",
+                "path": "Model.vert",
+                "type": "vertex"
+            },
+            {
+                "name": "TreeFragment",
+                "path": "SpeedTree.frag",
+                "type": "fragment"
+            }
+        ],
+        "vertex attributes": [
+            "positon",
+            "normal",
+            "tangent",
+            "biTangent",
+            "uv"
+        ]
+    },
+    {
+        "name": "compareProgram",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "DefaultVertex",
+                "path": "Default.vert",
+                "type": "vertex"
+            },
+            {
+                "name": "TexturedFragment",
+                "path": "Compare.frag",
+                "type": "fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "uv"
+        ]
+    },
+    {
+        "name": "finalProgram",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "DefaultVertex",
+                "path": "Default.vert",
+                "type": "vertex"
+            },
+            {
+                "name": "TexturedFragment",
+                "path": "Textured.frag",
+                "type": "fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "uv"
+        ]
+    }
+]

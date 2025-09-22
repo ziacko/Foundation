@@ -1,0 +1,37 @@
+[
+    {
+        "name": "displacement",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "ModelVertex",
+                "path": "Model.vert",
+                "type": "vertex"
+            },
+            {
+                "name": "DispTessCont",
+                "path": "displacement.tesc",
+                "type": "tessellation control"
+            },
+            {
+                "name": "DispTessEval",
+                "path": "displacement.tese",
+                "type": "tessellation evaluation"
+            },
+            {
+                "name": "ModelFragment",
+                "path": "displacement.frag",
+                "type": "fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "normal",
+            "tangent",
+            "biTangent",
+            "uv"
+        ]
+    }
+]
