@@ -151,10 +151,6 @@ workspace "Portfolio"
 --base scene project
 
 
---ok now make a new command for "publishing" a project
--- this will create the project files, shaders, source and header files
---then move the necessary library 
-
 --[[function publish_project(name, parents)
     --first make a new folder for the project under ./pub/<name>
     local projectDir = _SCRIPT_DIR .. "/pub/" .. name
@@ -256,7 +252,7 @@ scene_project("dilation", {"textured"})
 scene_project("edgeDetection", {"textured"})
 scene_project("erosion", {"textured"})
 scene_project("heatHaze", {"textured", "bubble"})
---scene_project("frost", {"textured", "heatHaze"})
+scene_project("frost", {"textured", "heatHaze"})
 scene_project("gameOfLife") 
 scene_project("gamma", {"textured"})
 scene_project("gaussian", {"textured"})
@@ -276,9 +272,30 @@ scene_project("dotProduct")
 scene_project("scene3D")
 scene_project("texturedScene3D", {"scene3D"})
 scene_project("depthPrePass", {"scene3D", "texturedScene3D"})
+--bsp loader
+scene_project("displacement", {"scene3D", "texturedScene3D"})
+scene_project("heightFog", {"scene3D", "texturedScene3D", "displacement"})
+--height fog
+--stencil
+--outline
+--god ray
+-- dynamic res
+-- dynamic res 2
+-- dynamic res 3
+-- CAS
 
 --anti aliasing projects
 scene_project("FXAA", {"scene3D", "texturedScene3D"})
 scene_project("SMAA", {"scene3D", "texturedScene3D"})
 scene_project("OAUpsampler", {"scene3D", "texturedScene3D", "SMAA"})
 scene_project("MSAA", {"scene3D", "texturedScene3D"})
+scene_project("SSAA", {"scene3D", "texturedScene3D"})
+--TAA
+--TXAA
+--TSMAA
+--FSR
+
+--experimental
+--command buffers
+--feedback buffers
+--picking

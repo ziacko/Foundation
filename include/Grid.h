@@ -76,11 +76,11 @@ public:
 		glGenVertexArrays(1, &vertexArrayHandle);
 
 		glBindVertexArray(vertexArrayHandle);
-		glBindBuffer(gl_array_buffer, vertexBufferHandle);
-		glBindBuffer(gl_element_array_buffer, indexBufferHandle);
+		glBindBuffer(GL_ARRAY_BUFFER, vertexBufferHandle);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferHandle);
 
-		glBufferData(gl_array_buffer, vertices.size() * sizeof(vertexAttribute_t), vertices.data(), gl_static_draw);
-		glBufferData(gl_element_array_buffer, indices.size() * sizeof(unsigned int), &indices[0], gl_static_draw);
+		glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(vertexAttribute_t), vertices.data(), GL_STATIC_DRAW);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
 
 		glEnableVertexAttribArray(0);
 		glEnableVertexAttribArray(1);
@@ -98,7 +98,17 @@ public:
 
 	void Draw()
 	{
-		glBindBuffer(gl_element_array_buffer, indexBufferHandle);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferHandle);
 		glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+	}
+
+	void BindVA() const
+	{
+		glBindVertexArray(vertexArrayHandle);
+	}
+
+	void BindTextures()
+	{
+
 	}
 };

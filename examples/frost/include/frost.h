@@ -1,6 +1,6 @@
 #ifndef FROST_H
 #define FROST_H
-#include <HeatHaze.h>
+#include <heatHaze.h>
 
 class frostScene : public heatHazeScene
 {
@@ -8,9 +8,9 @@ public:
 
 	frostScene(
 		bufferHandler_t<bubbleSettings_t> bubbleSettings = bufferHandler_t<bubbleSettings_t>(),
-		texture* defaultTexture = new texture(),
+		texture defaultTexture = texture(),
 		const char* windowName = "Ziyad Barakat's Portfolio ( frost )",		
-		camera_t* bubbleCamera = new camera_t(),
+		camera_t bubbleCamera = camera_t(),
 		const char* shaderConfigPath = SHADER_CONFIG_DIR, GLfloat attenuation = 1.0f,
 		GLfloat offset = 1.0f) : heatHazeScene(bubbleSettings, defaultTexture, windowName, bubbleCamera, shaderConfigPath)
 	{

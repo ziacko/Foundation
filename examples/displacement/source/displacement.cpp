@@ -1,10 +1,10 @@
-#include "Displacement.h"
+#include "displacement.h"
 
 int main()
 {
-	displacement* exampleScene = new displacement();
-	exampleScene->Initialize();
-	exampleScene->Run();
+	displacement exampleScene;
+	exampleScene.Initialize();
+	exampleScene.Run();
 
 	return 0;
 }

@@ -7,13 +7,13 @@
         "shaders": [
             {
                 "name": "jitterVertex",
-                "path": "../../resources/shaders/Model.vert",
-                "type": "Vertex"
+                "path": "Model.vert",
+                "type": "vertex"
             },
             {
                 "name": "TreeFragment",
-                "path": "../../resources/shaders/SpeedTree.frag",
-                "type": "Fragment"
+                "path": "SpeedTree.frag",
+                "type": "fragment"
             }
         ],
         "vertex attributes": [
@@ -32,13 +32,13 @@
         "shaders": [
             {
                 "name": "DefaultVertex",
-                "path": "../../resources/shaders/DownScale.vert",
-                "type": "Vertex"
+                "path": "DownScale.vert",
+                "type": "vertex"
             },
             {
                 "name": "TexturedFragment",
-                "path": "../../resources/shaders/DownScale.frag",
-                "type": "Fragment"
+                "path": "DownScale.frag",
+                "type": "fragment"
             }
         ],
         "vertex attributes": [
@@ -54,13 +54,13 @@
         "shaders": [
             {
                 "name": "modelVertex",
-                "path": "../../resources/shaders/Model.vert",
-                "type": "Vertex"
+                "path": "Model.vert",
+                "type": "vertex"
             },
             {
                 "name": "TreeFragment",
-                "path": "../../resources/shaders/SpeedTree.frag",
-                "type": "Fragment"
+                "path": "SpeedTree.frag",
+                "type": "fragment"
             }
         ],
         "vertex attributes": [
@@ -79,13 +79,13 @@
         "shaders": [
             {
                 "name": "DefaultVertex",
-                "path": "../../resources/shaders/Default.vert",
-                "type": "Vertex"
+                "path": "Default.vert",
+                "type": "vertex"
             },
             {
                 "name": "TexturedFragment",
-                "path": "../../resources/shaders/Compare.frag",
-                "type": "Fragment"
+                "path": "Compare.frag",
+                "type": "fragment"
             }
         ],
         "vertex attributes": [
@@ -101,13 +101,13 @@
         "shaders": [
             {
                 "name": "DefaultVertex",
-                "path": "../../resources/shaders/Default.vert",
-                "type": "Vertex"
+                "path": "Default.vert",
+                "type": "vertex"
             },
             {
                 "name": "TexturedFragment",
-                "path": "../../resources/shaders/Textured.frag",
-                "type": "Fragment"
+                "path": "Textured.frag",
+                "type": "fragment"
             }
         ],
         "vertex attributes": [

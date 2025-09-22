@@ -1,7 +1,7 @@
 #ifndef SSAA_H
 #define SSAA_H
 
-#include "Scene3D.h"
+#include "scene3D.h"
 #include "FrameBuffer.h"
 #include "HaltonSequence.h"
 
@@ -64,15 +64,15 @@ public:
 
 	SSAA(
 		const char* windowName = "Ziyad Barakat's portfolio (SSAA)",
-		camera* texModelCamera = new camera(glm::vec2(1280, 720), 5.0f, camera::projection_t::perspective, 0.1f, 2000.f),
-		const char* shaderConfigPath = "../../resources/shaders/SSAA.txt",
-		model_t* model = new model_t("../../resources/models/fbx_foliage/broadleaf_field/Broadleaf_Desktop_Field.FBX"))
+		camera_t texModelCamera = camera_t(glm::vec2(1280, 720), 5.0f, camera_t::projection_e::perspective, 0.1f, 2000.f),
+		const char* shaderConfigPath = SHADER_CONFIG_DIR,
+		model_t model = model_t("models/fbx_foliage/broadleaf_field/Broadleaf_Desktop_Field.FBX"))
 		: scene3D(windowName, texModelCamera, shaderConfigPath, model)
 	{
 		glDisable(GL_BLEND);
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LESS);
-		glHint(gl_generate_mipmap_hint, GL_NICEST);
+		glHint(GL_GENERATE_MIPMAP_HINT, GL_NICEST);
 
 		downscaledBuffer = new frameBuffer();
 		geometryBuffer = new frameBuffer();
@@ -95,41 +95,42 @@ public:
 		scene3D::Initialize();
 
 		FBODescriptor ssDesc;
-		ssDesc.dimensions = glm::ivec3(windows[0]->settings.resolution.width * 2, windows[0]->settings.resolution.height * 2, 1);
-
-		FBODescriptor colorDesc;
-		colorDesc.dimensions = glm::ivec3(windows[0]->settings.resolution.width, windows[0]->settings.resolution.height, 1);
+		ssDesc.dimensions = glm::ivec3(window->GetSettings().resolution.width * 2, window->GetSettings().resolution.height * 2, 1);
 
 		geometryBuffer->Initialize();
 		geometryBuffer->Bind();
-		geometryBuffer->AddAttachment(new frameBuffer::attachment_t("color", ssDesc));
+		geometryBuffer->AddAttachment(frameBuffer::attachment_t("color", ssDesc));
 
 		FBODescriptor ssDepthDesc;
 		ssDepthDesc.dataType = GL_FLOAT;
 		ssDepthDesc.format = GL_DEPTH_COMPONENT;
-		ssDepthDesc.internalFormat = gl_depth_component24;
-		ssDepthDesc.attachmentType = FBODescriptor::attachmentType_t::depth;
-		ssDepthDesc.dimensions = glm::ivec3(windows[0]->settings.resolution.width * 2, windows[0]->settings.resolution.height * 2, 1);
+		ssDepthDesc.internalFormat = GL_DEPTH_COMPONENT24;
+		ssDepthDesc.attachmentType = FBODescriptor::attachmentType_e::depth;
+		ssDepthDesc.dimensions = glm::ivec3(window->GetSettings().resolution.width * 2, window->GetSettings().resolution.height * 2, 1);
 
-		geometryBuffer->AddAttachment(new frameBuffer::attachment_t("depth", ssDepthDesc));
+		geometryBuffer->AddAttachment(frameBuffer::attachment_t("depth", ssDepthDesc));
+
+		FBODescriptor colorDesc;
+		colorDesc.dimensions = glm::ivec3(window->GetSettings().resolution.width, window->GetSettings().resolution.height, 1);
 
 		downscaledBuffer->Initialize();
 		downscaledBuffer->Bind();
-		downscaledBuffer->AddAttachment(new frameBuffer::attachment_t("downscaled", colorDesc));
+		downscaledBuffer->AddAttachment(frameBuffer::attachment_t("downscaled", colorDesc));
 
 		//change back to regular dimensions here
-		ssDepthDesc.dimensions = glm::ivec3(windows[0]->settings.resolution.width, windows[0]->settings.resolution.height, 1);
+		ssDepthDesc.dimensions = glm::ivec3(window->GetSettings().resolution.width, window->GetSettings().resolution.height, 1);
 
 		unJitteredBuffer->Initialize();
 		unJitteredBuffer->Bind();
-		unJitteredBuffer->AddAttachment(new frameBuffer::attachment_t("unJittered", colorDesc));
-		unJitteredBuffer->AddAttachment(new frameBuffer::attachment_t("depth", ssDepthDesc));
+		unJitteredBuffer->AddAttachment(frameBuffer::attachment_t("unJittered", colorDesc));
+		unJitteredBuffer->AddAttachment(frameBuffer::attachment_t("depth", ssDepthDesc));
 
 		//geometry automatically gets assigned to 0
-		downscaleProgram = shaderPrograms[1]->handle;
-		unjitteredProgram = shaderPrograms[2]->handle;
-		compareProgram = shaderPrograms[3]->handle;
-		finalProgram = shaderPrograms[4]->handle;
+		defProgram = shaderProgramsMap["geometryProgram"];
+		downscaleProgram = shaderProgramsMap["downscaleProgram"];
+		unjitteredProgram = shaderProgramsMap["treeProgram"];
+		compareProgram = shaderProgramsMap["compareProgram"];
+		finalProgram = shaderProgramsMap["finalProgram"];
 
 		frameBuffer::Unbind();
 	}
@@ -140,10 +141,10 @@ protected:
 	frameBuffer* downscaledBuffer;
 	frameBuffer* unJitteredBuffer;
 
-	unsigned int downscaleProgram = 0;
-	unsigned int unjitteredProgram = 0;
-	unsigned int compareProgram = 0;
-	unsigned int finalProgram = 0;
+	shaderProgram_t downscaleProgram;
+	shaderProgram_t unjitteredProgram;
+	shaderProgram_t compareProgram;
+	shaderProgram_t finalProgram;
 
 	bool enableCompare = true;
 	bufferHandler_t<jitterSettings_t>		jitterUniforms;
@@ -157,16 +158,16 @@ protected:
 		manager->PollForEvents();
 		if (lockedFrameRate > 0)
 		{
-			sceneClock->UpdateClockFixed(lockedFrameRate);
+			clock.UpdateClockFixed(lockedFrameRate);
 		}
 		else
 		{
-			sceneClock->UpdateClockAdaptive();
+			clock.UpdateClockAdaptive();
 		}
 
-		defaultPayload.data.deltaTime = (float)sceneClock->GetDeltaTime();
-		defaultPayload.data.totalTime = (float)sceneClock->GetTotalTime();
-		defaultPayload.data.framesPerSec = (float)(1.0 / sceneClock->GetDeltaTime());
+		defaultPayload.data.deltaTime = (float)clock.GetDeltaTime();
+		defaultPayload.data.totalTime = (float)clock.GetTotalTime();
+		defaultPayload.data.framesPerSec = (float)(1.0 / clock.GetDeltaTime());
 		defaultPayload.data.totalFrames++;
 
 		downscaleUniforms.Update();
@@ -176,161 +177,170 @@ protected:
 
 	void UpdateDefaultBuffer(glm::vec2 resolution)
 	{
-		sceneCamera->UpdateProjection();
-		defaultPayload.data.projection = sceneCamera->projection;
-		defaultPayload.data.view = sceneCamera->view;
+		camera.UpdateProjection();
+		defaultPayload.data.projection = camera.projection;
+		defaultPayload.data.view = camera.view;
 		defaultPayload.data.resolution = resolution;
-		if (sceneCamera->currentProjectionType == camera::projection_t::perspective)
+		if (camera.currentProjectionType == camera_t::projection_e::perspective)
 		{
-			defaultPayload.data.translation = testModel->makeTransform();
+			defaultPayload.data.translation = testModel.makeTransform();
 		}
 
 		else
 		{
-			defaultPayload.data.translation = sceneCamera->translation;
+			defaultPayload.data.translation = camera.translation;
 		}
-		defaultPayload.data.deltaTime = (float)sceneClock->GetDeltaTime();
-		defaultPayload.data.totalTime = (float)sceneClock->GetTotalTime();
-		defaultPayload.data.framesPerSec = (float)(1.0 / sceneClock->GetDeltaTime());
+		defaultPayload.data.deltaTime = (float)clock.GetDeltaTime();
+		defaultPayload.data.totalTime = (float)clock.GetTotalTime();
+		defaultPayload.data.framesPerSec = (float)(1.0 / clock.GetDeltaTime());
 
 		defaultPayload.Update();
-		defaultVertexBuffer->UpdateBuffer(defaultPayload.data.resolution);
+		//defaultVertexBuffer.UpdateBuffer(defaultPayload.data.resolution);
 	}
 
-	virtual void Draw()
+	virtual void Draw() override
 	{
-		sceneCamera->ChangeProjection(camera::projection_t::perspective);
-		glm::vec2 defaultResolution = sceneCamera->resolution;
-		sceneCamera->resolution = glm::vec2(sceneCamera->resolution.x * 2, sceneCamera->resolution.y * 2);
-		sceneCamera->Update();
+		camera.ChangeProjection(camera_t::projection_e::perspective);
+		glm::vec2 defaultResolution = camera.resolution;
+		camera.resolution = glm::vec2(camera.resolution.x * 2, camera.resolution.y * 2);
+		camera.Update();
 
-		UpdateDefaultBuffer(sceneCamera->resolution);
+		UpdateDefaultBuffer(camera.resolution);
 
-		JitterPass(); //render current scene with jitter
-		sceneCamera->resolution = defaultResolution;
+		UpsamplePass(); //render current scene with jitter
+		camera.resolution = defaultResolution;
 		if (enableCompare)
 		{
 			UnJitteredPass();
 		}
 
-		sceneCamera->ChangeProjection(camera::projection_t::orthographic);
+		camera.ChangeProjection(camera_t::projection_e::orthographic);
 		UpdateDefaultBuffer(defaultResolution);
 		
 		DownscalePass(); //use the positions, colors, depth and velocity to smooth the final image
 
-		FinalPass(downscaledBuffer->attachments[0], unJitteredBuffer->attachments[0]);
-		
-		DrawGUI(windows[0]);
-		
-		windows[0]->SwapDrawBuffers();
+		FinalPass(&downscaledBuffer->attachments["downscaled"], &unJitteredBuffer->attachments["unJittered"]);
+
+		DrawGUI(window);
+
+		manager->SwapDrawBuffers(window);
 		ClearBuffers();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		//sceneCamera->resolution = defaultResolution;
+		//camera.resolution = defaultResolution;
 	}
 
-	virtual void JitterPass()
+	virtual void UpsamplePass()
 	{
+		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, __FUNCTION__);
 		geometryBuffer->Bind();
-		geometryBuffer->attachments[0]->Draw();
+		geometryBuffer->attachments["color"].Draw();
 
 		//we just need the first LOD so only do the first 3 meshes
-		for (size_t iter = 0; iter < 3; iter++)
+		for (size_t iter = 0; iter < 1; iter++)
 		{
-			if (testModel->meshes[iter].isCollision)
+			if (testModel.meshes[iter].isCollision)
 			{
 				continue;
 			}
 
-			testModel->meshes[iter].textures[0].SetActive(0);
+			testModel.meshes[iter].textures[0].SetActive(0);
 
-			glBindVertexArray(testModel->meshes[iter].vertexArrayHandle);
-			glUseProgram(this->programGLID);
-			glViewport(0, 0, windows[0]->settings.resolution.width * 2, windows[0]->settings.resolution.height * 2);
+			glBindVertexArray(testModel.meshes[iter].vertexArrayHandle);
+			defProgram.Use();
+			glViewport(0, 0, window->GetSettings().resolution.width * 2, window->GetSettings().resolution.height * 2);
 			glCullFace(GL_BACK);
 
 			if (wireframe)
 			{
 				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 			}
-			glDrawElements(GL_TRIANGLES, (GLsizei)testModel->meshes[iter].indices.size(), GL_UNSIGNED_INT, 0);
+			glDrawElements(GL_TRIANGLES, (GLsizei)testModel.meshes[iter].indices.size(), GL_UNSIGNED_INT, 0);
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		}
 
 		geometryBuffer->Unbind();
+
+		glPopDebugGroup();
 	}
 
 	virtual void UnJitteredPass()
 	{
+		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, __FUNCTION__);
 		unJitteredBuffer->Bind();
-		unJitteredBuffer->attachments[0]->Draw();
+		unJitteredBuffer->attachments["unJittered"].Draw();
 
 		//we just need the first LOd so only do the first 3 meshes
-		for (size_t iter = 0; iter < 3; iter++)
+		for (size_t iter = 0; iter < 1; iter++)
 		{
-			if (testModel->meshes[iter].isCollision)
+			if (testModel.meshes[iter].isCollision)
 			{
 				continue;
 			}
 
-			testModel->meshes[iter].textures[0].SetActive(0);
+			testModel.meshes[iter].textures[0].SetActive(0);
 			//add the previous depth?
 
-			glBindVertexArray(testModel->meshes[iter].vertexArrayHandle);
-			glUseProgram(unjitteredProgram);
-			glViewport(0, 0, windows[0]->settings.resolution.width, windows[0]->settings.resolution.height);
+			glBindVertexArray(testModel.meshes[iter].vertexArrayHandle);
+			unjitteredProgram.Use();
+			glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 			glCullFace(GL_BACK);
 
 			if (wireframe)
 			{
 				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 			}
-			glDrawElements(GL_TRIANGLES, (GLsizei)testModel->meshes[iter].indices.size(), GL_UNSIGNED_INT, 0);
+			glDrawElements(GL_TRIANGLES, (GLsizei)testModel.meshes[iter].indices.size(), GL_UNSIGNED_INT, 0);
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		}
 
 		unJitteredBuffer->Unbind();
+		glPopDebugGroup();
 	}
 
 	virtual void DownscalePass()
 	{
+		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, __FUNCTION__);
 		downscaledBuffer->Bind();
-		downscaledBuffer->attachments[0]->Draw();
+		downscaledBuffer->attachments["downscaled"].Draw();
 
 		//current frame
-		geometryBuffer->attachments[0]->SetActive(0); //current color
+		geometryBuffer->attachments["color"].SetActive(0); //current color
 		
-		glBindVertexArray(defaultVertexBuffer->vertexArrayHandle);
-		glUseProgram(downscaleProgram);
-		glViewport(0, 0, windows[0]->settings.resolution.width, windows[0]->settings.resolution.height);
+		glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
+		downscaleProgram.Use();
+		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
 		downscaledBuffer->Unbind();
+		glPopDebugGroup();
 	}
 
-	void FinalPass(texture* tex1, texture* tex2)
+	void FinalPass(texture* tex1, texture* tex2) const
 	{
+		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, __FUNCTION__);
 		//draw directly to backbuffer		
 		tex1->SetActive(0);
 		
-		glBindVertexArray(defaultVertexBuffer->vertexArrayHandle);
-		glViewport(0, 0, windows[0]->settings.resolution.width, windows[0]->settings.resolution.height);
+		glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
+		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 		if (enableCompare)
 		{
 			tex2->SetActive(1);
-			glUseProgram(compareProgram);
+			compareProgram.Use();
 		}
 
 		else
 		{
-			glUseProgram(finalProgram);
+			finalProgram.Use();
 		}
 	
 		glDrawArrays(GL_TRIANGLES, 0, 6);
+		glPopDebugGroup();
 	}
 
-	virtual void BuildGUI(tWindow* window, ImGuiIO io) override
+	virtual void BuildGUI(tWindow* window, const ImGuiIO& io) override
 	{
-		scene3D::BuildGUI(windows[0], io);
+		scene3D::BuildGUI(window, io);
 
 		DrawBufferAttachments();
 		DrawTAASettings();
@@ -339,159 +349,163 @@ protected:
 
 	virtual void DrawTAASettings()
 	{
-		ImGui::Begin("TAA Settings");
-		ImGui::Text("performance | %f", defaultTimer->GetTimeMilliseconds());
-		ImGui::Checkbox("enable Compare", &enableCompare);
+		if (ImGui::BeginTabItem("TAA Settings"))
+		{
+			ImGui::Text("performance | %f", defaultTimer->GetTimeMilliseconds());
+			ImGui::Checkbox("enable Compare", &enableCompare);
 
-		//jitter settings
-		ImGui::Separator();
-		ImGui::DragFloat("halton scale", &jitterUniforms.data.haltonScale, 0.1f, 0.0f, 1000.0f, "%.3f");
-		ImGui::DragInt("halton index",  &jitterUniforms.data.haltonIndex, 1.0f, 0, 128);
-		ImGui::DragInt("enable dithering", &jitterUniforms.data.enableDithering, 1.0f, 0, 1);
-		ImGui::DragFloat("dithering scale", &jitterUniforms.data.ditheringScale, 1.0f, 0.0f, 1000.0f, "%.3f");
+			//jitter settings
+			ImGui::Separator();
+			ImGui::DragFloat("halton scale", &jitterUniforms.data.haltonScale, 0.1f, 0.0f, 1000.0f, "%.3f");
+			ImGui::DragInt("halton index",  &jitterUniforms.data.haltonIndex, 1.0f, 0, 128);
+			ImGui::DragInt("enable dithering", &jitterUniforms.data.enableDithering, 1.0f, 0, 1);
+			ImGui::DragFloat("dithering scale", &jitterUniforms.data.ditheringScale, 1.0f, 0.0f, 1000.0f, "%.3f");
 
-		ImGui::End();
+			ImGui::EndTabItem();
+		}
 	}
 
 	virtual void DrawDownsampleSettings()
 	{
-		ImGui::Begin("Lanczos settings");
-		ImGui::ListBox("downsample types", &downscaleUniforms.data.downsampleMode, downsampleSettings.data(), downsampleSettings.size());
-		ImGui::DragFloat("texel width", &downscaleUniforms.data.texelWidthOffset, 0.1f, 0.0f, 10.0f, "%.5f");
-		ImGui::DragFloat("texel height", &downscaleUniforms.data.texelHeightOffset, 0.1f, 0.0f, 10.0f, "%.5f");
-		switch(downscaleUniforms.data.downsampleMode)
+		if (ImGui::BeginTabItem("Lanczos settings"))
 		{
-		case none:
-		{
-			break;
+			ImGui::ListBox("downsample types", &downscaleUniforms.data.downsampleMode, downsampleSettings.data(), downsampleSettings.size());
+			ImGui::DragFloat("texel width", &downscaleUniforms.data.texelWidthOffset, 0.1f, 0.0f, 10.0f, "%.5f");
+			ImGui::DragFloat("texel height", &downscaleUniforms.data.texelHeightOffset, 0.1f, 0.0f, 10.0f, "%.5f");
+			switch(downscaleUniforms.data.downsampleMode)
+			{
+			case none:
+				{
+					break;
+				}
+
+			case lanczos:
+				{
+
+					ImGui::DragFloat("value 1", &lanzcosUniforms.data.magicValue1, 0.01f, 0.0f, 1.0f, "%.3f");
+					ImGui::DragFloat("value 2", &lanzcosUniforms.data.magicValue2, 0.01f, 0.0f, 1.0f, "%.3f");
+					ImGui::DragFloat("value 3", &lanzcosUniforms.data.magicValue3, 0.01f, 0.0f, 1.0f, "%.3f");
+					ImGui::DragFloat("value 4", &lanzcosUniforms.data.magicValue4, 0.01f, 0.0f, 1.0f, "%.3f");
+					ImGui::DragFloat("value 5", &lanzcosUniforms.data.magicValue5, 0.01f, 0.0f, 1.0f, "%.3f");
+
+					break;
+				}
+
+			default:
+				{
+					break;
+				}
+
+			}
+
+			ImGui::EndTabItem();
 		}
-
-		case lanczos:
-		{
-			
-			ImGui::DragFloat("value 1", &lanzcosUniforms.data.magicValue1, 0.01f, 0.0f, 1.0f, "%.3f");
-			ImGui::DragFloat("value 2", &lanzcosUniforms.data.magicValue2, 0.01f, 0.0f, 1.0f, "%.3f");
-			ImGui::DragFloat("value 3", &lanzcosUniforms.data.magicValue3, 0.01f, 0.0f, 1.0f, "%.3f");
-			ImGui::DragFloat("value 4", &lanzcosUniforms.data.magicValue4, 0.01f, 0.0f, 1.0f, "%.3f");
-			ImGui::DragFloat("value 5", &lanzcosUniforms.data.magicValue5, 0.01f, 0.0f, 1.0f, "%.3f");
-
-			break;
-		}
-
-		default:
-		{
-			break;
-		}
-
-		}
-
-		ImGui::End();
 	}
 
 	virtual void DrawBufferAttachments()
 	{
-		ImGui::Begin("framebuffers");
-		for (auto iter : geometryBuffer->attachments)
+		if (ImGui::BeginTabItem("framebuffers"))
 		{
-			ImGui::Image((ImTextureID*)iter->GetHandle(), ImVec2(512, 288),
+			for (auto iter : geometryBuffer->attachments | std::views::values)
+			{
+				ImGui::Image((ImTextureID*)iter.GetHandle(), ImVec2(512, 288),
+					ImVec2(0, 1), ImVec2(1, 0));
+				ImGui::SameLine();
+				ImGui::Text("%s\n", iter.GetUniformName().c_str());
+			}
+
+			ImGui::Image((ImTextureID*)downscaledBuffer->attachments["downscaled"].GetHandle(), ImVec2(512, 288),
 				ImVec2(0, 1), ImVec2(1, 0));
 			ImGui::SameLine();
-			ImGui::Text("%s\n", iter->GetUniformName().c_str());
+			ImGui::Text("%s\n", downscaledBuffer->attachments["downscaled"].GetUniformName().c_str());
+
+			ImGui::Image((ImTextureID*)unJitteredBuffer->attachments["unJittered"].GetHandle(), ImVec2(512, 288),
+				ImVec2(0, 1), ImVec2(1, 0));
+			ImGui::SameLine();
+			ImGui::Text("%s\n", unJitteredBuffer->attachments["unJittered"].GetUniformName().c_str());
+
+			ImGui::EndTabItem();
 		}
-
-		ImGui::Image((ImTextureID*)downscaledBuffer->attachments[0]->GetHandle(), ImVec2(512, 288), 
-			ImVec2(0, 1), ImVec2(1, 0));
-		ImGui::SameLine();
-		ImGui::Text("%s\n", downscaledBuffer->attachments[0]->GetUniformName().c_str());
-
-		ImGui::Image((ImTextureID*)unJitteredBuffer->attachments[0]->GetHandle(), ImVec2(512, 288),
-			ImVec2(0, 1), ImVec2(1, 0));
-		ImGui::SameLine();
-		ImGui::Text("%s\n", unJitteredBuffer->attachments[0]->GetUniformName().c_str());
-
-		ImGui::End();
 	}
 
 	virtual void DrawCameraStats() override
 	{
 		//set up the view matrix
-		ImGui::Begin("camera", &isGUIActive);
+		if (ImGui::BeginTabItem("camera"))
+		{
+			ImGui::DragFloat("near plane", &camera.nearPlane);
+			ImGui::DragFloat("far plane", &camera.farPlane);
+			ImGui::SliderFloat("Field of view", &camera.fieldOfView, 0, 90, "%.0f");
 
-		ImGui::DragFloat("near plane", &sceneCamera->nearPlane);
-		ImGui::DragFloat("far plane", &sceneCamera->farPlane);
-		ImGui::SliderFloat("Field of view", &sceneCamera->fieldOfView, 0, 90, "%.0f");
-
-		ImGui::InputFloat("camera speed", &sceneCamera->speed, 0.f);
-		ImGui::InputFloat("x sensitivity", &sceneCamera->xSensitivity, 0.f);
-		ImGui::InputFloat("y sensitivity", &sceneCamera->ySensitivity, 0.f);
-		ImGui::End();
+			ImGui::InputFloat("camera speed", &camera.speed, 0.f);
+			ImGui::InputFloat("x sensitivity", &camera.xSensitivity, 0.f);
+			ImGui::InputFloat("y sensitivity", &camera.ySensitivity, 0.f);
+			ImGui::EndTabItem();
+		}
 	}
 
 	virtual void ClearBuffers()
 	{
 		//ok copy the current frame into the previous frame and clear the rest of the buffers	
-		float clearColor1[4] = { 0.03f, 0.03f, 0.03f, 1.0f };
-		float clearColor2[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-		float clearColor3[4] = { 1.0f, 0.0f, 0.0f, 0.0f }; //this is for debugging only!
+		float clearColor1[4] = { 0.3f, 0.3f, 0.3f, 1.0f };
 
 		downscaledBuffer->Bind(); //clear the previous, the next frame current becomes previous
-		downscaledBuffer->ClearTexture(downscaledBuffer->attachments[0], clearColor1);
+		downscaledBuffer->ClearTexture(downscaledBuffer->attachments["downscaled"], clearColor1);
 		downscaledBuffer->Unbind();
 
 		geometryBuffer->Bind();
-		geometryBuffer->ClearTexture(geometryBuffer->attachments[0], clearColor1);
-		geometryBuffer->ClearTexture(geometryBuffer->attachments[1], clearColor2);
+		geometryBuffer->ClearTexture(geometryBuffer->attachments["color"], clearColor1);
+		geometryBuffer->ClearTexture(geometryBuffer->attachments["depth"], clearColor1);
 		glClear(GL_DEPTH_BUFFER_BIT);
 		geometryBuffer->Unbind();
 
 		unJitteredBuffer->Bind();
-		unJitteredBuffer->ClearTexture(unJitteredBuffer->attachments[0], clearColor1);
+		unJitteredBuffer->ClearTexture(unJitteredBuffer->attachments["color"], clearColor1);
 		glClear(GL_DEPTH_BUFFER_BIT);
 		unJitteredBuffer->Unbind();
 
-		sceneCamera->ChangeProjection(camera::projection_t::perspective);
+		camera.ChangeProjection(camera_t::projection_e::perspective);
 	}
 
 	virtual void ResizeBuffers(glm::ivec2 resolution)
 	{
-		for (auto iter : geometryBuffer->attachments)
+		for (auto iter : geometryBuffer->attachments | std::views::values)
 		{
-			iter->Resize(glm::ivec3(resolution.x * 2, resolution.y * 2, 1));
+			iter.Resize(glm::ivec3(resolution.x * 2, resolution.y * 2, 1));
 		}
 
-		downscaledBuffer->attachments[0]->Resize(glm::ivec3(resolution.x, resolution.y, 1));
-		unJitteredBuffer->attachments[0]->Resize(glm::ivec3(resolution.x, resolution.y, 1));
-		unJitteredBuffer->attachments[1]->Resize(glm::ivec3(resolution.x, resolution.y, 1));
+		downscaledBuffer->attachments["downscaled"].Resize(glm::ivec3(resolution.x, resolution.y, 1));
+		unJitteredBuffer->attachments["unJittered"].Resize(glm::ivec3(resolution.x, resolution.y, 1));
+		unJitteredBuffer->attachments["depth"].Resize(glm::ivec3(resolution.x, resolution.y, 1));
 	}
 
-	virtual void HandleWindowResize(tWindow* window, TinyWindow::vec2_t<unsigned int> dimensions) override
+	virtual void HandleWindowResize(const tWindow* window, const tw::vec2_t<uint16_t>& dimensions) override
 	{
 		defaultPayload.data.resolution = glm::ivec2(dimensions.width, dimensions.height);	
 		ResizeBuffers(glm::ivec2(dimensions.x, dimensions.y));
 	}
 
-	virtual void HandleMaximize(tWindow* window) override
+	virtual void HandleMaximize(const tWindow* window) override
 	{
-		defaultPayload.data.resolution = glm::ivec2(window->settings.resolution.width, window->settings.resolution.height);
+		defaultPayload.data.resolution = glm::ivec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 		ResizeBuffers(defaultPayload.data.resolution);
 	}
 
 	virtual void InitializeUniforms() override
 	{
-		defaultPayload = bufferHandler_t<defaultUniformBuffer>(sceneCamera);
-		glViewport(0, 0, windows[0]->settings.resolution.width, windows[0]->settings.resolution.height);
+		defaultPayload = bufferHandler_t<defaultUniformBuffer>(camera);
+		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 
-		defaultPayload.data.resolution = glm::vec2(windows[0]->settings.resolution.width, windows[0]->settings.resolution.height);
-		defaultPayload.data.projection = sceneCamera->projection;
-		defaultPayload.data.translation = sceneCamera->translation;
-		defaultPayload.data.view = sceneCamera->view;
+		defaultPayload.data.resolution = glm::vec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
+		defaultPayload.data.projection = camera.projection;
+		defaultPayload.data.translation = camera.translation;
+		defaultPayload.data.view = camera.view;
 
 		defaultPayload.Initialize(0);
 		jitterUniforms.Initialize(1);
 		downscaleUniforms.Initialize(2);
 		lanzcosUniforms.Initialize(3);
-
-		SetupVertexBuffer();
+		defaultVertexBuffer.SetupDefault();
 	}
 
 };

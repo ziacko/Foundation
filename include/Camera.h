@@ -215,16 +215,19 @@ public:
 	void Pitch(const float& pitchRadians)
 	{
 		rotator += glm::vec3(globalUp) * pitchRadians;
+		pitch -= glm::degrees(pitchRadians);
 	}
 
 	void Yaw(const float& yawRadians)
 	{
 		rotator += glm::vec3(globalRight) * yawRadians;
+		yaw += glm::degrees(yawRadians);
 	}
 
 	void Roll(const float& rollRadians)
 	{
 		rotator += glm::vec3(globalForward) * rollRadians;
+		roll += glm::degrees(rollRadians);
 	}
 
 	glm::vec3 GetForward() const

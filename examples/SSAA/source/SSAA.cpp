@@ -2,9 +2,9 @@
 
 int main()
 {
-	SSAA* exampleScene = new SSAA();
-	exampleScene->Initialize();
-	exampleScene->Run();
+	SSAA exampleScene = SSAA();
+	exampleScene.Initialize();
+	exampleScene.Run();
 
 	return 0;
 }

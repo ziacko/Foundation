@@ -1,10 +1,10 @@
-#include "HeightFog.h"
+#include "heightFog.h"
 
 int main()
 {
-	heightFog* exampleScene = new heightFog();
-	exampleScene->Initialize();
-	exampleScene->Run();
+	heightFog exampleScene = heightFog();
+	exampleScene.Initialize();
+	exampleScene.Run();
 
 	return 0;
 }

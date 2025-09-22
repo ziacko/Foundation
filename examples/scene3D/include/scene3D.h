@@ -142,9 +142,19 @@ protected:
 			ImGui::InputFloat("x sensitivity", &camera.xSensitivity, 0.f);
 			ImGui::InputFloat("y sensitivity", &camera.ySensitivity, 0.f);
 
+			//yaw, pitch roll
+			ImGui::Text("Yaw: %f", camera.yaw);
+			ImGui::Text("Pitch %f", camera.pitch);
+			ImGui::Text("Roll %f", camera.roll);
+
 			ImGui::Text("local up %f %f %f %f", camera.up.x, camera.up.y, camera.up.z, camera.up.w);
 			ImGui::Text("local right %f %f %f %f", camera.right.x, camera.right.y, camera.right.z, camera.right.w);
 			ImGui::Text("local forward %f %f %f %f", camera.forward.x, camera.forward.y, camera.forward.z, camera.forward.w);
+
+			ImGui::Text("X %f", camera.position.x);
+			ImGui::Text("Y %f", camera.position.y);
+			ImGui::Text("Z %f", camera.position.z);
+
 
 			ImGui::EndTabItem();
 		}

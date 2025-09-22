@@ -1,6 +1,6 @@
 #ifndef HEIGHT_FOG_H
 #define HEIGHT_FOG_H
-#include "../../Displacement/include/Displacement.h"
+#include "displacement.h"
 #include "Grid.h"
 #include "FrameBuffer.h"
 
@@ -23,12 +23,12 @@ public:
 
 	heightFog(
 		const char* windowName = "Ziyad Barakat's portfolio (height fog)",
-		camera_t* texModelCamera = new camera_t(glm::vec2(1280, 720), 0.1f, camera_t::projection_e::perspective, 0.1f, 1000000.f),
-		const char* shaderConfigPath = "shaders/HeightFog.txt")
+		camera_t texModelCamera = camera_t(glm::vec2(1280, 720), 0.1f, camera_t::projection_e::perspective, 0.1f, 1000000.f),
+		const char* shaderConfigPath = SHADER_CONFIG_DIR)
 		: displacement(windowName, texModelCamera, shaderConfigPath)
 	{
-		diffuseMap = new texture("../../resources/textures/rock_diffuse.tga");
-		displacementMap = new texture("../../resources/textures/rock_offset.tga");
+		diffuseMap = new texture("textures/rock_diffuse.tga");
+		displacementMap = new texture("textures/rock_offset.tga");
 
 		geometryBuffer = new frameBuffer();
 		postCamera = new camera_t();
@@ -42,31 +42,31 @@ public:
 
 	virtual void Initialize() override
 	{
-		texturedModel::Initialize();
+		scene3D::Initialize();
 		displacementBuffer.Initialize(1);
 
 		FBODescriptor colorDesc;
-		colorDesc.dimensions = glm::ivec3(windows[0]->settings.resolution.width, windows[0]->settings.resolution.height, 1);
+		colorDesc.dimensions = glm::ivec3(window->GetSettings().resolution.width, window->GetSettings().resolution.height, 1);
 
 		FBODescriptor worldPosDesc;
 		worldPosDesc.dataType = GL_FLOAT;
 		worldPosDesc.format = GL_RGB;
-		worldPosDesc.internalFormat = gl_rgb32f;
-		worldPosDesc.dimensions = glm::ivec3(windows[0]->settings.resolution.width, windows[0]->settings.resolution.height, 1);
+		worldPosDesc.internalFormat = GL_RGB32F;
+		worldPosDesc.dimensions = glm::ivec3(window->GetSettings().resolution.width, window->GetSettings().resolution.height, 1);
 		
 		FBODescriptor depthDesc;
 		depthDesc.dataType = GL_FLOAT;
 		depthDesc.format = GL_DEPTH_COMPONENT;
-		depthDesc.internalFormat = gl_depth_component24;
-		depthDesc.attachmentType = FBODescriptor::attachmentType_t::depth;
-		depthDesc.dimensions = glm::ivec3(windows[0]->settings.resolution.width, windows[0]->settings.resolution.height, 1);
+		depthDesc.internalFormat = GL_DEPTH_COMPONENT24;
+		depthDesc.attachmentType = FBODescriptor::attachmentType_e::depth;
+		depthDesc.dimensions = glm::ivec3(window->GetSettings().resolution.width, window->GetSettings().resolution.height, 1);
 
 		geometryBuffer->Initialize();
 		geometryBuffer->Bind();
 
-		geometryBuffer->AddAttachment(new frameBuffer::attachment_t("color", colorDesc));
-		geometryBuffer->AddAttachment(new frameBuffer::attachment_t("position", worldPosDesc));
-		geometryBuffer->AddAttachment(new frameBuffer::attachment_t("depth", depthDesc));
+		geometryBuffer->AddAttachment(frameBuffer::attachment_t("color", colorDesc));
+		geometryBuffer->AddAttachment(frameBuffer::attachment_t("position", worldPosDesc));
+		geometryBuffer->AddAttachment(frameBuffer::attachment_t("depth", depthDesc));
 
 		frameBuffer::Unbind();
 
@@ -75,16 +75,17 @@ public:
 		diffuseMap->LoadTexture();
 		displacementMap->LoadTexture();
 
-		heightFogProgram = shaderPrograms[1]->handle;
+		defProgram = shaderProgramsMap["displacement"];
+		heightFogProgram = shaderProgramsMap["heightFog"];
 
-		SetupVertexBuffer();
+		defaultVertexBuffer.SetupDefault();
 	}
 
 protected:
 
 	//make a grid and dump it into the engine
 	bufferHandler_t<fogSettings_t>		fog;
-	unsigned int						heightFogProgram = 0;
+	shaderProgram_t						heightFogProgram;
 	frameBuffer*						geometryBuffer;
 	camera_t*							postCamera;
 
@@ -94,16 +95,18 @@ protected:
 		fog.Initialize(2);
 	}
 
-	virtual void BuildGUI(tWindow* window, ImGuiIO io) override
+	virtual void BuildGUI(tWindow* window, const ImGuiIO& io) override
 	{
 		displacement::BuildGUI(window, io);
-		ImGui::Begin("fog setttings");
-		ImGui::DragFloat("strength", &fog.data.strength, 0.001f, 0.0f, 1.0f);
-		ImGui::DragFloat3("sun direction", &fog.data.sunDirection[0], 1.0f, 0.0f, 360.0f);
-		ImGui::DragFloat3("extinction", &fog.data.extinction[0], 0.001f, 0.0f, 1.0f);
-		ImGui::DragFloat3("inscattering", &fog.data.inscattering[0], 0.001f, 0.0f, 1.0f);
-		ImGui::ColorPicker3("color", &fog.data.color[0]);
-		ImGui::End();
+		if (ImGui::BeginTabItem("fog setttings"))
+		{
+			ImGui::DragFloat("strength", &fog.data.strength, 0.001f, 0.0f, 1.0f);
+			ImGui::DragFloat3("sun direction", &fog.data.sunDirection[0], 1.0f, 0.0f, 360.0f);
+			ImGui::DragFloat3("extinction", &fog.data.extinction[0], 0.001f, 0.0f, 1.0f);
+			ImGui::DragFloat3("inscattering", &fog.data.inscattering[0], 0.001f, 0.0f, 1.0f);
+			ImGui::ColorPicker3("color", &fog.data.color[0]);
+			ImGui::EndTabItem();
+		}
 
 		DrawBufferAttachments();
 	}
@@ -112,17 +115,17 @@ protected:
 	{
 		displacement::Update();
 		
-		fog.data.projection = sceneCamera->projection;
-		fog.data.view = sceneCamera->view;
+		fog.data.projection = camera.projection;
+		fog.data.view = camera.view;
 		fog.Update();
 	}
 
 	virtual void Draw() override
 	{
 		//put camera in perspective mode and make a copy for the fog pass
-		sceneCamera->Update();
-		sceneCamera->UpdateProjection();
-		UpdateDefaultBuffer(sceneCamera);
+		camera.Update();
+		camera.UpdateProjection();
+		UpdateDefaultBuffer(&camera);
 		GeomPass();
 
 		//put camera in orthographic mode
@@ -131,9 +134,9 @@ protected:
 		UpdateDefaultBuffer(postCamera);
 		FogPass();
 	
-		DrawGUI(windows[0]);
+		DrawGUI(window);
 
-		windows[0]->SwapDrawBuffers();
+		manager->SwapDrawBuffers(window);
 		ClearBuffers();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
@@ -144,9 +147,9 @@ protected:
 		geometryBuffer->DrawAll();
 
 		glBindVertexArray(renderGrid->vertexArrayHandle);
-		glUseProgram(this->programGLID);
+		defProgram.Use();
 
-		glViewport(0, 0, windows[0]->settings.resolution.width, windows[0]->settings.resolution.height);
+		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 
 		diffuseMap->SetActive(0);
 		displacementMap->SetActive(1);
@@ -157,7 +160,7 @@ protected:
 		}
 
 		//gotta change this to patches for tessellation
-		glDrawElements(gl_patches, renderGrid->indices.size(), GL_UNSIGNED_INT, 0);
+		glDrawElements(GL_PATCHES, renderGrid->indices.size(), GL_UNSIGNED_INT, 0);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 		geometryBuffer->Unbind();
@@ -166,28 +169,30 @@ protected:
 	virtual void FogPass()
 	{
 		//just draw to back buffer for now
-		glBindVertexArray(defaultVertexBuffer->vertexArrayHandle);
-		glViewport(0, 0, windows[0]->settings.resolution.width, windows[0]->settings.resolution.height);
+		glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
+		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 		
-		geometryBuffer->attachments[0]->SetActive(0); //color
-		geometryBuffer->attachments[1]->SetActive(1); //position
-		geometryBuffer->attachments[2]->SetActive(2); //depth
+		geometryBuffer->attachments["color"].SetActive(0); //color
+		geometryBuffer->attachments["position"].SetActive(1); //position
+		geometryBuffer->attachments["depth"].SetActive(2); //depth
 
-		glUseProgram(heightFogProgram);
+		heightFogProgram.Use();
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
 
 	virtual void DrawBufferAttachments()
 	{
-		ImGui::Begin("framebuffers");
-		for (auto iter : geometryBuffer->attachments)
+		if (ImGui::BeginTabItem("framebuffers"))
 		{
-			ImGui::Image((ImTextureID*)iter->GetHandle(), ImVec2(512, 288),
-				ImVec2(0, 1), ImVec2(1, 0));
-			ImGui::SameLine();
-			ImGui::Text("%s\n", iter->GetUniformName().c_str());
+			for (auto iter : geometryBuffer->attachments | std::views::values)
+			{
+				ImGui::Image((ImTextureID*)iter.GetHandle(), ImVec2(512, 288),
+					ImVec2(0, 1), ImVec2(1, 0));
+				ImGui::SameLine();
+				ImGui::Text("%s\n", iter.GetUniformName().c_str());
+			}
+			ImGui::EndTabItem();
 		}
-		ImGui::End();
 	}
 
 	void UpdateDefaultBuffer(camera_t* newCamera)
@@ -197,26 +202,25 @@ protected:
 		defaultPayload.data.resolution = newCamera->resolution;
 		if (newCamera->currentProjectionType == camera_t::projection_e::perspective)
 		{
-			defaultPayload.data.translation = testModel->makeTransform();
+			defaultPayload.data.translation = testModel.makeTransform();
 		}
 
 		else
 		{
 			defaultPayload.data.translation = newCamera->translation;
 		}
-		defaultPayload.data.deltaTime = (float)sceneClock->GetDeltaTime();
-		defaultPayload.data.totalTime = (float)sceneClock->GetTotalTime();
-		defaultPayload.data.framesPerSec = (float)(1.0 / sceneClock->GetDeltaTime());
+		defaultPayload.data.deltaTime = (float)clock.GetDeltaTime();
+		defaultPayload.data.totalTime = (float)clock.GetTotalTime();
+		defaultPayload.data.framesPerSec = (float)(1.0 / clock.GetDeltaTime());
 
 		defaultPayload.Update();
-		defaultVertexBuffer->UpdateBuffer(defaultPayload.data.resolution);
 	}
 
 	void ClearBuffers()
 	{
-		float clearColor1[4] = { 0.05f, 0.05f, 0.05f, 0.0f };
+		float clearColor1[4] = { 0.33f, 0.33f, 0.33f, 1.0f };
 		geometryBuffer->Bind();
-		for (auto iter : geometryBuffer->attachments)
+		for (auto iter : geometryBuffer->attachments | std::views::values)
 		{
 			geometryBuffer->ClearTexture(iter, clearColor1);
 		}
@@ -226,23 +230,23 @@ protected:
 
 	virtual void ResizeBuffers(glm::ivec2 resolution)
 	{
-		for (auto iter : geometryBuffer->attachments)
+		for (auto iter : geometryBuffer->attachments | std::views::values)
 		{
-			iter->Resize(glm::ivec3(resolution, 1));
+			iter.Resize(glm::ivec3(resolution, 1));
 		}
 
-		glViewport(0, 0, windows[0]->settings.resolution.width, windows[0]->settings.resolution.height);
+		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 	}
 
-	virtual void HandleWindowResize(tWindow* window, TinyWindow::vec2_t<unsigned int> dimensions) override
+	virtual void HandleWindowResize(const tWindow* window, const tw::vec2_t<uint16_t>& dimensions) override
 	{
 		defaultPayload.data.resolution = glm::ivec2(dimensions.width, dimensions.height);
 		ResizeBuffers(glm::ivec2(dimensions.x, dimensions.y));
 	}
 
-	virtual void HandleMaximize(tWindow* window) override
+	virtual void HandleMaximize(const tWindow* window) override
 	{
-		defaultPayload.data.resolution = glm::ivec2(window->settings.resolution.width, window->settings.resolution.height);
+		defaultPayload.data.resolution = glm::ivec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 		ResizeBuffers(defaultPayload.data.resolution);
 	}
 };

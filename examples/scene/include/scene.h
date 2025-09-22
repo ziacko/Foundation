@@ -238,10 +238,10 @@ protected:
 			ImGui::Text("Mouse coordinates: \t X: %.0f \t Y: %.0f", io.MousePos.x, io.MousePos.y);
 			ImGui::Text("Window size: \t Width: %i \t Height: %i", window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 
-			if(ImGui::Button("Toggle Fullscreen"))
+			//if(ImGui::Button("Toggle Fullscreen"))
 			{
 				//manager->ToggleFullscreen(window, &manager->GetMonitors()[0], 0);
-				glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
+				//glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 			}
 
 			if (ImGui::InputInt("Swap Interval", &interval, 1))
@@ -367,10 +367,12 @@ protected:
 
 	virtual void DrawGUI(tWindow* window)
 	{
+		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, __FUNCTION__);
 		BeginGUI(window);
 		const ImGuiIO io = ImGui::GetIO();
 		BuildGUI(window, io);
 		EndGUI(window);
+		glPopDebugGroup();
 	}
 
 	void SetupBuffer(const GLenum target, const GLenum usage)
