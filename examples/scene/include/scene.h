@@ -367,7 +367,7 @@ protected:
 
 	virtual void DrawGUI(tWindow* window)
 	{
-		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, __FUNCTION__);
+		GL_PUSH_DEBUG_GROUP();
 		BeginGUI(window);
 		const ImGuiIO io = ImGui::GetIO();
 		BuildGUI(window, io);

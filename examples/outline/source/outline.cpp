@@ -1,9 +1,9 @@
-#include "Outline.h"
+#include "outline.h"
 
 int main()
 {
-	outline* exampleScene = new outline();
-	exampleScene->Initialize();
-	exampleScene->Run();
+	outline exampleScene = outline();
+	exampleScene.Initialize();
+	exampleScene.Run();
 	return 0;
 }

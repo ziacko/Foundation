@@ -231,7 +231,7 @@ protected:
 
 	virtual void UpsamplePass()
 	{
-		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, __FUNCTION__);
+		GL_PUSH_DEBUG_GROUP();
 		geometryBuffer->Bind();
 		geometryBuffer->attachments["color"].Draw();
 
@@ -265,7 +265,7 @@ protected:
 
 	virtual void UnJitteredPass()
 	{
-		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, __FUNCTION__);
+		GL_PUSH_DEBUG_GROUP();
 		unJitteredBuffer->Bind();
 		unJitteredBuffer->attachments["unJittered"].Draw();
 
@@ -299,7 +299,7 @@ protected:
 
 	virtual void DownscalePass()
 	{
-		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, __FUNCTION__);
+		GL_PUSH_DEBUG_GROUP();
 		downscaledBuffer->Bind();
 		downscaledBuffer->attachments["downscaled"].Draw();
 
@@ -317,7 +317,7 @@ protected:
 
 	void FinalPass(texture* tex1, texture* tex2) const
 	{
-		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, __FUNCTION__);
+		GL_PUSH_DEBUG_GROUP();
 		//draw directly to backbuffer		
 		tex1->SetActive(0);
 		

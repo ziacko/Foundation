@@ -1,10 +1,10 @@
-#include "DynamicRes.h"
+#include "dynamicRes.h"
 
 int main()
 {
-	dynamicRes* exampleScene = new dynamicRes();
-	exampleScene->Initialize();
-	exampleScene->Run();
+	dynamicRes exampleScene = dynamicRes();
+	exampleScene.Initialize();
+	exampleScene.Run();
 
 	return 0;
 }

@@ -104,7 +104,7 @@ protected:
 
 	virtual void DrawMeshes()
 	{
-		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, __FUNCTION__);
+		GL_PUSH_DEBUG_GROUP();
 		renderGrid->BindVA();
 		defProgram.Use();
 

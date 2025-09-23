@@ -1,46 +1,45 @@
 #ifndef DYNAMIC_RES_H
 #define DYNAMIC_RES_H
 
-#include "Scene3D.h"
+#include "scene3D.h"
 #include "FrameBuffer.h"
+
+constexpr glm::vec2 defaultResScale = glm::vec2(1, 1);
 
 struct resolutionSettings_t
 {
-	glm::vec2 resPercent;
+	glm::vec2 resolutionScale{defaultResScale};
 
-	resolutionSettings_t(glm::vec2 resPercent = glm::vec2(1.0f))
+	explicit resolutionSettings_t(const glm::vec2& res = defaultResScale)
 	{
-		this->resPercent = resPercent;
+		resolutionScale = res;
 	}
-
-	~resolutionSettings_t() { };
 };
 
 class dynamicRes : public scene3D
 {
 public:
 
-	dynamicRes(
+	explicit dynamicRes(
 		const char* windowName = "Ziyad Barakat's portfolio (dynamic resolution)",
-		camera_t* texModelCamera = new camera_t(glm::vec2(1280, 720), 5.0f, camera_t::projection_e::perspective, 0.1f, 2000.f),
-		const char* shaderConfigPath = "../../resources/shaders/DynamicRes.txt",
-		model_t* model = new model_t("../../resources/models/SoulSpear/SoulSpear.fbx"))
+		const camera_t& texModelCamera = camera_t(glm::vec2(1280, 720), 5.0f, camera_t::projection_e::perspective, 0.1f, 2000.f),
+		const char* shaderConfigPath = SHADER_CONFIG_DIR,
+		const model_t& model = model_t("models/SoulSpear/SoulSpear.fbx"))
 		: scene3D(windowName, texModelCamera, shaderConfigPath, model)
 	{
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LEQUAL);
-		glHint(gl_generate_mipmap_hint, GL_NICEST);
+		glHint(GL_GENERATE_MIPMAP_HINT, GL_NICEST);
 
 		geometryBuffer = new frameBuffer();
+		dynamicBuffer = new frameBuffer();
 
 		resolution = bufferHandler_t<resolutionSettings_t>();
-
-		res = glm::vec2(windows[0]->settings.resolution.width, windows[0]->settings.resolution.height);
 	}
 
-	~dynamicRes() {};
+	~dynamicRes() override {};
 
 	virtual void Initialize() override
 	{
@@ -50,32 +49,39 @@ public:
 		depthDesc.target = GL_TEXTURE_2D;
 		depthDesc.dataType = GL_FLOAT;
 		depthDesc.format = GL_DEPTH_COMPONENT;
-		depthDesc.internalFormat = gl_depth_component24;
-		depthDesc.attachmentType = FBODescriptor::attachmentType_t::depth;
-		depthDesc.dimensions = glm::ivec3(windows[0]->settings.resolution.width, windows[0]->settings.resolution.height, 1);
+		depthDesc.internalFormat = GL_DEPTH_COMPONENT24;
+		depthDesc.attachmentType = FBODescriptor::attachmentType_e::depth;
+		depthDesc.dimensions = glm::ivec3(window->GetSettings().resolution.width, window->GetSettings().resolution.height, 1);
 
 		geometryBuffer->Initialize();
 		geometryBuffer->Bind();
 
-		geometryBuffer->AddAttachment(new frameBuffer::attachment_t("color"));
-		geometryBuffer->AddAttachment(new frameBuffer::attachment_t("depth", depthDesc));
+		geometryBuffer->AddAttachment(frameBuffer::attachment_t("color"));
+		geometryBuffer->AddAttachment(frameBuffer::attachment_t("depth", depthDesc));
+
+		dynamicBuffer->Initialize();
+		dynamicBuffer->Bind();
+		dynamicBuffer->AddAttachment(frameBuffer::attachment_t("color"));
+		dynamicBuffer->AddAttachment(frameBuffer::attachment_t("depth", depthDesc));
 
 		frameBuffer::Unbind();
 
-		//DynamicResProgram = shaderPrograms[1]->handle;
-		compareProgram = shaderPrograms[1]->handle;
-		finalProgram = shaderPrograms[2]->handle;
+		defProgram = shaderProgramsMap["geometry"];
+		compareProgram = shaderProgramsMap["compare"];
+		finalProgram = shaderProgramsMap["final"];
+
+		defaultVertexBuffer.SetupDefault();
 	}
 
 protected:
 
 	frameBuffer* geometryBuffer;
+	frameBuffer* dynamicBuffer;
 
-	unsigned int DynamicResProgram = 0;
-	unsigned int compareProgram = 0;
-	unsigned int finalProgram = 0;
+	shaderProgram_t compareProgram;
+	shaderProgram_t finalProgram;
 
-	glm::vec2 res;
+	glm::ivec2 scaledResolution;
 
 	bool enableCompare = true;
 
@@ -86,123 +92,177 @@ protected:
 		manager->PollForEvents();
 		if (lockedFrameRate > 0)
 		{
-			sceneClock->UpdateClockFixed(lockedFrameRate);
+			clock.UpdateClockFixed(lockedFrameRate);
 		}
 		else
 		{
-			sceneClock->UpdateClockAdaptive();
+			clock.UpdateClockAdaptive();
 		}
 
-		defaultPayload.data.deltaTime = (float)sceneClock->GetDeltaTime();
-		defaultPayload.data.totalTime = (float)sceneClock->GetTotalTime();
-		defaultPayload.data.framesPerSec = (float)(1.0 / sceneClock->GetDeltaTime());
+		defaultPayload.data.deltaTime = (float)clock.GetDeltaTime();
+		defaultPayload.data.totalTime = (float)clock.GetTotalTime();
+		defaultPayload.data.framesPerSec = (float)(1.0 / clock.GetDeltaTime());
 		defaultPayload.data.totalFrames++;
 
 		resolution.Update();
-		
 	}
 
 	void UpdateDefaultBuffer()
 	{
-		sceneCamera->UpdateProjection();
-		defaultPayload.data.projection = sceneCamera->projection;
-		defaultPayload.data.view = sceneCamera->view;
-		if (sceneCamera->currentProjectionType == camera_t::projection_e::perspective)
+		camera.UpdateProjection();
+		defaultPayload.data.projection = camera.projection;
+		defaultPayload.data.view = camera.view;
+		if (camera.currentProjectionType == camera_t::projection_e::perspective)
 		{
-			defaultPayload.data.translation = testModel->makeTransform();
+			defaultPayload.data.translation = testModel.makeTransform();
 		}
 
 		else
 		{
-			defaultPayload.data.translation = sceneCamera->translation;
+			defaultPayload.data.translation = camera.translation;
 		}
-		defaultPayload.data.deltaTime = (float)sceneClock->GetDeltaTime();
-		defaultPayload.data.totalTime = (float)sceneClock->GetTotalTime();
-		defaultPayload.data.framesPerSec = (float)(1.0 / sceneClock->GetDeltaTime());
+		defaultPayload.data.deltaTime = (float)clock.GetDeltaTime();
+		defaultPayload.data.totalTime = (float)clock.GetTotalTime();
+		defaultPayload.data.framesPerSec = (float)(1.0 / clock.GetDeltaTime());
 
 		defaultPayload.Update();
-		defaultVertexBuffer->UpdateBuffer(defaultPayload.data.resolution);
+		//defaultVertexBuffer.UpdateBuffer(defaultPayload.data.resolution);
 	}
 
-	virtual void Draw() override
+	void Draw() override
 	{
-		//resize buffers but don't resize the window
-		//defaultPayload.data.resolution = res;
-		//sceneCamera->resolution = defaultPayload.data.resolution;// glm::vec2(windows[0]->settings.resolution.width, windows[0]->settings.resolution.height);
-		sceneCamera->ChangeProjection(camera_t::projection_e::perspective);
-		sceneCamera->Update();
+		camera.ChangeProjection(camera_t::projection_e::perspective);
+		camera.Update();
 		UpdateDefaultBuffer();
 
 		GeometryPass();
+		DynamicPass();
 
-		//defaultPayload.data.resolution = glm::vec2(windows[0]->settings.resolution.width, windows[0]->settings.resolution.height);
-		//sceneCamera->resolution = glm::vec2(windows[0]->settings.resolution.width, windows[0]->settings.resolution.height);
-		sceneCamera->ChangeProjection(camera_t::projection_e::orthographic);
-		sceneCamera->Update();
+		camera.ChangeProjection(camera_t::projection_e::orthographic);
+		camera.Update();
 		UpdateDefaultBuffer();
 
-		FinalPass(geometryBuffer->attachments[0]);
+		FinalPass(&geometryBuffer->attachments["color"], &dynamicBuffer->attachments["color"]);
 		
-		DrawGUI(windows[0]);
+		DrawGUI(window);
 		
-		windows[0]->SwapDrawBuffers();
+		manager->SwapDrawBuffers(window);
 		ClearBuffers();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 
 	virtual void GeometryPass()
 	{
+		GL_PUSH_DEBUG_GROUP();
 		geometryBuffer->Bind();
 
 		GLenum drawbuffers[1] = {
-			geometryBuffer->attachments[0]->FBODesc.attachmentFormat, //color
+			geometryBuffer->attachments["color"].FBODesc.attachmentFormat, // color
 		};
 
 		glDrawBuffers(1, drawbuffers);
 
-		//we just need the first LOd so only do the first 3 meshes
-		for (size_t iter = 0; iter < 1; iter++)
+		for (size_t i = 0; i < testModel.meshes.size(); ++i)
 		{
-			if (testModel->meshes[iter].isCollision)
-			{
+			if (testModel.meshes[i].isCollision)
 				continue;
+
+			for (uint8_t tex = 0; tex < testModel.meshes[i].textures.size(); ++tex)
+			{
+				testModel.meshes[i].textures[tex].SetActive(tex);
 			}
 
-			testModel->meshes[iter].textures[0].SetActive(0);
-			//add the previous depth?
-
-			glBindVertexArray(testModel->meshes[iter].vertexArrayHandle);
-			glUseProgram(programGLID);
+			glBindVertexArray(testModel.meshes[i].vertexArrayHandle);
+			defProgram.Use();
 			
-			glViewport(0, 0, res.x, res.y);
+			auto res = glm::vec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
+			glViewport(0, 0, (GLint)res.x, (GLint)res.y);
+			glCullFace(GL_BACK);
 
 			if (wireframe)
 			{
 				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 			}
-			//glDrawElements(GL_TRIANGLES, testModel->meshes[iter].indices.size(), GL_UNSIGNED_INT, nullptr);
-			glDrawArrays(GL_TRIANGLES, 0, testModel->meshes[iter].vertices.size());
+			glDrawElements(GL_TRIANGLES, testModel.meshes[i].indices.size(), GL_UNSIGNED_INT, 0);
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		}
 
 		geometryBuffer->Unbind();
+		glPopDebugGroup();
 	}
 
-	void FinalPass(texture* tex1)
+	virtual void DynamicPass()
 	{
+		GL_PUSH_DEBUG_GROUP();
+		dynamicBuffer->Bind();
+
+		GLenum drawbuffers[1] = {
+			dynamicBuffer->attachments["color"].FBODesc.attachmentFormat, // color
+		};
+
+		glDrawBuffers(1, drawbuffers);
+
+		for (size_t i = 0; i < testModel.meshes.size(); ++i)
+		{
+			if (testModel.meshes[i].isCollision)
+				continue;
+
+			for (uint8_t tex = 0; tex < testModel.meshes[i].textures.size(); ++tex)
+			{
+				testModel.meshes[i].textures[tex].SetActive(tex);
+			}
+
+			glBindVertexArray(testModel.meshes[i].vertexArrayHandle);
+			defProgram.Use();
+
+			auto res = glm::vec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height) * this->resolution.data.resolutionScale;
+			glViewport(0, 0, (GLint)res.x, (GLint)res.y);
+			glCullFace(GL_BACK);
+
+			if (wireframe)
+			{
+				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+			}
+			glDrawElements(GL_TRIANGLES, testModel.meshes[i].indices.size(), GL_UNSIGNED_INT, 0);
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		}
+
+		dynamicBuffer->Unbind();
+		glPopDebugGroup();
+	}
+
+	void FinalPass(texture* tex1, texture* tex2)
+	{
+		GL_PUSH_DEBUG_GROUP();
 		//draw directly to backbuffer
 		tex1->SetActive(0);
+		tex2->SetActive(1);
 		
-		glBindVertexArray(defaultVertexBuffer->vertexArrayHandle);
-		glViewport(0, 0, windows[0]->settings.resolution.width, windows[0]->settings.resolution.height);
-		glUseProgram(finalProgram);
-	
+		glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
+		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
+		if (enableCompare == true)
+		{
+			compareProgram.Use();
+		}
+		else
+		{
+			finalProgram.Use();
+		}
+		
 		glDrawArrays(GL_TRIANGLES, 0, 6);
+		glPopDebugGroup();
 	}
 
-	virtual void BuildGUI(tWindow* window, ImGuiIO io) override
+	void InitializeUniforms() override
 	{
-		scene3D::BuildGUI(windows[0], io);
+		scene3D::InitializeUniforms();
+		defaultVertexBuffer.SetupDefault();
+		resolution.Initialize(1);
+	}
+
+	void BuildGUI(tWindow* window, const ImGuiIO& io) override
+	{
+		scene3D::BuildGUI(window, io);
 
 		DrawBufferAttachments();
 		DrawResolutionSettings();
@@ -210,94 +270,93 @@ protected:
 
 	virtual void DrawResolutionSettings()
 	{
-		ImGui::Begin("resolution Settings");
-		if(ImGui::SliderFloat("horizontal \%", &resolution.data.resPercent.x, 0.25f, 2.0f, "%.3f") ||
-		ImGui::SliderFloat("vertical \%", &resolution.data.resPercent.y, 0.25f, 2.0f, "%.3f"))
+		if (ImGui::BeginTabItem("resolution Settings"))
 		{
-			res = glm::vec2(windows[0]->settings.resolution.width, windows[0]->settings.resolution.height) * resolution.data.resPercent;
-			ResizeBuffers(glm::ivec2(res));
+			if (ImGui::SliderFloat("horizontal %", &resolution.data.resolutionScale.x, 0.25f, 2.0f, "%.3f") ||
+				ImGui::SliderFloat("vertical %", &resolution.data.resolutionScale.y, 0.25f, 2.0f, "%.3f"))
+			{
+				//camera.resolution = glm::vec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height) * resolution.data.resolutionScale;
+				ResizeBuffers(glm::vec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height) * resolution.data.resolutionScale);
+			}
+			ImGui::EndTabItem();
 		}
-
-		ImGui::End();
 	}
 
 	virtual void DrawBufferAttachments()
 	{
-		ImGui::Begin("framebuffers");
-		for (auto iter : geometryBuffer->attachments)
+		if (ImGui::BeginTabItem("framebuffers"))
 		{
-			ImGui::Image((ImTextureID*)iter->GetHandle(), ImVec2(512, 288),
-				ImVec2(0, 1), ImVec2(1, 0));
-			ImGui::SameLine();
-			ImGui::Text("%s\n", iter->GetUniformName().c_str());
-		}
+			for (auto& iter : geometryBuffer->attachments | std::views::values)
+			{
+				ImGui::Image((ImTextureID)iter.GetHandle(), ImVec2(512, 288),
+					ImVec2(0, 1), ImVec2(1, 0));
+				ImGui::SameLine();
+				ImGui::Text("%s\n", iter.GetUniformName().c_str());
+			}
 
-		ImGui::End();
+			for (auto& iter : dynamicBuffer->attachments | std::views::values)
+			{
+				ImGui::Image((ImTextureID)iter.GetHandle(), ImVec2(512, 288),
+					ImVec2(0, 1), ImVec2(1, 0));
+				ImGui::SameLine();
+				ImGui::Text("%s\n", iter.GetUniformName().c_str());
+			}
+
+			ImGui::EndTabItem();
+		}
 	}
 
 	virtual void DrawCameraStats() override
 	{
 		//set up the view matrix
-		ImGui::Begin("camera", &isGUIActive);
+		if (ImGui::BeginTabItem("camera", &isGUIActive))
+		{
+			ImGui::DragFloat("near plane", &camera.nearPlane);
+			ImGui::DragFloat("far plane", &camera.farPlane);
+			ImGui::SliderFloat("Field of view", &camera.fieldOfView, 0, 90, "%.0f");
 
-		ImGui::DragFloat("near plane", &sceneCamera->nearPlane);
-		ImGui::DragFloat("far plane", &sceneCamera->farPlane);
-		ImGui::SliderFloat("Field of view", &sceneCamera->fieldOfView, 0, 90, "%.0f");
-
-		ImGui::InputFloat("camera speed", &sceneCamera->speed, 0.f);
-		ImGui::InputFloat("x sensitivity", &sceneCamera->xSensitivity, 0.f);
-		ImGui::InputFloat("y sensitivity", &sceneCamera->ySensitivity, 0.f);
-		ImGui::End();
+			ImGui::InputFloat("camera speed", &camera.speed, 0.f);
+			ImGui::InputFloat("x sensitivity", &camera.xSensitivity, 0.f);
+			ImGui::InputFloat("y sensitivity", &camera.ySensitivity, 0.f);
+			ImGui::EndTabItem();
+		}
 	}
 
 	virtual void ClearBuffers()
 	{
-		//ok copy the current frame into the previous frame and clear the rest of the buffers	
-		float clearColor1[4] = { 0.25f, 0.25f, 0.25f, 0.25f };
+		// Clear the FBO color and depth
+		float clearColor1[4] = { 0.25f, 0.25f, 0.25f, 1.0f };
 
 		geometryBuffer->Bind();
-		geometryBuffer->ClearTexture(geometryBuffer->attachments[0], clearColor1);
+		frameBuffer::ClearTexture(geometryBuffer->attachments["color"], clearColor1);
 		glClear(GL_DEPTH_BUFFER_BIT);
 		geometryBuffer->Unbind();
 
-		sceneCamera->ChangeProjection(camera_t::projection_e::perspective);
+		dynamicBuffer->Bind();
+		frameBuffer::ClearTexture(dynamicBuffer->attachments["color"], clearColor1);
+		glClear(GL_DEPTH_BUFFER_BIT);
+		dynamicBuffer->Unbind();
+
+		camera.ChangeProjection(camera_t::projection_e::perspective);
 	}
 
-	virtual void ResizeBuffers(glm::ivec2 resolution)
+	virtual void ResizeBuffers(glm::ivec2 newSize)
 	{
-		res = glm::vec2(windows[0]->settings.resolution.width, windows[0]->settings.resolution.height) * this->resolution.data.resPercent;
-		for (auto iter : geometryBuffer->attachments)
-		{
-			iter->Resize(glm::ivec3(res, 1));
-		}
+		auto res = glm::vec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height) * this->resolution.data.resolutionScale;
+		geometryBuffer->Resize(glm::ivec3((int)window->GetSettings().resolution.width, (int)window->GetSettings().resolution.height, 1));
+		dynamicBuffer->Resize(glm::ivec3((int)res.x, (int)res.y, 1));
 	}
 
-	virtual void HandleWindowResize(tWindow* window, TinyWindow::vec2_t<unsigned int> dimensions) override
+	virtual void HandleWindowResize(const tWindow* window, const tw::vec2_t<uint16_t>& dimensions) override
 	{
-		defaultPayload.data.resolution = glm::ivec2(dimensions.width, dimensions.height);	
+		defaultPayload.data.resolution = glm::ivec2(dimensions.width, dimensions.height);
 		ResizeBuffers(glm::ivec2(dimensions.x, dimensions.y));
 	}
 
-	virtual void HandleMaximize(tWindow* window) override
+	virtual void HandleMaximize(const tWindow* window) override
 	{
-		defaultPayload.data.resolution = glm::ivec2(window->settings.resolution.width, window->settings.resolution.height);
+		defaultPayload.data.resolution = glm::ivec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 		ResizeBuffers(defaultPayload.data.resolution);
-	}
-
-	virtual void InitializeUniforms() override
-	{
-		defaultPayload = bufferHandler_t<defaultUniformBuffer>(sceneCamera);
-		glViewport(0, 0, windows[0]->settings.resolution.width, windows[0]->settings.resolution.height);
-
-		defaultPayload.data.resolution = glm::ivec2(windows[0]->settings.resolution.width, windows[0]->settings.resolution.height);
-		defaultPayload.data.projection = sceneCamera->projection;
-		defaultPayload.data.translation = sceneCamera->translation;
-		defaultPayload.data.view = sceneCamera->view;
-
-		defaultPayload.Initialize(0);
-		resolution.Initialize(1);
-
-		SetupVertexBuffer();
 	}
 };
 #endif

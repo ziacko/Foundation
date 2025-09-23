@@ -1,7 +1,7 @@
 #ifndef TEMPORALAA_H
 #define TEMPORALAA_H
 
-#include "Scene3D.h"
+#include "scene3D.h"
 #include "FrameBuffer.h"
 #include "HaltonSequence.h"
 
@@ -103,16 +103,16 @@ public:
 
 	temporalAA(
 		const char* windowName = "Ziyad Barakat's portfolio (temporal AA)",
-		camera_t* texModelCamera = new camera_t(glm::vec2(1280, 720), 5.0f, camera_t::projection_e::perspective, 0.1f, 2000.f),
-		const char* shaderConfigPath = "../../resources/shaders/TemporalAA.txt",
-		model_t* model = new model_t("../../resources/models/fbx_foliage/broadleaf_field/Broadleaf_Desktop_Field.FBX"))
+		camera_t texModelCamera = camera_t(glm::vec2(1280, 720), 5.0f, camera_t::projection_e::perspective, 0.1f, 2000.f),
+		const char* shaderConfigPath = SHADER_CONFIG_DIR,
+		model_t model = model_t("models/fbx_foliage/broadleaf_field/Broadleaf_Desktop_Field.FBX"))
 		: scene3D(windowName, texModelCamera, shaderConfigPath, model)
 	{
 		glDisable(GL_BLEND);
 		glEnable(GL_DEPTH_TEST);
 		//glEnable(gl_clip_distance0);
 		glDepthFunc(GL_LESS);
-		glHint(gl_generate_mipmap_hint, GL_NICEST);
+		glHint(GL_GENERATE_MIPMAP_HINT, GL_NICEST);
 
 		geometryBuffer = new frameBuffer();
 		unJitteredBuffer = new frameBuffer();
@@ -138,31 +138,31 @@ public:
 		scene3D::Initialize();
 
 		FBODescriptor colorDesc;
-		colorDesc.dimensions = glm::ivec3(windows[0]->settings.resolution.width, windows[0]->settings.resolution.height, 1);
+		colorDesc.dimensions = glm::ivec3(window->GetSettings().resolution.width, window->GetSettings().resolution.height, 1);
 
-		glGenQueries(1, &jitterQuery);
+		glGenQueries(1, &jitterQuery.handle);
 
 		geometryBuffer->Initialize();
 		geometryBuffer->Bind();
 
-		geometryBuffer->AddAttachment(new frameBuffer::attachment_t("color", colorDesc));
+		geometryBuffer->AddAttachment(frameBuffer::attachment_t("color", colorDesc));
 
 		FBODescriptor velDesc;
-		velDesc.format = gl_rg;
-		velDesc.internalFormat = gl_rg16_snorm;
+		velDesc.format = GL_RG;
+		velDesc.internalFormat = GL_RG16_SNORM;
 		velDesc.dataType = GL_FLOAT;
-		velDesc.dimensions = glm::ivec3(windows[0]->settings.resolution.width, windows[0]->settings.resolution.height, 1);
+		velDesc.dimensions = glm::ivec3(window->GetSettings().resolution.width, window->GetSettings().resolution.height, 1);
 
-		geometryBuffer->AddAttachment(new frameBuffer::attachment_t("velocity", velDesc));
+		geometryBuffer->AddAttachment(frameBuffer::attachment_t("velocity", velDesc));
 
 		FBODescriptor depthDesc;
 		depthDesc.dataType = GL_FLOAT;
 		depthDesc.format = GL_DEPTH_COMPONENT;
-		depthDesc.internalFormat = gl_depth_component24;
-		depthDesc.attachmentType = FBODescriptor::attachmentType_t::depth;
-		depthDesc.dimensions = glm::ivec3(windows[0]->settings.resolution.width, windows[0]->settings.resolution.height, 1);
+		depthDesc.internalFormat = GL_DEPTH_COMPONENT24;
+		depthDesc.attachmentType = FBODescriptor::attachmentType_e::depth;
+		depthDesc.dimensions = glm::ivec3(window->GetSettings().resolution.width, window->GetSettings().resolution.height, 1);
 
-		geometryBuffer->AddAttachment(new frameBuffer::attachment_t("depth", depthDesc));
+		geometryBuffer->AddAttachment(frameBuffer::attachment_t("depth", depthDesc));
 
 		for (unsigned int iter = 0; iter < numPrevFrames; iter++)
 		{
@@ -170,8 +170,8 @@ public:
 
 			newBuffer->Initialize();
 			newBuffer->Bind();
-			newBuffer->AddAttachment(new frameBuffer::attachment_t("color" + std::to_string(iter), colorDesc));
-			newBuffer->AddAttachment(new frameBuffer::attachment_t("depth" + std::to_string(iter), depthDesc));
+			newBuffer->AddAttachment(frameBuffer::attachment_t("color", colorDesc));
+			newBuffer->AddAttachment(frameBuffer::attachment_t("depth", depthDesc));
 
 			historyFrames.push_back(newBuffer);
 		}
@@ -182,21 +182,22 @@ public:
 
 		unJitteredBuffer->Initialize();
 		unJitteredBuffer->Bind();
-		unJitteredBuffer->AddAttachment(new frameBuffer::attachment_t("unJittered", colorDesc));
-		unJitteredBuffer->AddAttachment(new frameBuffer::attachment_t("depth", depthDesc));
+		unJitteredBuffer->AddAttachment(frameBuffer::attachment_t("color", colorDesc));
+		unJitteredBuffer->AddAttachment(frameBuffer::attachment_t("depth", depthDesc));
 
 		//geometry automatically gets assigned to 0
-		smoothProgram = shaderPrograms[1]->handle;
-		unjitteredProgram = shaderPrograms[2]->handle;
+		defProgram = shaderProgramsMap["geometry"];
+		smoothProgram = shaderProgramsMap["smooth"];
+		unjitteredProgram = shaderProgramsMap["unjittered"];
 		//sharpenProgram = shaderPrograms[2]->handle;
-		compareProgram = shaderPrograms[3]->handle;
-		finalProgram = shaderPrograms[4]->handle;
+		compareProgram = shaderProgramsMap["compare"];
+		finalProgram = shaderProgramsMap["final"];
 
 		averageGPUTimes.reserve(10);
 
 		frameBuffer::Unbind();
 
-		glViewport(0, 0, windows[0]->settings.resolution.width, windows[0]->settings.resolution.height);
+		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 	}
 
 protected:
@@ -206,15 +207,15 @@ protected:
 	frameBuffer* unJitteredBuffer;
 	//frameBuffer* sharpenBuffer;
 
-	unsigned int smoothProgram = 0;
-	unsigned int unjitteredProgram = 0;
+	shaderProgram_t smoothProgram;
+	shaderProgram_t unjitteredProgram;
 	//unsigned int sharpenProgram = 0;
-	unsigned int compareProgram = 0;
-	unsigned int finalProgram = 0;
+	shaderProgram_t compareProgram;
+	shaderProgram_t finalProgram;
 
-	unsigned int jitterQuery = 0;
-	unsigned int defaultQuery = 0;
-	unsigned int TAAQuery = 0;
+	shaderProgram_t jitterQuery;
+	shaderProgram_t defaultQuery;
+	shaderProgram_t TAAQuery;
 
 	GLuint numPrevFrames = 2; //don't need this right now
 
@@ -239,16 +240,16 @@ protected:
 		manager->PollForEvents();
 		if (lockedFrameRate > 0)
 		{
-			sceneClock->UpdateClockFixed(lockedFrameRate);
+			clock.UpdateClockFixed(lockedFrameRate);
 		}
 		else
 		{
-			sceneClock->UpdateClockAdaptive();
+			clock.UpdateClockAdaptive();
 		}
 
-		defaultPayload.data.deltaTime = (float)sceneClock->GetDeltaTime();
-		defaultPayload.data.totalTime = (float)sceneClock->GetTotalTime();
-		defaultPayload.data.framesPerSec = (float)(1.0 / sceneClock->GetDeltaTime());
+		defaultPayload.data.deltaTime = (float)clock.GetDeltaTime();
+		defaultPayload.data.totalTime = (float)clock.GetTotalTime();
+		defaultPayload.data.framesPerSec = (float)(1.0 / clock.GetDeltaTime());
 		defaultPayload.data.totalFrames++;
 
 		taaUniforms.Update();
@@ -260,32 +261,32 @@ protected:
 
 	void UpdateDefaultBuffer()
 	{
-		sceneCamera->UpdateProjection();
-		defaultPayload.data.projection = sceneCamera->projection;
-		defaultPayload.data.view = sceneCamera->view;
-		defaultPayload.data.resolution = sceneCamera->resolution;
-		if (sceneCamera->currentProjectionType == camera_t::projection_e::perspective)
+		camera.UpdateProjection();
+		defaultPayload.data.projection = camera.projection;
+		defaultPayload.data.view = camera.view;
+		defaultPayload.data.resolution = camera.resolution;
+		if (camera.currentProjectionType == camera_t::projection_e::perspective)
 		{
-			defaultPayload.data.translation = testModel->makeTransform();
+			defaultPayload.data.translation = testModel.makeTransform();
 		}
 
 		else
 		{
-			defaultPayload.data.translation = sceneCamera->translation;
+			defaultPayload.data.translation = camera.translation;
 		}
-		defaultPayload.data.deltaTime = (float)sceneClock->GetDeltaTime();
-		defaultPayload.data.totalTime = (float)sceneClock->GetTotalTime();
-		defaultPayload.data.framesPerSec = (float)(1.0 / sceneClock->GetDeltaTime());
+		defaultPayload.data.deltaTime = (float)clock.GetDeltaTime();
+		defaultPayload.data.totalTime = (float)clock.GetTotalTime();
+		defaultPayload.data.framesPerSec = (float)(1.0 / clock.GetDeltaTime());
 
 		defaultPayload.Update();
-		defaultVertexBuffer->UpdateBuffer(defaultPayload.data.resolution);
+		//defaultVertexBuffer.UpdateBuffer(defaultPayload.data.resolution);
 	}
 
 	virtual void Draw()
 	{
-		velocityUniforms.data.currentView = sceneCamera->view; //need to update the current view matrix
-		sceneCamera->ChangeProjection(camera_t::projection_e::perspective);
-		sceneCamera->Update();
+		velocityUniforms.data.currentView = camera.view; //need to update the current view matrix
+		camera.ChangeProjection(camera_t::projection_e::perspective);
+		camera.Update();
 
 		UpdateDefaultBuffer();
 
@@ -329,40 +330,41 @@ protected:
 			UnJitteredPass();
 		}
 
-		sceneCamera->ChangeProjection(camera_t::projection_e::orthographic);
+		camera.ChangeProjection(camera_t::projection_e::orthographic);
 		UpdateDefaultBuffer();
 		
 		TAAPass(); //use the positions, colors, depth and velocity to smooth the final image
 
 		//SharpenPass();
 
-		FinalPass(historyFrames[currentFrame]->attachments[0], unJitteredBuffer->attachments[0]);
+		FinalPass(&historyFrames[currentFrame]->attachments["color"], &unJitteredBuffer->attachments["color"]);
 		
-		DrawGUI(windows[0]);
-		
-		windows[0]->SwapDrawBuffers();
+		DrawGUI(window);
+
+		manager->SwapDrawBuffers(window);
 		ClearBuffers();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 
 	virtual void JitterPass()
 	{
+		GL_PUSH_DEBUG_GROUP();
 		geometryBuffer->Bind();
 		geometryBuffer->DrawAll();
 
 		//we just need the first LOd so only do the first 3 meshes
-		for (size_t iter = 0; iter < 3; iter++)
+		for (size_t iter = 0; iter < 1; iter++)
 		{
-			if (testModel->meshes[iter].isCollision)
+			if (testModel.meshes[iter].isCollision)
 			{
 				continue;
 			}
 
-			testModel->meshes[iter].textures[0].SetActive(0);
+			testModel.meshes[iter].textures[0].SetActive(0);
 			//add the previous depth?
 
-			glBindVertexArray(testModel->meshes[iter].vertexArrayHandle);
-			glUseProgram(this->programGLID);
+			glBindVertexArray(testModel.meshes[iter].vertexArrayHandle);
+			defProgram.Use();
 			
 			glCullFace(GL_BACK);
 
@@ -370,90 +372,101 @@ protected:
 			{
 				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 			}
-			glDrawElements(GL_TRIANGLES, testModel->meshes[iter].indices.size(), GL_UNSIGNED_INT, 0);
+			glDrawElements(GL_TRIANGLES, testModel.meshes[iter].indices.size(), GL_UNSIGNED_INT, 0);
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		}
 
 		geometryBuffer->Unbind();
+
+		glPopDebugGroup();
 	}
 
 	virtual void UnJitteredPass()
 	{
+		GL_PUSH_DEBUG_GROUP();
 		unJitteredBuffer->Bind();
 		unJitteredBuffer->DrawAll();
 
 		//we just need the first LOd so only do the first 3 meshes
-		for (size_t iter = 0; iter < 3; iter++)
+		for (size_t iter = 0; iter < 1; iter++)
 		{
-			if (testModel->meshes[iter].isCollision)
+			if (testModel.meshes[iter].isCollision)
 			{
 				continue;
 			}
 
-			testModel->meshes[iter].textures[0].SetActive(0);
+			testModel.meshes[iter].textures[0].SetActive(0);
 			//add the previous depth?
 
-			glBindVertexArray(testModel->meshes[iter].vertexArrayHandle);
-			glUseProgram(unjitteredProgram);
+			glBindVertexArray(testModel.meshes[iter].vertexArrayHandle);
+			unjitteredProgram.Use();
 			glCullFace(GL_BACK);
 
 			if (wireframe)
 			{
 				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 			}
-			glDrawElements(GL_TRIANGLES, testModel->meshes[iter].indices.size(), GL_UNSIGNED_INT, 0);
+			glDrawElements(GL_TRIANGLES, testModel.meshes[iter].indices.size(), GL_UNSIGNED_INT, 0);
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		}
 
 		unJitteredBuffer->Unbind();
+
+		glPopDebugGroup();
 	}
 
 	virtual void TAAPass()
 	{
+		GL_PUSH_DEBUG_GROUP();
 		historyFrames[currentFrame]->Bind();
-		historyFrames[currentFrame]->attachments[0]->Draw();
+		historyFrames[currentFrame]->attachments["color"].Draw();
 
 		//current frame
-		geometryBuffer->attachments[0]->SetActive(0); //current color
-		geometryBuffer->attachments[2]->SetActive(1); //current depth
+		geometryBuffer->attachments["color"].SetActive(0); //current color
+		geometryBuffer->attachments["depth"].SetActive(1); //current depth
 
 		//previous frames
-		historyFrames[!currentFrame]->attachments[0]->SetActive(2); //previous color
-		historyFrames[!currentFrame]->attachments[1]->SetActive(3); //previous depth
+		historyFrames[!currentFrame]->attachments["color"].SetActive(2); //previous color
+		historyFrames[!currentFrame]->attachments["depth"].SetActive(3); //previous depth
 
-		geometryBuffer->attachments[1]->SetActive(4); //velocity
+		geometryBuffer->attachments["velocity"].SetActive(4); //velocity
 		
-		glBindVertexArray(defaultVertexBuffer->vertexArrayHandle);
-		glUseProgram(smoothProgram);
+		glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
+		smoothProgram.Use();
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
 		historyFrames[currentFrame]->Unbind();
+
+		glPopDebugGroup();
 	}
 
 	virtual void FinalPass(texture* tex1, texture* tex2)
 	{
+		GL_PUSH_DEBUG_GROUP();
 		//draw directly to backbuffer		
 		tex1->SetActive(0);
 		
-		glBindVertexArray(defaultVertexBuffer->vertexArrayHandle);
-		glViewport(0, 0, windows[0]->settings.resolution.width, windows[0]->settings.resolution.height);
+		glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
+		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 		if (enableCompare)
 		{
 			tex2->SetActive(1);
-			glUseProgram(compareProgram);
+			compareProgram.Use();
 		}
 
 		else
 		{
-			glUseProgram(finalProgram);
+			finalProgram.Use();
 		}
 	
 		glDrawArrays(GL_TRIANGLES, 0, 6);
+
+		glPopDebugGroup();
 	}
 
-	virtual void BuildGUI(tWindow* window, ImGuiIO io) override
+	virtual void BuildGUI(tWindow* window, const ImGuiIO& io) override
 	{
-		scene3D::BuildGUI(windows[0], io);
+		scene3D::BuildGUI(window, io);
 
 		DrawBufferAttachments();
 		DrawTAASettings();
@@ -463,68 +476,74 @@ protected:
 
 	virtual void DrawSharpenSettings()
 	{
-		ImGui::Begin("Sharpen settings");
-		ImGui::Checkbox("enable sharpen", &enableSharpen);
+		if (ImGui::BeginTabItem("Sharpen settings"))
+		{
+			ImGui::Checkbox("enable sharpen", &enableSharpen);
 
-		ImGui::SliderFloat("kernel 1", &sharpenSettings.data.kernel1, -1.0f, 1.0f);
-		ImGui::SliderFloat("kernel 5", &sharpenSettings.data.kernel2, 0.0f, 10.0f, "%.5f", 1.0f);		
+			ImGui::SliderFloat("kernel 1", &sharpenSettings.data.kernel1, -1.0f, 1.0f);
+			ImGui::SliderFloat("kernel 5", &sharpenSettings.data.kernel2, 0.0f, 10.0f, "%.5f", 1.0f);
 
-		ImGui::End();
+			ImGui::EndTabItem();
+		}
 	}
 
 	virtual void DrawTAASettings()
 	{
-		ImGui::Begin("TAA Settings");
-		ImGui::Text("performance | %f", defaultTimer->GetTimeMilliseconds());
-		ImGui::Checkbox("enable Compare", &enableCompare);
-		ImGui::SliderFloat("feedback factor", &taaUniforms.data.feedbackFactor, 0.0f, 1.0f);
-		ImGui::InputFloat("max depth falloff", &taaUniforms.data.maxDepthFalloff, 0.01f);
+		if (ImGui::BeginTabItem("TAA Settings"))
+		{
+			ImGui::Text("performance | %f", defaultTimer->GetTimeMilliseconds());
+			ImGui::Checkbox("enable Compare", &enableCompare);
+			ImGui::SliderFloat("feedback factor", &taaUniforms.data.feedbackFactor, 0.0f, 1.0f);
+			ImGui::InputFloat("max depth falloff", &taaUniforms.data.maxDepthFalloff, 0.01f);
 
-		//velocity settings
-		ImGui::Separator();
-		ImGui::SameLine();
-		ImGui::Text("Velocity settings");
-		ImGui::SliderFloat("Velocity scale", &taaUniforms.data.velocityScale, 0.0f, 10.0f);
+			//velocity settings
+			ImGui::Separator();
+			ImGui::SameLine();
+			ImGui::Text("Velocity settings");
+			ImGui::SliderFloat("Velocity scale", &taaUniforms.data.velocityScale, 0.0f, 10.0f);
 
-		//jitter settings
-		ImGui::Separator();
-		//ImGui::SameLine();
-		ImGui::DragFloat("halton scale", &jitterUniforms.data.haltonScale, 0.1f, 0.0f, 15.0f, "%.3f");
-		ImGui::DragInt("halton index",  &jitterUniforms.data.haltonIndex, 1.0f, 0, 128);
-		ImGui::DragInt("enable dithering", &jitterUniforms.data.enableDithering, 1.0f, 0, 1);
-		ImGui::DragFloat("dithering scale", &jitterUniforms.data.ditheringScale, 1.0f, 0.0f, 1000.0f, "%.3f");
+			//jitter settings
+			ImGui::Separator();
+			//ImGui::SameLine();
+			ImGui::DragFloat("halton scale", &jitterUniforms.data.haltonScale, 0.1f, 0.0f, 15.0f, "%.3f");
+			ImGui::DragInt("halton index",  &jitterUniforms.data.haltonIndex, 1.0f, 0, 128);
+			ImGui::DragInt("enable dithering", &jitterUniforms.data.enableDithering, 1.0f, 0, 1);
+			ImGui::DragFloat("dithering scale", &jitterUniforms.data.ditheringScale, 1.0f, 0.0f, 1000.0f, "%.3f");
 
-		ImGui::End();
+			ImGui::EndTabItem();
+		}
 	}
 
 	virtual void DrawBufferAttachments()
 	{
-		ImGui::Begin("framebuffers");
-		for (auto iter : geometryBuffer->attachments)
+		if (ImGui::BeginTabItem("framebuffers"))
 		{
-			ImGui::Image((ImTextureID*)iter->GetHandle(), ImVec2(512, 288),
-				ImVec2(0, 1), ImVec2(1, 0));
-			ImGui::SameLine();
-			ImGui::Text("%s\n", iter->GetUniformName().c_str());
-		}
-
-		for (auto iter : historyFrames)
-		{
-			for (auto iter2 : iter->attachments)
+			for (auto iter : geometryBuffer->attachments | std::views::values)
 			{
-				ImGui::Image((ImTextureID*)iter2->GetHandle(), ImVec2(512, 288),
+				ImGui::Image((ImTextureID*)iter.GetHandle(), ImVec2(512, 288),
 					ImVec2(0, 1), ImVec2(1, 0));
 				ImGui::SameLine();
-				ImGui::Text("%s\n", iter2->GetUniformName().c_str());
+				ImGui::Text("%s\n", iter.GetUniformName().c_str());
 			}
+
+			for (auto iter : historyFrames)
+			{
+				for (auto iter2 : iter->attachments | std::views::values)
+				{
+					ImGui::Image((ImTextureID*)iter2.GetHandle(), ImVec2(512, 288),
+						ImVec2(0, 1), ImVec2(1, 0));
+					ImGui::SameLine();
+					ImGui::Text("%s\n", iter2.GetUniformName().c_str());
+				}
+			}
+
+			ImGui::Image((ImTextureID*)unJitteredBuffer->attachments["color"].GetHandle(), ImVec2(512, 288),
+				ImVec2(0, 1), ImVec2(1, 0));
+			ImGui::SameLine();
+			ImGui::Text("%s\n", unJitteredBuffer->attachments["color"].GetUniformName().c_str());
+
+			ImGui::EndTabItem();
 		}
-
-		ImGui::Image((ImTextureID*)unJitteredBuffer->attachments[0]->GetHandle(), ImVec2(512, 288),
-			ImVec2(0, 1), ImVec2(1, 0));
-		ImGui::SameLine();
-		ImGui::Text("%s\n", unJitteredBuffer->attachments[0]->GetUniformName().c_str());
-
-		ImGui::End();
 	}
 
 	virtual void DrawJitterSettings()
@@ -538,35 +557,35 @@ protected:
 	virtual void ClearBuffers()
 	{
 		//ok copy the current frame into the previous frame and clear the rest of the buffers	
-		float clearColor1[4] = { 0.05f, 0.05f, 0.05f, 0.0f };
+		float clearColor1[4] = { 0.25f, 0.25f, 0.25f, 1.0f };
 		float clearColor2[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 		float clearColor3[4] = { 1.0f, 0.0f, 0.0f, 0.0f }; //this is for debugging only!
 
 		historyFrames[!currentFrame]->Bind(); //clear the previous, the next frame current becomes previous
-		historyFrames[!currentFrame]->ClearTexture(historyFrames[!currentFrame]->attachments[0], clearColor1);
-		historyFrames[!currentFrame]->ClearTexture(historyFrames[!currentFrame]->attachments[1], clearColor1);
+		historyFrames[!currentFrame]->ClearTexture(historyFrames[!currentFrame]->attachments["color"], clearColor1);
+		historyFrames[!currentFrame]->ClearTexture(historyFrames[!currentFrame]->attachments["depth"], clearColor2);
 		//copy current depth to previous or vice versa?
-		historyFrames[currentFrame]->attachments[1]->Copy(geometryBuffer->attachments[2]); //copy depth over
+		historyFrames[currentFrame]->attachments["depth"].Copy(&geometryBuffer->attachments["depth"]); //copy depth over
 
 		glClear(GL_DEPTH_BUFFER_BIT);
-		historyFrames[currentFrame]->Unbind();
+		historyFrames[!currentFrame]->Unbind();
 
 		geometryBuffer->Bind();
-		geometryBuffer->ClearTexture(geometryBuffer->attachments[0], clearColor1);
-		geometryBuffer->ClearTexture(geometryBuffer->attachments[1], clearColor2);
-		geometryBuffer->ClearTexture(geometryBuffer->attachments[2], clearColor2);
-		glClear(GL_DEPTH_BUFFER_BIT);
+		geometryBuffer->ClearTexture(geometryBuffer->attachments["color"], clearColor1);
+		geometryBuffer->ClearTexture(geometryBuffer->attachments["velocity"], clearColor2);
+		geometryBuffer->ClearTexture(geometryBuffer->attachments["depth"], clearColor2);
+		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 		geometryBuffer->Unbind();
 
 		unJitteredBuffer->Bind();
-		unJitteredBuffer->ClearTexture(unJitteredBuffer->attachments[0], clearColor1);
-		glClear(GL_DEPTH_BUFFER_BIT);
+		unJitteredBuffer->ClearTexture(unJitteredBuffer->attachments["color"], clearColor1);
+		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 		unJitteredBuffer->Unbind();
 
-		sceneCamera->ChangeProjection(camera_t::projection_e::perspective);
-		velocityUniforms.data.previousProjection = sceneCamera->projection;
-		velocityUniforms.data.previousView = sceneCamera->view;
-		velocityUniforms.data.prevTranslation = testModel->makeTransform(); //could be jittering the camera instead of the geometry?
+		camera.ChangeProjection(camera_t::projection_e::perspective);
+		velocityUniforms.data.previousProjection = camera.projection;
+		velocityUniforms.data.previousView = camera.view;
+		velocityUniforms.data.prevTranslation = testModel.makeTransform(); //could be jittering the camera instead of the geometry?
 		velocityUniforms.Update();
 	}
 
@@ -574,45 +593,46 @@ protected:
 	{
 		for (auto frame : historyFrames)
 		{
-			for (auto iter : frame->attachments)
+			for (auto iter : frame->attachments | std::views::values)
 			{
-				iter->Resize(glm::ivec3(resolution, 1));
+				iter.Resize(glm::ivec3(resolution, 1));
 			}
 		}
 
-		for (auto iter : geometryBuffer->attachments)
+		for (auto iter : geometryBuffer->attachments | std::views::values)
 		{
-			iter->Resize(glm::ivec3(resolution, 1));
+			iter.Resize(glm::ivec3(resolution, 1));
 		}
 
-		//sharpenBuffer->attachments[0]->Resize(resolution);
-		unJitteredBuffer->attachments[0]->Resize(glm::ivec3(resolution, 1));
-		unJitteredBuffer->attachments[1]->Resize(glm::ivec3(resolution, 1));
+		for (auto iter : unJitteredBuffer->attachments | std::views::values)
+		{
+			iter.Resize(glm::ivec3(resolution, 1));
+		}
 
-		glViewport(0, 0, windows[0]->settings.resolution.width, windows[0]->settings.resolution.height);
+		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 	}
 
-	virtual void HandleWindowResize(tWindow* window, TinyWindow::vec2_t<unsigned int> dimensions) override
+	virtual void HandleWindowResize(const tWindow* window, const tw::vec2_t<uint16_t>& dimensions) override
 	{
 		defaultPayload.data.resolution = glm::ivec2(dimensions.width, dimensions.height);	
 		ResizeBuffers(glm::ivec2(dimensions.x, dimensions.y));
 	}
 
-	virtual void HandleMaximize(tWindow* window) override
+	virtual void HandleMaximize(const tWindow* window) override
 	{
-		defaultPayload.data.resolution = glm::ivec2(window->settings.resolution.width, window->settings.resolution.height);
+		defaultPayload.data.resolution = glm::ivec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 		ResizeBuffers(defaultPayload.data.resolution);
 	}
 
 	virtual void InitializeUniforms() override
 	{
-		defaultPayload = bufferHandler_t<defaultUniformBuffer>(sceneCamera);
-		glViewport(0, 0, windows[0]->settings.resolution.width, windows[0]->settings.resolution.height);
+		defaultPayload = bufferHandler_t<defaultUniformBuffer>(camera);
+		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 
-		defaultPayload.data.resolution = glm::vec2(windows[0]->settings.resolution.width, windows[0]->settings.resolution.height);
-		defaultPayload.data.projection = sceneCamera->projection;
-		defaultPayload.data.translation = sceneCamera->translation;
-		defaultPayload.data.view = sceneCamera->view;
+		defaultPayload.data.resolution = glm::vec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
+		defaultPayload.data.projection = camera.projection;
+		defaultPayload.data.translation = camera.translation;
+		defaultPayload.data.view = camera.view;
 
 		defaultPayload.Initialize(0);
 		velocityUniforms.Initialize(1);
@@ -620,7 +640,7 @@ protected:
 		sharpenSettings.Initialize(3);
 		jitterUniforms.Initialize(4);
 
-		SetupVertexBuffer();
+		defaultVertexBuffer.SetupDefault();
 	}
 };
 

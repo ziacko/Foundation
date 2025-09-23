@@ -1,6 +1,6 @@
 [
     {
-        "name": "geometryProgram",
+        "name": "geometry",
         "outputs": [
             "outColor",
             "outVelocity"
@@ -8,13 +8,13 @@
         "shaders": [
             {
                 "name": "jitterVertex",
-                "path": "../../resources/shaders/Model.vert",
-                "type": "Vertex"
+                "path": "model.vert",
+                "type": "vertex"
             },
             {
                 "name": "TreeFragment",
-                "path": "../../resources/shaders/SpeedTree.frag",
-                "type": "Fragment"
+                "path": "speedTree.frag",
+                "type": "fragment"
             }
         ],
         "vertex attributes": [
@@ -26,7 +26,7 @@
         ]
     },
     {
-        "name": "earlyDepthProgram",
+        "name": "earlyDepth",
         "outputs": [
             "outColor",
             "outVelocity"
@@ -34,13 +34,13 @@
         "shaders": [
             {
                 "name": "jitterVertex",
-                "path": "../../resources/shaders/Model.vert",
-                "type": "Vertex"
+                "path": "model.vert",
+                "type": "vertex"
             },
             {
                 "name": "TreeFragment",
-                "path": "../../resources/shaders/EarlyDepth.frag",
-                "type": "Fragment"
+                "path": "earlyDepth.frag",
+                "type": "fragment"
             }
         ],
         "vertex attributes": [
@@ -52,20 +52,20 @@
         ]
     },
     {
-        "name": "compareProgram",
+        "name": "compare",
         "outputs": [
             "outColor"
         ],
         "shaders": [
             {
                 "name": "DefaultVertex",
-                "path": "../../resources/shaders/Default.vert",
-                "type": "Vertex"
+                "path": "default.vert",
+                "type": "vertex"
             },
             {
                 "name": "TexturedFragment",
-                "path": "../../resources/shaders/Outline.frag",
-                "type": "Fragment"
+                "path": "outline.frag",
+                "type": "fragment"
             }
         ],
         "vertex attributes": [
@@ -74,20 +74,20 @@
         ]
     },
     {
-        "name": "finalProgram",
+        "name": "final",
         "outputs": [
             "outColor"
         ],
         "shaders": [
             {
                 "name": "DefaultVertex",
-                "path": "../../resources/shaders/Default.vert",
-                "type": "Vertex"
+                "path": "default.vert",
+                "type": "vertex"
             },
             {
                 "name": "TexturedFragment",
-                "path": "../../resources/shaders/Textured.frag",
-                "type": "Fragment"
+                "path": "textured.frag",
+                "type": "fragment"
             }
         ],
         "vertex attributes": [

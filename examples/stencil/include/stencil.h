@@ -8,7 +8,7 @@ class stencil : public scene3D
 public:
 
 	stencil(const char* windowName = "Ziyad Barakat's Portfolio(stencil test)",
-		camera_t camera3D = camera_t(glm::vec2(1280, 720), 10.0f, camera_t::projection_e::perspective),
+		camera_t camera3D = camera_t(glm::vec2(1280, 720), 10.0f, camera_t::projection_e::perspective, 0.001f, 1000.0f ),
 		model_t model = model_t("models/fbx_foliage/broadleaf_field/Broadleaf_Desktop_Field.FBX"),
 		const char* shaderConfigPath = SHADER_CONFIG_DIR) : 
 		scene3D(windowName, camera3D, shaderConfigPath)
@@ -135,7 +135,7 @@ protected:
 
 	virtual void EarlyDepthPass()
 	{
-		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, __FUNCTION__);
+		GL_PUSH_DEBUG_GROUP();
 		geometryBuffer->Bind();
 		glEnable(GL_STENCIL_TEST);
 		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
@@ -174,7 +174,7 @@ protected:
 
 	virtual void GeometryPass()
 	{
-		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, __FUNCTION__);
+		GL_PUSH_DEBUG_GROUP();
 		geometryBuffer->Bind();
 		geometryBuffer->attachments["color"].Draw();
 
@@ -209,7 +209,7 @@ protected:
 
 	virtual void FinalPass(texture* tex1, frameBuffer::attachment_t* tex2)
 	{
-		glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, __FUNCTION__);
+		GL_PUSH_DEBUG_GROUP();
 		//draw directly to backbuffer		
 		tex1->SetActive(0);
 

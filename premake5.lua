@@ -272,15 +272,13 @@ scene_project("dotProduct")
 scene_project("scene3D")
 scene_project("texturedScene3D", {"scene3D"})
 scene_project("depthPrePass", {"scene3D", "texturedScene3D"})
---bsp loader
+--scene_project("bspLoader", {"scene3D"})
 scene_project("displacement", {"scene3D", "texturedScene3D"})
 scene_project("heightFog", {"scene3D", "texturedScene3D", "displacement"})
 scene_project("stencil", {"scene3D", "texturedScene3D"})
 scene_project("outline", {"scene3D", "texturedScene3D", "stencil"})
---god ray
--- dynamic res
--- dynamic res 2
--- dynamic res 3
+scene_project("godRay", {"scene3D", "texturedScene3D"})
+scene_project("dynamicRes", {"scene3D", "texturedScene3D"})
 -- CAS
 
 --anti aliasing projects
@@ -289,7 +287,7 @@ scene_project("SMAA", {"scene3D", "texturedScene3D"})
 scene_project("OAUpsampler", {"scene3D", "texturedScene3D", "SMAA"})
 scene_project("MSAA", {"scene3D", "texturedScene3D"})
 scene_project("SSAA", {"scene3D", "texturedScene3D"})
---TAA
+scene_project("temporalAA", {"scene3D", "texturedScene3D"})
 --TXAA
 --TSMAA
 --FSR

@@ -1,4 +1,4 @@
-#include "GodRay.h"
+#include "godRay.h"
 
 int main()
 {

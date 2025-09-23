@@ -1,0 +1,96 @@
+[
+    {
+        "name": "geometry",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "ModelVertex",
+                "path": "model.vert",
+                "type": "vertex"
+            },
+            {
+                "name": "TreeFragment",
+                "path": "speedTree.frag",
+                "type": "fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "normal",
+            "tangent",
+            "biTangent",
+            "uv"
+        ]
+    },
+    {
+        "name": "occlusion",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "ModelVertex",
+                "path": "model.vert",
+                "type": "vertex"
+            },
+            {
+                "name": "occlusionFragment",
+                "path": "occlusion.frag",
+                "type": "fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "normal",
+            "tangent",
+            "biTangent",
+            "uv"
+        ]
+    },
+    {
+        "name": "godRay",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "DefaultVertex",
+                "path": "default.vert",
+                "type": "vertex"
+            },
+            {
+                "name": "TreeFragment",
+                "path": "godRay.frag",
+                "type": "fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "uv"
+        ]
+    },
+    {
+        "name": "final",
+        "outputs": [
+            "outColor"
+        ],
+        "shaders": [
+            {
+                "name": "DefaultVertex",
+                "path": "default.vert",
+                "type": "vertex"
+            },
+            {
+                "name": "FinalFragment",
+                "path": "textured.frag",
+                "type": "fragment"
+            }
+        ],
+        "vertex attributes": [
+            "position",
+            "uv"
+        ]
+    }
+]

@@ -1,10 +1,10 @@
-#include "TemporalAA.h"
+#include "temporalAA.h"
 
 int main()
 {
-	temporalAA* exampleScene = new temporalAA();
-	exampleScene->Initialize();
-	exampleScene->Run();
+	temporalAA exampleScene = temporalAA();
+	exampleScene.Initialize();
+	exampleScene.Run();
 
 	return 0;
 }

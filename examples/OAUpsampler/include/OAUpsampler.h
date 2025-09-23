@@ -167,22 +167,22 @@ protected:
     {
         for (auto val : geometryBuffer.attachments | std::views::values)
         {
-            val.Resize(resolution);
+            val.Resize(glm::ivec3(resolution, 1));
         }
 
         for (auto val : edgesBuffer.attachments | std::views::values)
         {
-            val.Resize(resolution);
+            val.Resize(glm::ivec3(resolution, 1));
         }
 
         for (auto val : weightsBuffer.attachments | std::views::values)
         {
-            val.Resize(resolution);
+            val.Resize(glm::ivec3(resolution, 1));
         }
 
         for (auto val : SMAABuffer.attachments | std::views::values)
         {
-            val.Resize(resolution);
+            val.Resize(glm::ivec3(resolution, 1));
         }
     }
 

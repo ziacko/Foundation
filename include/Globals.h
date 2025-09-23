@@ -56,6 +56,11 @@ using namespace tw;
 
 #include <glext.h>
 
+// Debug group helper macro
+#ifndef GL_PUSH_DEBUG_GROUP
+#define GL_PUSH_DEBUG_GROUP() glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 0, -1, __FUNCTION__)
+#endif
+
 //global defines
 #define PI 3.14159265
 constexpr glm::vec4 clearColor = {0.33f, 0.33f, 0.33f, 1.0f};
