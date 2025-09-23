@@ -1,0 +1,119 @@
+[
+  {
+    "name": "geometry",
+    "outputs": [
+      "outColor",
+      "outVelocity"
+    ],
+    "shaders": [
+      {
+        "name": "jitterVertex",
+        "path": "jitter.vert",
+        "type": "vertex"
+      },
+      {
+        "name": "TreeFragment",
+        "path": "velocity.frag",
+        "type": "fragment"
+      }
+    ],
+    "vertex attributes": [
+      "positon",
+      "normal",
+      "tangent",
+      "biTangent",
+      "uv"
+    ]
+  },
+  {
+    "name": "smooth",
+    "outputs": [
+      "outColor"
+    ],
+    "shaders": [
+      {
+        "name": "DefaultVertex",
+        "path": "default.vert",
+        "type": "vertex"
+      },
+      {
+        "name": "TexturedFragment",
+        "path": "smooth.frag",
+        "type": "fragment"
+      }
+    ],
+    "vertex attributes": [
+      "position",
+      "uv"
+    ]
+  },
+  {
+    "name": "unjittered",
+    "outputs": [
+      "outColor"
+    ],
+    "shaders": [
+      {
+        "name": "modelVertex",
+        "path": "model.vert",
+        "type": "vertex"
+      },
+      {
+        "name": "TreeFragment",
+        "path": "speedTree.frag",
+        "type": "fragment"
+      }
+    ],
+    "vertex attributes": [
+      "positon",
+      "normal",
+      "tangent",
+      "biTangent",
+      "uv"
+    ]
+  },
+  {
+    "name": "compare",
+    "outputs": [
+      "outColor"
+    ],
+    "shaders": [
+      {
+        "name": "DefaultVertex",
+        "path": "default.vert",
+        "type": "vertex"
+      },
+      {
+        "name": "TexturedFragment",
+        "path": "compare.frag",
+        "type": "fragment"
+      }
+    ],
+    "vertex attributes": [
+      "position",
+      "uv"
+    ]
+  },
+  {
+    "name": "final",
+    "outputs": [
+      "outColor"
+    ],
+    "shaders": [
+      {
+        "name": "DefaultVertex",
+        "path": "default.vert",
+        "type": "vertex"
+      },
+      {
+        "name": "TexturedFragment",
+        "path": "textured.frag",
+        "type": "fragment"
+      }
+    ],
+    "vertex attributes": [
+      "position",
+      "uv"
+    ]
+  }
+]
