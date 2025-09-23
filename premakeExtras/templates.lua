@@ -61,7 +61,6 @@ out defaultBlock
 {
 	vec4 position;
 	vec2 uv;
-	vec2 fullUV;
 } outBlock;
 
 layout(std140, binding = 0) uniform defaultSettings
@@ -79,7 +78,7 @@ layout(std140, binding = 0) uniform defaultSettings
 
 void main()
 {
-	outBlock.position = projection * view * translation * position;
+	outBlock.position = position;
 	outBlock.uv = outBlock.position.xy * 0.5f + 0.5f;
 	gl_Position = outBlock.position;
 }
@@ -92,7 +91,6 @@ in defaultBlock
 {
 	vec4 position;
 	vec2 uv;
-	vec2 fullUV;
 } inBlock;
 
 layout(std140, binding = 0) uniform defaultSettings

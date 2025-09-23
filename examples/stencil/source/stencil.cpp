@@ -1,9 +1,9 @@
-#include "Stencil.h"
+#include "stencil.h"
 
 int main()
 {
-	stencil* exampleScene = new stencil();
-	exampleScene->Initialize();
-	exampleScene->Run();
+	stencil exampleScene = stencil();
+	exampleScene.Initialize();
+	exampleScene.Run();
 	return 0;
 }

@@ -275,8 +275,8 @@ scene_project("depthPrePass", {"scene3D", "texturedScene3D"})
 --bsp loader
 scene_project("displacement", {"scene3D", "texturedScene3D"})
 scene_project("heightFog", {"scene3D", "texturedScene3D", "displacement"})
---height fog
 --stencil
+scene_project("stencil", {"scene3D", "texturedScene3D"})
 --outline
 --god ray
 -- dynamic res
