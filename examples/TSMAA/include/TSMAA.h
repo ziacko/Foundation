@@ -82,16 +82,16 @@ struct TAASettings_t
 	~TAASettings_t() { };
 };
 
-class SMAA1xt : public SMAA
+class TSMAA : public SMAAScene
 {
 public:
 
-	SMAA1xt(
+	TSMAA(
 		const char* windowName = "Ziyad Barakat's portfolio (SMAA 1xt)",
-		camera* texModelCamera = new camera(glm::vec2(1280, 720), 5.0f, camera::projection_t::perspective, 100.0f, 2000.f),
-		const char* shaderConfigPath = "../../resources/shaders/SMAA 1xt.txt",
-		model_t* model = new model_t("../../resources/models/fbx_foliage/broadleaf_field/Broadleaf_Desktop_Field.FBX"))
-		: SMAA(windowName, texModelCamera, shaderConfigPath, model)
+		camera_t texModelCamera = camera_t(glm::vec2(1280, 720), 5.0f, camera_t::projection_e::perspective, 100.0f, 2000.f),
+		const char* shaderConfigPath = SHADER_CONFIG_DIR,
+		model_t model = model_t("models/fbx_foliage/broadleaf_field/Broadleaf_Desktop_Field.FBX"))
+		: SMAAScene(windowName, texModelCamera, shaderConfigPath, model)
 	{
 		velocityUniforms = bufferHandler_t<reprojectSettings_t>();
 		taaUniforms = bufferHandler_t<TAASettings_t>();
@@ -104,53 +104,53 @@ public:
 		}
 	}
 
-	~SMAA1xt() {};
+	~TSMAA() {};
 
 	virtual void Initialize() override
 	{
 		scene3D::Initialize();
-		SMAAArea->LoadTexture();
-		SMAASearch->LoadTexture();
+		SMAAArea.LoadTexture();
+		SMAASearch.LoadTexture();
 
-		geometryBuffer->Initialize();
-		geometryBuffer->Bind();
-		geometryBuffer->AddAttachment(new frameBuffer::attachment_t("color"));
+		geometryBuffer.Initialize();
+		geometryBuffer.Bind();
+		geometryBuffer.AddAttachment(frameBuffer::attachment_t("color"));
 
 		FBODescriptor velDesc;
-		velDesc.format = gl_rg;
-		velDesc.internalFormat = gl_rg16_snorm;
+		velDesc.format = GL_RG;
+		velDesc.internalFormat = GL_RG16_SNORM;
 		velDesc.dataType = GL_FLOAT;
-		velDesc.dimensions = glm::ivec3(windows[0]->settings.resolution.width, windows[0]->settings.resolution.height, 1);
+		velDesc.dimensions = glm::ivec3(window->GetSettings().resolution.width, window->GetSettings().resolution.height, 1);
 
-		geometryBuffer->AddAttachment(new frameBuffer::attachment_t("velocity", velDesc));
+		geometryBuffer.AddAttachment(frameBuffer::attachment_t("velocity", velDesc));
 
 		FBODescriptor depthDesc;
 		depthDesc.dataType = GL_FLOAT;
 		depthDesc.format = GL_DEPTH_COMPONENT;
-		depthDesc.internalFormat = gl_depth_component24;
-		depthDesc.attachmentType = FBODescriptor::attachmentType_t::depth;
-		depthDesc.dimensions = glm::ivec3(windows[0]->settings.resolution.width, windows[0]->settings.resolution.height, 1);
+		depthDesc.internalFormat = GL_DEPTH_COMPONENT24;
+		depthDesc.attachmentType = FBODescriptor::attachmentType_e::depth;
+		depthDesc.dimensions = glm::ivec3(window->GetSettings().resolution.width, window->GetSettings().resolution.height, 1);
 
-		geometryBuffer->AddAttachment(new frameBuffer::attachment_t("depth", depthDesc));
+		geometryBuffer.AddAttachment(frameBuffer::attachment_t("depth", depthDesc));
 
-		edgesBuffer->Initialize();
-		edgesBuffer->Bind();
+		edgesBuffer.Initialize();
+		edgesBuffer.Bind();
 
 		FBODescriptor edgeDesc;
-		edgeDesc.format = gl_rg;
-		edgeDesc.internalFormat = gl_rg8;
-		edgeDesc.dimensions = glm::ivec3(windows[0]->settings.resolution.width, windows[0]->settings.resolution.height, 1);
+		edgeDesc.format = GL_RG;
+		edgeDesc.internalFormat = GL_RG8;
+		edgeDesc.dimensions = glm::ivec3(window->GetSettings().resolution.width, window->GetSettings().resolution.height, 1);
 
-		edgesBuffer->AddAttachment(new frameBuffer::attachment_t("edge", edgeDesc));
+		edgesBuffer.AddAttachment(frameBuffer::attachment_t("edge", edgeDesc));
 
-		weightsBuffer->Initialize();
-		weightsBuffer->Bind();
+		weightsBuffer.Initialize();
+		weightsBuffer.Bind();
 
-		weightsBuffer->AddAttachment(new frameBuffer::attachment_t("blend"));
+		weightsBuffer.AddAttachment(frameBuffer::attachment_t("blend"));
 
-		SMAABuffer->Initialize();
-		SMAABuffer->Bind();
-		SMAABuffer->AddAttachment(new frameBuffer::attachment_t("SMAA"));
+		SMAABuffer.Initialize();
+		SMAABuffer.Bind();
+		SMAABuffer.AddAttachment(frameBuffer::attachment_t("SMAA"));
 
 		for(unsigned int iter = 0; iter < numPreviousFrames; iter++)
 		{
@@ -158,18 +158,19 @@ public:
 
 			newBuffer->Initialize();
 			newBuffer->Bind();
-			newBuffer->AddAttachment(new frameBuffer::attachment_t(("color" + std::to_string(iter))));
-			newBuffer->AddAttachment(new frameBuffer::attachment_t(("depth" + std::to_string(iter)), depthDesc));
+			newBuffer->AddAttachment(frameBuffer::attachment_t("color"));
+			newBuffer->AddAttachment(frameBuffer::attachment_t("depth", depthDesc));
 
 			historyFrames.push_back(newBuffer);
 		}
 
-		edgeDetectionProgram = shaderPrograms[1]->handle;
-		blendingWeightProgram = shaderPrograms[2]->handle;
-		SMAAProgram = shaderPrograms[3]->handle;
-		resolveProgram = shaderPrograms[4]->handle;
-		compareProgram = shaderPrograms[5]->handle;
-		finalProgram = shaderPrograms[6]->handle;
+		defProgram = shaderProgramsMap["geometry"];
+		edgeDetectionProgram = shaderProgramsMap["edgeDetection"];
+		blendingWeightProgram = shaderProgramsMap["blendingWeight"];
+		SMAAProgram = shaderProgramsMap["neighborhoodBlend"];
+		resolveProgram = shaderProgramsMap["resolve"];
+		compareProgram = shaderProgramsMap["compare"];
+		finalProgram = shaderProgramsMap["final"];
 		
 		frameBuffer::Unbind();
 	}
@@ -178,9 +179,8 @@ protected:
 
 	std::vector<frameBuffer*>		historyFrames;
 
-	unsigned int resolveProgram = 0;
-
-	unsigned int numPreviousFrames = 2;
+	shaderProgram_t resolveProgram;
+	uint8_t numPreviousFrames = 2;
 
 	bool enableCompare = true;
 	bool currentFrame = false;
@@ -192,10 +192,10 @@ protected:
 
 	virtual void Update() override
 	{
-		SMAA::Update();
+		SMAAScene::Update();
 
 		jitterUniforms.Update();
-		jitter2Uniforms.Update();
+		//jitter2Uniforms.Update();
 
 		//if even frame then write to 1 and read from 0 and vice versa
 		currentFrame = ((defaultPayload.data.totalFrames % 2) == 0) ? false : true;
@@ -203,15 +203,15 @@ protected:
 
 	virtual void Draw() override
 	{
-		velocityUniforms.data.currentView = sceneCamera->view;
-		sceneCamera->ChangeProjection(camera::projection_t::perspective);
-		sceneCamera->Update();
+		velocityUniforms.data.currentView =camera.view;
+		camera.ChangeProjection(camera_t::projection_e::perspective);
+		camera.Update();
 
 		UpdateDefaultBuffer();
 
 		JitterPass(); //i think jitter fucks with SMAA
 
-		sceneCamera->ChangeProjection(camera::projection_t::orthographic);
+		camera.ChangeProjection(camera_t::projection_e::orthographic);
 		UpdateDefaultBuffer();
 		
 		EdgeDetectionPass();
@@ -221,309 +221,317 @@ protected:
 
 		SMAAResolvePass();
 
-		FinalPass(historyFrames[currentFrame]->attachments[0], geometryBuffer->attachments[0]);
+		FinalPass(&historyFrames[currentFrame]->attachments["color"], &geometryBuffer.attachments["color"]);
 		
-		DrawGUI(windows[0]);
-		
-		windows[0]->SwapDrawBuffers();
+		DrawGUI(window);
+
+		manager->SwapDrawBuffers(window);
 		ClearBuffers();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 
 	virtual void JitterPass()
 	{
-		geometryBuffer->Bind();
+		GL_PUSH_DEBUG_GROUP();
+		geometryBuffer.Bind();
 
 		GLenum drawbuffers[2] = {
-			geometryBuffer->attachments[0]->FBODesc.attachmentFormat, //color
-			geometryBuffer->attachments[1]->FBODesc.attachmentFormat, //velocity
+			geometryBuffer.attachments["color"].FBODesc.attachmentFormat, //color
+			geometryBuffer.attachments["velocity"].FBODesc.attachmentFormat, //velocity
 		};
 
 		glDrawBuffers(2, drawbuffers);
 
 		//we just need the first LOd so only do the first 3 meshes
-		for (size_t iter = 0; iter < 3; iter++)
+		for (size_t iter = 0; iter < 1; iter++)
 		{
-			if (testModel->meshes[iter].isCollision)
+			if (testModel.meshes[iter].isCollision)
 			{
 				continue;
 			}
 
-			testModel->meshes[iter].textures[0].SetActive(0);
+			testModel.meshes[iter].textures[0].SetActive(0);
 
-			glBindVertexArray(testModel->meshes[iter].vertexArrayHandle);
-			glUseProgram(this->programGLID);
-			glViewport(0, 0, windows[0]->settings.resolution.width, windows[0]->settings.resolution.height);
+			glBindVertexArray(testModel.meshes[iter].vertexArrayHandle);
+			defProgram.Use();
+			glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 			glCullFace(GL_BACK);
 
 			if (wireframe)
 			{
 				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 			}
-			glDrawElements(GL_TRIANGLES, (GLsizei)testModel->meshes[iter].indices.size(), GL_UNSIGNED_INT, nullptr);
+			glDrawElements(GL_TRIANGLES, (GLsizei)testModel.meshes[iter].indices.size(), GL_UNSIGNED_INT, nullptr);
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		}
 
-		geometryBuffer->Unbind();
+		geometryBuffer.Unbind();
+		glPopDebugGroup();
 	}
 
-	virtual void EdgeDetectionPass()
+	virtual void EdgeDetectionPass() override
 	{
-		edgesBuffer->Bind();
+		GL_PUSH_DEBUG_GROUP();
+		edgesBuffer.Bind();
 
-		glDrawBuffers(1, &edgesBuffer->attachments[0]->FBODesc.attachmentFormat);
+		glDrawBuffers(1, &edgesBuffer.attachments["edge"].FBODesc.attachmentFormat);
 
-		geometryBuffer->attachments[0]->SetActive(0);//color
-		geometryBuffer->attachments[1]->SetActive(1);//depth
+		geometryBuffer.attachments["color"].SetActive(0);//color
+		geometryBuffer.attachments["depth"].SetActive(1);//depth
 
-		glBindVertexArray(defaultVertexBuffer->vertexArrayHandle);
-		glUseProgram(edgeDetectionProgram);
-		glViewport(0, 0, windows[0]->settings.resolution.width, windows[0]->settings.resolution.height);
+		glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
+		edgeDetectionProgram.Use();
+		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
-		edgesBuffer->Unbind();
+		edgesBuffer.Unbind();
+		glPopDebugGroup();
 	}
 
-	virtual void BlendingWeightsPass()
+	virtual void BlendingWeightsPass() override
 	{
-		weightsBuffer->Bind();
+		GL_PUSH_DEBUG_GROUP();
+		weightsBuffer.Bind();
 
-		glDrawBuffers(1, &weightsBuffer->attachments[0]->FBODesc.attachmentFormat);
+		glDrawBuffers(1, &weightsBuffer.attachments["blend"].FBODesc.attachmentFormat);
 
-		edgesBuffer->attachments[0]->SetActive(0);
-		SMAAArea->SetActive(1);
-		SMAASearch->SetActive(2);
+		edgesBuffer.attachments["edge"].SetActive(0);
+		SMAAArea.SetActive(1);
+		SMAASearch.SetActive(2);
 
-		glBindVertexArray(defaultVertexBuffer->vertexArrayHandle);
-		glUseProgram(blendingWeightProgram);
-		glViewport(0, 0, windows[0]->settings.resolution.width, windows[0]->settings.resolution.height);
+		glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
+		blendingWeightProgram.Use();
+		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
-		weightsBuffer->Unbind();
+		weightsBuffer.Unbind();
+		glPopDebugGroup();
 	}
 
-	virtual void SMAAPass()
+	virtual void SMAAPass() override
 	{
-		SMAABuffer->Bind();
-		glDrawBuffers(1, &SMAABuffer->attachments[0]->FBODesc.attachmentFormat);
+		GL_PUSH_DEBUG_GROUP();
+		SMAABuffer.Bind();
+		glDrawBuffers(1, &SMAABuffer.attachments["SMAA"].FBODesc.attachmentFormat);
 
-		geometryBuffer->attachments[0]->SetActive(0); // color
-		weightsBuffer->attachments[0]->SetActive(1); //blending weights
+		geometryBuffer.attachments["color"].SetActive(0); // color
+		weightsBuffer.attachments["blend"].SetActive(1); //blending weights
 
-		glBindVertexArray(defaultVertexBuffer->vertexArrayHandle);
-		glUseProgram(SMAAProgram);
-		glViewport(0, 0, windows[0]->settings.resolution.width, windows[0]->settings.resolution.height);
+		glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
+		SMAAProgram.Use();
+		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
-		SMAABuffer->Unbind();
+		SMAABuffer.Unbind();
+		glPopDebugGroup();
 	}
 
 	virtual void SMAAResolvePass()
 	{
+		GL_PUSH_DEBUG_GROUP();
 		historyFrames[currentFrame]->Bind();
 		GLenum drawBuffers[1] = {
-			historyFrames[currentFrame]->attachments[0]->FBODesc.attachmentFormat
+			historyFrames[currentFrame]->attachments["color"].FBODesc.attachmentFormat
 		};
 		glDrawBuffers(1, drawBuffers);
 
-		SMAABuffer->attachments[0]->SetActive(0); //current color
-		geometryBuffer->attachments[2]->SetActive(1);//current depth
+		SMAABuffer.attachments["SMAA"].SetActive(0); //current color
+		geometryBuffer.attachments["depth"].SetActive(1);//current depth
 
-		historyFrames[!currentFrame]->attachments[0]->SetActive(2); //previous color
-		historyFrames[!currentFrame]->attachments[1]->SetActive(3);//previous depth
+		historyFrames[!currentFrame]->attachments["color"].SetActive(2); //previous color
+		historyFrames[!currentFrame]->attachments["depth"].SetActive(3);//previous depth
 
-		geometryBuffer->attachments[1]->SetActive(4); //velocity
-		
-		
+		geometryBuffer.attachments["velocity"].SetActive(4); //velocity
 
-		glBindVertexArray(defaultVertexBuffer->vertexArrayHandle);
-		glUseProgram(resolveProgram);
-		glViewport(0, 0, windows[0]->settings.resolution.width, windows[0]->settings.resolution.height);
+		glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
+		resolveProgram.Use();
+		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
 		historyFrames[currentFrame]->Unbind();
+		glPopDebugGroup();
 	}
 
 	void FinalPass(texture* tex1, texture* tex2)
 	{
+		GL_PUSH_DEBUG_GROUP();
 		//draw directly to backbuffer
 		tex1->SetActive(0);
 		
-		glBindVertexArray(defaultVertexBuffer->vertexArrayHandle);
-		glViewport(0, 0, windows[0]->settings.resolution.width, windows[0]->settings.resolution.height);
+		glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
+		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 		if (enableCompare)
 		{
 			tex2->SetActive(1);
-			glUseProgram(compareProgram);
+			compareProgram.Use();
 		}
 
 		else
 		{
-			glUseProgram(finalProgram);
+			finalProgram.Use();
 		}
 	
 		glDrawArrays(GL_TRIANGLES, 0, 6);
+		glPopDebugGroup();
 	}
 
-	virtual void BuildGUI(tWindow* window, ImGuiIO io) override
+	virtual void BuildGUI(tWindow* window, const ImGuiIO& io) override
 	{
-		scene3D::BuildGUI(windows[0], io);
+		scene3D::BuildGUI(window, io);
 
 		DrawBufferAttachments();
 		DrawSMAASettings();
-	}
-
-	void DrawSMAASettings()
-	{
-		ImGui::Begin("SMAA Settings");
-		ImGui::Checkbox("enable Compare", &enableCompare);
-		ImGui::Separator();
-		ImGui::DragFloat("halton scale", &jitterUniforms.data.haltonScale, 0.1f, 0.0f, 15.0f, "%.3f");
-		ImGui::DragInt("halton index", &jitterUniforms.data.haltonIndex, 1.0f, 0, 128);
-
-		ImGui::End();
+		DrawTAASettings();
+		DrawCameraStats();
 	}
 
 	virtual void DrawTAASettings()
 	{
-		ImGui::Begin("TAA Settings");
-		ImGui::Text("performance | %f", defaultTimer->GetTimeMilliseconds());
-		ImGui::Checkbox("enable Compare", &enableCompare);
-		//ImGui::SliderFloat("feedback factor", &taaUniforms.data.feedbackFactor, 0.0f, 1.0f);
-		//ImGui::InputFloat("max depth falloff", &taaUniforms.data.maxDepthFalloff, 0.01f);
+		if(ImGui::BeginTabItem("TAA Settings"))
+		{
+			ImGui::Checkbox("enable Compare", &enableCompare);
+			ImGui::SliderFloat("feedback factor", &taaUniforms.data.feedbackFactor, 0.0f, 1.0f);
+			ImGui::InputFloat("max depth falloff", &taaUniforms.data.maxDepthFalloff, 0.01f);
 
-		//velocity settings
-		ImGui::Separator();
-		//ImGui::SameLine();
-		//ImGui::Text("Velocity settings");
-		//ImGui::SliderFloat("Velocity scale", &taaUniforms.data.velocityScale, 0.0f, 10.0f);
+			//velocity settings
+			ImGui::Separator();
+			//ImGui::SameLine();
+			ImGui::Text("Velocity settings");
+			ImGui::SliderFloat("Velocity scale", &taaUniforms.data.velocityScale, 0.0f, 10.0f);
 
-		//jitter settings
-		//ImGui::Separator();
-		//ImGui::SameLine();
-		ImGui::DragFloat("halton scale", &jitterUniforms.data.haltonScale, 0.1f, 0.0f, 15.0f, "%.3f");
-		ImGui::DragInt("halton index", &jitterUniforms.data.haltonIndex, 1.0f, 0, 128);
-		ImGui::DragInt("enable dithering", &jitterUniforms.data.enableDithering, 1.0f, 0, 1);
-		ImGui::DragFloat("dithering scale", &jitterUniforms.data.ditheringScale, 1.0f, 0.0f, 1000.0f, "%.3f");
+			//jitter settings
+			ImGui::Separator();
+			//ImGui::SameLine();
+			ImGui::DragFloat("halton scale", &jitterUniforms.data.haltonScale, 0.1f, 0.0f, 15.0f, "%.3f");
+			ImGui::DragInt("halton index", &jitterUniforms.data.haltonIndex, 1.0f, 0, 128);
+			ImGui::DragInt("enable dithering", &jitterUniforms.data.enableDithering, 1.0f, 0, 1);
+			ImGui::DragFloat("dithering scale", &jitterUniforms.data.ditheringScale, 1.0f, 0.0f, 1000.0f, "%.3f");
 
-		ImGui::End();
+			ImGui::EndTabItem();
+		}
 	}
 
 	virtual void DrawBufferAttachments()
 	{
-		ImGui::Begin("framebuffers");
-		for (auto iter : geometryBuffer->attachments)
+		if (ImGui::BeginTabItem("framebuffers"))
 		{
-			ImGui::Image((ImTextureID*)iter->GetHandle(), ImVec2(512, 288),
-				ImVec2(0, 1), ImVec2(1, 0));
-			ImGui::SameLine();
-			ImGui::Text("%s\n", iter->GetUniformName().c_str());
-		}
-
-		ImGui::Image((ImTextureID*)edgesBuffer->attachments[0]->GetHandle(), ImVec2(512, 288),
-			ImVec2(0, 1), ImVec2(1, 0));
-		ImGui::SameLine();
-		ImGui::Text("%s\n", edgesBuffer->attachments[0]->GetUniformName().c_str());
-
-		ImGui::Image((ImTextureID*)weightsBuffer->attachments[0]->GetHandle(), ImVec2(512, 288),
-			ImVec2(0, 1), ImVec2(1, 0));
-		ImGui::SameLine();
-		ImGui::Text("%s\n", weightsBuffer->attachments[0]->GetUniformName().c_str());
-
-		ImGui::Image((ImTextureID*)SMAABuffer->attachments[0]->GetHandle(), ImVec2(512, 288),
-			ImVec2(0, 1), ImVec2(1, 0));
-		ImGui::SameLine();
-		ImGui::Text("%s\n", SMAABuffer->attachments[0]->GetUniformName().c_str());
-
-		for (auto iter : historyFrames)
-		{
-			for (auto iter2 : iter->attachments)
+			for (auto iter : geometryBuffer.attachments | std::views::values)
 			{
-				ImGui::Image((ImTextureID*)iter2->GetHandle(), ImVec2(512, 288),
+				ImGui::Image((ImTextureID*)iter.GetHandle(), ImVec2(512, 288),
 					ImVec2(0, 1), ImVec2(1, 0));
 				ImGui::SameLine();
-				ImGui::Text("%s\n", iter2->GetUniformName().c_str());
+				ImGui::Text("%s\n", iter.GetUniformName().c_str());
 			}
-		}
 
-		ImGui::End();
+			ImGui::Image((ImTextureID*)edgesBuffer.attachments["edge"].GetHandle(), ImVec2(512, 288),
+				ImVec2(0, 1), ImVec2(1, 0));
+			ImGui::SameLine();
+			ImGui::Text("%s\n", edgesBuffer.attachments["edge"].GetUniformName().c_str());
+
+			ImGui::Image((ImTextureID*)weightsBuffer.attachments["blend"].GetHandle(), ImVec2(512, 288),
+				ImVec2(0, 1), ImVec2(1, 0));
+			ImGui::SameLine();
+			ImGui::Text("%s\n", weightsBuffer.attachments["blend"].GetUniformName().c_str());
+
+			ImGui::Image((ImTextureID*)SMAABuffer.attachments["SMAA"].GetHandle(), ImVec2(512, 288),
+				ImVec2(0, 1), ImVec2(1, 0));
+			ImGui::SameLine();
+			ImGui::Text("%s\n", SMAABuffer.attachments["SMAA"].GetUniformName().c_str());
+
+			for (auto iter : historyFrames)
+			{
+				for (auto iter2 : iter->attachments | std::views::values)
+				{
+					ImGui::Image((ImTextureID*)iter2.GetHandle(), ImVec2(512, 288),
+						ImVec2(0, 1), ImVec2(1, 0));
+					ImGui::SameLine();
+					ImGui::Text("%s\n", iter2.GetUniformName().c_str());
+				}
+			}
+
+			ImGui::EndTabItem();
+		}
 	}
 
 	virtual void DrawCameraStats() override
 	{
 		//set up the view matrix
-		ImGui::Begin("camera", &isGUIActive);
+		if(ImGui::BeginTabItem("camera", &isGUIActive))
+		{
+			ImGui::DragFloat("near plane", &camera.nearPlane);
+			ImGui::DragFloat("far plane", &camera.farPlane);
+			ImGui::SliderFloat("Field of view", &camera.fieldOfView, 0, 90, "%.0f");
 
-		ImGui::DragFloat("near plane", &sceneCamera->nearPlane);
-		ImGui::DragFloat("far plane", &sceneCamera->farPlane);
-		ImGui::SliderFloat("Field of view", &sceneCamera->fieldOfView, 0, 90, "%.0f");
+			ImGui::InputFloat("camera speed", &camera.speed, 0.f);
+			ImGui::InputFloat("x sensitivity", &camera.xSensitivity, 0.f);
+			ImGui::InputFloat("y sensitivity", &camera.ySensitivity, 0.f);
+			ImGui::EndTabItem();
+		}
 
-		ImGui::InputFloat("camera speed", &sceneCamera->speed, 0.f);
-		ImGui::InputFloat("x sensitivity", &sceneCamera->xSensitivity, 0.f);
-		ImGui::InputFloat("y sensitivity", &sceneCamera->ySensitivity, 0.f);
-		ImGui::End();
+
 	}
 
 	virtual void ClearBuffers()
 	{
+		GL_PUSH_DEBUG_GROUP();
 		//ok copy the current frame into the previous frame and clear the rest of the buffers	
-		float clearColor1[4] = { 0.025f, 0.025f, 0.025f, 0.025f };
+		float clearColor1[4] = { 0.25f, 0.25f, 0.25f, 0.25f };
 		float clearColor2[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 
 		historyFrames[!currentFrame]->Bind(); //clear the previous, the next frame current becomes previous
-		historyFrames[!currentFrame]->ClearTexture(historyFrames[!currentFrame]->attachments[0], clearColor1);
-		historyFrames[!currentFrame]->ClearTexture(historyFrames[!currentFrame]->attachments[1], clearColor2);
+		historyFrames[!currentFrame]->ClearTexture(historyFrames[!currentFrame]->GetAttachmentRef("color"), clearColor1);
+		historyFrames[!currentFrame]->ClearTexture(historyFrames[!currentFrame]->GetAttachmentRef("depth"), clearColor2);
 		//copy current depth to previous or vice versa?
-		historyFrames[currentFrame]->attachments[1]->Copy(geometryBuffer->attachments[2]); //copy depth over
+		historyFrames[currentFrame]->GetAttachmentRef("depth").Copy(&geometryBuffer.GetAttachmentRef("depth")); //copy depth over
 
 		glClear(GL_DEPTH_BUFFER_BIT);
 		historyFrames[currentFrame]->Unbind();
 
-		geometryBuffer->Bind();
-		geometryBuffer->ClearTexture(geometryBuffer->attachments[0], clearColor1);
-		geometryBuffer->ClearTexture(geometryBuffer->attachments[1], clearColor2);
+		geometryBuffer.Bind();
+		geometryBuffer.ClearTexture(geometryBuffer.GetAttachmentRef("color"), clearColor1);
+		geometryBuffer.ClearTexture(geometryBuffer.GetAttachmentRef("depth"), clearColor2);
 		glClear(GL_DEPTH_BUFFER_BIT);
-		geometryBuffer->Unbind();
+		geometryBuffer.Unbind();
 
-		SMAABuffer->Bind();
-		SMAABuffer->ClearTexture(SMAABuffer->attachments[0], clearColor1);
-		SMAABuffer->Unbind();
+		SMAABuffer.Bind();
+		SMAABuffer.ClearTexture(SMAABuffer.GetAttachmentRef("SMAA"), clearColor1);
+		SMAABuffer.Unbind();
 
-		edgesBuffer->Bind();
-		edgesBuffer->ClearTexture(edgesBuffer->attachments[0], clearColor2);
-		edgesBuffer->Unbind();
+		edgesBuffer.Bind();
+		edgesBuffer.ClearTexture(edgesBuffer.GetAttachmentRef("edge"), clearColor2);
+		edgesBuffer.Unbind();
 
-		weightsBuffer->Bind();
-		weightsBuffer->ClearTexture(weightsBuffer->attachments[0], clearColor2);
-		weightsBuffer->Unbind();
+		weightsBuffer.Bind();
+		weightsBuffer.ClearTexture(weightsBuffer.GetAttachmentRef("blend"), clearColor2);
+		weightsBuffer.Unbind();
 
-		sceneCamera->ChangeProjection(camera::projection_t::perspective);
-		velocityUniforms.data.previousProjection = sceneCamera->projection;
-		velocityUniforms.data.previousView = sceneCamera->view;
-		velocityUniforms.data.prevTranslation = testModel->makeTransform(); //could be jittering the camera instead of the geometry?
+		camera.ChangeProjection(camera_t::projection_e::perspective);
+		velocityUniforms.data.previousProjection =camera.projection;
+		velocityUniforms.data.previousView =camera.view;
+		velocityUniforms.data.prevTranslation = testModel.makeTransform(); //could be jittering the camera instead of the geometry?
 		velocityUniforms.Update();
+		glPopDebugGroup();
 	}
 
 	virtual void ResizeBuffers(glm::ivec2 resolution) override
 	{
-		SMAA::ResizeBuffers(resolution);
+		SMAAScene::ResizeBuffers(resolution);
 		for (auto frame : historyFrames)
 		{
-			for (auto iter : frame->attachments)
+			for (auto iter : frame->attachments | std::views::values)
 			{
-				iter->Resize(glm::ivec3(resolution, 1));
+				frame->GetAttachmentRef(iter.uniformName).Resize(glm::ivec3(resolution, 1));
 			}
 		}
 	}
 
 	virtual void InitializeUniforms() override
 	{
-		SMAA::InitializeUniforms();
+		SMAAScene::InitializeUniforms();
 
-		jitterUniforms.Initialize(4);
-		jitter2Uniforms.Initialize(3);
-		velocityUniforms.Initialize(1);
-		taaUniforms.Initialize(2);
+		jitterUniforms.Initialize(2);
+		velocityUniforms.Initialize(3);
+		taaUniforms.Initialize(4);
 	}
 
 	float CreateHaltonSequence(unsigned int index, int base)

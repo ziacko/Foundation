@@ -282,7 +282,7 @@ protected:
 		//defaultVertexBuffer.UpdateBuffer(defaultPayload.data.resolution);
 	}
 
-	virtual void Draw()
+	virtual void Draw() override
 	{
 		velocityUniforms.data.currentView = camera.view; //need to update the current view matrix
 		camera.ChangeProjection(camera_t::projection_e::perspective);
@@ -559,26 +559,28 @@ protected:
 		//ok copy the current frame into the previous frame and clear the rest of the buffers	
 		float clearColor1[4] = { 0.25f, 0.25f, 0.25f, 1.0f };
 		float clearColor2[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-		float clearColor3[4] = { 1.0f, 0.0f, 0.0f, 0.0f }; //this is for debugging only!
+		float clearColor3[4] = { 1.0f, 0.0f, 0.0f, 0.0f }; //this is for debugging only
+
+		//glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
 		historyFrames[!currentFrame]->Bind(); //clear the previous, the next frame current becomes previous
-		historyFrames[!currentFrame]->ClearTexture(historyFrames[!currentFrame]->attachments["color"], clearColor1);
-		historyFrames[!currentFrame]->ClearTexture(historyFrames[!currentFrame]->attachments["depth"], clearColor2);
+		historyFrames[!currentFrame]->ClearTexture(historyFrames[!currentFrame]->GetAttachmentRef("color"), clearColor1);
+		historyFrames[!currentFrame]->ClearTexture(historyFrames[!currentFrame]->GetAttachmentRef("depth"), clearColor2);
 		//copy current depth to previous or vice versa?
-		historyFrames[currentFrame]->attachments["depth"].Copy(&geometryBuffer->attachments["depth"]); //copy depth over
+		historyFrames[currentFrame]->GetAttachmentRef("depth").Copy(&geometryBuffer->GetAttachmentRef("depth")); //copy depth over
 
 		glClear(GL_DEPTH_BUFFER_BIT);
 		historyFrames[!currentFrame]->Unbind();
 
 		geometryBuffer->Bind();
-		geometryBuffer->ClearTexture(geometryBuffer->attachments["color"], clearColor1);
-		geometryBuffer->ClearTexture(geometryBuffer->attachments["velocity"], clearColor2);
-		geometryBuffer->ClearTexture(geometryBuffer->attachments["depth"], clearColor2);
-		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+		geometryBuffer->ClearTexture(geometryBuffer->GetAttachmentRef("color"), clearColor1);
+		geometryBuffer->ClearTexture(geometryBuffer->GetAttachmentRef("velocity"), clearColor2);
+		geometryBuffer->ClearTexture(geometryBuffer->GetAttachmentRef("depth"), clearColor2);
+		glClear(GL_DEPTH_BUFFER_BIT);
 		geometryBuffer->Unbind();
 
 		unJitteredBuffer->Bind();
-		unJitteredBuffer->ClearTexture(unJitteredBuffer->attachments["color"], clearColor1);
+		unJitteredBuffer->ClearTexture(unJitteredBuffer->GetAttachmentRef("color"), clearColor1);
 		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 		unJitteredBuffer->Unbind();
 
@@ -593,20 +595,20 @@ protected:
 	{
 		for (auto frame : historyFrames)
 		{
-			for (auto iter : frame->attachments | std::views::values)
+			for (auto& iter : frame->attachments | std::views::values)
 			{
-				iter.Resize(glm::ivec3(resolution, 1));
+				frame->GetAttachmentRef(iter.uniformName).Resize(glm::ivec3(resolution, 1));
 			}
 		}
 
-		for (auto iter : geometryBuffer->attachments | std::views::values)
+		for (auto& iter : geometryBuffer->attachments | std::views::values)
 		{
-			iter.Resize(glm::ivec3(resolution, 1));
+			geometryBuffer->GetAttachmentRef(iter.uniformName).Resize(glm::ivec3(resolution, 1));
 		}
 
-		for (auto iter : unJitteredBuffer->attachments | std::views::values)
+		for (auto& iter : unJitteredBuffer->attachments | std::views::values)
 		{
-			iter.Resize(glm::ivec3(resolution, 1));
+			unJitteredBuffer->GetAttachmentRef(iter.uniformName).Resize(glm::ivec3(resolution, 1));
 		}
 
 		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);

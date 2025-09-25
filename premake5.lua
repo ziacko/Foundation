@@ -288,8 +288,8 @@ scene_project("OAUpsampler", {"scene3D", "texturedScene3D", "SMAA"})
 scene_project("MSAA", {"scene3D", "texturedScene3D"})
 scene_project("SSAA", {"scene3D", "texturedScene3D"})
 scene_project("temporalAA", {"scene3D", "texturedScene3D"})
---TXAA
---TSMAA
+scene_project("TXAA", {"scene3D", "texturedScene3D", "temporalAA"})
+scene_project("TSMAA", {"scene3D", "texturedScene3D", "temporalAA", "SMAA"})
 --FSR
 
 --experimental

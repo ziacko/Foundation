@@ -19,18 +19,6 @@ layout(std140, binding = 0) uniform defaultSettings
 	uint		totalFrames;
 };
 
-layout(std140, binding = 3) uniform upcsaleSettings
-{
-    vec4 metrics; //Z and W are output resolution, xy = rcp(zw). calculate rcp on c++ side
-    vec2 resolutionScale;
-    float blendingFactor;
-    float reproSharpness;
-    float spatialFlickerTime;
-    float timeMax;
-    float timeMin;
-    float edgeThreshold;
-};
-
 out vec4 outColor;
 
 layout(binding = 0) uniform sampler2D defaultTexture;

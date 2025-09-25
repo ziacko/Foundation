@@ -21,7 +21,7 @@ layout(std140, binding = 0) uniform defaultSettings
 	uint		totalFrames;
 };
 
-layout(std140, binding = 1) uniform velocitySettings
+layout(std140, binding = 3) uniform velocitySettings
 {
 	mat4		previousProjection;
 	mat4		previousView;
@@ -30,7 +30,7 @@ layout(std140, binding = 1) uniform velocitySettings
 	mat4 		currentView;
 };
 
-layout(std140, binding = 2) uniform taaSettings
+layout(std140, binding = 4) uniform taaSettings
 {
 	//velocity
 	float		velocityScale;
@@ -38,7 +38,7 @@ layout(std140, binding = 2) uniform taaSettings
 	float 		maxDepthFalloff;
 };
 
-layout(binding = 4) uniform jitterSettings
+layout(binding = 2) uniform jitterSettings
 {
 	vec2 		haltonSequence[128];
 	float 		haltonScale;

@@ -316,7 +316,7 @@ public:
 		}
 
 		// Resize the buffers and reattach them (important for MSAA where storage is recreated)
-		for (attachment_t val : attachments | std::views::values)
+		for (auto val : attachments | std::views::values)
 		{
 			val.Resize(newSize);
 
@@ -490,6 +490,10 @@ public:
 		}
 		return true;
 	}
+
+	// Access an attachment by reference. Throws std::out_of_range if not found.
+	attachment_t& GetAttachmentRef(const std::string& name) { return attachments.at(name); }
+	const attachment_t& GetAttachmentRef(const std::string& name) const { return attachments.at(name); }
 
 	//ok we need a target, handle, etc.
 	GLuint							bufferHandle;

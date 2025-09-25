@@ -61,7 +61,7 @@ public:
 		SMAABuffer = frameBuffer();
 
 		SMAAArea = texture("textures/SMAA/AreaTexDX_Flipped.png");
-		SMAASearch = texture("assets/textures/SMAA/SearchTex_Flipped.dds");
+		SMAASearch = texture("textures/SMAA/SearchTex_Flipped.png");
 	}
 
 	~SMAAScene() override = default;
@@ -132,12 +132,12 @@ public:
 		SMAABuffer.Bind();
 		SMAABuffer.AddAttachment(frameBuffer::attachment_t("SMAA", colorDesc));
 
-		geometryProgram = &shaderProgramsMap["geometry"];
-		edgeDetectionProgram = &shaderProgramsMap["edgeDetection"];
-		blendingWeightProgram = &shaderProgramsMap["blendingWeight"];
-		SMAAProgram = &shaderProgramsMap["SMAA"];
-		compareProgram = &shaderProgramsMap["compare"];
-		finalProgram = &shaderProgramsMap["final"];
+		geometryProgram = shaderProgramsMap["geometry"];
+		edgeDetectionProgram = shaderProgramsMap["edgeDetection"];
+		blendingWeightProgram = shaderProgramsMap["blendingWeight"];
+		SMAAProgram = shaderProgramsMap["SMAA"];
+		compareProgram = shaderProgramsMap["compare"];
+		finalProgram = shaderProgramsMap["final"];
 
 		frameBuffer::Unbind();
 
@@ -156,12 +156,12 @@ protected:
 
 	bufferHandler_t<SMAASettings_t>		SMAASettings;
 
-	shaderProgram_t* geometryProgram = nullptr;
-	shaderProgram_t* edgeDetectionProgram = nullptr;
-	shaderProgram_t* blendingWeightProgram = nullptr;
-	shaderProgram_t* SMAAProgram = nullptr;
-	shaderProgram_t* compareProgram = nullptr;
-	shaderProgram_t* finalProgram = nullptr;
+	shaderProgram_t geometryProgram;
+	shaderProgram_t edgeDetectionProgram;
+	shaderProgram_t blendingWeightProgram;
+	shaderProgram_t SMAAProgram;
+	shaderProgram_t compareProgram;
+	shaderProgram_t finalProgram;
 
 	int currentTexture = 0;
 	bool enableCompare = true;
@@ -250,7 +250,7 @@ protected:
 			//add the previous depth?
 
 			glBindVertexArray(testModel.meshes[iter].vertexArrayHandle);
-			glUseProgram(geometryProgram->handle);
+			geometryProgram.Use();
 
 			glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 
@@ -275,7 +275,7 @@ protected:
 		geometryBuffer.attachments["depth"].SetActive(1);//depth
 
 		glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
-		glUseProgram(edgeDetectionProgram->handle);
+		edgeDetectionProgram.Use();
 		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
@@ -293,7 +293,7 @@ protected:
 		SMAASearch.SetActive(2);
 
 		glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
-		glUseProgram(blendingWeightProgram->handle);
+		blendingWeightProgram.Use();
 		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
@@ -310,7 +310,7 @@ protected:
 		weightsBuffer.attachments["blend"].SetActive(1); //blending weights
 
 		glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
-		glUseProgram(SMAAProgram->handle);
+		SMAAProgram.Use();
 		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
@@ -327,12 +327,12 @@ protected:
 		if (enableCompare)
 		{
 			tex2->SetActive(1);
-			glUseProgram(compareProgram->handle);
+			compareProgram.Use();
 		}
 
 		else
 		{
-			glUseProgram(finalProgram->handle);
+			finalProgram.Use();
 		}
 	
 		glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -401,12 +401,14 @@ protected:
 	{
 		for (auto val : geometryBuffer.attachments | std::views::values)
 		{
-			val.Resize(glm::ivec3(resolution, 1));
+			geometryBuffer.GetAttachmentRef(val.uniformName).Resize(glm::ivec3(resolution, 1));
 		}
 
-		edgesBuffer.attachments["edge"].Resize(glm::ivec3(resolution, 1));
-		weightsBuffer.attachments["blend"].Resize(glm::ivec3(resolution, 1));
-		SMAABuffer.attachments["SMAA"].Resize(glm::ivec3(resolution, 1));
+		edgesBuffer.GetAttachmentRef("edge").Resize(glm::ivec3(resolution, 1));
+		weightsBuffer.GetAttachmentRef("blend").Resize(glm::ivec3(resolution, 1));
+		SMAABuffer.GetAttachmentRef("SMAA").Resize(glm::ivec3(resolution, 1));
+
+		SMAASettings.data.rtMetrics = glm::vec4(1.0f / window->GetSettings().resolution.width, 1.0f /  window->GetSettings().resolution.height, window->GetSettings().resolution.width, window->GetSettings().resolution.height );
 	}
 
 	void HandleWindowResize(const tWindow* window, const vec2_t<uint16_t>& dimensions) override

@@ -1,6 +1,6 @@
 [
     {
-        "name": "geometryProgram",
+        "name": "geometry",
         "outputs": [
             "outColor",
             "outVelocity"
@@ -8,13 +8,13 @@
         "shaders": [
             {
                 "name": "jitterVertex",
-                "path": "../../resources/shaders/Jitter.vert",
-                "type": "Vertex"
+                "path": "jitter.vert",
+                "type": "vertex"
             },
             {
                 "name": "TreeFragment",
-                "path": "../../resources/shaders/Velocity.frag",
-                "type": "Fragment"
+                "path": "velocity.frag",
+                "type": "fragment"
             }
         ],
         "vertex attributes": [
@@ -26,20 +26,20 @@
         ]
     },
     {
-        "name": "treeProgram",
+        "name": "unjittered",
         "outputs": [
             "outColor"
         ],
         "shaders": [
             {
                 "name": "modelVertex",
-                "path": "../../resources/shaders/Model.vert",
-                "type": "Vertex"
+                "path": "model.vert",
+                "type": "vertex"
             },
             {
                 "name": "TreeFragment",
-                "path": "../../resources/shaders/SpeedTree.frag",
-                "type": "Fragment"
+                "path": "speedTree.frag",
+                "type": "fragment"
             }
         ],
         "vertex attributes": [
@@ -51,20 +51,20 @@
         ]
     },
     {
-        "name": "FXAAProgram",
+        "name": "FXAA",
         "outputs": [
             "outColor"
         ],
         "shaders": [
             {
                 "name": "DefaultVertex",
-                "path": "../../resources/shaders/FXAA.vert",
-                "type": "Vertex"
+                "path": "FXAA.vert",
+                "type": "vertex"
             },
             {
                 "name": "TexturedFragment",
-                "path": "../../resources/shaders/FXAA.frag",
-                "type": "Fragment"
+                "path": "FXAA.frag",
+                "type": "fragment"
             }
         ],
         "vertex attributes": [
@@ -73,20 +73,20 @@
         ]
     },
     {
-        "name": "smoothProgram",
+        "name": "smooth",
         "outputs": [
             "outColor"
         ],
         "shaders": [
             {
                 "name": "DefaultVertex",
-                "path": "../../resources/shaders/Default.vert",
-                "type": "Vertex"
+                "path": "default.vert",
+                "type": "vertex"
             },
             {
                 "name": "TexturedFragment",
-                "path": "../../resources/shaders/Smooth.frag",
-                "type": "Fragment"
+                "path": "smooth.frag",
+                "type": "fragment"
             }
         ],
         "vertex attributes": [
@@ -95,20 +95,20 @@
         ]
     },
     {
-        "name": "SharpenProgram",
+        "name": "sharpen",
         "outputs": [
             "outColor"
         ],
         "shaders": [
             {
                 "name": "DefaultVertex",
-                "path": "../../resources/shaders/Default.vert",
-                "type": "Vertex"
+                "path": "default.vert",
+                "type": "vertex"
             },
             {
                 "name": "SharpenFragment",
-                "path": "../../resources/shaders/Sharpen.frag",
-                "type": "Fragment"
+                "path": "sharpen.frag",
+                "type": "fragment"
             }
         ],
         "vertex attributes": [
@@ -117,20 +117,20 @@
         ]
     },
     {
-        "name": "compareProgram",
+        "name": "compare",
         "outputs": [
             "outColor"
         ],
         "shaders": [
             {
                 "name": "DefaultVertex",
-                "path": "../../resources/shaders/Default.vert",
-                "type": "Vertex"
+                "path": "default.vert",
+                "type": "vertex"
             },
             {
                 "name": "TexturedFragment",
-                "path": "../../resources/shaders/Compare.frag",
-                "type": "Fragment"
+                "path": "compare.frag",
+                "type": "fragment"
             }
         ],
         "vertex attributes": [
@@ -139,20 +139,20 @@
         ]
     },
     {
-        "name": "finalProgram",
+        "name": "final",
         "outputs": [
             "outColor"
         ],
         "shaders": [
             {
                 "name": "DefaultVertex",
-                "path": "../../resources/shaders/Default.vert",
-                "type": "Vertex"
+                "path": "default.vert",
+                "type": "vertex"
             },
             {
                 "name": "TexturedFragment",
-                "path": "../../resources/shaders/Textured.frag",
-                "type": "Fragment"
+                "path": "textured.frag",
+                "type": "fragment"
             }
         ],
         "vertex attributes": [

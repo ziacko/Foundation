@@ -1,10 +1,9 @@
-#include "SMAA 1xt.h"
+#include "TSMAA.h"
 
 int main()
 {
-	SMAA1xt* exampleScene = new SMAA1xt();
-	exampleScene->Initialize();
-	exampleScene->Run();
-	delete exampleScene;
+	TSMAA exampleScene = TSMAA();
+	exampleScene.Initialize();
+	exampleScene.Run();
 	return 0;
 }
