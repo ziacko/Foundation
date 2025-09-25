@@ -243,14 +243,18 @@ protected:
 		glDrawBuffers(2, drawbuffers);
 
 		//we just need the first LOd so only do the first 3 meshes
-		for (size_t iter = 0; iter < 1; iter++)
+		for (size_t iter = 0; iter < testModel.meshes.size(); iter++)
 		{
 			if (testModel.meshes[iter].isCollision)
 			{
 				continue;
 			}
 
-			testModel.meshes[iter].textures[0].SetActive(0);
+			for (uint8_t i = 0; i < testModel.meshes[iter].textures.size(); i++)
+			{
+				testModel.meshes[iter].textures[i].SetActive(i);
+			}
+
 
 			glBindVertexArray(testModel.meshes[iter].vertexArrayHandle);
 			defProgram.Use();

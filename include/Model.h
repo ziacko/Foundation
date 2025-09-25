@@ -214,7 +214,10 @@ public:
 
 		if (node->is_root == false)
 		{
-			ExtractMesh(node->mesh);
+			if (node->mesh != nullptr)
+			{
+				ExtractMesh(node->mesh);
+			}
 		}
 
 		//if the mesh has children, use recursion
@@ -226,112 +229,140 @@ public:
 
 	void ExtractMesh(ufbx_mesh* mesh)
 	{
-		mesh_t newMesh;
-		newMesh.name = std::string(mesh->name.data, mesh->name.length);
-		std::vector<vertexAttribute_t> verts;
-		std::vector<texture> textures;
-
 		//if ignore collision is on, skip the node with the prefix UCX_
 		std::string ue4String = "UCX_";
-		std::string nodeName = newMesh.name;
-		newMesh.isCollision = (nodeName.substr(0, 4) == ue4String);
+		std::string nodeName = std::string(mesh->name.data, mesh->name.length);
+
 		std::vector<glm::vec4> positions;
 
 		if (mesh->vertex_position.exists)
 		{
-			vertexAttribute_t attrib;
-			//int indicesPerVert = mesh->num_indices / mesh->vertices.count;
-
-			for (size_t index = 0; index < mesh->num_faces; index++)
+			std::vector<uint32_t> tri_indices;
+			tri_indices.resize(mesh->max_face_triangles * 3);
+			// Use material_parts and split into one mesh per part
+			for (auto matPart : mesh->material_parts)
 			{
-				ufbx_face face = mesh->faces.data[index];
-				std::vector<uint32_t> tri_indices(mesh->max_face_triangles * 3);
-				//per face, triangulation needed :)
-				auto numTris = ufbx_triangulate_face(tri_indices.data(), tri_indices.size(), mesh, face);
-
-				std::vector<uint32_t> indices(tri_indices.size());
-				//ufbx_vertex_stream stream = { tri_indices.data(), sizeof(glm::vec3) };
-				//auto numIndices = ufbx_generate_indices(&stream, 1, tri_indices.data(), tri_indices.size(), NULL, NULL);
-
-				//ufbx_face indface = mesh->faces[index];
-
-				for (unsigned int tri_indice : tri_indices)
+				std::vector<vertexAttribute_t> verts;
+				std::vector<texture> textures;
+				mesh_t newMesh;
+				newMesh.name = std::string(mesh->name.data, mesh->name.length);
+				newMesh.isCollision = (nodeName.substr(0, 4) == ue4String);
+				auto faces = std::span<uint32_t>(matPart.face_indices.data, matPart.num_faces);
+				
+				for (auto faceIter : faces)
 				{
-					newMesh.indices.push_back(tri_indice);
+					auto face = mesh->faces.data[faceIter];
+					
+					auto numTris = ufbx_triangulate_face(tri_indices.data(), tri_indices.size(), mesh, face);
+					
+					for (auto triIter = 0; triIter < numTris * 3; triIter++)
+					{
+						auto triIndex = tri_indices[triIter];
+						vertexAttribute_t attrib;
+						//position
+						if (mesh->vertex_position.exists)
+						{
+							auto pos = ufbx_get_vertex_vec3(&mesh->vertex_position, triIndex);
+							attrib.position = glm::vec4(pos.x, pos.y, pos.z, 1.0f);
+						}
+						
+						//normal
+						if (mesh->vertex_normal.exists)
+						{
+							hasNormals = true;
+							auto normal = mesh->vertex_normal.values.data[mesh->vertex_normal.indices.data[triIndex]];
+							attrib.normal = glm::vec4(normal.x, normal.y, normal.z, 1.0f);
+						}
+						
+						//tangent
+						if (mesh->vertex_tangent.exists)
+						{
+							hasTangentsAndBiTangents = true;
+							auto tangent = mesh->vertex_tangent.values.data[mesh->vertex_tangent.indices.data[triIndex]];
+							attrib.tangent = glm::vec4(tangent.x, tangent.y, tangent.z, 1.0f);
+						}
+						
+						//bitangent
+						if (mesh->vertex_bitangent.exists)
+						{
+							hasTangentsAndBiTangents = true;
+							auto biTangent = mesh->vertex_bitangent.values.data[mesh->vertex_bitangent.indices.data[triIndex]];
+							attrib.biNormal = glm::vec4(biTangent.x, biTangent.y, biTangent.z, 1.0f);
+						}
+						
+						//uv
+						if (mesh->vertex_uv.exists)
+						{
+							auto uv = mesh->vertex_uv.values.data[mesh->vertex_uv.indices.data[triIndex]];
+							attrib.uv = glm::vec2(uv.x, uv.y);
+						}
+						
+						//color
+						if (mesh->vertex_color.exists)
+						{
+							auto color = mesh->vertex_color.values.data[mesh->vertex_color.indices.data[triIndex]];
+							attrib.color = glm::vec4(color.x, color.y, color.z, color.w);
+						}
+						
+						positions.push_back(attrib.position);
+						
+						verts.push_back(attrib);
+					}
 				}
-
-				for (size_t triIter = 0; triIter < numTris * 3; triIter++)
+				
+				// Map this part to its corresponding material by index
+				if (matPart.index < mesh->materials.count)
 				{
-					auto triIndex = tri_indices[triIter];
-
-					//position
-					if (mesh->vertex_position.exists)
+					auto mat = mesh->materials[matPart.index];
+					//grab diffuse data
+					if (mat->fbx.diffuse_color.has_value)
 					{
-						auto pos = ufbx_get_vertex_vec3(&mesh->vertex_position, triIndex);
-						attrib.position = glm::vec4(pos.x, pos.y, pos.z, 1.0f);
-
+						auto diffuse = mat->fbx.diffuse_color.value_vec4;
+						newMesh.diffuse = glm::vec4(diffuse.x, diffuse.y, diffuse.z, diffuse.w);
+						//time to load associated textures
+						if (mat->fbx.diffuse_color.texture_enabled && mat->fbx.diffuse_color.texture && mat->fbx.diffuse_color.texture->has_file)
+						{
+							texture diffuseMap = loadMaterialTextures(mat->fbx.diffuse_color.texture, texture::textureType_t::diffuse, "diffuse");
+							textures.insert(textures.end(), diffuseMap);
+						}
 					}
-
-					//normal
-					if (mesh->vertex_normal.exists)
-					{
-						hasNormals = true;
-						auto normal = mesh->vertex_normal.values.data[mesh->vertex_normal.indices.data[triIndex]];
-						attrib.normal = glm::vec4(normal.x, normal.y, normal.z, 1.0f);
-					}
-
-					//tangent
-					if (mesh->vertex_tangent.exists)
-					{
-						hasTangentsAndBiTangents = true;
-						auto tangent = mesh->vertex_tangent.values.data[mesh->vertex_tangent.indices.data[triIndex]];
-						attrib.tangent = glm::vec4(tangent.x, tangent.y, tangent.z, 1.0f);
-					}
-
-					//bitangent
-					if (mesh->vertex_bitangent.exists)
-					{
-						hasTangentsAndBiTangents = true;
-						auto biTangent = mesh->vertex_bitangent.values.data[mesh->vertex_bitangent.indices.data[triIndex]];
-						attrib.biNormal = glm::vec4(biTangent.x, biTangent.y, biTangent.z, 1.0f);
-					}
-
-					//uv
-					if (mesh->vertex_uv.exists)
-					{
-						auto uv = mesh->vertex_uv.values.data[mesh->vertex_uv.indices.data[triIndex]];
-						attrib.uv = glm::vec2(uv.x, uv.y);
-					}
-
-					//color
-					if (mesh->vertex_color.exists)
-					{
-						auto color = mesh->vertex_color.values.data[mesh->vertex_color.indices.data[triIndex]];
-						attrib.color = glm::vec4(color.x, color.y, color.z, color.w);
-					}
-
-					positions.push_back(attrib.position);
-
-					verts.push_back(attrib);
 				}
+				
+				// Generate the index buffer for this part.
+				ufbx_vertex_stream streams[1] = {
+					{ static_cast<void*>(verts.data()), verts.size(), sizeof(vertexAttribute_t) },
+				};
+				std::vector<uint32_t> indices;
+				indices.resize(matPart.num_triangles * 3);
+				size_t num_vertices = ufbx_generate_indices(streams, 1, indices.data(), indices.size(), nullptr, nullptr);
+				// Compact the vertex buffer in-place to the number of unique vertices
+				verts.resize(num_vertices);
+				
+				newMesh.vertices = verts;
+				newMesh.indices = indices;
+				
+				LoadIntoGL(mesh, newMesh);
+				
+				newMesh.textures = std::move(textures);
+				
+				meshes.push_back(newMesh);
 			}
 		}
-
-		newMesh.vertices = verts;
-
+		
 		if(keepData)
 		{
 			posData.push_back(positions);
 		}
 
 		//for every material?
-		for (size_t materialIter = 0; materialIter < mesh->materials.count; materialIter++)
+		/*for (size_t materialIter = 0; materialIter < mesh->materials.count; materialIter++)
 		{
+			auto test = mesh->materials[materialIter];
 
-			ufbx_mesh_material mat = mesh->materials[materialIter];
+			auto mat = mesh->materials[materialIter];
 
 			//grab diffuse data
-			if (mat.material->fbx.diffuse_color.has_value)
+			if (mat-> material->fbx.diffuse_color.has_value)
 			{
 				auto diffuse = mat.material->fbx.diffuse_color.value_vec4;
 				newMesh.diffuse = glm::vec4(diffuse.x, diffuse.y, diffuse.z, diffuse.w);
@@ -386,11 +417,11 @@ public:
 				auto emissive = mat.material->fbx.emission_color.value_vec4;
 				newMesh.emissive = glm::vec4(emissive.x, emissive.y, emissive.z, emissive.w);
 
-				/*if (mat.material->fbx.emission_color.texture->has_file)
+				if (mat.material->fbx.emission_color.texture->has_file)
 				{
 					texture ambientMap = loadMaterialTextures(mat.material->fbx.ambient_color.texture, texture::textureType_t::image, "ambient");
 					textures.insert(textures.end(), ambientMap);
-				}*/
+				}
 			}
 
 			//reflective
@@ -398,23 +429,19 @@ public:
 			{
 				auto reflection = mat.material->fbx.reflection_color.value_vec4;
 				newMesh.reflective = glm::vec4(reflection.x, reflection.y, reflection.z, reflection.w);
-
 			}
 
 			//TODO add a fuckload more later!
 
 		}
 
-		LoadIntoGL(mesh, newMesh);
 
-		newMesh.vertices = std::move(verts);
-		newMesh.textures = std::move(textures);
-
+*/
 		glBindVertexArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-		meshes.push_back(newMesh);
+
 	}
 
 	texture loadMaterialTextures(ufbx_texture* tex, texture::textureType_t inTexType, std::string uniformName)
