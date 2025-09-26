@@ -69,9 +69,9 @@ constexpr glm::vec4 clearColor2 = { 0.0f, 0.0f, 0.0f, 1.0f };
 constexpr glm::ivec2 defaultWindowSize = glm::ivec2(1280, 720);
 
 constexpr float defaultNearPlane = 0.01f;
-constexpr float defaultFarPlane = 100.0f;
+constexpr float defaultFarPlane = 10000.0f;
 constexpr float defaultFieldOfView = 90.0f;
-constexpr float defaultCameraSpeed = PI * 0.1;
+constexpr float defaultCameraSpeed = PI;
 
 constexpr glm::ivec2 defaultViewportOrigin = glm::ivec2(0);
 

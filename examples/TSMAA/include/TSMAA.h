@@ -102,6 +102,7 @@ public:
 		{
 			jitterUniforms.data.haltonSequence[iter] = glm::vec2(CreateHaltonSequence(iter + 1, 2), CreateHaltonSequence(iter + 1, 3));
 		}
+
 	}
 
 	~TSMAA() {};
@@ -216,7 +217,6 @@ protected:
 		
 		EdgeDetectionPass();
 		BlendingWeightsPass();
-
 		SMAAPass();
 
 		SMAAResolvePass();
@@ -489,10 +489,11 @@ protected:
 		historyFrames[currentFrame]->GetAttachmentRef("depth").Copy(&geometryBuffer.GetAttachmentRef("depth")); //copy depth over
 
 		glClear(GL_DEPTH_BUFFER_BIT);
-		historyFrames[currentFrame]->Unbind();
+		historyFrames[!currentFrame]->Unbind();
 
 		geometryBuffer.Bind();
 		geometryBuffer.ClearTexture(geometryBuffer.GetAttachmentRef("color"), clearColor1);
+		geometryBuffer.ClearTexture(geometryBuffer.GetAttachmentRef("velocity"), clearColor2);
 		geometryBuffer.ClearTexture(geometryBuffer.GetAttachmentRef("depth"), clearColor2);
 		glClear(GL_DEPTH_BUFFER_BIT);
 		geometryBuffer.Unbind();

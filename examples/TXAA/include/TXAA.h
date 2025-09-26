@@ -136,6 +136,12 @@ public:
 		glDepthFunc(GL_LESS);
 		glHint(GL_GENERATE_MIPMAP_HINT, GL_NICEST);
 
+		this->camera.position.x -= 100.0f;
+
+		//soulspear is loaded at an awkward angle so let's hack this
+		this->camera.Roll(glm::radians(270.0f));
+		this->camera.Pitch(glm::radians(180.0f));
+
 		geometryBuffer = new frameBuffer();
 		unJitteredBuffer = new frameBuffer();
 		FXAABuffer = new frameBuffer();
@@ -349,7 +355,7 @@ protected:
 		geometryBuffer->DrawAll();
 
 		//we just need the first LOd so only do the first 3 meshes
-		for (size_t iter = 0; iter < 1; iter++)
+		for (size_t iter = 0; iter < testModel.meshes.size(); iter++)
 		{
 			if (testModel.meshes[iter].isCollision)
 			{
@@ -384,7 +390,7 @@ protected:
 		unJitteredBuffer->DrawAll();
 
 		//we just need the first LOd so only do the first 3 meshes
-		for (size_t iter = 0; iter < 1; iter++)
+		for (size_t iter = 0; iter < testModel.meshes.size(); iter++)
 		{
 			if (testModel.meshes[iter].isCollision)
 			{

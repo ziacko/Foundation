@@ -4,7 +4,6 @@ in defaultBlock
 {
 	vec4 position;
 	vec2 uv;
-	vec2 fullUV;
 } inBlock;
 
 layout(std140, binding = 0) uniform defaultSettings

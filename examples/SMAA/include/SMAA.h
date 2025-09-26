@@ -43,17 +43,19 @@ public:
 		const char* windowName = "Ziyad Barakat's portfolio (SMAA)",
 		const camera_t& camera = camera_t(defaultWindowSize, defaultCameraSpeed, camera_t::projection_e::perspective),
 		const char* shaderConfigPath = SHADER_CONFIG_DIR,
-		const model_t& model = model_t("models/SoulSpear/SoulSpear.fbx"))
+		const model_t& model = model_t("models/fbx_foliage/broadleaf_field/Broadleaf_Desktop_Field.FBX"))
 		: scene3D(windowName, camera, shaderConfigPath, model)
 	{
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LESS);
 
-		//soulspear is loaded at an awkward angle so let's hack this
-		this->camera.Roll(glm::radians(180.0f));
-		this->camera.Pitch(glm::radians(270.0f));
 
-		this->camera.position.z -= 1.0f;
+
+		this->camera.position.x -= 100.0f;
+
+		//soulspear is loaded at an awkward angle so let's hack this
+		this->camera.Roll(glm::radians(270.0f));
+		this->camera.Pitch(glm::radians(180.0f));
 
 		geometryBuffer = frameBuffer();
 		edgesBuffer = frameBuffer();
@@ -239,14 +241,14 @@ protected:
 		glDrawBuffers(1, &geometryBuffer.attachments["color"].FBODesc.attachmentFormat);
 
 		//we just need the first LOd so only do the first 3 meshes
-		for (size_t iter = 0; iter < 1; iter++)
+		for (size_t iter = 0; iter < testModel.meshes.size(); iter++)
 		{
 			if (testModel.meshes[iter].isCollision)
 			{
 				continue;
 			}
 
-			testModel.meshes[iter].textures[0].SetActive(0);
+			testModel.meshes[iter].textures[0].SetActive(0); //we just want diffuse
 			//add the previous depth?
 
 			glBindVertexArray(testModel.meshes[iter].vertexArrayHandle);

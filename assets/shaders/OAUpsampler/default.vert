@@ -7,7 +7,6 @@ out defaultBlock
 {
 	vec4 position;
 	vec2 uv;
-	vec2 fullUV;
 } outBlock;
 
 layout(std140, binding = 0) uniform defaultSettings

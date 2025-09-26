@@ -22,7 +22,7 @@ public:
 
 	explicit dynamicRes(
 		const char* windowName = "Ziyad Barakat's portfolio (dynamic resolution)",
-		const camera_t& texModelCamera = camera_t(glm::vec2(1280, 720), 5.0f, camera_t::projection_e::perspective, 0.1f, 2000.f),
+		const camera_t& texModelCamera = camera_t(glm::vec2(1280, 720), PI * 0.1f, camera_t::projection_e::perspective, 0.1f, 2000.f),
 		const char* shaderConfigPath = SHADER_CONFIG_DIR,
 		const model_t& model = model_t("models/SoulSpear/SoulSpear.fbx"))
 		: scene3D(windowName, texModelCamera, shaderConfigPath, model)
@@ -37,6 +37,7 @@ public:
 		dynamicBuffer = new frameBuffer();
 
 		resolution = bufferHandler_t<resolutionSettings_t>();
+		this->camera.Roll(glm::radians(180.0f));
 	}
 
 	~dynamicRes() override {};
