@@ -102,10 +102,16 @@ public:
         const char* shaderConfigPath = "SMAA",
         const model_t& model = model_t("models/fbx_foliage/broadleaf_field/Broadleaf_Desktop_Field.FBX")) : SMAAScene(windowName, camera, shaderConfigPath, model)
     {
-        resolutionSettings = resolutionSettings_t(defaultResScale);
-        resScale = glm::vec2(defaultResScale);
-		glm::vec2 windowResolution = glm::vec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
-        scaledResolution = windowResolution * resScale;
+
+        velocityUniforms = bufferHandler_t<reprojectSettings_t>();
+        taaUniforms = bufferHandler_t<TAASettings_t>();
+        jitterUniforms = bufferHandler_t<jitterSettings_t>();
+        jitter2Uniforms = bufferHandler_t<jitter2Settings_t>();
+
+        for (int iter = 0; iter < 128; iter++)
+        {
+            jitterUniforms.data.haltonSequence[iter] = glm::vec2(CreateHaltonSequence(iter + 1, 2), CreateHaltonSequence(iter + 1, 3));
+        }
     }
 
     void Initialize() override
@@ -113,6 +119,8 @@ public:
         scene3D::Initialize();
         SMAAArea.LoadTexture();
         SMAASearch.LoadTexture();
+
+        scaledResolution = glm::ivec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 
         geometryBuffer.Initialize();
         geometryBuffer.Bind();
@@ -194,8 +202,7 @@ protected:
     bool enableCompare = true;
     bool currentFrame = false;
 
-    glm::vec2 resScale{defaultResScale};
-    glm::ivec2 scaledResolution{ resScale.x, resScale.y };
+    glm::ivec2 scaledResolution;
     bufferHandler_t<resolutionSettings_t> resolutionSettings;
 
     bufferHandler_t<reprojectSettings_t> velocityUniforms;
@@ -246,6 +253,7 @@ protected:
             defProgram.Use();
 
             glViewport(defaultViewportOrigin.x, defaultViewportOrigin.y, scaledResolution.x, scaledResolution.y);
+            glCullFace(GL_BACK);
 
             if (wireframe)
             {
@@ -375,38 +383,16 @@ protected:
 
     void Draw() override
     {
-        // Advance previous-frame data BEFORE updating the camera for this frame.
-        // On the very first frame we just seed previous = current so velocity = 0.
-        if(firstFrame)
-        {
-            velocityUniforms.data.previousProjection = camera.projection; // assume camera already initialized
-            velocityUniforms.data.previousView = camera.view;
-            velocityUniforms.data.prevTranslation = testModel.makeTransform();
-            firstFrame = false;
-        }
-        else
-        {
-            // Camera/view still reflect last frame at this point.
-            velocityUniforms.data.previousProjection = camera.projection;
-            velocityUniforms.data.previousView = camera.view;
-            velocityUniforms.data.prevTranslation = testModel.makeTransform();
-        }
-
-        // Prepare camera for geometry (current frame)
+        velocityUniforms.data.currentView =camera.view;
         camera.ChangeProjection(camera_t::projection_e::perspective);
         camera.Update();
-        UpdateDefaultBuffer();
 
-        // Now store current view (after any jitter/projection changes applied above) and upload UBO immediately
-        velocityUniforms.data.currentView = camera.view;
-        velocityUniforms.Update();
+        UpdateDefaultBuffer();
 
         GeometryPass();
         UnscaledPass();
 
-        camera.resolution = scaledResolution;
         camera.ChangeProjection(camera_t::projection_e::orthographic);
-        camera.Update();
         UpdateDefaultBuffer();
 
         EdgeDetectionPass();
@@ -415,10 +401,7 @@ protected:
 
         SMAAResolvePass();
 
-        camera.resolution = glm::vec2(window->GetSettings().resolution.x, window->GetSettings().resolution.y);
-        camera.Update();
-        UpdateDefaultBuffer();
-        FinalPass(&SMAABuffer.attachments["SMAA"], &unscaledBuffer.attachments["color"]);
+        FinalPass(&historyFrames[currentFrame]->attachments["color"], &unscaledBuffer.attachments["color"]);
 
         DrawGUI(window);
 
@@ -523,13 +506,15 @@ protected:
 
     void HandleWindowResize(const tWindow* window, const vec2_t<uint16_t>& dimensions) override
     {
-        UpdateResolution(glm::ivec2(dimensions.x, dimensions.y));
+        scaledResolution = glm::ivec2(window->GetSettings().resolution.width * resolutionSettings.data.resolutionScale.x,
+            window->GetSettings().resolution.height * resolutionSettings.data.resolutionScale.y);
         ResizeBuffers(glm::ivec2(scaledResolution));
     }
 
     void HandleMaximize(const tWindow* window) override
     {
-        UpdateResolution(glm::ivec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height));
+        scaledResolution = glm::ivec2(window->GetSettings().resolution.width * resolutionSettings.data.resolutionScale.x,
+            window->GetSettings().resolution.height * resolutionSettings.data.resolutionScale.y);
         ResizeBuffers(glm::ivec2(scaledResolution));
     }
 
@@ -540,7 +525,8 @@ protected:
             if (ImGui::DragFloat("scaleX", &resolutionSettings.data.resolutionScale.x, 0.01f, 0.1f, 2.0f) ||
                 ImGui::DragFloat("scaleY", &resolutionSettings.data.resolutionScale.y, 0.01f, 0.1f, 2.0f))
             {
-                UpdateResolutionScale(resolutionSettings.data.resolutionScale);
+                scaledResolution = glm::ivec2(window->GetSettings().resolution.width * resolutionSettings.data.resolutionScale.x,
+                    window->GetSettings().resolution.height * resolutionSettings.data.resolutionScale.y);
                 ResizeBuffers(scaledResolution);
             }
             ImGui::EndTabItem();
@@ -551,25 +537,6 @@ protected:
     {
         SMAAScene::BuildGUI(window, io);
         DrawResolutionSettings();
-    }
-
-    void UpdateResolutionScale(const glm::vec2& resolutionScale)
-    {
-        resScale =  resolutionScale;
-        scaledResolution = glm::vec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height) * resScale;
-        camera.resolution = scaledResolution;
-        camera.Update();
-
-        SMAASettings.data.rtMetrics = glm::vec4(1.0 / scaledResolution.x, 1.0 / scaledResolution.y, scaledResolution.x, scaledResolution.y);
-    }
-
-    void UpdateResolution(const glm::ivec2& resolution)
-    {
-        scaledResolution = glm::vec2(resolution.x, resolution.y) * resScale;
-        camera.resolution = scaledResolution;
-        camera.Update();
-
-        SMAASettings.data.rtMetrics = glm::vec4(1.0 / scaledResolution.x, 1.0 / scaledResolution.y, scaledResolution.x, scaledResolution.y);
     }
 
     float CreateHaltonSequence(unsigned int index, int base)
