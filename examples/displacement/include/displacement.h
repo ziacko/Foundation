@@ -38,7 +38,7 @@ public:
 		this->camera.position.z = 3.0f;
 
 		this->camera.Roll(glm::radians(-90.0f));
-		this->camera.Pitch(glm::radians(-90.0f));
+		//this->camera.Pitch(glm::radians(-45.0f));
 	}
 
 	~displacement(){};

@@ -29,7 +29,7 @@ public:
 		const char* shaderConfigPath = SHADER_CONFIG_DIR)
 		: texturedScene(defaultTexture, windowName, dilationCamera, shaderConfigPath)
 	{
-		this->dilation = dilationSettings;
+		this->dilation = dilationSettings;;
 	}
 
 	~dilationScene(){};

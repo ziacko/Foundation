@@ -122,9 +122,12 @@ public:
 
         scaledResolution = glm::ivec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 
+		FBODescriptor colorDesc;
+		colorDesc.dimensions = glm::ivec3(window->GetSettings().resolution.width, window->GetSettings().resolution.height, 1);
+
         geometryBuffer.Initialize();
         geometryBuffer.Bind();
-        geometryBuffer.AddAttachment(frameBuffer::attachment_t("color"));
+        geometryBuffer.AddAttachment(frameBuffer::attachment_t("color", colorDesc));
 
         FBODescriptor velDesc;
         velDesc.format = GL_RG;
@@ -156,11 +159,11 @@ public:
         weightsBuffer.Initialize();
         weightsBuffer.Bind();
 
-        weightsBuffer.AddAttachment(frameBuffer::attachment_t("blend"));
+        weightsBuffer.AddAttachment(frameBuffer::attachment_t("blend", colorDesc));
 
         SMAABuffer.Initialize();
         SMAABuffer.Bind();
-        SMAABuffer.AddAttachment(frameBuffer::attachment_t("SMAA"));
+        SMAABuffer.AddAttachment(frameBuffer::attachment_t("SMAA", colorDesc));
 
         for(unsigned int iter = 0; iter < numPreviousFrames; iter++)
         {
@@ -168,7 +171,7 @@ public:
 
             newBuffer->Initialize();
             newBuffer->Bind();
-            newBuffer->AddAttachment(frameBuffer::attachment_t("color"));
+            newBuffer->AddAttachment(frameBuffer::attachment_t("color", colorDesc));
             newBuffer->AddAttachment(frameBuffer::attachment_t("depth", depthDesc));
 
             historyFrames.push_back(newBuffer);
@@ -177,8 +180,7 @@ public:
         unscaledBuffer.Initialize();
         unscaledBuffer.Bind();
 
-        unscaledBuffer.AddAttachment(frameBuffer::attachment_t("color"));
-        depthDesc.attachmentType = FBODescriptor::attachmentType_e::depth;
+        unscaledBuffer.AddAttachment(frameBuffer::attachment_t("color", colorDesc));
         unscaledBuffer.AddAttachment(frameBuffer::attachment_t("depth", depthDesc));
 
         defProgram = shaderProgramsMap["geometry"];

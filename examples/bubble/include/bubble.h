@@ -37,7 +37,7 @@ public:
 	void Initialize() override
 	{
 		texturedScene::Initialize();
-		defProgram = shaderProgramsMap["bubbleProgram"];
+		defProgram = shaderProgramsMap["bubble"];
 	}
 
 	~bubbleScene( void ){}
@@ -56,7 +56,6 @@ protected:
 			ImGui::SliderFloat("offset", &bubble.data.offset, 0.0f, 1.0f);
 			ImGui::EndTabItem();
 		}
-
 	}
 
 	bufferHandler_t<bubbleSettings_t>			bubble;
@@ -86,6 +85,7 @@ protected:
 
 	void Draw()	override
 	{
+		GL_PUSH_DEBUG_GROUP();
 
 		defaultTexture.GetUniformLocation(defProgram.handle);
 		glUseProgram(defProgram.handle);
@@ -99,5 +99,22 @@ protected:
 		texturedScene::DrawGUI(window);
 		manager->SwapDrawBuffers(window);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		glPopDebugGroup();
+	}
+
+	void HandleWindowResize(const tWindow* inWindow, const vec2_t<uint16_t>& dimensions) override
+	{
+		texturedScene::HandleWindowResize(inWindow, dimensions);
+		camera.resolution = glm::ivec2(dimensions.x, dimensions.y);
+		camera.Update();
+	}
+
+	void HandleMaximize(const tWindow* window) override
+	{
+		texturedScene::HandleMaximize(window);
+		auto newRes = window->GetSettings().resolution;
+		camera.resolution = glm::ivec2(newRes.width, newRes.height);
+		camera.Update();
 	}
 };

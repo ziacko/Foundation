@@ -8,7 +8,7 @@ struct pixellize_t
 	float pixelWidth;
 	float pixelHeight;
 
-	explicit pixellize_t(const float& inPixelWidth = 1, const float& inPixelHeight = 1)
+	explicit pixellize_t(const float& inPixelWidth = 3.33f, const float& inPixelHeight = 3.33f)
 	: pixelWidth(inPixelWidth), pixelHeight(inPixelHeight)	{}
 };
 

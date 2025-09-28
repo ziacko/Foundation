@@ -50,7 +50,7 @@ public:
 		//delete this->sceneCamera;		this->sceneCamera = nullptr;
 		delete manager;					manager = nullptr;
 		//delete sceneClock;				sceneClock = nullptr;
-		delete defaultTimer;			defaultTimer = nullptr;
+		//delete defaultTimer;			defaultTimer = nullptr;
 	}
 
 	virtual void Run()
@@ -84,7 +84,10 @@ public:
 
 		InitializeUniforms();
 		SetupCallbacks();
-		defaultTimer = new GPUTimer();
+		//defaultTimer = new GPUTimer();
+
+		//turn on vsync
+		manager->SetWindowSwapInterval(window, 1);
 	}
 
 	virtual void SetupCallbacks()
@@ -243,10 +246,10 @@ protected:
 				//manager->ToggleFullscreen(window, &manager->GetMonitors()[0], 0);
 				//glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 			}
-
-			if (ImGui::InputInt("Swap Interval", &interval, 1))
+			static bool useVsync = true;
+			if (ImGui::Checkbox("Use VSync?", &(bool&)interval))
 			{
-				manager->SetWindowSwapInterval(window, interval);
+				manager->SetWindowSwapInterval(window, (uint8_t)interval);
 			}
 
 			static int frameRatePick = 0;
@@ -271,6 +274,7 @@ protected:
 			}
 
 			//camera.resolution = glm::vec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
+			
 			ImGui::Checkbox("wireframe", &wireframe);
 			ImGui::EndTabItem();
 		}
@@ -356,7 +360,6 @@ protected:
 
 		ImGui::BeginTabBar("SidePanelTabs");
 	}
-
 	virtual void EndGUI(tWindow* window)
 	{
 		ImGui::EndTabBar();

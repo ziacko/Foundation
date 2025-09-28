@@ -49,13 +49,11 @@ public:
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LESS);
 
-
-
-		this->camera.position.x -= 100.0f;
+		this->camera.position.y -= 100.0f;
 
 		//soulspear is loaded at an awkward angle so let's hack this
-		this->camera.Roll(glm::radians(270.0f));
-		this->camera.Pitch(glm::radians(180.0f));
+		//this->camera.Roll(glm::radians(270.0f));
+		//this->camera.Pitch(glm::radians(180.0f));
 
 		geometryBuffer = frameBuffer();
 		edgesBuffer = frameBuffer();

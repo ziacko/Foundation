@@ -86,6 +86,8 @@ public:
 		{
 			jitterUniforms.data.haltonSequence[iter] = glm::vec2(CreateHaltonSequence(iter + 1, 2), CreateHaltonSequence(iter + 1, 3));
 		}
+
+		this->camera.position.y -= 100.0f;
 	}
 
 	~SSAA() {};
@@ -236,7 +238,7 @@ protected:
 		geometryBuffer->attachments["color"].Draw();
 
 		//we just need the first LOD so only do the first 3 meshes
-		for (size_t iter = 0; iter < 1; iter++)
+		for (size_t iter = 0; iter < testModel.meshes.size(); iter++)
 		{
 			if (testModel.meshes[iter].isCollision)
 			{
@@ -270,7 +272,7 @@ protected:
 		unJitteredBuffer->attachments["unJittered"].Draw();
 
 		//we just need the first LOd so only do the first 3 meshes
-		for (size_t iter = 0; iter < 1; iter++)
+		for (size_t iter = 0; iter < testModel.meshes.size(); iter++)
 		{
 			if (testModel.meshes[iter].isCollision)
 			{

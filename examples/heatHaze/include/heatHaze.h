@@ -119,6 +119,8 @@ public:
 		bubble.Initialize(2);
 		perlin.Initialize(1);
 
+
+		
 		SetupVertexBuffer();
 	}
 
@@ -204,13 +206,16 @@ protected:
 	}
 
 	void SetupVertexBuffer()
-	{ 
-		GLfloat cellWidth = defaultPayload.data.resolution.x / bubble.data.gridDimensions;
+	{
+
+		defaultVertexBuffer.SetupDefault();
+		perlinVBuffer.SetupDefault();
+		/*GLfloat cellWidth = defaultPayload.data.resolution.x / bubble.data.gridDimensions;
 		GLfloat cellHeight = defaultPayload.data.resolution.y / bubble.data.gridDimensions;
 
 		defaultVertexBuffer.SetupCustom(glm::vec2(cellWidth, cellHeight));
 
-		perlinVBuffer.SetupCustom(defaultPayload.data.resolution);
+		perlinVBuffer.SetupCustom(defaultPayload.data.resolution);*/
 	}
 
 	virtual void Update() override
@@ -304,7 +309,7 @@ protected:
 	{
 		scene::Resize(window, dimensions);
 
-		perlinVBuffer.UpdateBuffer(dimensions);
+		//perlinVBuffer.UpdateBuffer(dimensions);
 		ResizeBuffers(dimensions);
 	}
 };

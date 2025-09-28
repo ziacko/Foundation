@@ -2,7 +2,7 @@
 
 int main()
 {
-	texturedScene3DScene exampleScene = texturedScene3DScene();
+	texturedScene3D exampleScene = texturedScene3D();
 	exampleScene.Initialize();
 	exampleScene.Run();
 

@@ -7,7 +7,7 @@ class gammaScene : public texturedScene
 public:
 
 	gammaScene(
-		glm::vec3 gammaSettings = glm::vec3(1.2, 3.7, 2.0),
+		glm::vec3 gammaSettings = glm::vec3(0.33f, 0.33f, 0.33f),
 		texture defaultTexture = texture(),
 		const char* windowName = "Ziyad Barakat's portfolio (gamma)",
 		camera_t gammaCamera = camera_t(),

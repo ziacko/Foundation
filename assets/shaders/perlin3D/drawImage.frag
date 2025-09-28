@@ -33,6 +33,6 @@ layout(binding = 0) uniform sampler3D defaultTexture;
 void main()
 {
     vec3 texSize = textureSize(defaultTexture, 0);
-    float wLayer = (layer / texSize.z) * 0.5 + 0.5;
+	float wLayer = (layer / texSize.z) * 0.5 + 0.5;
 	outColor = texture(defaultTexture, vec3(inBlock.uv, wLayer));
 }

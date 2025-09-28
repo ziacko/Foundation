@@ -5,6 +5,11 @@
 #define QOI_IMPLEMENTATION
 #define IMGUI_IMPL_OPENGL_USE_VERTEX_ARRAY
 #define IMGUI_IMPL_OPENGL_USE_BUFFER_BINDING
+#define IMGUI_DISABLE_DEBUG_TOOLS
+
+#ifndef DEBUG
+#define TW_NO_CONSOLE
+#endif
 
 //C++ libs
 #include <iostream>

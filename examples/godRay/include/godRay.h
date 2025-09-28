@@ -49,6 +49,9 @@ public:
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LESS);
 		glHint(GL_GENERATE_MIPMAP_HINT, GL_NICEST);
+
+		this->camera.position.y -= 2.0f;
+		this->camera.position.z = -1.0f;
 	}
 
 	virtual ~GodRayScene() {};

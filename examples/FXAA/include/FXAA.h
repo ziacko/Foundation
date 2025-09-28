@@ -46,6 +46,8 @@ public:
 		FXAABuffer = new frameBuffer();
 
 		FXAA = bufferHandler_t<FXAASettings_t>();
+
+		this->camera.position.y -= 100.0f;
 	}
 
 	~FXAA_Scene() {};
@@ -60,17 +62,21 @@ public:
 		depthDesc.format = GL_DEPTH_COMPONENT;
 		depthDesc.internalFormat = GL_DEPTH_COMPONENT24;
 		depthDesc.attachmentType = FBODescriptor::attachmentType_e::depth;
+		auto res = window->GetSettings().resolution;
 		depthDesc.dimensions = glm::ivec3(window->GetSettings().resolution.width, window->GetSettings().resolution.height, 1);
+
+		FBODescriptor colorDesc;
+		colorDesc.dimensions = glm::ivec3(res.width, res.height, 1);
 
 		geometryBuffer->Initialize();
 		geometryBuffer->Bind();
 
-		geometryBuffer->AddAttachment(frameBuffer::attachment_t("color"));
+		geometryBuffer->AddAttachment(frameBuffer::attachment_t("color", colorDesc));
 		geometryBuffer->AddAttachment(frameBuffer::attachment_t("depth", depthDesc));
 
 		FXAABuffer->Initialize();
 		FXAABuffer->Bind();
-		FXAABuffer->AddAttachment(frameBuffer::attachment_t("FXAA"));
+		FXAABuffer->AddAttachment(frameBuffer::attachment_t("FXAA", colorDesc));
 
 		frameBuffer::Unbind();
 
@@ -165,6 +171,9 @@ protected:
 	{
 		geometryBuffer->Bind();
 
+
+		auto desc = geometryBuffer->GetAttachmentRef("color").FBODesc;
+
 		GLenum drawbuffers[1] = {
 			geometryBuffer->attachments["color"].FBODesc.attachmentFormat, //color
 		};
@@ -187,7 +196,7 @@ protected:
 			//add the previous depth?
 
 			glBindVertexArray(testModel.meshes[iter].vertexArrayHandle);
-			defProgram.Use();
+			defProgram.Use();\
 			glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 
 			glCullFace(GL_BACK);

@@ -88,7 +88,7 @@ public:
 
 	TSMAA(
 		const char* windowName = "Ziyad Barakat's portfolio (SMAA 1xt)",
-		camera_t texModelCamera = camera_t(glm::vec2(1280, 720), 5.0f, camera_t::projection_e::perspective, 100.0f, 2000.f),
+		camera_t texModelCamera = camera_t(glm::vec2(1280, 720), 5.0f, camera_t::projection_e::perspective, 50.0f, 2000.f),
 		const char* shaderConfigPath = SHADER_CONFIG_DIR,
 		model_t model = model_t("models/fbx_foliage/broadleaf_field/Broadleaf_Desktop_Field.FBX"))
 		: SMAAScene(windowName, texModelCamera, shaderConfigPath, model)
@@ -113,9 +113,12 @@ public:
 		SMAAArea.LoadTexture();
 		SMAASearch.LoadTexture();
 
+		FBODescriptor colorDesc;
+		colorDesc.dimensions = glm::ivec3(window->GetSettings().resolution.width, window->GetSettings().resolution.height, 1);
+
 		geometryBuffer.Initialize();
 		geometryBuffer.Bind();
-		geometryBuffer.AddAttachment(frameBuffer::attachment_t("color"));
+		geometryBuffer.AddAttachment(frameBuffer::attachment_t("color", colorDesc));
 
 		FBODescriptor velDesc;
 		velDesc.format = GL_RG;
@@ -147,11 +150,11 @@ public:
 		weightsBuffer.Initialize();
 		weightsBuffer.Bind();
 
-		weightsBuffer.AddAttachment(frameBuffer::attachment_t("blend"));
+		weightsBuffer.AddAttachment(frameBuffer::attachment_t("blend", colorDesc));
 
 		SMAABuffer.Initialize();
 		SMAABuffer.Bind();
-		SMAABuffer.AddAttachment(frameBuffer::attachment_t("SMAA"));
+		SMAABuffer.AddAttachment(frameBuffer::attachment_t("SMAA", colorDesc));
 
 		for(unsigned int iter = 0; iter < numPreviousFrames; iter++)
 		{
@@ -159,7 +162,7 @@ public:
 
 			newBuffer->Initialize();
 			newBuffer->Bind();
-			newBuffer->AddAttachment(frameBuffer::attachment_t("color"));
+			newBuffer->AddAttachment(frameBuffer::attachment_t("color", colorDesc));
 			newBuffer->AddAttachment(frameBuffer::attachment_t("depth", depthDesc));
 
 			historyFrames.push_back(newBuffer);
@@ -386,7 +389,7 @@ protected:
 		DrawBufferAttachments();
 		DrawSMAASettings();
 		DrawTAASettings();
-		DrawCameraStats();
+		//DrawCameraStats();
 	}
 
 	virtual void DrawTAASettings()

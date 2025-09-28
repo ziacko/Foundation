@@ -20,8 +20,12 @@ public:
 		glDepthFunc(GL_LESS);
 		glHint(GL_GENERATE_MIPMAP_HINT, GL_NICEST);
 
-
 		geometryBuffer = frameBuffer();
+		this->camera.position.y -= 100.0f;
+
+		//soulspear is loaded at an awkward angle so let's hack this
+		//this->camera.Roll(glm::radians(270.0f));
+		//this->camera.Pitch(glm::radians(180.0f));
 	}
 
 	~MSAA() {};
@@ -142,7 +146,7 @@ protected:
 
 		glDrawBuffers(1, drawbuffers);
 
-		for (size_t iter = 0; iter < 1; iter++)
+		for (size_t iter = 0; iter < testModel.meshes.size(); iter++)
 		{
 			if (testModel.meshes[iter].isCollision)
 			{

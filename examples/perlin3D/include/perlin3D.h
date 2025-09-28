@@ -49,7 +49,6 @@ public:
 
 		scene::InitializeUniforms();
 		perlin3D.Initialize(1);
-		//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	}
 
 protected:

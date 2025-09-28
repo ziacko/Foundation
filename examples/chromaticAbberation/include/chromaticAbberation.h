@@ -8,7 +8,7 @@ struct chromaticSettings_t
 	float			blueOffset;
 	float			greenOffset;
 
-	chromaticSettings_t(GLfloat redOffset = 0.0f, GLfloat greenOffset = 0.0f, GLfloat blueOffset = 0.0f)
+	chromaticSettings_t(GLfloat redOffset = -0.01f, GLfloat greenOffset = 0.003f, GLfloat blueOffset = 0.0012f)
 	{
 		this->redOffset = redOffset;
 		this->greenOffset = greenOffset;

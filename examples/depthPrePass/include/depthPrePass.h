@@ -10,7 +10,7 @@ public:
 
 	depthPrePassScene(
 		const char* windowName = "Ziyad Barakat's portfolio (early depth test)",
-		camera_t texModelCamera = camera_t(glm::vec2(1280, 720), 5.0f, camera_t::projection_e::perspective, 0.1f, 2000.f),
+		camera_t texModelCamera = camera_t(glm::vec2(1280, 720), defaultCameraSpeed * 0.1f, camera_t::projection_e::perspective, 0.1f, 2000.f),
 		const char* shaderConfigPath = SHADER_CONFIG_DIR,
 		model_t model = model_t("models/SoulSpear/SoulSpear.fbx"))
 		: scene3D(windowName, texModelCamera, shaderConfigPath, model)
@@ -21,7 +21,12 @@ public:
 		glDepthFunc(GL_LEQUAL);
 		glHint(GL_GENERATE_MIPMAP_HINT, GL_NICEST);
 
+		//this->camera.Roll(glm::radians(270.0f));
+
 		geometryBuffer = new frameBuffer();
+
+		this->camera.position.y -= 2.0f;
+		this->camera.position.z = -1.0f;
 	}
 
 	~depthPrePassScene() {};
@@ -41,7 +46,10 @@ public:
 		depthDesc.attachmentType = FBODescriptor::attachmentType_e::depth;
 		depthDesc.dimensions = glm::ivec3(window->GetSettings().resolution.width, window->GetSettings().resolution.height, 1);
 
-		geometryBuffer->AddAttachment(frameBuffer::attachment_t("color"));
+		FBODescriptor colorDesc;
+		colorDesc.dimensions = glm::ivec3(window->GetSettings().resolution.width, window->GetSettings().resolution.height, 1);
+
+		geometryBuffer->AddAttachment(frameBuffer::attachment_t("color", colorDesc));
 		geometryBuffer->AddAttachment(frameBuffer::attachment_t("depth", depthDesc));
 
 		frameBuffer::Unbind();

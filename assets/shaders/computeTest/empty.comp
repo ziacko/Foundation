@@ -1,14 +1,14 @@
 #version 450 core
 
-layout(local_size_x = 10) in;
+layout(local_size_x = 4) in;
 
 layout (binding = 0) buffer testBuffer
 {
-    float data[];
+    vec4 data;
 };
 
 void main(void)
 {
-    data[gl_LocalInvocationID.x] += 0.0001;
-    //do nothing right now
+    //basic math operation to test compute shader functionality
+    data[gl_LocalInvocationID.x] += gl_LocalInvocationID.x * 0.1f;    
 }

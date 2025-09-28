@@ -16,7 +16,7 @@ struct sharpenSettings_t
 	GLfloat			kernel9;*/
 
 	sharpenSettings_t(
-		GLfloat kernel1 = 0.0f, GLfloat kernel2 = 1.0f/*, GLfloat kernel3 = -1.0f,
+		GLfloat kernel1 = 2.25f, GLfloat kernel2 = 10.0f/*, GLfloat kernel3 = -1.0f,
 		GLfloat kernel4 = -1.0f, GLfloat kernel5 = 9.0f, GLfloat kernel6 = -1.0f,
 		GLfloat kernel7 = -1.0f, GLfloat kernel8 = -1.0f, GLfloat kernel9 = -1.0f*/)
 	{

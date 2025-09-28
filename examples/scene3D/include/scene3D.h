@@ -25,14 +25,20 @@ class scene3D : public scene
 {
 public:
 	explicit scene3D(const char* windowName = "Ziyad Barakat's Portfolio(3D scene)",
-			const camera_t& camera3D = camera_t(defaultWindowSize, defaultCameraSpeed, camera_t::projection_e::perspective),
+			const camera_t& camera3D = camera_t(defaultWindowSize, defaultCameraSpeed * 0.1f, camera_t::projection_e::perspective),
 	        const char* shaderConfigPath = SHADER_CONFIG_DIR,
-	        const model_t& model = model_t("models/SoulSpear/SoulSpear.fbx")) :
-		scene(windowName, camera3D, shaderConfigPath)
+	        const model_t& model = model_t("models/SoulSpear/SoulSpear.fbx")) : scene(windowName, camera3D, shaderConfigPath)
 	{
 		testModel = model;
 		wireframe = false;
 		glClearColor(0.25f, 0.25f, 0.25f, 1.0f);
+
+		//soulspear is loaded at an awkward angle so let's hack this
+		//this->camera.Roll(glm::radians(180.0f));
+		this->camera.Pitch(glm::radians(270.0f));
+
+		this->camera.position.y -= 2.0f;
+		this->camera.position.z += 2.0f;
 	}
 
 	//override input code. use this to mess with camera

@@ -4,14 +4,11 @@
 
 struct dispatchStruct
 {
-	std::vector<float> dispatchArray;
+	glm::vec4 dispatchArray;
 
-	dispatchStruct(uint16_t size = 10)
+	dispatchStruct(float defValue = 10.0f)
 	{
-		for (size_t iter = 0; iter < size; iter++)
-		{
-			dispatchArray.push_back(0.0f);
-		}
+		dispatchArray = glm::vec4(defValue);
 	}
 };
 
@@ -21,38 +18,33 @@ public:
 
 	computeTestScene(
 		const char* windowName = "Ziyad Barakat's portfolio (compute shader test)",
-		camera_t cam = camera_t(),
+		camera_t camera = camera_t(),
 		const char* shaderConfigPath = SHADER_CONFIG_DIR)
-		: scene(windowName, cam, shaderConfigPath)
+		: scene(windowName, camera, shaderConfigPath)
 	{
 		disp = bufferHandler_t<dispatchStruct>();
 		loadFromBuffer = false;
 	}
-
-	~computeTestScene() {};
+	
 
 	shaderProgram_t computeProgram;
 
 	bufferHandler_t<dispatchStruct> disp;
 
 	bool loadFromBuffer;
+	std::string inputBuffer;
 
 	virtual void Initialize() override
 	{
 		scene::Initialize();
-		defProgram = shaderProgramsMap["scene"];
-		computeProgram = shaderProgramsMap[PROJECT_NAME];
-	}
-
-	virtual void Draw() override
-	{
-		scene::Draw();
 	}
 
 protected:
 
 	void InitializeUniforms() override
 	{
+		defProgram = shaderProgramsMap["scene"];
+		computeProgram = shaderProgramsMap[PROJECT_NAME];
 		scene::InitializeUniforms();
 		disp.Initialize(0, GL_SHADER_STORAGE_BUFFER);
 	}
@@ -64,13 +56,14 @@ protected:
 		if(loadFromBuffer)
 		{
 			glBindBuffer(GL_SHADER_STORAGE_BUFFER, disp.bufferHandle);
-			glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, disp.data.dispatchArray.size(), disp.data.dispatchArray.data());
-			for(size_t iter = 0; iter < 10; iter++)
+			glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0,  sizeof(disp.data.dispatchArray), &disp.data.dispatchArray);
+			for(size_t iter = 0; iter < 4; iter++)
 			{
-				printf("%f \t", disp.data.dispatchArray[0]);
-			}
-			printf("\n");
+				inputBuffer.append(std::to_string(disp.data.dispatchArray[iter]));
+				inputBuffer.append(" ");
+			}			
 			loadFromBuffer = false;
+			inputBuffer.append("\n");
 		}
 	}
 
@@ -83,13 +76,13 @@ protected:
 			if (ImGui::Button("dispatch"))
 			{
 				glUseProgram(computeProgram.handle);
-				glDispatchCompute(10, 1, 1);
+				glDispatchCompute(4, 1, 1);
 				loadFromBuffer = true;
 			}
 
+			ImGui::Text("Array Input \n %s", inputBuffer.c_str(), inputBuffer.size());
 			ImGui::EndTabItem();
 		}
-
 	}
 };
 

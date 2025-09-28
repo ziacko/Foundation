@@ -10,10 +10,10 @@ public:
 	stencil(const char* windowName = "Ziyad Barakat's Portfolio(stencil test)",
 		camera_t camera3D = camera_t(glm::vec2(1280, 720), 10.0f, camera_t::projection_e::perspective, 0.001f, 1000.0f ),
 		model_t model = model_t("models/fbx_foliage/broadleaf_field/Broadleaf_Desktop_Field.FBX"),
-		const char* shaderConfigPath = SHADER_CONFIG_DIR) : 
-		scene3D(windowName, camera3D, shaderConfigPath)
+		const char* shaderConfigPath = SHADER_CONFIG_DIR) : scene3D(windowName, camera3D, shaderConfigPath)
 	{
 		testModel = model;
+		this->camera.position.y -= 100.0f;
 		geometryBuffer = new frameBuffer();
 	}
 
@@ -146,7 +146,7 @@ protected:
 		geometryBuffer->attachments["depth"].Draw();
 
 		//we just need the first LOd so only do the first 3 meshes
-		for (size_t iter = 0; iter < 1; iter++)
+		for (size_t iter = 0; iter < testModel.meshes.size(); iter++)
 		{
 			if (testModel.meshes[iter].isCollision)
 			{
@@ -179,7 +179,7 @@ protected:
 		geometryBuffer->attachments["color"].Draw();
 
 		//we just need the first LOd so only do the first 3 meshes
-		for (size_t iter = 0; iter < 1; iter++)
+		for (size_t iter = 0; iter < testModel.meshes.size(); iter++)
 		{
 			if (testModel.meshes[iter].isCollision)
 			{

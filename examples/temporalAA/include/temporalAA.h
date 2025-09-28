@@ -114,11 +114,11 @@ public:
 		glDepthFunc(GL_LESS);
 		glHint(GL_GENERATE_MIPMAP_HINT, GL_NICEST);
 
-		this->camera.position.x -= 100.0f;
+		this->camera.position.y -= 100.0f;
 
 		//soulspear is loaded at an awkward angle so let's hack this
-		this->camera.Roll(glm::radians(270.0f));
-		this->camera.Pitch(glm::radians(180.0f));
+		//this->camera.Roll(glm::radians(270.0f));
+		//this->camera.Pitch(glm::radians(180.0f));
 
 		geometryBuffer = new frameBuffer();
 		unJitteredBuffer = new frameBuffer();
@@ -298,9 +298,9 @@ protected:
 
 		//glBeginQuery(gl_time_elapsed, jitterQuery);
 
-		defaultTimer->Begin();
+		//defaultTimer->Begin();
 		JitterPass(); //render current scene with jitter
-		defaultTimer->End();
+		//defaultTimer->End();
 
 		//glEndQuery(gl_time_elapsed);
 

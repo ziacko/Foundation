@@ -29,6 +29,22 @@ layout(std140, binding = 1) uniform gammaSettings
 
 uniform sampler2D defaultTexture;
 
+const float SRGB_GAMMA = 1.0 / 2.2;
+const float SRGB_INVERSE_GAMMA = 2.2;
+const float SRGB_ALPHA = 0.055;
+
+// (xchen) gamma to linear sRGB transformation
+// Converts a srgb color to a rgb color (approximated, but fast)
+vec3 srgb_to_rgb_approx(vec3 srgb) {
+    return pow(srgb, vec3(SRGB_INVERSE_GAMMA));
+}
+
+// (xchen) rgb to gamma sRGB transformation (approximated, but fast)
+vec3 rgb_to_srgb_approx(vec3 rgb) {
+	return pow(clamp(rgb, 0.0, 1.0), vec3(SRGB_GAMMA));
+}
+
+
 void main()
 {
 	if(gl_FragCoord.x > mousePosition.x)
@@ -38,6 +54,9 @@ void main()
 
 	else
 	{
-		outColor = pow( texture(defaultTexture, inBlock.uv), 1.0 / gamma);
+		outColor = vec4(srgb_to_rgb_approx(texture(defaultTexture, inBlock.uv).rgb), 1);
+
+		outColor = outColor * (1.0 / gamma);
+		outColor.w = 1;
 	}
 }

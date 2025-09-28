@@ -1,6 +1,6 @@
 [
     {
-        "name": "bubbleProgram",
+        "name": "bubble",
         "outputs": [
             "outColor"
         ],

@@ -37,10 +37,10 @@ public:
 		dynamicBuffer = new frameBuffer();
 
 		resolution = bufferHandler_t<resolutionSettings_t>();
-		this->camera.Roll(glm::radians(180.0f));
+		this->camera.position.y -= 2.0f;
+		this->camera.position.z = -1.0f;
 	}
-
-	~dynamicRes() override {};
+	
 
 	virtual void Initialize() override
 	{
@@ -54,15 +54,18 @@ public:
 		depthDesc.attachmentType = FBODescriptor::attachmentType_e::depth;
 		depthDesc.dimensions = glm::ivec3(window->GetSettings().resolution.width, window->GetSettings().resolution.height, 1);
 
+		FBODescriptor colorDesc;
+		colorDesc.dimensions = glm::ivec3(window->GetSettings().resolution.width, window->GetSettings().resolution.height, 1);
+		
 		geometryBuffer->Initialize();
 		geometryBuffer->Bind();
 
-		geometryBuffer->AddAttachment(frameBuffer::attachment_t("color"));
+		geometryBuffer->AddAttachment(frameBuffer::attachment_t("color", colorDesc));
 		geometryBuffer->AddAttachment(frameBuffer::attachment_t("depth", depthDesc));
 
 		dynamicBuffer->Initialize();
 		dynamicBuffer->Bind();
-		dynamicBuffer->AddAttachment(frameBuffer::attachment_t("color"));
+		dynamicBuffer->AddAttachment(frameBuffer::attachment_t("color", colorDesc));
 		dynamicBuffer->AddAttachment(frameBuffer::attachment_t("depth", depthDesc));
 
 		frameBuffer::Unbind();
