@@ -332,7 +332,7 @@ protected:
 	virtual void DrawTAASettings()
 	{
 		ImGui::Begin("TAA Settings");
-		ImGui::Text("performance | %f", defaultTimer->GetTimeMilliseconds());
+		//ImGui::Text("performance | %f", defaultTimer->GetTimeMilliseconds());
 		ImGui::Checkbox("enable Compare", &enableCompare);
 		ImGui::SliderFloat("feedback factor", &taaUniforms.data.feedbackFactor, 0.0f, 1.0f);
 		ImGui::InputFloat("max depth falloff", &taaUniforms.data.maxDepthFalloff, 0.01f);

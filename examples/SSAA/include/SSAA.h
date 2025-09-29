@@ -345,7 +345,7 @@ protected:
 		scene3D::BuildGUI(window, io);
 
 		DrawBufferAttachments();
-		DrawTAASettings();
+		//DrawTAASettings();
 		DrawDownsampleSettings();
 	}
 
@@ -353,7 +353,7 @@ protected:
 	{
 		if (ImGui::BeginTabItem("TAA Settings"))
 		{
-			ImGui::Text("performance | %f", defaultTimer->GetTimeMilliseconds());
+			//ImGui::Text("performance | %f", defaultTimer->GetTimeMilliseconds());
 			ImGui::Checkbox("enable Compare", &enableCompare);
 
 			//jitter settings
