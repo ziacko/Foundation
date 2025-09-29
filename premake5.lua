@@ -76,7 +76,7 @@ function scene_project(name, parents)
        --if extra_files and #extra_files > 0 then
         defines {
             "SHADER_CONFIG_DIR=\"" .. name .. "\"",
-            "ASSET_DIR=\"" .. _SCRIPT_DIR .. "/assets/\"",
+            "ASSET_DIR=\"" .. "assets/\"",
             "PROJECT_NAME=\"" .. name .. "\"",
         }
 
@@ -270,7 +270,7 @@ scene_project("dotProduct")
 
 --3d projects
 scene_project("scene3D")
-scene_project("texturedScene3D", {"scene3D"})
+--scene_project("texturedScene3D", {"scene3D"})
 scene_project("depthPrePass", {"scene3D", "texturedScene3D"})
 --scene_project("bspLoader", {"scene3D"})
 scene_project("displacement", {"scene3D", "texturedScene3D"})
