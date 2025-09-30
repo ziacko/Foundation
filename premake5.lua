@@ -40,7 +40,7 @@ function scene_project(name, parents)
             "examples/" .. name .. "/source/**.cpp",
             "include/Globals.h",
             "include/GlobalsPCH.h",
-            "source/thirdparty_impl.cpp",
+            "source/GlobalsPCH.cpp",
             "lib/imgui-docking/*.cpp",
             "lib/yyjson/src/yyjson.c",
             "lib/ufbx/ufbx.c",
@@ -83,9 +83,17 @@ function scene_project(name, parents)
             "IMGUI_DEFINE_MATH_OPERATORS",
         }
 
-        -- Precompiled header setup (C++ files only). We avoid force-including in C sources.
-        filter { "language:C++" }
-            pchheader "include/GlobalsPCH.h"
+        -- Precompiled header setup:
+        filter { "system:windows", "language:C++" }
+            pchheader "GlobalsPCH.h"
+            pchsource "source/GlobalsPCH.cpp"
+            forceincludes { "GlobalsPCH.h" }
+        
+        -- Disable PCH for any C sources to avoid C/C++ mode conflicts
+        filter { "files:**.c" }
+            flags { "NoPCH" }
+        
+        -- Reset filters
         filter {}
 
         -- Add extra includes

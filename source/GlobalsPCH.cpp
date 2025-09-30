@@ -1,6 +1,3 @@
-// Single translation unit for third-party single-header library implementations.
-// This prevents ODR/linker errors when using a precompiled header.
-
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #define QOI_IMPLEMENTATION
@@ -14,4 +11,6 @@
 #  endif
 #endif
 
-// Nothing else should go here.
+#include "../include/GlobalsPCH.h"
+// This source file exists solely so the build system can compile a single
+// translation unit for the precompiled header specified by premake.
