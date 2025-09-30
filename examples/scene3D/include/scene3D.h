@@ -31,7 +31,6 @@ public:
 	{
 		testModel = model;
 		wireframe = false;
-		glClearColor(0.25f, 0.25f, 0.25f, 1.0f);
 
 		//soulspear is loaded at an awkward angle so let's hack this
 		//this->camera.Roll(glm::radians(180.0f));
@@ -61,25 +60,15 @@ public:
 
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LEQUAL);
-
-		accum = 0.0f;
-		accumReturn = 0.0f;
-		accumMult = 0.0f;
 	}
 
 protected:
 
 	model_t testModel;
-	bufferHandler_t<baseMaterialSettings_t>	materialBuffer;
-
-	unsigned int OGLProgram{};
-
-	float accum{};
-	float accumReturn{};
-	float accumMult{};
 
 	void Draw() override
 	{
+		GL_PUSH_DEBUG_GROUP();
 		for (const auto& iter : testModel.meshes)
 		{
 			glBindVertexArray(iter.vertexArrayHandle);
@@ -95,38 +84,7 @@ protected:
 			glDrawElements(GL_TRIANGLES, iter.indices.size(), GL_UNSIGNED_INT, 0);
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		}
-
-		DrawGUI(window);
-
-		manager->SwapDrawBuffers(window);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	}
-
-	void Update() override
-	{
-		//this keeps resetting the values
-		manager->PollForEvents();
-		camera.Update();
-		clock.UpdateClockAdaptive();
-
-		defaultPayload.data.deltaTime = (float)clock.GetDeltaTime();
-		defaultPayload.data.totalTime = (float)clock.GetTotalTime();
-		defaultPayload.data.framesPerSec = (float)(1.0 / clock.GetDeltaTime());
-		defaultPayload.data.totalFrames++;
-
-		defaultPayload.data.projection = camera.projection;
-		defaultPayload.data.view = camera.view;
-		if (camera.currentProjectionType == camera_t::projection_e::perspective)
-		{
-			defaultPayload.data.translation = glm::identity<glm::mat4>();
-		}
-
-		else
-		{
-			defaultPayload.data.translation = camera.translation;
-		}
-
-		defaultPayload.Update(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW);
+		glPopDebugGroup();
 	}
 
 	void BuildGUI(tWindow* window, const ImGuiIO& io) override
@@ -161,25 +119,8 @@ protected:
 			ImGui::Text("Y %f", camera.position.y);
 			ImGui::Text("Z %f", camera.position.z);
 
-
 			ImGui::EndTabItem();
 		}
-	}
-
-	void InitializeUniforms() override
-	{
-		defaultPayload.data = defaultUniformBuffer(camera);
-		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
-
-		defaultPayload.data.resolution = glm::vec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
-		defaultPayload.data.projection = camera.projection;
-		defaultPayload.data.translation = camera.translation;
-		defaultPayload.data.view = camera.view;
-
-		materialBuffer.data = baseMaterialSettings_t();
-
-		defaultPayload.Initialize(0);
-		materialBuffer.Initialize(1);
 	}
 
 	void HandleMouseClick(const tWindow* window, mouseButton_e button, buttonState_e state) override
@@ -213,26 +154,18 @@ protected:
 	{
 		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 		camera.resolution = glm::vec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
-		defaultPayload.data.resolution = camera.resolution;
 		camera.UpdateProjection();
-		defaultPayload.data.projection = camera.projection;
 
-		//bind the uniform buffer and refill it
-		defaultPayload.Update(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW);
+
+		UpdateDefaultUniforms(camera, clock);
 	}
 
 	void HandleWindowResize(const tWindow* window, const vec2_t<uint16_t>& dimensions) override
 	{
 		glViewport(0, 0, dimensions.width, dimensions.height);
 		camera.resolution = glm::vec2(dimensions.width, dimensions.height);
-		defaultPayload.data.resolution = camera.resolution;
 		camera.UpdateProjection();
-		defaultPayload.data.projection = camera.projection;
-		defaultPayload.data.deltaTime = (float)clock.GetDeltaTime();
-		defaultPayload.data.totalTime = (float)clock.GetTotalTime();
-		defaultPayload.data.framesPerSec = (float)(1.0 / clock.GetDeltaTime());
-
-		defaultPayload.Update(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW);
+		UpdateDefaultUniforms(camera, clock);
 	}
 
 	void HandleKey(const tWindow* window, const int16_t& key, const keyState_e& state)	override

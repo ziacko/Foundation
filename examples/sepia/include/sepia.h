@@ -18,10 +18,10 @@ struct sepiaSettings_t
 	GLfloat			blueModifier2;
 	GLfloat			blueModifier3;
 
-	sepiaSettings_t(GLfloat factor = 0.75f,
-		GLfloat redModifier1 = 0.393f, GLfloat redModifier2 = 0.349f, GLfloat redModifier3 = 0.272f,
-		GLfloat greenModifier1 = 0.769f, GLfloat greenModifier2 = 0.686f, GLfloat greenModifier3 = 0.534f,
-		GLfloat blueModifier1 = 0.189f, GLfloat blueModifier2 = 0.168f, GLfloat blueModifier3 = 0.131f)
+	explicit sepiaSettings_t(const GLfloat factor = 0.75f,
+	                         const GLfloat redModifier1 = 0.393f, const GLfloat redModifier2 = 0.349f, const GLfloat redModifier3 = 0.272f,
+	                         const GLfloat greenModifier1 = 0.769f, const GLfloat greenModifier2 = 0.686f, const GLfloat greenModifier3 = 0.534f,
+	                         const GLfloat blueModifier1 = 0.189f, const GLfloat blueModifier2 = 0.168f, const GLfloat blueModifier3 = 0.131f)
 	{
 		this->factor = factor;
 		this->redModifier1 = redModifier1;
@@ -40,22 +40,21 @@ struct sepiaSettings_t
 	~sepiaSettings_t(){};
 };
 
-class sepiaScene : public texturedScene
+class sepiaScene final : public texturedScene
 {
 public:
-
-	sepiaScene(
+	explicit sepiaScene(
 		bufferHandler_t<sepiaSettings_t> sepiaSettings = bufferHandler_t<sepiaSettings_t>(),
-		texture defaultTexture = texture(),
+		const texture defaultTexture = texture(),
 		const char* windowName = "Ziyad Barakat's portfolio (sepia)",
-		camera_t sepiaCamera = camera_t(),
+		const camera_t sepiaCamera = camera_t(),
 		const char* shaderConfigPath = SHADER_CONFIG_DIR)
 		: texturedScene(defaultTexture, windowName, sepiaCamera, shaderConfigPath)
 	{
 		this->sepiaSettings = sepiaSettings;
 	}
 
-	~sepiaScene(){};
+	~sepiaScene() override = default;
 
 protected:
 

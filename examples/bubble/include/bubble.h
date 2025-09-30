@@ -1,3 +1,4 @@
+#pragma once
 #include "textured.h"
 //#include <DefaultUniformBuffer.h>
 
@@ -7,25 +8,24 @@ struct bubbleSettings_t
 	float			offset;
 	float			gridDimensions;
 
-	bubbleSettings_t(GLfloat attenuation = 0.25f, GLfloat offset = 0.1f, GLfloat gridDimensions = 100)
+	explicit bubbleSettings_t(GLfloat attenuation = 0.25f, GLfloat offset = 0.1f, GLfloat gridDimensions = 100)
 	{
 		this->attenuation = attenuation;
 		this->offset = offset;
 		this->gridDimensions = gridDimensions;
 	}
 
-	~bubbleSettings_t() {};
+	~bubbleSettings_t() = default;
 };
 
 class bubbleScene : public texturedScene
 {
 public:
-
-	bubbleScene(
-		bufferHandler_t<bubbleSettings_t> bubbleSettings = bufferHandler_t<bubbleSettings_t>(),
-		texture defaultTexture = texture(),
+	explicit bubbleScene(
+		const bufferHandler_t<bubbleSettings_t> bubbleSettings = bufferHandler_t<bubbleSettings_t>(),
+		const texture defaultTexture = texture(),
 		const char* windowName = "Ziyad Barakat's Portfolio ( bubble displacement )",		
-		camera_t bubbleCamera = camera_t(),
+		const camera_t bubbleCamera = camera_t(),
 		const char* shaderConfigPath = SHADER_CONFIG_DIR, GLfloat attenuation = 1.0f,
 		GLfloat offset = 1.0f) : texturedScene(defaultTexture, windowName, bubbleCamera, shaderConfigPath)
 	{
@@ -40,7 +40,7 @@ public:
 		defProgram = shaderProgramsMap["bubble"];
 	}
 
-	~bubbleScene( void ){}
+	~bubbleScene( void ) override {}
 
 protected:
 
@@ -69,7 +69,7 @@ protected:
 		bubble.Initialize(1);
 	}
 
-	void SetupVertexBuffer()
+	virtual void SetupVertexBuffer()
 	{ 
 		GLfloat cellWidth = defaultPayload.data.resolution.x / bubble.data.gridDimensions;
 		GLfloat cellHeight = defaultPayload.data.resolution.y / bubble.data.gridDimensions;
@@ -96,9 +96,6 @@ protected:
 
 		glDrawArraysInstanced(GL_TRIANGLES, 0, 6, (GLsizei)(bubble.data.gridDimensions * bubble.data.gridDimensions));
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		texturedScene::DrawGUI(window);
-		manager->SwapDrawBuffers(window);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		glPopDebugGroup();
 	}

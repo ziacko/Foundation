@@ -9,8 +9,8 @@ struct cellShadeSettings_t
 	float		blueModifier;
 	float		cellDistance;
 
-	cellShadeSettings_t(GLfloat cellDistance = 1.0f, GLfloat redModifier = 1.0f,
-		GLfloat greenModifier = 1.0f, GLfloat blueModifier = 1.0f)
+	explicit cellShadeSettings_t(const float cellDistance = 1.0f, const float redModifier = 1.0f,
+	                             const float greenModifier = 1.0f, const float blueModifier = 1.0f)
 	{
 		this->redModifier = redModifier;
 		this->greenModifier = greenModifier;
@@ -18,10 +18,10 @@ struct cellShadeSettings_t
 		this->cellDistance = cellDistance;
 	}
 
-	~cellShadeSettings_t(){};
+	~cellShadeSettings_t() = default;
 };
 
-class cellShadingScene : public texturedScene
+class cellShadingScene final : public texturedScene
 {
 public:
 
@@ -40,7 +40,7 @@ public:
 		texturedScene::Initialize();
 	}
 
-	~cellShadingScene(){};
+	~cellShadingScene() override = default;
 
 protected:
 

@@ -290,44 +290,26 @@ protected:
 		currentFrame = ((defaultPayload.data.totalFrames % 2) == 0) ? 0 : 1;//if even frame then write to 1 and read from 0 and vice versa
 	}
 
-	void UpdateDefaultBuffer()
-	{
-		camera.UpdateProjection();
-		defaultPayload.data.projection = camera.projection;
-		defaultPayload.data.view = camera.view;
-		if (camera.currentProjectionType == camera_t::projection_e::perspective)
-		{
-			defaultPayload.data.translation = testModel.makeTransform();
-		}
-
-		else
-		{
-			defaultPayload.data.translation = camera.translation;
-		}
-		defaultPayload.data.deltaTime = (float)clock.GetDeltaTime();
-		defaultPayload.data.totalTime = (float)clock.GetTotalTime();
-		defaultPayload.data.framesPerSec = (float)(1.0 / clock.GetDeltaTime());
-
-		defaultPayload.Update();
-	}
-
-	virtual void Draw()
+	virtual void Draw() override
 	{
 		velocityUniforms.data.currentView = camera.view; //set to the previous view matrix?
 		camera.ChangeProjection(camera_t::projection_e::perspective);
 		camera.Update();
 
-		UpdateDefaultBuffer();
+		UpdateDefaultUniforms(camera, clock, &testModel);
 
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		JitterPass(); //render current scene with jitter
 
 		if (enableCompare)
 		{
 			UnJitteredPass();
 		}
+		glDisable(GL_BLEND);
 
 		camera.ChangeProjection(camera_t::projection_e::orthographic);
-		UpdateDefaultBuffer();
+		UpdateDefaultUniforms(camera, clock, &testModel);
 		
 		FXAAPass();
 
@@ -336,12 +318,6 @@ protected:
 		//SharpenPass();
 
 		FinalPass(&TAAFrames[currentFrame]->attachments["color"], &unJitteredBuffer->attachments["color"]);
-		
-		DrawGUI(window);
-		
-		manager->SwapDrawBuffers(window);
-		ClearBuffers();
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 
 	virtual void JitterPass()
@@ -428,8 +404,8 @@ protected:
 		TAAFrames[!currentFrame]->attachments["depth"].SetActive(3); //previous depth
 
 		geometryBuffer->attachments["velocity"].SetActive(4); //velocity
-		
-		glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
+
+		defaultVertexBuffer.Bind();
 		smoothProgram.Use();
 		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -447,7 +423,7 @@ protected:
 		//current frame
 		geometryBuffer->attachments["color"].SetActive(0); // color
 
-		glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
+		defaultVertexBuffer.Bind();
 		FXAAProgram.Use();
 		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -465,7 +441,7 @@ protected:
 		//current frame
 		TAAFrames[currentFrame]->attachments["color"].SetActive(0); // color
 
-		glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
+		defaultVertexBuffer.Bind();
 		sharpenProgram.Use();
 		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -526,7 +502,6 @@ protected:
 	{
 		if (ImGui::BeginTabItem("Sharpen settings"))
 		{
-
 			ImGui::SliderFloat("kernel 1", &sharpenSettings.data.kernel1, -1.0f, 1.0f);
 			ImGui::SliderFloat("kernel 5", &sharpenSettings.data.kernel2, 0.0f, 10.0f, "%.5f", 1.0f);
 
@@ -602,40 +577,12 @@ protected:
 		}
 	}
 
-	virtual void DrawJitterSettings()
+	virtual void ClearBuffers() override
 	{
-		ImGui::Begin("Jitter Settings");
-
-
-		ImGui::End();
-	}
-
-	virtual void DrawCameraStats() override
-	{
-		//set up the view matrix
-		if (ImGui::BeginTabItem("camera", &isGUIActive))
-		{
-			ImGui::DragFloat("near plane", &camera.nearPlane, 0.01f, 0.0f, 1000.0f, "%.3f");
-			ImGui::DragFloat("far plane", &camera.farPlane, 0.01f, 0.0f, 1000.0f, "%.3f");
-			ImGui::SliderFloat("Field of view", &camera.fieldOfView, 0, 90, "%.0f");
-
-			ImGui::InputFloat("camera speed", &camera.speed, 0.f);
-			ImGui::InputFloat("x sensitivity", &camera.xSensitivity, 0.f);
-			ImGui::InputFloat("y sensitivity", &camera.ySensitivity, 0.f);
-			ImGui::EndTabItem();
-		}
-	}
-
-	virtual void ClearBuffers()
-	{
-		//ok copy the current frame into the previous frame and clear the rest of the buffers	
-		float clearColor1[4] = { 0.25f, 0.25f, 0.25f, 0.25f };
-		float clearColor2[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-		float clearColor3[4] = { 1.0f, 0.0f, 0.0f, 0.0f }; //this is for debugging only!
 
 		TAAFrames[!currentFrame]->Bind(); //clear the previous, the next frame current becomes previous
 
-		TAAFrames[!currentFrame]->ClearTexture(TAAFrames[!currentFrame]->GetAttachmentRef("color"), clearColor1);
+		TAAFrames[!currentFrame]->ClearTexture(TAAFrames[!currentFrame]->GetAttachmentRef("color"), clearColor);
 		TAAFrames[!currentFrame]->ClearTexture(TAAFrames[!currentFrame]->GetAttachmentRef("depth"), clearColor2);
 		//copy current depth to previous or vice versa?
 		TAAFrames[!currentFrame]->GetAttachmentRef("color").Copy(&geometryBuffer->GetAttachmentRef("color")); //copy color over
@@ -645,24 +592,24 @@ protected:
 		TAAFrames[currentFrame]->Unbind();
 
 		geometryBuffer->Bind();
-		geometryBuffer->ClearTexture(geometryBuffer->GetAttachmentRef("color"), clearColor1);
+		geometryBuffer->ClearTexture(geometryBuffer->GetAttachmentRef("color"), clearColor);
 		geometryBuffer->ClearTexture(geometryBuffer->GetAttachmentRef("velocity"), clearColor2);
 		geometryBuffer->ClearTexture(geometryBuffer->GetAttachmentRef("depth"), clearColor2);
 		glClear(GL_DEPTH_BUFFER_BIT);
 		geometryBuffer->Unbind();
 
 		unJitteredBuffer->Bind();
-		unJitteredBuffer->ClearTexture(unJitteredBuffer->GetAttachmentRef("color"), clearColor1);
+		unJitteredBuffer->ClearTexture(unJitteredBuffer->GetAttachmentRef("color"), clearColor);
 		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 		unJitteredBuffer->Unbind();
 
 		FXAABuffer->Bind();
-		FXAABuffer->ClearTexture(FXAABuffer->GetAttachmentRef("FXAA"), clearColor1);
+		FXAABuffer->ClearTexture(FXAABuffer->GetAttachmentRef("FXAA"), clearColor);
 		glClear(GL_DEPTH_BUFFER_BIT);
 		FXAABuffer->Unbind();
 
 		sharpenBuffer->Bind();
-		sharpenBuffer->ClearTexture(sharpenBuffer->GetAttachmentRef("sharpen"), clearColor1);
+		sharpenBuffer->ClearTexture(sharpenBuffer->GetAttachmentRef("sharpen"), clearColor);
 		glClear(GL_DEPTH_BUFFER_BIT);
 		sharpenBuffer->Unbind();
 
@@ -711,22 +658,12 @@ protected:
 
 	virtual void InitializeUniforms() override
 	{
-		defaultPayload = bufferHandler_t<defaultUniformBuffer>(camera);
-		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
-
-		defaultPayload.data.resolution = glm::ivec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
-		defaultPayload.data.projection = camera.projection;
-		defaultPayload.data.translation = camera.translation;
-		defaultPayload.data.view = camera.view;
-
-		defaultPayload.Initialize(0);
+		scene::InitializeUniforms();
 		velocityUniforms.Initialize(1);
 		taaUniforms.Initialize(2);
 		sharpenSettings.Initialize(3);
 		jitterUniforms.Initialize(4);
 		FXAASettings.Initialize(5);
-
-		defaultVertexBuffer.SetupDefault();
 	}
 };
 

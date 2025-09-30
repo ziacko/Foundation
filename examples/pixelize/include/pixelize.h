@@ -12,14 +12,14 @@ struct pixellize_t
 	: pixelWidth(inPixelWidth), pixelHeight(inPixelHeight)	{}
 };
 
-class pixelizeScene : public texturedScene
+class pixelizeScene final : public texturedScene
 {
 public:
 
 	explicit pixelizeScene(bufferHandler_t<pixellize_t> pixelSettings = bufferHandler_t<pixellize_t>(),
-		texture defaultTexture = texture(),
+		const texture defaultTexture = texture(),
 		const char* windowName = "Ziyad Barakat's portfolio (pixellize)",
-		camera_t parallaxCamera = camera_t(),
+		const camera_t parallaxCamera = camera_t(),
 		const char* shaderConfigPath = SHADER_CONFIG_DIR) :
 		texturedScene(defaultTexture, windowName, parallaxCamera, shaderConfigPath)
 	{

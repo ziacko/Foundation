@@ -48,7 +48,7 @@ struct mesh_t
 	unsigned int							numVertices;
 	unsigned int							numIndices;
 
-	mesh_t()
+	mesh_t() : vertexBufferHandle(0), indexBufferHandle(0), numBones(0), numVertices(0), numIndices(0)
 	{
 		textures = std::vector<texture>();
 
@@ -64,8 +64,8 @@ struct mesh_t
 		indexOffset = 0;
 	}
 
-	mesh_t(std::vector<vertexAttribute_t> inVertices, std::vector<unsigned int> inIndices, std::vector<texture> inTextures) : 
-		textures(inTextures)
+	mesh_t(std::vector<vertexAttribute_t> inVertices, std::vector<unsigned int> inIndices, std::vector<texture> inTextures) :
+		textures(inTextures), vertexBufferHandle(0), indexBufferHandle(0), numBones(0), numVertices(0), numIndices(0)
 	{
 		diffuse = glm::vec4(0);
 		specular = glm::vec4(0);
@@ -77,6 +77,11 @@ struct mesh_t
 		isCollision = false;
 		vertexOffset = 0;
 		indexOffset = 0;
+	}
+
+	void Bind() const
+	{
+		glBindVertexArray(vertexArrayHandle);
 	}
 };
 

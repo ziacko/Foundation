@@ -243,20 +243,7 @@ protected:
 
 	virtual void Update() override
 	{
-		manager->PollForEvents();
-		if (lockedFrameRate > 0)
-		{
-			clock.UpdateClockFixed(lockedFrameRate);
-		}
-		else
-		{
-			clock.UpdateClockAdaptive();
-		}
-
-		defaultPayload.data.deltaTime = (float)clock.GetDeltaTime();
-		defaultPayload.data.totalTime = (float)clock.GetTotalTime();
-		defaultPayload.data.framesPerSec = (float)(1.0 / clock.GetDeltaTime());
-		defaultPayload.data.totalFrames++;
+		scene::Update();
 
 		taaUniforms.Update();
 		sharpenSettings.Update();
@@ -265,91 +252,34 @@ protected:
 		currentFrame = ((defaultPayload.data.totalFrames % 2) == 0) ? 0 : 1;//if even frame then write to 1 and read from 0 and vice versa
 	}
 
-	void UpdateDefaultBuffer()
-	{
-		camera.UpdateProjection();
-		defaultPayload.data.projection = camera.projection;
-		defaultPayload.data.view = camera.view;
-		defaultPayload.data.resolution = camera.resolution;
-		if (camera.currentProjectionType == camera_t::projection_e::perspective)
-		{
-			defaultPayload.data.translation = testModel.makeTransform();
-		}
-
-		else
-		{
-			defaultPayload.data.translation = camera.translation;
-		}
-		defaultPayload.data.deltaTime = (float)clock.GetDeltaTime();
-		defaultPayload.data.totalTime = (float)clock.GetTotalTime();
-		defaultPayload.data.framesPerSec = (float)(1.0 / clock.GetDeltaTime());
-
-		defaultPayload.Update();
-		//defaultVertexBuffer.UpdateBuffer(defaultPayload.data.resolution);
-	}
-
 	virtual void Draw() override
 	{
 		velocityUniforms.data.currentView = camera.view; //need to update the current view matrix
 		camera.ChangeProjection(camera_t::projection_e::perspective);
 		camera.Update();
 
-		UpdateDefaultBuffer();
+		UpdateDefaultUniforms(camera, clock, &testModel);
 
-		//glBeginQuery(gl_time_elapsed, jitterQuery);
-
-		//defaultTimer->Begin();
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		JitterPass(); //render current scene with jitter
-		//defaultTimer->End();
-
-		//glEndQuery(gl_time_elapsed);
-
-		/*glQueryCounter(jitterQuery, gl_timestamp);
-		GLint64 geomTime = 0;
-		glGetInteger64v(gl_timestamp, &geomTime);
-		uint64_t GeomTimeU = static_cast<uint64_t>(geomTime);
-
-		uint64_t averageGPUTime = 0;
-		if ((defaultPayload.data.totalFrames % 11) == 0)
-		{
-			//average the whole lot and clear the vector
-			uint64_t tempTime = 0;
-			for (auto iter : averageGPUTimes)
-			{
-				tempTime += iter;
-			}
-
-			tempTime /= 10; //wee need the average GPU time over 10 frames
-
-			//printf("%f | %f \n", (float)tempTime / 10000.0f, (float)(1.0f / (tempTime / 10000000.0f)));
-			averageGPUTimes.clear();
-		}
-
-		else
-		{
-			//
-			averageGPUTimes.push_back(GeomTimeU - startTime);
-		}*/
 
 		if (enableCompare)
 		{
 			UnJitteredPass();
 		}
 
+		glDisable(GL_BLEND);
+
 		camera.ChangeProjection(camera_t::projection_e::orthographic);
-		UpdateDefaultBuffer();
+		UpdateDefaultUniforms(camera, clock, &testModel);
+		//UpdateDefaultBuffer();
 		
 		TAAPass(); //use the positions, colors, depth and velocity to smooth the final image
 
 		//SharpenPass();
 
 		FinalPass(&historyFrames[currentFrame]->attachments["color"], &unJitteredBuffer->attachments["color"]);
-		
-		DrawGUI(window);
-
-		manager->SwapDrawBuffers(window);
-		ClearBuffers();
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 
 	virtual void JitterPass()
@@ -359,17 +289,17 @@ protected:
 		geometryBuffer->DrawAll();
 
 		//we just need the first LOd so only do the first 3 meshes
-		for (size_t iter = 0; iter < testModel.meshes.size(); iter++)
+		for (auto& meshIter : testModel.meshes)
 		{
-			if (testModel.meshes[iter].isCollision)
+			if (meshIter.isCollision)
 			{
 				continue;
 			}
 
-			testModel.meshes[iter].textures[0].SetActive(0);
+			meshIter.textures[0].SetActive(0);
 			//add the previous depth?
 
-			glBindVertexArray(testModel.meshes[iter].vertexArrayHandle);
+			meshIter.Bind();
 			defProgram.Use();
 			
 			glCullFace(GL_BACK);
@@ -378,12 +308,11 @@ protected:
 			{
 				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 			}
-			glDrawElements(GL_TRIANGLES, testModel.meshes[iter].indices.size(), GL_UNSIGNED_INT, 0);
+			glDrawElements(GL_TRIANGLES, meshIter.indices.size(), GL_UNSIGNED_INT, 0);
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		}
 
 		geometryBuffer->Unbind();
-
 		glPopDebugGroup();
 	}
 
@@ -394,17 +323,17 @@ protected:
 		unJitteredBuffer->DrawAll();
 
 		//we just need the first LOd so only do the first 3 meshes
-		for (size_t iter = 0; iter < testModel.meshes.size(); iter++)
+		for (auto& meshIter : testModel.meshes)
 		{
-			if (testModel.meshes[iter].isCollision)
+			if (meshIter.isCollision)
 			{
 				continue;
 			}
 
-			testModel.meshes[iter].textures[0].SetActive(0);
+			meshIter.textures[0].SetActive(0);
 			//add the previous depth?
 
-			glBindVertexArray(testModel.meshes[iter].vertexArrayHandle);
+			meshIter.Bind();
 			unjitteredProgram.Use();
 			glCullFace(GL_BACK);
 
@@ -412,12 +341,11 @@ protected:
 			{
 				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 			}
-			glDrawElements(GL_TRIANGLES, testModel.meshes[iter].indices.size(), GL_UNSIGNED_INT, 0);
+			glDrawElements(GL_TRIANGLES, meshIter.indices.size(), GL_UNSIGNED_INT, 0);
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		}
 
 		unJitteredBuffer->Unbind();
-
 		glPopDebugGroup();
 	}
 
@@ -437,7 +365,7 @@ protected:
 
 		geometryBuffer->attachments["velocity"].SetActive(4); //velocity
 		
-		glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
+		defaultVertexBuffer.Bind();
 		smoothProgram.Use();
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
@@ -452,7 +380,7 @@ protected:
 		//draw directly to backbuffer		
 		tex1->SetActive(0);
 		
-		glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
+		defaultVertexBuffer.Bind();
 		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 		if (enableCompare)
 		{
@@ -468,6 +396,15 @@ protected:
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
 		glPopDebugGroup();
+	}
+
+	virtual void PostDraw() override
+	{
+		DrawGUI(window);
+
+		manager->SwapDrawBuffers(window);
+		ClearBuffers();
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 
 	virtual void BuildGUI(tWindow* window, const ImGuiIO& io) override
@@ -552,26 +489,13 @@ protected:
 		}
 	}
 
-	virtual void DrawJitterSettings()
+	virtual void ClearBuffers() override
 	{
-		ImGui::Begin("Jitter Settings");
-		
-
-		ImGui::End();
-	}
-
-	virtual void ClearBuffers()
-	{
-		//ok copy the current frame into the previous frame and clear the rest of the buffers	
-		float clearColor1[4] = { 0.25f, 0.25f, 0.25f, 1.0f };
-		float clearColor2[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-		float clearColor3[4] = { 1.0f, 0.0f, 0.0f, 0.0f }; //this is for debugging only
-
-		//glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-
+		GL_PUSH_DEBUG_GROUP();
+		//ok copy the current frame into the previous frame and clear the rest of the buffers
 		historyFrames[!currentFrame]->Bind(); //clear the previous, the next frame current becomes previous
-		historyFrames[!currentFrame]->ClearTexture(historyFrames[!currentFrame]->GetAttachmentRef("color"), clearColor1);
-		historyFrames[!currentFrame]->ClearTexture(historyFrames[!currentFrame]->GetAttachmentRef("depth"), clearColor2);
+		historyFrames[!currentFrame]->ClearTexture(historyFrames[!currentFrame]->GetAttachmentRef("color"), clearColor);
+		historyFrames[!currentFrame]->ClearTexture(historyFrames[!currentFrame]->GetAttachmentRef("depth"), clearDepth);
 		//copy current depth to previous or vice versa?
 		historyFrames[currentFrame]->GetAttachmentRef("depth").Copy(&geometryBuffer->GetAttachmentRef("depth")); //copy depth over
 
@@ -579,14 +503,14 @@ protected:
 		historyFrames[!currentFrame]->Unbind();
 
 		geometryBuffer->Bind();
-		geometryBuffer->ClearTexture(geometryBuffer->GetAttachmentRef("color"), clearColor1);
+		geometryBuffer->ClearTexture(geometryBuffer->GetAttachmentRef("color"), clearColor);
 		geometryBuffer->ClearTexture(geometryBuffer->GetAttachmentRef("velocity"), clearColor2);
-		geometryBuffer->ClearTexture(geometryBuffer->GetAttachmentRef("depth"), clearColor2);
+		geometryBuffer->ClearTexture(geometryBuffer->GetAttachmentRef("depth"), clearDepth);
 		glClear(GL_DEPTH_BUFFER_BIT);
 		geometryBuffer->Unbind();
 
 		unJitteredBuffer->Bind();
-		unJitteredBuffer->ClearTexture(unJitteredBuffer->GetAttachmentRef("color"), clearColor1);
+		unJitteredBuffer->ClearTexture(unJitteredBuffer->GetAttachmentRef("color"), clearColor);
 		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 		unJitteredBuffer->Unbind();
 
@@ -595,6 +519,8 @@ protected:
 		velocityUniforms.data.previousView = camera.view;
 		velocityUniforms.data.prevTranslation = testModel.makeTransform(); //could be jittering the camera instead of the geometry?
 		velocityUniforms.Update();
+
+		glPopDebugGroup();
 	}
 
 	virtual void ResizeBuffers(glm::ivec2 resolution)
@@ -634,21 +560,11 @@ protected:
 
 	virtual void InitializeUniforms() override
 	{
-		defaultPayload = bufferHandler_t<defaultUniformBuffer>(camera);
-		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
-
-		defaultPayload.data.resolution = glm::vec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
-		defaultPayload.data.projection = camera.projection;
-		defaultPayload.data.translation = camera.translation;
-		defaultPayload.data.view = camera.view;
-
-		defaultPayload.Initialize(0);
+		scene3D::InitializeUniforms();
 		velocityUniforms.Initialize(1);
 		taaUniforms.Initialize(2);
 		sharpenSettings.Initialize(3);
 		jitterUniforms.Initialize(4);
-
-		defaultVertexBuffer.SetupDefault();
 	}
 };
 

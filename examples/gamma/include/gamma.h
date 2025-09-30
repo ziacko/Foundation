@@ -2,22 +2,21 @@
 #define GAMMA_H
 #include <textured.h>
 
-class gammaScene : public texturedScene
+class gammaScene final : public texturedScene
 {
 public:
-
-	gammaScene(
-		glm::vec3 gammaSettings = glm::vec3(0.33f, 0.33f, 0.33f),
-		texture defaultTexture = texture(),
+	explicit gammaScene(
+		const glm::vec3 gammaSettings = glm::vec3(0.33f, 0.33f, 0.33f),
+		const texture defaultTexture = texture(),
 		const char* windowName = "Ziyad Barakat's portfolio (gamma)",
-		camera_t gammaCamera = camera_t(),
+		const camera_t gammaCamera = camera_t(),
 		const char* shaderConfigPath = SHADER_CONFIG_DIR)
 		: texturedScene(defaultTexture, windowName, gammaCamera, shaderConfigPath)
 	{
-		this->gamma = bufferHandler_t<glm::vec3>(gammaSettings);
+		this->gamma = bufferHandler_t(gammaSettings);
 	}
 
-	~gammaScene(){};
+	~gammaScene() override = default;
 
 protected:
 

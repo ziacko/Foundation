@@ -5,15 +5,13 @@
 
 struct gaussianSettings_t
 {
-	GLint		offsets[5];
-	GLfloat		weights[5];
+	int		offsets[5];
+	float	weights[5];
 
-	GLuint		bufferHandle;
-	GLuint		uniformHandle;
 
 	gaussianSettings_t()
 	{
-		for(size_t iter = 0; iter < 5; iter++)
+		for (size_t iter = 0; iter < 5; iter++)
 		{
 			offsets[iter] = iter;
 		}
@@ -23,18 +21,19 @@ struct gaussianSettings_t
 		weights[2] = 0.1216216216;
 		weights[3] = 0.0540540541;
 		weights[4] = 0.0162162162;
-	};
+	}
+	;
 
-	~gaussianSettings_t(){};
+	~gaussianSettings_t() = default;
 };
 
-class gaussianMultiScene : public texturedScene
+class gaussianMultiScene final : public texturedScene
 {
 public:
 
-	gaussianMultiScene(texture defaultTexture = texture(),
+	explicit gaussianMultiScene(const texture defaultTexture = texture(),
 		const char* windowName = "Ziyad Barakat's Portfolio (gaussian blurring)",
-		camera_t textureCamera = camera_t(),
+		const camera_t textureCamera = camera_t(),
 		const char* shaderConfigPath = SHADER_CONFIG_DIR) :
 		texturedScene(defaultTexture, windowName, textureCamera, shaderConfigPath)
 	{
@@ -48,10 +47,10 @@ public:
 	{
 		texturedScene::Initialize();
 		
-		verticalProgram = shaderProgramsMap["gaussianVert"].handle;
-		horizontalProgram = shaderProgramsMap["GaussianHorz"].handle;
-		finalProgam = shaderProgramsMap["blend"].handle;
-		compareProgram = shaderProgramsMap["compare"].handle;
+		verticalProgram = shaderProgramsMap["gaussianVert"];
+		horizontalProgram = shaderProgramsMap["GaussianHorz"];
+		finalProgam = shaderProgramsMap["blend"];
+		compareProgram = shaderProgramsMap["compare"];
 		
 		gaussBuffer->Initialize();
 		gaussBuffer->Bind();
@@ -73,7 +72,7 @@ public:
 		frameBuffer::Unbind();
 	}
 
-	void VerticalPass()
+	void VerticalPass() const
 	{
 		gaussBuffer->Bind();
 		gaussBuffer->attachments["vertical"].Draw();
@@ -81,13 +80,13 @@ public:
 		defaultTexture.SetActive(0);
 
 		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
-		glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
-		glUseProgram(verticalProgram);
+		defaultVertexBuffer.Bind();
+		verticalProgram.Use();
 		
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
 
-	void HorizontalPass()
+	void HorizontalPass() const
 	{
 		gaussBuffer->Bind();
 		gaussBuffer->attachments["horizontal"].Draw();
@@ -95,41 +94,40 @@ public:
 		defaultTexture.SetActive(0);
 
 		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
-		glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
-		glUseProgram(horizontalProgram);
+		defaultVertexBuffer.Bind();
+		horizontalProgram.Use();
 		
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
 
-	void BlendPass()
+	void BlendPass() const
 	{
 		//draw to backbuffer
 		compareBuffer->Bind();
 		compareBuffer->attachments["compare"].Draw();
 
-		glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
+		defaultVertexBuffer.Bind();
 		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 
 		gaussBuffer->attachments["vertical"].SetActive(0);
 		gaussBuffer->attachments["horizontal"].SetActive(1);
 
-		glUseProgram(finalProgam);
+		finalProgam.Use();
 
 		glDrawArrays(GL_TRIANGLES, 0, 6);
-
 	}
 
-	virtual void FinalPass(texture* tex1, frameBuffer::attachment_t* tex2)
+	virtual void FinalPass(texture* tex1, frameBuffer::attachment_t* tex2) const
 	{
 		//draw directly to backbuffer
 		frameBuffer::Unbind();
-		glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
+		defaultVertexBuffer.Bind();
 		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 
 		tex1->SetActive(0);
 		tex2->SetActive(1);
 
-		glUseProgram(compareProgram);
+		compareProgram.Use();
 
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
@@ -146,15 +144,9 @@ public:
 		BlendPass();
 
 		FinalPass(&defaultTexture, &compareBuffer->attachments["compare"]);
-
-		DrawGUI(window);
-		manager->SwapDrawBuffers(window);
-		ClearBuffers();
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 	}
 
-	~gaussianMultiScene(void){};
+	~gaussianMultiScene() override {};
 
 protected:
 
@@ -164,10 +156,10 @@ protected:
 	frameBuffer* gaussBuffer;
 	frameBuffer* compareBuffer;
 
-	unsigned int						verticalProgram;
-	unsigned int						horizontalProgram;
-	unsigned int						finalProgam;
-	unsigned int						compareProgram;
+	shaderProgram_t						verticalProgram;
+	shaderProgram_t						horizontalProgram;
+	shaderProgram_t						finalProgam;
+	shaderProgram_t						compareProgram;
 
 	void BuildGUI(tWindow* window, const ImGuiIO& io) override
 	{
@@ -177,8 +169,6 @@ protected:
 		{
 			if (ImGui::BeginTabItem("horizontal"))
 			{
-
-
 				for (size_t iter = 0; iter < 5; iter++)
 				{
 					std::string num = std::to_string(iter);
@@ -198,8 +188,6 @@ protected:
 
 			if (ImGui::BeginTabItem("vertical"))
 			{
-
-
 				for (size_t iter = 0; iter < 5; iter++)
 				{
 					std::string num = std::to_string(iter);
@@ -225,7 +213,6 @@ protected:
 		scene::InitializeUniforms();
 		gaussianHorz.Initialize(2);
 		gaussianVert.Initialize(1);
-		//SetupBuffer(gaussian, gaussian->bufferHandle, sizeof(*gaussian), 1, gl_uniform_buffer, gl_dynamic_draw);
 	}
 
 	void Update() override
@@ -233,22 +220,18 @@ protected:
 		scene::Update();
 		gaussianHorz.Update();
 		gaussianVert.Update();
-		//UpdateBuffer(gaussian, gaussian->bufferHandle, sizeof(*gaussian), gl_uniform_buffer, gl_dynamic_draw);
 	}
 
-	void ClearBuffers()
+	void ClearBuffers() const
 	{
-		float clearColor1[4] = { 0.25f, 0.25f, 0.25f, 1.0f };
-
 		gaussBuffer->Bind();
-		gaussBuffer->ClearTexture(gaussBuffer->attachments["vertical"], clearColor1);
-		gaussBuffer->ClearTexture(gaussBuffer->attachments["horizontal"], clearColor1);
-		//geometryBuffer->ClearTexture(geometryBuffer->attachments[1], clearColor1);
+		gaussBuffer->ClearTexture(gaussBuffer->attachments["vertical"], clearColor);
+		gaussBuffer->ClearTexture(gaussBuffer->attachments["horizontal"], clearColor);
 		glClear(GL_DEPTH_BUFFER_BIT);
 		frameBuffer::Unbind();
 	}
 
-	virtual void HandleWindowResize(const tWindow* window, const TinyWindow::vec2_t<uint16_t>& dimensions) override
+	virtual void HandleWindowResize(const tWindow* window, const tw::vec2_t<uint16_t>& dimensions) override
 	{
 		defaultPayload.data.resolution = glm::ivec2(dimensions.width, dimensions.height);
 		ResizeBuffers(glm::ivec2(dimensions.x, dimensions.y));
@@ -262,13 +245,13 @@ protected:
 		Resize(window, defaultPayload.data.resolution);
 	}
 
-	virtual void ResizeBuffers(glm::ivec2 resolution)
+	virtual void ResizeBuffers(const glm::ivec2 resolution) const
 	{
 		gaussBuffer->Resize(glm::ivec3(resolution, 1));
 		compareBuffer->Resize(glm::ivec3(resolution, 1));
 	}
 
-	virtual void Resize(const tWindow* window, glm::ivec2 dimensions  = glm::ivec2(0))
+	virtual void Resize(const tWindow* window, glm::ivec2 dimensions  = glm::ivec2(0)) override
 	{
 		scene::Resize(window, dimensions);
 		ResizeBuffers(dimensions);

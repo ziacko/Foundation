@@ -6,17 +6,17 @@ struct dispatchStruct
 {
 	glm::vec4 dispatchArray;
 
-	dispatchStruct(float defValue = 10.0f)
+	explicit dispatchStruct(const float defValue = 10.0f)
 	{
 		dispatchArray = glm::vec4(defValue);
 	}
 };
 
-class computeTestScene : public scene
+class computeTestScene final : public scene
 {
 public:
 
-	computeTestScene(
+	explicit  computeTestScene(
 		const char* windowName = "Ziyad Barakat's portfolio (compute shader test)",
 		camera_t camera = camera_t(),
 		const char* shaderConfigPath = SHADER_CONFIG_DIR)
@@ -75,12 +75,12 @@ protected:
 		{
 			if (ImGui::Button("dispatch"))
 			{
-				glUseProgram(computeProgram.handle);
+				computeProgram.Use();
 				glDispatchCompute(4, 1, 1);
 				loadFromBuffer = true;
 			}
 
-			ImGui::Text("Array Input \n %s", inputBuffer.c_str(), inputBuffer.size());
+			ImGui::Text("Array Input \n %s", inputBuffer.c_str());
 			ImGui::EndTabItem();
 		}
 	}

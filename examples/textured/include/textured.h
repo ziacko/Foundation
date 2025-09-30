@@ -6,7 +6,7 @@ class texturedScene : public scene
 {
 public:
 
-	texturedScene(texture defaultTexture = texture("textures/earth_diffuse.tga"),
+	explicit texturedScene(texture defaultTexture = texture("textures/earth_diffuse.tga"),
 		const char* windowName = "Ziyad Barakat's Portfolio (textured scene)",
 		camera_t textureCamera = camera_t(),
 		const char* shaderConfigPath = SHADER_CONFIG_DIR) :
@@ -27,30 +27,16 @@ public:
 		scene::BuildGUI(window, io);
 	}
 
-	/*virtual void HandleFileDrop(const tWindow* window, const std::vector<std::string>& files, const vec2_t<int>& windowMousePosition)
-	{
-		//for each file that is dropped in
-		//make sure it's a texture
-		//and load up a new window for each one
-
-		//first let's have it change the texture on display
-		glFinish();
-		defaultTexture->ReloadTexture(files[0].c_str());
-	}*/
-
 	virtual void Draw() override
 	{
-		PreDraw();
-
+		GL_PUSH_DEBUG_GROUP();
 		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
-		glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
-		glUseProgram(defProgram.handle);
+		defaultVertexBuffer.Bind();
+		defProgram.Use();
 		defaultTexture.SetActive(0);
 
 		glDrawArrays(GL_TRIANGLES, 0, 6);
-
-		PostDraw();
-
+		glPopDebugGroup();
 	}
 
 	virtual void SetupCallbacks() override

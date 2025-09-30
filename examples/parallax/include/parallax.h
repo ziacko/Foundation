@@ -9,21 +9,21 @@ struct parallax_t
 	float			rayHeight;
 	int				numSamples;
 
-	parallax_t(GLfloat scale = 0.1f, GLfloat rayHeight = 0.25f, GLuint numSamples = 100)
+	explicit parallax_t(const GLfloat scale = 0.1f, const GLfloat rayHeight = 0.25f, const GLuint numSamples = 100)
 	{
 		this->scale = scale;
 		this->rayHeight = rayHeight;
 		this->numSamples = numSamples;
 	}
 
-	~parallax_t(){};
+	~parallax_t() = default;
 };
 
-class parallaxScene : public texturedScene
+class parallaxScene final: public texturedScene
 {
 public:
 
-	parallaxScene(
+	explicit parallaxScene(
 		bufferHandler_t<parallax_t> parallaxSettings = bufferHandler_t<parallax_t>(),
 		texture defaultTexture = texture("textures/rocks.jpg", texture::textureType_t::image, "diffuseMap"),
 		texture heightMap = texture("textures/rocks_NM_height.tga", texture::textureType_t::image, "heightMap"),
@@ -42,7 +42,7 @@ public:
 		heightMap.LoadTexture();
 	}
 
-	~parallaxScene(){};
+	~parallaxScene() override = default;
 
 protected:
 
@@ -80,25 +80,12 @@ protected:
 		ImGui::SliderFloat("parallax scale", &parallax.data.scale, 0.f, 10.0f);
 		ImGui::SliderFloat("ray height", &parallax.data.rayHeight, 0.0f, 10.0f);
 		ImGui::SliderInt("num samples", &parallax.data.numSamples, 0, 1000);
-
 	}
 
 	void InitializeUniforms() override
 	{
 		scene::InitializeUniforms();
 		parallax.Initialize(1);
-	}
-
-	void SetupParallaxUniforms()
-	{
-		parallax.Initialize(1);
-		glUniformBlockBinding(defProgram.handle, parallax.uniformHandle, 1);
-	}
-
-	void bindTextures()
-	{
-		defaultTexture.GetUniformLocation(defProgram.handle); //ok so heightmap is fine. just diffuse map is screwed
-		heightMap.GetUniformLocation(defProgram.handle);
 	}
 
 	void Update() override
@@ -109,15 +96,11 @@ protected:
 
 	void Draw() override
 	{
-		
-		glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
-		glUseProgram(defProgram.handle);
+		defaultVertexBuffer.Bind();
+		defProgram.Use();
 		defaultTexture.GetUniformLocation(defProgram.handle);
 		heightMap.GetUniformLocation(defProgram.handle);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
-		DrawGUI(window);
-		manager->SwapDrawBuffers(window);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 };
 #endif

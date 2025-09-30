@@ -1,10 +1,8 @@
 #pragma once
 
 #include <scene.h>
-#include <cstdlib>
-#include "UniformBuffer.h"
 
-class dotProductScene : public scene
+class dotProductScene final : public scene
 {
 public:
 
@@ -16,11 +14,11 @@ public:
 		int				flipper = 0;
 	};
 
-	dotProductScene(const char* windowName = "Ziyad Barakat's portfolio (dot product helper)",
-		camera_t camera = camera_t(), const char* shaderConfigPath = SHADER_CONFIG_DIR)
+	explicit dotProductScene(const char* windowName = "Ziyad Barakat's portfolio (dot product helper)",
+		const camera_t camera = camera_t(), const char* shaderConfigPath = SHADER_CONFIG_DIR)
 		: scene(windowName, camera, shaderConfigPath){}
 
-	~dotProductScene() {};
+	~dotProductScene() override {};
 
 protected:
 
@@ -36,17 +34,13 @@ protected:
 		//just draw twice. don't over-think it
 		nodes.data.flipper = 0;
 		nodes.Update();
-		glUseProgram(defProgram.handle);
+		defProgram.Use();
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
 		nodes.data.flipper = 1;
 		nodes.Update();
-		glUseProgram(defProgram.handle);
+		defProgram.Use();
 		glDrawArrays(GL_TRIANGLES, 0, 6);
-		
-		DrawGUI(window);
-		manager->SwapDrawBuffers(window);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 
 	void Update() override
@@ -106,7 +100,7 @@ protected:
 		float normalizedDotProduct = glm::dot(normalizednode1, normalizednode2);
 		float angleRadians = glm::acos(normalizedDotProduct);
 		float angleDegrees = glm::degrees(angleRadians);
-				
+
 		ImGui::Text("normalized dot product: %.3f", normalizedDotProduct);
 		ImGui::Text("angle in Radians: %.3f", angleRadians);
 		ImGui::Text("angle in Degrees: %.3f", angleDegrees);

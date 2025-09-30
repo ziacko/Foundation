@@ -7,15 +7,14 @@
 class GOLCompute : public golScene
 {
 public:
-
-	GOLCompute(const char* windowName = "Ziyad Barakat's portfolio (game of life (compute)",
-		camera_t golCamera = camera_t(), const char* shaderConfigPath = SHADER_CONFIG_DIR)
+	explicit GOLCompute(const char* windowName = "Ziyad Barakat's portfolio (game of life (compute)",
+	                    camera_t golCamera = camera_t(), const char* shaderConfigPath = SHADER_CONFIG_DIR)
 		: golScene(100.0f, 0.3, 666, 90, windowName, golCamera, shaderConfigPath)
 	{
 
 	}
 
-	~GOLCompute(void) {};
+	~GOLCompute() override {};
 
 	void Initialize() override
 	{
@@ -39,7 +38,7 @@ protected:
 
 		else
 		{
-			glUseProgram(computeProgram.handle);
+			computeProgram.Use();
 			glDispatchCompute(25, 25, 1);
 			currentTickDelay = 0;
 		}

@@ -4,15 +4,14 @@
 #include "scene3D.h"
 #include "FrameBuffer.h"
 
-class depthPrePassScene : public scene3D
+class depthPrePassScene final : public scene3D
 {
 public:
-
-	depthPrePassScene(
+	explicit depthPrePassScene(
 		const char* windowName = "Ziyad Barakat's portfolio (early depth test)",
 		camera_t texModelCamera = camera_t(glm::vec2(1280, 720), defaultCameraSpeed * 0.1f, camera_t::projection_e::perspective, 0.1f, 2000.f),
 		const char* shaderConfigPath = SHADER_CONFIG_DIR,
-		model_t model = model_t("models/SoulSpear/SoulSpear.fbx"))
+		const model_t model = model_t("models/SoulSpear/SoulSpear.fbx"))
 		: scene3D(windowName, texModelCamera, shaderConfigPath, model)
 	{
 		glEnable(GL_BLEND);
@@ -23,20 +22,20 @@ public:
 
 		//this->camera.Roll(glm::radians(270.0f));
 
-		geometryBuffer = new frameBuffer();
+		geometryBuffer = frameBuffer();
 
-		this->camera.position.y -= 2.0f;
-		this->camera.position.z = -1.0f;
+	//	this->camera.position.y -= 2.0f;
+		//this->camera.position.z = -1.0f;
 	}
 
-	~depthPrePassScene() {};
+	~depthPrePassScene() override  = default;
 
 	virtual void Initialize() override
 	{
 		scene3D::Initialize();
 
-		geometryBuffer->Initialize();
-		geometryBuffer->Bind();
+		geometryBuffer.Initialize();
+		geometryBuffer.Bind();
 
 		FBODescriptor depthDesc;
 		depthDesc.dataType = GL_FLOAT;
@@ -49,8 +48,8 @@ public:
 		FBODescriptor colorDesc;
 		colorDesc.dimensions = glm::ivec3(window->GetSettings().resolution.width, window->GetSettings().resolution.height, 1);
 
-		geometryBuffer->AddAttachment(frameBuffer::attachment_t("color", colorDesc));
-		geometryBuffer->AddAttachment(frameBuffer::attachment_t("depth", depthDesc));
+		geometryBuffer.AddAttachment(frameBuffer::attachment_t("color", colorDesc));
+		geometryBuffer.AddAttachment(frameBuffer::attachment_t("depth", depthDesc));
 
 		frameBuffer::Unbind();
 
@@ -62,7 +61,7 @@ public:
 
 protected:
 
-	frameBuffer* geometryBuffer;
+	frameBuffer geometryBuffer;
 
 	shaderProgram_t earlyDepthProgram;
 	shaderProgram_t finalProgram;
@@ -70,54 +69,11 @@ protected:
 
 	bool enableCompare = true;
 
-	virtual void Update() override
-	{
-		manager->PollForEvents();
-		if (lockedFrameRate > 0)
-		{
-			clock.UpdateClockFixed(lockedFrameRate);
-		}
-		else
-		{
-			clock.UpdateClockAdaptive();
-		}
-
-		defaultPayload.data.deltaTime = (float)clock.GetDeltaTime();
-		defaultPayload.data.totalTime = (float)clock.GetTotalTime();
-		defaultPayload.data.framesPerSec = (float)(1.0 / clock.GetDeltaTime());
-		defaultPayload.data.totalFrames++;
-
-		//defaultVertexBuffer.UpdateBuffer(defaultPayload.data.resolution);
-	}
-
-	void UpdateDefaultBuffer()
-	{
-		camera.UpdateProjection();
-		defaultPayload.data.projection = camera.projection;
-		defaultPayload.data.view = camera.view;
-		if (camera.currentProjectionType == camera_t::projection_e::perspective)
-		{
-			defaultPayload.data.translation = testModel.makeTransform();
-		}
-
-		else
-		{
-			defaultPayload.data.translation = camera.translation;
-		}
-		defaultPayload.data.deltaTime = (float)clock.GetDeltaTime();
-		defaultPayload.data.totalTime = (float)clock.GetTotalTime();
-		defaultPayload.data.framesPerSec = (float)(1.0 / clock.GetDeltaTime());
-
-		defaultPayload.Update();
-
-		//defaultVertexBuffer.UpdateBuffer(defaultPayload.data.resolution);
-	}
-
 	void Draw() override
 	{
 		camera.ChangeProjection(camera_t::projection_e::perspective);
 		camera.Update();
-		UpdateDefaultBuffer();
+		UpdateDefaultUniforms(camera, clock);
 
 		EarlyDepthPass();
 		GeometryPass(); //render current scene with jitter
@@ -125,22 +81,16 @@ protected:
 		camera.resolution = glm::vec2(window->GetSettings().resolution.x, window->GetSettings().resolution.y);
 		camera.ChangeProjection(camera_t::projection_e::orthographic);
 		camera.Update();
-		UpdateDefaultBuffer();
+		UpdateDefaultUniforms(camera, clock);
 
-		FinalPass(geometryBuffer->attachments["color"], geometryBuffer->attachments["depth"]);
-
-		DrawGUI(window);
-
-		manager->SwapDrawBuffers(window);
-		ClearBuffers();
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		FinalPass(geometryBuffer.attachments["color"], geometryBuffer.attachments["depth"]);
 	}
 
 	virtual void EarlyDepthPass()
 	{
-		geometryBuffer->Bind();
+		geometryBuffer.Bind();
 
-		geometryBuffer->attachments["depth"].Draw();
+		geometryBuffer.attachments["depth"].Draw();
 
 		//we just need the first LOd so only do the first 3 meshes
 		for(auto iter : testModel.meshes)
@@ -156,7 +106,7 @@ protected:
 			//add the previous depth?
 
 			glBindVertexArray(iter.vertexArrayHandle);
-			glUseProgram(earlyDepthProgram.handle);
+			earlyDepthProgram.Use();
 			glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 
 			if (wireframe)
@@ -172,23 +122,18 @@ protected:
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		}
 
-		geometryBuffer->attachments["depth"].SetActive(0);
-		geometryBuffer->attachments["depth"].BindTexture();
-		glGenerateMipmap(geometryBuffer->attachments["depth"].FBODesc.target);
-		geometryBuffer->attachments["depth"].UnbindTexture();
-		geometryBuffer->Unbind();
+		geometryBuffer.attachments["depth"].SetActive(0);
+		geometryBuffer.attachments["depth"].BindTexture();
+		glGenerateMipmap(geometryBuffer.attachments["depth"].FBODesc.target);
+		geometryBuffer.attachments["depth"].UnbindTexture();
+		geometryBuffer.Unbind();
 	}
 
 	virtual void GeometryPass()
 	{
-		geometryBuffer->Bind();
+		geometryBuffer.Bind();
 
-		//move this to std::array?
-		GLenum drawbuffers[1] = {
-			geometryBuffer->attachments["color"].FBODesc.attachmentFormat, //color
-		};
-
-		glDrawBuffers(1, drawbuffers);
+		geometryBuffer.attachments["color"].Draw();
 
 		//we just need the first LOd so only do the first 3 meshes
 		for (auto iter : testModel.meshes)
@@ -205,7 +150,7 @@ protected:
 
 			//add the previous depth?
 			glBindVertexArray(iter.vertexArrayHandle);
-			glUseProgram(defProgram.handle);
+			defProgram.Use();
 			glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 
 			//glCullFace(GL_BACK);
@@ -219,25 +164,25 @@ protected:
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		}
 
-		geometryBuffer->Unbind();
+		geometryBuffer.Unbind();
 	}
 
-	void FinalPass(texture tex1, texture tex2)
+	void FinalPass(texture& tex1, texture& tex2)
 	{
 		//draw directly to backbuffer		
 		tex1.SetActive(0);
 
-		glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
+		defaultVertexBuffer.Bind();
 		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 		if (enableCompare)
 		{
 			tex2.SetActive(1);
-			glUseProgram(compareProgram.handle);
+			compareProgram.Use();
 		}
 
 		else
 		{
-			glUseProgram(finalProgram.handle);
+			finalProgram.Use();
 		}
 
 		glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -255,34 +200,30 @@ protected:
 		if (ImGui::BeginTabItem("framebuffers"))
 		{
 			ImGui::Checkbox("enable Compare", &enableCompare);
-			for (auto iter : geometryBuffer->attachments)
+			for (auto iter : geometryBuffer.attachments | std::views::values)
 			{
-				ImGui::Image((ImTextureID)iter.second.GetHandle(), ImVec2(512, 288),
+				ImGui::Image((ImTextureID)iter.GetHandle(), ImVec2(512, 288),
 					ImVec2(0, 1), ImVec2(1, 0));
 				ImGui::SameLine();
-				ImGui::Text("%s\n", iter.second.GetUniformName().c_str());
+				ImGui::Text("%s\n", iter.GetUniformName().c_str());
 			}
-
 			ImGui::EndTabItem();
 		}
 	}
 
-	virtual void ClearBuffers()
+	virtual void ClearBuffers() override
 	{
-		//ok copy the current frame into the previous frame and clear the rest of the buffers	
-		float clearColor1[4] = { 0.25f, 0.25f, 0.25f, 0.25f };
-
-		geometryBuffer->Bind();
-		geometryBuffer->ClearTexture(geometryBuffer->attachments["color"], clearColor1);
+		geometryBuffer.Bind();
+		geometryBuffer.ClearTexture(geometryBuffer.attachments["color"], clearColor);
 		glClear(GL_DEPTH_BUFFER_BIT);
-		geometryBuffer->Unbind();
+		geometryBuffer.Unbind();
 
 		camera.ChangeProjection(camera_t::projection_e::perspective);
 	}
 
-	virtual void ResizeBuffers(glm::ivec2 resolution)
+	virtual void ResizeBuffers(const glm::ivec2& resolution)
 	{
-		geometryBuffer->Resize(glm::ivec3(resolution, 1));
+		geometryBuffer.Resize(glm::ivec3(resolution, 1));
 	}
 
 	virtual void HandleWindowResize(const tWindow* window, const TinyWindow::vec2_t<uint16_t>& dimensions) override
@@ -295,21 +236,6 @@ protected:
 	{
 		defaultPayload.data.resolution = glm::ivec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 		ResizeBuffers(defaultPayload.data.resolution);
-	}
-
-	virtual void InitializeUniforms() override
-	{
-		auto resolution = window->GetSettings().resolution;
-		glViewport(0, 0, resolution.width, resolution.height);
-
-		defaultPayload.data.resolution = glm::ivec2(resolution.width, resolution.height);
-		defaultPayload.data.projection = camera.projection;
-		defaultPayload.data.translation = camera.translation;
-		defaultPayload.data.view = camera.view;
-
-		defaultPayload.Initialize(0);
-
-		defaultVertexBuffer.SetupDefault();
 	}
 };
 

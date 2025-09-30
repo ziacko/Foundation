@@ -15,8 +15,8 @@ struct sharpenSettings_t
 	GLfloat			kernel8;
 	GLfloat			kernel9;*/
 
-	sharpenSettings_t(
-		GLfloat kernel1 = 2.25f, GLfloat kernel2 = 10.0f/*, GLfloat kernel3 = -1.0f,
+	explicit sharpenSettings_t(
+		const GLfloat kernel1 = 2.25f, const GLfloat kernel2 = 10.0f/*, GLfloat kernel3 = -1.0f,
 		GLfloat kernel4 = -1.0f, GLfloat kernel5 = 9.0f, GLfloat kernel6 = -1.0f,
 		GLfloat kernel7 = -1.0f, GLfloat kernel8 = -1.0f, GLfloat kernel9 = -1.0f*/)
 	{
@@ -32,25 +32,24 @@ struct sharpenSettings_t
 		this->kernel9 = kernel9;*/
 	}
 
-	~sharpenSettings_t(){ };
+	~sharpenSettings_t() = default;
 };
 
-class sharpenScene : public texturedScene
+class sharpenScene final : public texturedScene
 {
 public:
-
-	sharpenScene(
+	explicit sharpenScene(
 		bufferHandler_t<sharpenSettings_t> sharpenSettings = bufferHandler_t<sharpenSettings_t>(),
-		texture defaultTexture = texture(),
+		const texture defaultTexture = texture(),
 		const char* windowName = "Ziyad Barakat's portfolio (sharpen)",
-		camera_t sharpencamera = camera_t(),
+		const camera_t sharpencamera = camera_t(),
 		const char* shaderConfigPath = SHADER_CONFIG_DIR)
 		: texturedScene(defaultTexture, windowName, sharpencamera, shaderConfigPath)
 	{
 		this->sharpen = sharpenSettings;
 	}
 
-	~sharpenScene(){};
+	~sharpenScene() override = default;
 
 protected:
 

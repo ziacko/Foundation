@@ -29,18 +29,5 @@ void main()
 {
 	//clamp the alpha down hard. if alpha is less than 0.1, clamp it to 0
 	vec4 col =  texture(diffuse, inBlock.uv);
-
-	if(col.a < 0.5)
-	{
-		discard;
-	}
-
-	else
-	{
-		col.a = 1;
-	}
-
 	gl_FragDepth = gl_FragCoord.z;
-
-	//outColor = col;
 }

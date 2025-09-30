@@ -8,23 +8,22 @@ struct perlinSettings3D_t
 	glm::vec3	uvwScale;
 	int			layer;
 
-	perlinSettings3D_t(glm::vec3 uvwScale = glm::vec3(1, 1, 0.01))
+	explicit perlinSettings3D_t(const glm::vec3 uvwScale = glm::vec3(1, 1, 0.01))
 	{
 		this->uvwScale = uvwScale;
 		layer = 0;
 	}
 
-	~perlinSettings3D_t() {};
+	~perlinSettings3D_t() = default;
 };
 
-class perlinScene3D : public perlinScene
+class perlinScene3D final : public perlinScene
 {
 public:
-
-	perlinScene3D(const char* windowName = "Ziyad Barakat's Portfolio ( Perlin3D noise )",
-		camera_t perlinCamera = camera_t(),
-		const GLchar* shaderConfigPath = SHADER_CONFIG_DIR)
-		: perlinScene(windowName, perlinCamera, shaderConfigPath)
+	explicit perlinScene3D(const char* windowName = "Ziyad Barakat's Portfolio ( Perlin3D noise )",
+	                       const camera_t perlinCamera = camera_t(),
+	                       const GLchar* shaderConfigPath = SHADER_CONFIG_DIR)
+		: perlinScene(windowName, perlinCamera, shaderConfigPath), perlinTex(nullptr)
 	{
 		perlin.data = perlinSettings_t();
 		perlin3D.data = perlinSettings3D_t();
@@ -64,15 +63,6 @@ protected:
 		ImGui::SliderInt("layer", &perlin3D.data.layer, 0, 50);
 	}
 
-	void AddGUISpacer()
-	{
-		ImGui::Spacing();
-		ImGui::Spacing();
-		ImGui::Separator();
-		ImGui::Spacing();
-		ImGui::Spacing();
-	}
-
 	void InitializeUniforms() override
 	{
 		scene::InitializeUniforms();
@@ -80,7 +70,7 @@ protected:
 		perlin.Initialize(2);
 	}
 
-	void SetPerlinUniforms()
+	void SetPerlinUniforms() override
 	{
 		perlin3D.SetupUniforms(defProgram.handle, "perlin3DSettings", 1);
 		perlin3D.SetupUniforms(defProgram.handle, "perlinSettings", 2);
@@ -96,14 +86,14 @@ protected:
 	void PerlinCalc() const
 	{
 		perlinTex->BindAsImage(0);
-		glUseProgram(perlinProgram.handle);
+		perlinProgram.Use();
 		glDispatchCompute(2, 2, 2);
 	}
 
-	void FinalPass()
+	void FinalPass() override
 	{
 		perlinTex->SetActive(0);
-		glUseProgram(defProgram.handle);
+		defProgram.Use();
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
 
@@ -111,8 +101,6 @@ protected:
 	{
 		PerlinCalc();
 		FinalPass();
-
-		PostDraw();
 	}
 };
 #endif

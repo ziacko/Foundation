@@ -7,32 +7,31 @@ struct dilationSettings_t
 	float			strengthX;
 	float			strengthY;
 
-	dilationSettings_t(
-		GLfloat strengthX = 1.0f, GLfloat strengthY = 1.0f)
+	explicit dilationSettings_t(
+		GLfloat const strengthX = 1.0f, const GLfloat strengthY = 1.0f)
 	{
 		this->strengthX = strengthX;
 		this->strengthY = strengthY;
 	}
 
-	~dilationSettings_t(){};
+	~dilationSettings_t() = default;
 };
 
-class dilationScene : public texturedScene
+class dilationScene final : public texturedScene
 {
 public:
-
-	dilationScene(
+	explicit dilationScene(
 		bufferHandler_t<dilationSettings_t> dilationSettings = bufferHandler_t<dilationSettings_t>(),
-		texture defaultTexture = texture(),
+		const texture defaultTexture = texture(),
 		const char* windowName = "Ziyad Barakat's portfolio (dilation)",
-		camera_t dilationCamera = camera_t(),
+		const camera_t dilationCamera = camera_t(),
 		const char* shaderConfigPath = SHADER_CONFIG_DIR)
 		: texturedScene(defaultTexture, windowName, dilationCamera, shaderConfigPath)
 	{
-		this->dilation = dilationSettings;;
+		this->dilation = dilationSettings;
 	}
 
-	~dilationScene(){};
+	~dilationScene() override = default;
 
 protected:
 

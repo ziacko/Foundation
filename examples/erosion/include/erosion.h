@@ -7,31 +7,30 @@ struct erosionSettings_t
 	float			strengthX;
 	float			strengthY;
 
-	erosionSettings_t(GLfloat strengthX = 1.0f, GLfloat strengthY = 1.0f)
+	explicit erosionSettings_t(const float strengthX = 1.0f, const float strengthY = 1.0f)
 	{
 		this->strengthX = strengthX;
 		this->strengthY = strengthY;
 	}
 
-	~erosionSettings_t(){};
+	~erosionSettings_t() = default;
 };
 
-class erosionScene : public texturedScene
+class erosionScene final : public texturedScene
 {
 public:
-
-	erosionScene(
-		erosionSettings_t erosionSettings = erosionSettings_t(),
-		texture defaultTexture = texture(),
+	explicit erosionScene(
+		const erosionSettings_t erosionSettings = erosionSettings_t(),
+		const texture defaultTexture = texture(),
 		const char* windowName = "Ziyad Barakat's portfolio (erosion)",
-		camera_t erosionCamera = camera_t(),
+		const camera_t erosionCamera = camera_t(),
 		const char* shaderConfigPath = SHADER_CONFIG_DIR)
 		: texturedScene(defaultTexture, windowName, erosionCamera, shaderConfigPath)
 	{
 		this->erosion = erosionSettings;
 	}
 
-	~erosionScene(){};
+	~erosionScene() override = default;
 
 protected:
 

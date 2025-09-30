@@ -8,12 +8,13 @@ class stencil : public scene3D
 public:
 
 	stencil(const char* windowName = "Ziyad Barakat's Portfolio(stencil test)",
-		camera_t camera3D = camera_t(glm::vec2(1280, 720), 10.0f, camera_t::projection_e::perspective, 0.001f, 1000.0f ),
-		model_t model = model_t("models/fbx_foliage/broadleaf_field/Broadleaf_Desktop_Field.FBX"),
+		camera_t camera3D = camera_t(defaultWindowSize, defaultCameraSpeed * 0.1f, camera_t::projection_e::perspective ),
+		model_t model = model_t("models/SoulSpear/SoulSpear.fbx"),
 		const char* shaderConfigPath = SHADER_CONFIG_DIR) : scene3D(windowName, camera3D, shaderConfigPath)
 	{
 		testModel = model;
-		this->camera.position.y -= 100.0f;
+		this->camera.position.y -= 2.0f;
+		this->camera.position.z -= 3.0f;
 		geometryBuffer = new frameBuffer();
 	}
 
@@ -67,70 +68,24 @@ protected:
 
 	bool enableCompare = true;
 
-	virtual void Update() override
-	{
-		manager->PollForEvents();
-		if (lockedFrameRate > 0)
-		{
-			clock.UpdateClockFixed(lockedFrameRate);
-		}
-		else
-		{
-			clock.UpdateClockAdaptive();
-		}
-
-		defaultPayload.data.deltaTime = (float)clock.GetDeltaTime();
-		defaultPayload.data.totalTime = (float)clock.GetTotalTime();
-		defaultPayload.data.framesPerSec = (float)(1.0 / clock.GetDeltaTime());
-		defaultPayload.data.totalFrames++;
-
-		//defaultVertexBuffer.UpdateBuffer(defaultPayload.data.resolution);
-	}
-
-	void UpdateDefaultBuffer()
-	{
-		camera.UpdateProjection();
-		defaultPayload.data.projection = camera.projection;
-		defaultPayload.data.view = camera.view;
-		if (camera.currentProjectionType == camera_t::projection_e::perspective)
-		{
-			defaultPayload.data.translation = testModel.makeTransform();
-		}
-
-		else
-		{
-			defaultPayload.data.translation = camera.translation;
-		}
-		defaultPayload.data.deltaTime = (float)clock.GetDeltaTime();
-		defaultPayload.data.totalTime = (float)clock.GetTotalTime();
-		defaultPayload.data.framesPerSec = (float)(1.0 / clock.GetDeltaTime());
-
-		defaultPayload.Update();
-
-		//defaultVertexBuffer->UpdateBuffer(defaultPayload.data.resolution);
-	}
-
 	void Draw() override
 	{
 		camera.ChangeProjection(camera_t::projection_e::perspective);
 		camera.Update();
 
-		UpdateDefaultBuffer();
+		UpdateDefaultUniforms(camera, clock, &testModel);
 
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		EarlyDepthPass();
 
 		GeometryPass(); //render current scene with jitter
+		glDisable(GL_BLEND);
 
 		camera.ChangeProjection(camera_t::projection_e::orthographic);
-		UpdateDefaultBuffer();
+		UpdateDefaultUniforms(camera, clock, &testModel);
 
 		FinalPass(&geometryBuffer->attachments["color"], &geometryBuffer->attachments["depth"]);
-
-		DrawGUI(window);
-
-		manager->SwapDrawBuffers(window);
-		ClearBuffers();
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 
 	virtual void EarlyDepthPass()
@@ -146,16 +101,15 @@ protected:
 		geometryBuffer->attachments["depth"].Draw();
 
 		//we just need the first LOd so only do the first 3 meshes
-		for (size_t iter = 0; iter < testModel.meshes.size(); iter++)
+		for (auto mesh : testModel.meshes)
 		{
-			if (testModel.meshes[iter].isCollision)
+			if (mesh.isCollision)
 			{
 				continue;
 			}
 
-			testModel.meshes[iter].textures[0].SetActive(0);
-
-			glBindVertexArray(testModel.meshes[iter].vertexArrayHandle);
+			mesh.textures[0].SetActive(0);
+			mesh.Bind();
 			DepthStencilProgram.Use();
 			glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 
@@ -163,7 +117,7 @@ protected:
 			{
 				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 			}
-			glDrawElements(GL_TRIANGLES, (GLsizei)testModel.meshes[iter].indices.size(), GL_UNSIGNED_INT, 0);
+			glDrawElements(GL_TRIANGLES, (GLsizei)mesh.indices.size(), GL_UNSIGNED_INT, 0);
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		}
 
@@ -179,17 +133,17 @@ protected:
 		geometryBuffer->attachments["color"].Draw();
 
 		//we just need the first LOd so only do the first 3 meshes
-		for (size_t iter = 0; iter < testModel.meshes.size(); iter++)
+		for (auto mesh : testModel.meshes)
 		{
-			if (testModel.meshes[iter].isCollision)
+			if (mesh.isCollision)
 			{
 				continue;
 			}
 
-			testModel.meshes[iter].textures[0].SetActive(0);
+			mesh.textures[0].SetActive(0);
 			//add the previous depth?
 
-			glBindVertexArray(testModel.meshes[iter].vertexArrayHandle);
+			mesh.Bind();
 			defProgram.Use();
 			glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 
@@ -199,7 +153,7 @@ protected:
 			{
 				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 			}
-			glDrawElements(GL_TRIANGLES, (GLsizei)testModel.meshes[iter].indices.size(), GL_UNSIGNED_INT, 0);
+			glDrawElements(GL_TRIANGLES, (GLsizei)mesh.indices.size(), GL_UNSIGNED_INT, 0);
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		}
 
@@ -213,7 +167,7 @@ protected:
 		//draw directly to backbuffer		
 		tex1->SetActive(0);
 
-		glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
+		defaultVertexBuffer.Bind();
 		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 		if (enableCompare)
 		{
@@ -249,34 +203,14 @@ protected:
 				ImGui::SameLine();
 				ImGui::Text("%s\n", iter.GetUniformName().c_str());
 			}
-
 			ImGui::EndTabItem();
 		}
 	}
 
-	virtual void DrawCameraStats() override
+	virtual void ClearBuffers() override
 	{
-		//set up the view matrix
-		if (ImGui::BeginTabItem("camera"))
-		{
-			ImGui::DragFloat("near plane", &camera.nearPlane);
-			ImGui::DragFloat("far plane", &camera.farPlane);
-			ImGui::SliderFloat("Field of view", &camera.fieldOfView, 0, 90, "%.0f");
-
-			ImGui::InputFloat("camera speed", &camera.speed, 0.f);
-			ImGui::InputFloat("x sensitivity", &camera.xSensitivity, 0.f);
-			ImGui::InputFloat("y sensitivity", &camera.ySensitivity, 0.f);
-			ImGui::EndTabItem();
-		}
-	}
-
-	virtual void ClearBuffers()
-	{
-		//ok copy the current frame into the previous frame and clear the rest of the buffers	
-		float clearColor1[4] = { 0.25f, 0.25f, 0.25f, 0.25f };
-
 		geometryBuffer->Bind();
-		geometryBuffer->ClearTexture(geometryBuffer->attachments["color"], clearColor1);
+		geometryBuffer->ClearTexture(geometryBuffer->attachments["color"], clearColor);
 		glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 		geometryBuffer->Unbind();
 
@@ -298,19 +232,6 @@ protected:
 	{
 		defaultPayload.data.resolution = glm::ivec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 		ResizeBuffers(defaultPayload.data.resolution);
-	}
-
-	virtual void InitializeUniforms() override
-	{
-		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
-
-		defaultPayload.data.resolution = glm::ivec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
-		defaultPayload.data.projection = camera.projection;
-		defaultPayload.data.translation = camera.translation;
-		defaultPayload.data.view = camera.view;
-\
-		defaultVertexBuffer.SetupDefault();
-		defaultPayload.Initialize(0);
 	}
 };
 

@@ -24,8 +24,8 @@ struct FBODescriptor : public textureDescriptor
 		this->format = texDesc.format;
 		this->bitsPerPixel = texDesc.bitsPerPixel;
 
-		this->currentMipmapLevel = texDesc.currentMipmapLevel;
-		this->mipmapLevels = texDesc.mipmapLevels;
+		this->currentLevel = texDesc.currentLevel;
+		this->levels = texDesc.levels;
 		this->border = texDesc.border;
 		this->xOffset = texDesc.xOffset;
 		this->yOffset = texDesc.yOffset;
@@ -84,14 +84,14 @@ public:
 				case GL_TEXTURE_2D:
 				{
 					//parse internal format as bits per pixel
-					glTexImage2D(this->FBODesc.target, this->FBODesc.currentMipmapLevel, this->FBODesc.internalFormat, this->FBODesc.dimensions.x, this->FBODesc.dimensions.y, this->FBODesc.border, this->FBODesc.format, this->FBODesc.dataType, nullptr);
+					glTexImage2D(this->FBODesc.target, this->FBODesc.currentLevel, this->FBODesc.internalFormat, this->FBODesc.dimensions.x, this->FBODesc.dimensions.y, this->FBODesc.border, this->FBODesc.format, this->FBODesc.dataType, nullptr);
 					break;
 				}
 
 				case GL_TEXTURE_2D_ARRAY:
 				case GL_TEXTURE_3D:
 				{
-					TinyExtender::glTexImage3D(this->FBODesc.target, this->FBODesc.currentMipmapLevel, this->FBODesc.internalFormat, this->FBODesc.dimensions.x, this->FBODesc.dimensions.y, this->FBODesc.dimensions.z, this->FBODesc.border, static_cast<GLenum>(this->FBODesc.format), static_cast<GLenum>(this->FBODesc.dataType), nullptr);
+					TinyExtender::glTexImage3D(this->FBODesc.target, this->FBODesc.currentLevel, this->FBODesc.internalFormat, this->FBODesc.dimensions.x, this->FBODesc.dimensions.y, this->FBODesc.dimensions.z, this->FBODesc.border, static_cast<GLenum>(this->FBODesc.format), static_cast<GLenum>(this->FBODesc.dataType), nullptr);
 					break;
 				}
 				default: break;
@@ -104,7 +104,7 @@ public:
 					glTexParameteri(this->FBODesc.target, GL_TEXTURE_MAG_FILTER, this->FBODesc.magFilterSetting);
 					glTexParameteri(this->FBODesc.target, GL_TEXTURE_WRAP_S, this->FBODesc.wrapSSetting);
 					glTexParameteri(this->FBODesc.target, GL_TEXTURE_WRAP_T, this->FBODesc.wrapTSetting);
-					if(this->FBODesc.mipmapLevels > 0)
+					if(this->FBODesc.levels > 0)
 					{
 						glGenerateMipmap(this->FBODesc.target);
 					}
@@ -125,7 +125,7 @@ public:
 			else
 			{
 
-				glFramebufferTexture(GL_FRAMEBUFFER, attachmentFormat, handle, FBODesc.currentMipmapLevel);
+				glFramebufferTexture(GL_FRAMEBUFFER, attachmentFormat, handle, FBODesc.currentLevel);
 			}
 
 			switch(attachmentFormat)
@@ -176,7 +176,7 @@ public:
 				case GL_TEXTURE_2D:
 				{
 					BindTexture();
-					glTexImage2D(FBODesc.target, FBODesc.currentMipmapLevel, FBODesc.internalFormat, FBODesc.dimensions.x, FBODesc.dimensions.y, FBODesc.border, FBODesc.format, FBODesc.dataType, nullptr);
+					glTexImage2D(FBODesc.target, FBODesc.currentLevel, FBODesc.internalFormat, FBODesc.dimensions.x, FBODesc.dimensions.y, FBODesc.border, FBODesc.format, FBODesc.dataType, nullptr);
 					UnbindTexture();
 					break;
 				}
@@ -300,9 +300,17 @@ public:
 		glDrawBuffers(1, &test);
 	}
 
-	void DrawMultiple(const char* name)
+	void DrawMultiple(const std::vector<std::string>& bufferNames)
 	{
-
+		std::vector<GLenum> allImages;
+		for (auto iter : bufferNames)
+		{
+			if (auto attachIter = attachments.find(iter); attachIter != attachments.end())
+			{
+				allImages.push_back(attachIter->second.FBODesc.attachmentFormat);
+			}
+		}
+		glDrawBuffers(allImages.size(), allImages.data());
 	}
 
 	void Resize(glm::ivec3 newSize/*, bool unbind = true*/)
@@ -324,42 +332,42 @@ public:
 			{
 				for (size_t layer = 0; layer < val.FBODesc.layers; ++layer)
 				{
-					glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + (GLint)layer, val.handle, val.FBODesc.currentMipmapLevel, (GLint)layer);
+					glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + (GLint)layer, val.handle, val.FBODesc.currentLevel, (GLint)layer);
 				}
 			}
 			else
 			{
-				glFramebufferTexture(GL_FRAMEBUFFER, val.FBODesc.attachmentFormat, val.handle, val.FBODesc.currentMipmapLevel);
+				glFramebufferTexture(GL_FRAMEBUFFER, val.FBODesc.attachmentFormat, val.handle, val.FBODesc.currentLevel);
 			}
 		}
 	}
 
-	static void ClearTexture(const attachment_t& attachment, const float clearColor[4])
+	static void ClearTexture(const attachment_t& attachment, const glm::vec4& inClearColor)
 	{
 		switch (attachment.FBODesc.attachmentType)
 		{
 		case FBODescriptor::attachmentType_e::color:
 		{	
-			glClearBufferfv(GL_COLOR, attachment.attachmentHandle, clearColor);
+			glClearBufferfv(GL_COLOR, attachment.attachmentHandle, glm::value_ptr(inClearColor));
 			break;
 		}
 
 		case FBODescriptor::attachmentType_e::depth:
 		{
-			glClearBufferfv(GL_DEPTH, 0, clearColor);
+			glClearBufferfv(GL_DEPTH, 0, (GLfloat*)&glm::value_ptr(inClearColor)[0]);
 			break;
 		}
 
 		case FBODescriptor::attachmentType_e::stencil:
 		{
-			glClearBufferiv(GL_STENCIL, 0, (GLint*)&clearColor[0]);
+			glClearBufferiv(GL_STENCIL, 0, (GLint*)&glm::value_ptr(inClearColor)[0]);
 			break;
 		}
 
 		case FBODescriptor::attachmentType_e::depthAndStencil:
 		{
 			//glClearBufferfv(GL_STENCIL, attachment->attachmentHandle, clearColor);
-			glClearBufferfi(GL_DEPTH, attachment.attachmentHandle, clearColor[0], (GLint)clearColor[1]);
+			glClearBufferfi(GL_DEPTH, attachment.attachmentHandle, glm::value_ptr(inClearColor)[0], (GLint)glm::value_ptr(inClearColor)[1]);
 			break;
 		}
 		}

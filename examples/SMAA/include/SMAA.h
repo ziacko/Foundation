@@ -141,7 +141,7 @@ public:
 
 		frameBuffer::Unbind();
 
-		glDisable(GL_MULTISAMPLE);
+
 	}
 
 protected:
@@ -168,88 +168,45 @@ protected:
 
 	void Update() override
 	{
-		manager->PollForEvents();
-		if (lockedFrameRate > 0)
-		{
-			clock.UpdateClockFixed(lockedFrameRate);
-		}
-		else
-		{
-			clock.UpdateClockAdaptive();
-		}
-
-		defaultPayload.data.deltaTime = (float)clock.GetDeltaTime();
-		defaultPayload.data.totalTime = (float)clock.GetTotalTime();
-		defaultPayload.data.framesPerSec = (float)(1.0 / clock.GetDeltaTime());
-		defaultPayload.data.totalFrames++;
-		defaultPayload.data.resolution = camera.resolution;
-
-		SMAASettings.Update(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW);
-	}
-
-	void UpdateDefaultBuffer()
-	{
-		camera.UpdateProjection();
-		defaultPayload.data.projection = camera.projection;
-		defaultPayload.data.view = camera.view;
-		defaultPayload.data.resolution = camera.resolution;
-		if (camera.currentProjectionType == camera_t::projection_e::perspective)
-		{
-			defaultPayload.data.translation = testModel.makeTransform();
-		}
-
-		else
-		{
-			defaultPayload.data.translation = camera.translation;
-		}
-		defaultPayload.data.deltaTime = (float)clock.GetDeltaTime();
-		defaultPayload.data.totalTime = (float)clock.GetTotalTime();
-		defaultPayload.data.framesPerSec = (float)(1.0 / clock.GetDeltaTime());
-
-		defaultPayload.Update();
-		//defaultVertexBuffer.UpdateBuffer(defaultPayload.data.resolution);
+		scene3D::Update();
+		SMAASettings.Update();
 	}
 
 	void Draw() override
 	{
-		camera.ChangeProjection(camera_t::projection_e::perspective);
-		camera.Update();
-		UpdateDefaultBuffer();
-
+		GL_PUSH_DEBUG_GROUP();
+		//enable alpha blending
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		GeometryPass(); //render current scene with jitter
-		
+		glDisable(GL_BLEND);
 		EdgeDetectionPass();
 		BlendingWeightsPass();
 		SMAAPass();
 
 		FinalPass(&SMAABuffer.attachments["SMAA"], &geometryBuffer.attachments["color"]);
-		
-		DrawGUI(window);
-		
-		manager->SwapDrawBuffers(window);
-		ClearBuffers();
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		
+		glPopDebugGroup();
 	}
 
 	virtual void GeometryPass()
 	{
+		GL_PUSH_DEBUG_GROUP();
 		geometryBuffer.Bind();
 
-		glDrawBuffers(1, &geometryBuffer.attachments["color"].FBODesc.attachmentFormat);
+		geometryBuffer.attachments["color"].Draw();
 
 		//we just need the first LOd so only do the first 3 meshes
-		for (size_t iter = 0; iter < testModel.meshes.size(); iter++)
+		for (auto iter : testModel.meshes)
 		{
-			if (testModel.meshes[iter].isCollision)
+			if (iter.isCollision)
 			{
 				continue;
 			}
 
-			testModel.meshes[iter].textures[0].SetActive(0); //we just want diffuse
+			iter.textures[0].SetActive(0); //we just want diffuse
 			//add the previous depth?
 
-			glBindVertexArray(testModel.meshes[iter].vertexArrayHandle);
+			iter.Bind();
 			geometryProgram.Use();
 
 			glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
@@ -258,71 +215,79 @@ protected:
 			{
 				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 			}
-			glDrawElements(GL_TRIANGLES, testModel.meshes[iter].indices.size(), GL_UNSIGNED_INT, nullptr);
+			glDrawElements(GL_TRIANGLES, iter.indices.size(), GL_UNSIGNED_INT, nullptr);
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		}
 
 		frameBuffer::Unbind();
+		glPopDebugGroup();
 	}
 
 	virtual void EdgeDetectionPass()
 	{
+		GL_PUSH_DEBUG_GROUP();
 		edgesBuffer.Bind();
 
-		glDrawBuffers(1, &edgesBuffer.attachments["edge"].FBODesc.attachmentFormat);
+		edgesBuffer.attachments["edge"].Draw();
 
 		geometryBuffer.attachments["color"].SetActive(0);//color
 		geometryBuffer.attachments["depth"].SetActive(1);//depth
 
-		glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
+		defaultVertexBuffer.Bind();
 		edgeDetectionProgram.Use();
 		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
 		frameBuffer::Unbind();
+		glPopDebugGroup();
 	}
 
 	virtual void BlendingWeightsPass()
 	{
+		GL_PUSH_DEBUG_GROUP();
 		weightsBuffer.Bind();
 
-		glDrawBuffers(1, &weightsBuffer.attachments["blend"].FBODesc.attachmentFormat);
+		weightsBuffer.attachments["blend"].Draw();
 
 		edgesBuffer.attachments["edge"].SetActive(0);
 		SMAAArea.SetActive(1);
 		SMAASearch.SetActive(2);
 
-		glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
+		defaultVertexBuffer.Bind();
 		blendingWeightProgram.Use();
 		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
 		frameBuffer::Unbind();
+		glPopDebugGroup();
 	}
 
 	virtual void SMAAPass()
 	{
+		GL_PUSH_DEBUG_GROUP();
 		SMAABuffer.Bind();
-		glDrawBuffers(1, &SMAABuffer.attachments["SMAA"].FBODesc.attachmentFormat);
+		SMAABuffer.attachments["SMAA"].Draw();
 
 		//current frame
 		geometryBuffer.attachments["color"].SetActive(0); // color
 		weightsBuffer.attachments["blend"].SetActive(1); //blending weights
 
-		glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
+		defaultVertexBuffer.Bind();
 		SMAAProgram.Use();
 		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
 		frameBuffer::Unbind();
+		glPopDebugGroup();
 	}
 
 	void FinalPass(const texture* tex1, const texture* tex2) const
 	{
+		GL_PUSH_DEBUG_GROUP();
 		//draw directly to backbuffer
 		tex1->SetActive(0);
 		
-		glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
+		defaultVertexBuffer.Bind();
 		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 		if (enableCompare)
 		{
@@ -336,6 +301,7 @@ protected:
 		}
 	
 		glDrawArrays(GL_TRIANGLES, 0, 6);
+		glPopDebugGroup();
 	}
 
 	void BuildGUI(tWindow* window, const ImGuiIO& io) override
@@ -376,24 +342,24 @@ protected:
 		}
 	}
 
-	virtual void ClearBuffers()
+	virtual void ClearBuffers() override
 	{
 		//move clearColor into a float array
 		geometryBuffer.Bind();
-		frameBuffer::ClearTexture(geometryBuffer.attachments["color"], value_ptr(clearColor));
+		frameBuffer::ClearTexture(geometryBuffer.attachments["color"], clearColor);
 		glClear(GL_DEPTH_BUFFER_BIT);
 		frameBuffer::Unbind();
 
 		SMAABuffer.Bind();
-		frameBuffer::ClearTexture(SMAABuffer.attachments["SMAA"], value_ptr(clearColor2));
+		frameBuffer::ClearTexture(SMAABuffer.attachments["SMAA"], clearColor2);
 		frameBuffer::Unbind();
 
 		edgesBuffer.Bind();
-		frameBuffer::ClearTexture(edgesBuffer.attachments["edge"], value_ptr(clearColor2));
+		frameBuffer::ClearTexture(edgesBuffer.attachments["edge"], clearColor2);
 		frameBuffer::Unbind();
 
 		weightsBuffer.Bind();
-		frameBuffer::ClearTexture(weightsBuffer.attachments["blend"], value_ptr(clearColor2));
+		frameBuffer::ClearTexture(weightsBuffer.attachments["blend"], clearColor2);
 		frameBuffer::Unbind();
 	}
 
@@ -425,18 +391,8 @@ protected:
 
 	void InitializeUniforms() override
 	{
-		defaultPayload = bufferHandler_t<defaultUniformBuffer>(camera);
-		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
-
-		defaultPayload.data.resolution = glm::ivec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
-		defaultPayload.data.projection = camera.projection;
-		defaultPayload.data.translation = camera.translation;
-		defaultPayload.data.view = camera.view;
-
-		defaultPayload.Initialize(0);
+		scene::InitializeUniforms();
 		SMAASettings.Initialize(1);
-
-		defaultVertexBuffer.SetupDefault();
 	}
 
 	void DrawSMAASettings()

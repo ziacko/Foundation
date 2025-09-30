@@ -7,15 +7,13 @@ struct mipSettings_t
 	float level = 1.0f;
 };
 
-class mipMappingScene : public textureSettingsScene
+class mipMappingScene final : public textureSettingsScene
 {
 public:
 	//this was never finished so I'm going to leave it for last
-	explicit mipMappingScene(texture defaultTexture = texture("textures/earth_diffuse.tga",
-	                                                          texture::textureType_t::image, "defaultTexture",
-	                                                          textureDescriptor()),
+	explicit mipMappingScene(const texture defaultTexture = texture("textures/earth_diffuse.tga"),
 	                         const char* windowName = "Ziyad Barakat's Portfolio (mip mapping)",
-	                         camera_t edgeCamera = camera_t(),
+	                         const camera_t edgeCamera = camera_t(),
 	                         const char* shaderConfigPath = SHADER_CONFIG_DIR)
 		: textureSettingsScene(defaultTexture, windowName, edgeCamera, shaderConfigPath)
 	{
@@ -24,7 +22,8 @@ public:
 
 	void Initialize() override
 	{
-		defaultTexture.texDesc.mipmapLevels = 10;
+		defaultTexture.texDesc.hasMips = true;
+		defaultTexture.texDesc.levels = 10;
 		texturedScene::Initialize();
 		defProgram = shaderProgramsMap["mipMapping"];
 	}
@@ -36,17 +35,6 @@ public:
 		//mip.data.level = 10.0f;
 
 		ImGui::SliderFloat("mip level", &mip.data.level, 0, 10);
-		DrawTextureSettings();
-	}
-
-	void DrawTextureSettings() override
-	{
-		//min
-		/*if (ImGui::ListBox("min filter setting", &minFilterIndex, filterSettings.data(), filterSettings.size()))
-		{
-			glFinish();
-			defaultTexture->SetMinFilter(minFilterIndex);
-		}*/
 	}
 
 	void InitializeUniforms() override
@@ -58,7 +46,7 @@ public:
 	void Update() override
 	{
 		scene::Update();
-		mip.Update(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW);
+		mip.Update();
 	}
 
 protected:

@@ -7,25 +7,6 @@
 
 using downsampleType_t = enum { none = 0, lanczos };
 
-struct jitterSettings_t
-{
-	glm::vec2			haltonSequence[128];
-	float				haltonScale;
-	int					haltonIndex;
-	int					enableDithering;
-	float				ditheringScale;
-
-	jitterSettings_t()
-	{
-		haltonIndex = 16;
-		enableDithering = 1;
-		haltonScale = 100.0f;
-		ditheringScale = 0.0f;
-	}
-
-	~jitterSettings_t() {};
-};
-
 struct downscaleSettings_t
 {
 	float texelWidthOffset;
@@ -78,14 +59,8 @@ public:
 		geometryBuffer = new frameBuffer();
 		unJitteredBuffer = new frameBuffer();
 
-		jitterUniforms = bufferHandler_t<jitterSettings_t>();
 		downscaleUniforms = bufferHandler_t<downscaleSettings_t>();
 		lanzcosUniforms = bufferHandler_t<lanzcosSettings_t>();
-
-		for (int iter = 0; iter < 128; iter++)
-		{
-			jitterUniforms.data.haltonSequence[iter] = glm::vec2(CreateHaltonSequence(iter + 1, 2), CreateHaltonSequence(iter + 1, 3));
-		}
 
 		this->camera.position.y -= 100.0f;
 	}
@@ -149,7 +124,6 @@ protected:
 	shaderProgram_t finalProgram;
 
 	bool enableCompare = true;
-	bufferHandler_t<jitterSettings_t>		jitterUniforms;
 	bufferHandler_t<downscaleSettings_t>	downscaleUniforms;
 	bufferHandler_t<lanzcosSettings_t>		lanzcosUniforms;
 
@@ -157,47 +131,9 @@ protected:
 
 	virtual void Update() override
 	{
-		manager->PollForEvents();
-		if (lockedFrameRate > 0)
-		{
-			clock.UpdateClockFixed(lockedFrameRate);
-		}
-		else
-		{
-			clock.UpdateClockAdaptive();
-		}
-
-		defaultPayload.data.deltaTime = (float)clock.GetDeltaTime();
-		defaultPayload.data.totalTime = (float)clock.GetTotalTime();
-		defaultPayload.data.framesPerSec = (float)(1.0 / clock.GetDeltaTime());
-		defaultPayload.data.totalFrames++;
-
+		scene3D::Update();
 		downscaleUniforms.Update();
-		jitterUniforms.Update();
 		lanzcosUniforms.Update();
-	}
-
-	void UpdateDefaultBuffer(glm::vec2 resolution)
-	{
-		camera.UpdateProjection();
-		defaultPayload.data.projection = camera.projection;
-		defaultPayload.data.view = camera.view;
-		defaultPayload.data.resolution = resolution;
-		if (camera.currentProjectionType == camera_t::projection_e::perspective)
-		{
-			defaultPayload.data.translation = testModel.makeTransform();
-		}
-
-		else
-		{
-			defaultPayload.data.translation = camera.translation;
-		}
-		defaultPayload.data.deltaTime = (float)clock.GetDeltaTime();
-		defaultPayload.data.totalTime = (float)clock.GetTotalTime();
-		defaultPayload.data.framesPerSec = (float)(1.0 / clock.GetDeltaTime());
-
-		defaultPayload.Update();
-		//defaultVertexBuffer.UpdateBuffer(defaultPayload.data.resolution);
 	}
 
 	virtual void Draw() override
@@ -207,28 +143,24 @@ protected:
 		camera.resolution = glm::vec2(camera.resolution.x * 2, camera.resolution.y * 2);
 		camera.Update();
 
-		UpdateDefaultBuffer(camera.resolution);
+		UpdateDefaultUniforms(camera, clock, &testModel);
 
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		UpsamplePass(); //render current scene with jitter
 		camera.resolution = defaultResolution;
 		if (enableCompare)
 		{
 			UnJitteredPass();
 		}
+		glDisable(GL_BLEND);
 
 		camera.ChangeProjection(camera_t::projection_e::orthographic);
-		UpdateDefaultBuffer(defaultResolution);
+		UpdateDefaultUniforms(camera, clock, &testModel);
 		
 		DownscalePass(); //use the positions, colors, depth and velocity to smooth the final image
 
 		FinalPass(&downscaledBuffer->attachments["downscaled"], &unJitteredBuffer->attachments["unJittered"]);
-
-		DrawGUI(window);
-
-		manager->SwapDrawBuffers(window);
-		ClearBuffers();
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		//camera.resolution = defaultResolution;
 	}
 
 	virtual void UpsamplePass()
@@ -238,16 +170,16 @@ protected:
 		geometryBuffer->attachments["color"].Draw();
 
 		//we just need the first LOD so only do the first 3 meshes
-		for (size_t iter = 0; iter < testModel.meshes.size(); iter++)
+		for ( auto mesh : testModel.meshes)
 		{
-			if (testModel.meshes[iter].isCollision)
+			if (mesh.isCollision)
 			{
 				continue;
 			}
 
-			testModel.meshes[iter].textures[0].SetActive(0);
+			mesh.textures[0].SetActive(0);
 
-			glBindVertexArray(testModel.meshes[iter].vertexArrayHandle);
+			mesh.Bind();
 			defProgram.Use();
 			glViewport(0, 0, window->GetSettings().resolution.width * 2, window->GetSettings().resolution.height * 2);
 			glCullFace(GL_BACK);
@@ -256,7 +188,7 @@ protected:
 			{
 				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 			}
-			glDrawElements(GL_TRIANGLES, (GLsizei)testModel.meshes[iter].indices.size(), GL_UNSIGNED_INT, 0);
+			glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0);
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		}
 
@@ -272,17 +204,17 @@ protected:
 		unJitteredBuffer->attachments["unJittered"].Draw();
 
 		//we just need the first LOd so only do the first 3 meshes
-		for (size_t iter = 0; iter < testModel.meshes.size(); iter++)
+		for ( auto mesh : testModel.meshes)
 		{
-			if (testModel.meshes[iter].isCollision)
+			if (mesh.isCollision)
 			{
 				continue;
 			}
 
-			testModel.meshes[iter].textures[0].SetActive(0);
+			mesh.textures[0].SetActive(0);
 			//add the previous depth?
 
-			glBindVertexArray(testModel.meshes[iter].vertexArrayHandle);
+			mesh.Bind();
 			unjitteredProgram.Use();
 			glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 			glCullFace(GL_BACK);
@@ -291,7 +223,7 @@ protected:
 			{
 				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 			}
-			glDrawElements(GL_TRIANGLES, (GLsizei)testModel.meshes[iter].indices.size(), GL_UNSIGNED_INT, 0);
+			glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0);
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		}
 
@@ -349,24 +281,6 @@ protected:
 		DrawDownsampleSettings();
 	}
 
-	virtual void DrawTAASettings()
-	{
-		if (ImGui::BeginTabItem("TAA Settings"))
-		{
-			//ImGui::Text("performance | %f", defaultTimer->GetTimeMilliseconds());
-			ImGui::Checkbox("enable Compare", &enableCompare);
-
-			//jitter settings
-			ImGui::Separator();
-			ImGui::DragFloat("halton scale", &jitterUniforms.data.haltonScale, 0.1f, 0.0f, 1000.0f, "%.3f");
-			ImGui::DragInt("halton index",  &jitterUniforms.data.haltonIndex, 1.0f, 0, 128);
-			ImGui::DragInt("enable dithering", &jitterUniforms.data.enableDithering, 1.0f, 0, 1);
-			ImGui::DragFloat("dithering scale", &jitterUniforms.data.ditheringScale, 1.0f, 0.0f, 1000.0f, "%.3f");
-
-			ImGui::EndTabItem();
-		}
-	}
-
 	virtual void DrawDownsampleSettings()
 	{
 		if (ImGui::BeginTabItem("Lanczos settings"))
@@ -383,13 +297,11 @@ protected:
 
 			case lanczos:
 				{
-
 					ImGui::DragFloat("value 1", &lanzcosUniforms.data.magicValue1, 0.01f, 0.0f, 1.0f, "%.3f");
 					ImGui::DragFloat("value 2", &lanzcosUniforms.data.magicValue2, 0.01f, 0.0f, 1.0f, "%.3f");
 					ImGui::DragFloat("value 3", &lanzcosUniforms.data.magicValue3, 0.01f, 0.0f, 1.0f, "%.3f");
 					ImGui::DragFloat("value 4", &lanzcosUniforms.data.magicValue4, 0.01f, 0.0f, 1.0f, "%.3f");
 					ImGui::DragFloat("value 5", &lanzcosUniforms.data.magicValue5, 0.01f, 0.0f, 1.0f, "%.3f");
-
 					break;
 				}
 
@@ -448,21 +360,18 @@ protected:
 
 	virtual void ClearBuffers()
 	{
-		//ok copy the current frame into the previous frame and clear the rest of the buffers	
-		float clearColor1[4] = { 0.3f, 0.3f, 0.3f, 1.0f };
-
 		downscaledBuffer->Bind(); //clear the previous, the next frame current becomes previous
-		downscaledBuffer->ClearTexture(downscaledBuffer->attachments["downscaled"], clearColor1);
+		downscaledBuffer->ClearTexture(downscaledBuffer->attachments["downscaled"], clearColor);
 		downscaledBuffer->Unbind();
 
 		geometryBuffer->Bind();
-		geometryBuffer->ClearTexture(geometryBuffer->attachments["color"], clearColor1);
-		geometryBuffer->ClearTexture(geometryBuffer->attachments["depth"], clearColor1);
+		geometryBuffer->ClearTexture(geometryBuffer->attachments["color"], clearColor);
+		geometryBuffer->ClearTexture(geometryBuffer->attachments["depth"], clearColor);
 		glClear(GL_DEPTH_BUFFER_BIT);
 		geometryBuffer->Unbind();
 
 		unJitteredBuffer->Bind();
-		unJitteredBuffer->ClearTexture(unJitteredBuffer->attachments["color"], clearColor1);
+		unJitteredBuffer->ClearTexture(unJitteredBuffer->attachments["color"], clearColor);
 		glClear(GL_DEPTH_BUFFER_BIT);
 		unJitteredBuffer->Unbind();
 
@@ -495,19 +404,9 @@ protected:
 
 	virtual void InitializeUniforms() override
 	{
-		defaultPayload = bufferHandler_t<defaultUniformBuffer>(camera);
-		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
-
-		defaultPayload.data.resolution = glm::vec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
-		defaultPayload.data.projection = camera.projection;
-		defaultPayload.data.translation = camera.translation;
-		defaultPayload.data.view = camera.view;
-
-		defaultPayload.Initialize(0);
-		jitterUniforms.Initialize(1);
+		scene3D::InitializeUniforms();
 		downscaleUniforms.Initialize(2);
 		lanzcosUniforms.Initialize(3);
-		defaultVertexBuffer.SetupDefault();
 	}
 
 };

@@ -9,29 +9,27 @@ struct displacementSettings_t
 	float innerTessLevel;
 	float offsetStrength;
 
-	displacementSettings_t(float outerTessLevel = 10.0f, float innerTessLevel = 10.0f, float offsetStrength = 1.0f)
+	explicit displacementSettings_t(const float outerTessLevel = 10.0f, const float innerTessLevel = 10.0f, const float offsetStrength = 1.0f)
 	{
 		this->outerTessLevel = outerTessLevel;
 		this->innerTessLevel = innerTessLevel;
 		this->offsetStrength = offsetStrength;
 	}
 
-	~displacementSettings_t() {};
+	~displacementSettings_t() = default;
 };
 
 class displacement : public scene3D
 {
 public:
-
-	displacement(
+	explicit displacement(
 		const char* windowName = "Ziyad Barakat's portfolio (displacement)",
-		camera_t texModelCamera = camera_t(glm::vec2(1280, 720), 0.1f, camera_t::projection_e::perspective, 0.1f, 1000000.f),
+		const camera_t texModelCamera = camera_t(glm::vec2(1280, 720), 0.1f, camera_t::projection_e::perspective, 0.1f, 1000000.f),
 		const char* shaderConfigPath = SHADER_CONFIG_DIR)
-		: scene3D(windowName, texModelCamera, shaderConfigPath)
+		: scene3D(windowName, texModelCamera, shaderConfigPath), renderGrid(nullptr)
 	{
 		diffuseMap = new texture("textures/rock_diffuse.tga");
 		displacementMap = new texture("textures/rock_offset.tga");
-
 
 
 		this->camera.position.y = 4.2f;
@@ -41,7 +39,7 @@ public:
 		//this->camera.Pitch(glm::radians(-45.0f));
 	}
 
-	~displacement(){};
+	~displacement() override = default;
 
 	virtual void Initialize() override
 	{
@@ -95,14 +93,6 @@ protected:
 	}
 
 	virtual void Draw() override
-	{
-		DrawMeshes();
-		DrawGUI(window);
-		manager->SwapDrawBuffers(window);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	}
-
-	virtual void DrawMeshes()
 	{
 		GL_PUSH_DEBUG_GROUP();
 		renderGrid->BindVA();

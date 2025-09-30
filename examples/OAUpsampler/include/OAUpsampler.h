@@ -223,6 +223,7 @@ protected:
         SMAAScene::Update();
 
         jitterUniforms.Update();
+        taaUniforms.Update();
         //jitter2Uniforms.Update();
 
         //if even frame then write to 1 and read from 0 and vice versa
@@ -235,13 +236,7 @@ protected:
     {
         GL_PUSH_DEBUG_GROUP();
         geometryBuffer.Bind();
-
-        GLenum drawbuffers[2] = {
-            geometryBuffer.attachments["color"].FBODesc.attachmentFormat, //color
-            geometryBuffer.attachments["velocity"].FBODesc.attachmentFormat, //velocity
-        };
-
-        glDrawBuffers(2, drawbuffers);
+        geometryBuffer.DrawAll();
 
         //we just need the first LOd so only do the first 3 meshes
         for (auto& mesh : testModel.meshes)
@@ -251,7 +246,7 @@ protected:
                 mesh.textures[texIter].SetActive(texIter);
             }
 
-            glBindVertexArray(mesh.vertexArrayHandle);
+            mesh.Bind();
             defProgram.Use();
 
             glViewport(defaultViewportOrigin.x, defaultViewportOrigin.y, scaledResolution.x, scaledResolution.y);
@@ -273,7 +268,7 @@ protected:
         GL_PUSH_DEBUG_GROUP();
         unscaledBuffer.Bind();
 
-        glDrawBuffers(1, &unscaledBuffer.attachments["color"].FBODesc.attachmentFormat);
+        unscaledBuffer.attachments["color"].Draw();
 
         //we just need the first LOd so only do the first 3 meshes
         for (auto& mesh : testModel.meshes)
@@ -283,7 +278,7 @@ protected:
                 mesh.textures[texIter].SetActive(texIter);
             }
 
-            glBindVertexArray(mesh.vertexArrayHandle);
+            mesh.Bind();
             defProgram.Use();
 
             glViewport(defaultViewportOrigin.x, defaultViewportOrigin.y, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
@@ -303,8 +298,7 @@ protected:
     {
         GL_PUSH_DEBUG_GROUP();
         edgesBuffer.Bind();
-
-        glDrawBuffers(1, &edgesBuffer.attachments["edge"].FBODesc.attachmentFormat);
+        edgesBuffer.attachments["edge"].Draw();
 
         geometryBuffer.attachments["color"].SetActive(0);//color
         geometryBuffer.attachments["depth"].SetActive(1);//depth
@@ -323,7 +317,7 @@ protected:
         GL_PUSH_DEBUG_GROUP();
         weightsBuffer.Bind();
 
-        glDrawBuffers(1, &weightsBuffer.attachments["blend"].FBODesc.attachmentFormat);
+        weightsBuffer.attachments["blend"].Draw();
 
         edgesBuffer.attachments["edge"].SetActive(0);
         SMAAArea.SetActive(1);
@@ -342,13 +336,13 @@ protected:
     {
         GL_PUSH_DEBUG_GROUP();
         SMAABuffer.Bind();
-        glDrawBuffers(1, &SMAABuffer.attachments["SMAA"].FBODesc.attachmentFormat);
+        SMAABuffer.attachments["SMAA"].Draw();
 
         //current frame
         geometryBuffer.attachments["color"].SetActive(0); //color
         weightsBuffer.attachments["blend"].SetActive(1); //blending weights
 
-        glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
+        defaultVertexBuffer.Bind();
         SMAAProgram.Use();
         glViewport(defaultViewportOrigin.x, defaultViewportOrigin.y, scaledResolution.x, scaledResolution.y);
         glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -389,13 +383,19 @@ protected:
         camera.ChangeProjection(camera_t::projection_e::perspective);
         camera.Update();
 
-        UpdateDefaultBuffer();
+        UpdateDefaultUniforms(camera, clock, &testModel);
+
+        //enable alpha blending
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         GeometryPass();
         UnscaledPass();
 
+        glDisable(GL_BLEND);
+
         camera.ChangeProjection(camera_t::projection_e::orthographic);
-        UpdateDefaultBuffer();
+        UpdateDefaultUniforms(camera, clock, &testModel);
 
         EdgeDetectionPass();
         BlendingWeightsPass();
@@ -404,55 +404,48 @@ protected:
         SMAAResolvePass();
 
         FinalPass(&historyFrames[currentFrame]->attachments["color"], &unscaledBuffer.attachments["color"]);
-
-        DrawGUI(window);
-
-        manager->SwapDrawBuffers(window);
-        ClearBuffers();
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
 
     void ClearBuffers() override
     {
         GL_PUSH_DEBUG_GROUP();
-        //ok copy the current frame into the previous frame and clear the rest of the buffers
-        float clearColor1[4] = { 0.25f, 0.25f, 0.25f, 0.25f };
-        float clearColor2[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 
-      	historyFrames[!currentFrame]->Bind(); //clear the previous, the next frame current becomes previous
-      	historyFrames[!currentFrame]->ClearTexture(historyFrames[!currentFrame]->GetAttachmentRef("color"), clearColor1);
-      	historyFrames[!currentFrame]->ClearTexture(historyFrames[!currentFrame]->GetAttachmentRef("depth"), clearColor2);
-      	//copy current depth to previous or vice versa?
-      	historyFrames[currentFrame]->GetAttachmentRef("depth").Copy(&geometryBuffer.GetAttachmentRef("depth")); //copy depth over
+        historyFrames[!currentFrame]->Bind(); //clear the previous, the next frame current becomes previous
+        historyFrames[!currentFrame]->ClearTexture(historyFrames[!currentFrame]->GetAttachmentRef("color"), clearColor);
+        historyFrames[!currentFrame]->ClearTexture(historyFrames[!currentFrame]->GetAttachmentRef("depth"), clearDepth);
+        //copy current depth to previous or vice versa?
+        historyFrames[currentFrame]->GetAttachmentRef("depth").Copy(&geometryBuffer.GetAttachmentRef("depth")); //copy depth over
+       // historyFrames[currentFrame]->GetAttachmentRef("color").Copy(&historyFrames[!currentFrame]->GetAttachmentRef("color")); //copy depth over
 
-      	glClear(GL_DEPTH_BUFFER_BIT);
-      	historyFrames[!currentFrame]->Unbind();
+        glClear(GL_DEPTH_BUFFER_BIT );
+        historyFrames[!currentFrame]->Unbind();
 
         geometryBuffer.Bind();
-        geometryBuffer.ClearTexture(geometryBuffer.GetAttachmentRef("color"), clearColor1);
-        geometryBuffer.ClearTexture(geometryBuffer.GetAttachmentRef("velocity"), clearColor2);
-        geometryBuffer.ClearTexture(geometryBuffer.GetAttachmentRef("depth"), clearColor2);
+        geometryBuffer.ClearTexture(geometryBuffer.GetAttachmentRef("color"), clearColor);
+        geometryBuffer.ClearTexture(geometryBuffer.GetAttachmentRef("velocity"), clearDepth);
+        geometryBuffer.ClearTexture(geometryBuffer.GetAttachmentRef("depth"), clearDepth);
         glClear(GL_DEPTH_BUFFER_BIT);
         geometryBuffer.Unbind();
 
         SMAABuffer.Bind();
-        SMAABuffer.ClearTexture(SMAABuffer.GetAttachmentRef("SMAA"), clearColor1);
+        SMAABuffer.ClearTexture(SMAABuffer.GetAttachmentRef("SMAA"), clearColor);
+        glClear(GL_DEPTH_BUFFER_BIT);
         SMAABuffer.Unbind();
 
         edgesBuffer.Bind();
-        edgesBuffer.ClearTexture(edgesBuffer.GetAttachmentRef("edge"), clearColor2);
+        edgesBuffer.ClearTexture(edgesBuffer.GetAttachmentRef("edge"), clearDepth);
         edgesBuffer.Unbind();
 
         weightsBuffer.Bind();
-        weightsBuffer.ClearTexture(weightsBuffer.GetAttachmentRef("blend"), clearColor2);
+        weightsBuffer.ClearTexture(weightsBuffer.GetAttachmentRef("blend"), clearDepth);
         weightsBuffer.Unbind();
 
         unscaledBuffer.Bind();
-        unscaledBuffer.ClearTexture(unscaledBuffer.GetAttachmentRef("color"), clearColor1);
+        unscaledBuffer.ClearTexture(unscaledBuffer.GetAttachmentRef("color"), clearColor);
         glClear(GL_DEPTH_BUFFER_BIT);
         unscaledBuffer.Unbind();
 
-    // Keep camera in a known projection for the start of next frame but DO NOT update velocity uniforms here.
+        // Keep camera in a known projection for the start of next frame but DO NOT update velocity uniforms here.
         camera.ChangeProjection(camera_t::projection_e::perspective);
         velocityUniforms.data.previousProjection =camera.projection;
         velocityUniforms.data.previousView =camera.view;

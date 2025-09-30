@@ -22,7 +22,7 @@ class chromaticScene : public texturedScene
 {
 public:
 
-	chromaticScene(
+	explicit chromaticScene(
 		chromaticSettings_t chromaticSettings = chromaticSettings_t(),
 		texture defaultTexture = texture(),
 		const char* windowName = "Ziyad Barakat's portfolio (chromatic aberration)",
@@ -32,7 +32,7 @@ public:
 		this->chromaticSettings = chromaticSettings;
 	}
 
-	~chromaticScene( void ){}
+	~chromaticScene() override = default;
 
 protected:
 

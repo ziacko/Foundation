@@ -70,6 +70,8 @@ using namespace tw;
 #define PI 3.14159265
 constexpr glm::vec4 clearColor = {0.33f, 0.33f, 0.33f, 1.0f};
 constexpr glm::vec4 clearColor2 = { 0.0f, 0.0f, 0.0f, 1.0f };
+constexpr glm::vec4 clearDepth = { 0.0f, 0.0f, 0.0f, 0.0f };
+constexpr glm::vec4 clearColor3 = { 1.0f, 0.0f, 0.0f, 0.0f }; //this is for debugging only
 
 constexpr glm::ivec2 defaultWindowSize = glm::ivec2(1280, 720);
 

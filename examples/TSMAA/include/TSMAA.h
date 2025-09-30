@@ -211,12 +211,15 @@ protected:
 		camera.ChangeProjection(camera_t::projection_e::perspective);
 		camera.Update();
 
-		UpdateDefaultBuffer();
+		UpdateDefaultUniforms(camera, clock, &testModel);
 
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		JitterPass(); //i think jitter fucks with SMAA
+		glDisable(GL_BLEND);
 
 		camera.ChangeProjection(camera_t::projection_e::orthographic);
-		UpdateDefaultBuffer();
+		UpdateDefaultUniforms(camera, clock, &testModel);
 		
 		EdgeDetectionPass();
 		BlendingWeightsPass();
@@ -225,12 +228,12 @@ protected:
 		SMAAResolvePass();
 
 		FinalPass(&historyFrames[currentFrame]->attachments["color"], &geometryBuffer.attachments["color"]);
-		
-		DrawGUI(window);
+	}
 
-		manager->SwapDrawBuffers(window);
+	virtual void PostDraw() override
+	{
+		SMAAScene::PostDraw();
 		ClearBuffers();
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 
 	virtual void JitterPass()
@@ -474,19 +477,15 @@ protected:
 			ImGui::InputFloat("y sensitivity", &camera.ySensitivity, 0.f);
 			ImGui::EndTabItem();
 		}
-
-
 	}
 
 	virtual void ClearBuffers()
 	{
 		GL_PUSH_DEBUG_GROUP();
-		//ok copy the current frame into the previous frame and clear the rest of the buffers	
-		float clearColor1[4] = { 0.25f, 0.25f, 0.25f, 0.25f };
-		float clearColor2[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+		//ok copy the current frame into the previous frame and clear the rest of the buffers
 
 		historyFrames[!currentFrame]->Bind(); //clear the previous, the next frame current becomes previous
-		historyFrames[!currentFrame]->ClearTexture(historyFrames[!currentFrame]->GetAttachmentRef("color"), clearColor1);
+		historyFrames[!currentFrame]->ClearTexture(historyFrames[!currentFrame]->GetAttachmentRef("color"), clearColor);
 		historyFrames[!currentFrame]->ClearTexture(historyFrames[!currentFrame]->GetAttachmentRef("depth"), clearColor2);
 		//copy current depth to previous or vice versa?
 		historyFrames[currentFrame]->GetAttachmentRef("depth").Copy(&geometryBuffer.GetAttachmentRef("depth")); //copy depth over
@@ -495,14 +494,14 @@ protected:
 		historyFrames[!currentFrame]->Unbind();
 
 		geometryBuffer.Bind();
-		geometryBuffer.ClearTexture(geometryBuffer.GetAttachmentRef("color"), clearColor1);
+		geometryBuffer.ClearTexture(geometryBuffer.GetAttachmentRef("color"), clearColor);
 		geometryBuffer.ClearTexture(geometryBuffer.GetAttachmentRef("velocity"), clearColor2);
 		geometryBuffer.ClearTexture(geometryBuffer.GetAttachmentRef("depth"), clearColor2);
 		glClear(GL_DEPTH_BUFFER_BIT);
 		geometryBuffer.Unbind();
 
 		SMAABuffer.Bind();
-		SMAABuffer.ClearTexture(SMAABuffer.GetAttachmentRef("SMAA"), clearColor1);
+		SMAABuffer.ClearTexture(SMAABuffer.GetAttachmentRef("SMAA"), clearColor);
 		SMAABuffer.Unbind();
 
 		edgesBuffer.Bind();

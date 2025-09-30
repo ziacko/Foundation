@@ -28,40 +28,35 @@ struct godRaySettings_t
 };
 
 
-class GodRayScene : public scene3D
+class GodRayScene final : public scene3D
 {
 public:
-
-	GodRayScene(
+	explicit GodRayScene(
 		const char* windowName = "Ziyad Barakat's portfolio (god ray test)",
-		camera_t texModelCamera = camera_t(glm::vec2(1280, 720), PI * 0.1f, camera_t::projection_e::perspective, 0.1f, 2000.f),
+		const camera_t texModelCamera = camera_t(glm::vec2(1280, 720), PI * 0.1f, camera_t::projection_e::perspective, 0.1f, 2000.f),
 		const char* shaderConfigPath = SHADER_CONFIG_DIR,
-		model_t model = model_t("models/SoulSpear/SoulSpear.fbx"))
+		const model_t model = model_t("models/SoulSpear/SoulSpear.fbx"))
 		: scene3D(windowName, texModelCamera, shaderConfigPath, model)
 	{
-		geometryBuffer = new frameBuffer();
-		occlusionBuffer = new frameBuffer();
+		geometryBuffer = frameBuffer();
+		occlusionBuffer = frameBuffer();
 
-		//orthoCamera = new camera(glm::vec2(1280, 720), 5.0f, camera::projection_t::orthographic, 0.1f);
 		godRay = bufferHandler_t<godRaySettings_t>();
 
 		glDisable(GL_BLEND);
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LESS);
 		glHint(GL_GENERATE_MIPMAP_HINT, GL_NICEST);
-
-		this->camera.position.y -= 2.0f;
-		this->camera.position.z = -1.0f;
 	}
 
-	virtual ~GodRayScene() {};
+	~GodRayScene() override {};
 
 	void Initialize() override
 	{
 		scene3D::Initialize();
 
-		geometryBuffer->Initialize();
-		geometryBuffer->Bind();
+		geometryBuffer.Initialize();
+		geometryBuffer.Bind();
 
 		FBODescriptor geomDesc;
 		geomDesc.dimensions = glm::ivec3(window->GetSettings().resolution.width, window->GetSettings().resolution.height, 1);
@@ -76,11 +71,11 @@ public:
 		depthDesc.wrapTSetting = GL_CLAMP;
 		depthDesc.dimensions = glm::ivec3(window->GetSettings().resolution.width, window->GetSettings().resolution.height, 1);
 
-		geometryBuffer->AddAttachment(frameBuffer::attachment_t("color", geomDesc));
-		geometryBuffer->AddAttachment(frameBuffer::attachment_t("depth", depthDesc));
+		geometryBuffer.AddAttachment(frameBuffer::attachment_t("color", geomDesc));
+		geometryBuffer.AddAttachment(frameBuffer::attachment_t("depth", depthDesc));
 
-		occlusionBuffer->Initialize();
-		occlusionBuffer->Bind();
+		occlusionBuffer.Initialize();
+		occlusionBuffer.Bind();
 
 		FBODescriptor occlusionDesc;
 		occlusionDesc.format = GL_RED;
@@ -91,7 +86,7 @@ public:
 		occlusionDesc.wrapTSetting = GL_CLAMP;
 		occlusionDesc.dimensions = glm::ivec3(window->GetSettings().resolution.width, window->GetSettings().resolution.height, 1);
 
-		occlusionBuffer->AddAttachment(frameBuffer::attachment_t("occlusion", occlusionDesc));
+		occlusionBuffer.AddAttachment(frameBuffer::attachment_t("occlusion", occlusionDesc));
 
 		frameBuffer::Unbind();
 
@@ -102,19 +97,14 @@ public:
 
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		//glDisable(GL_BLEND);
-		//glEnable(GL_DEPTH_TEST);
-		//glEnable(gl_clip_distance0);
-		//glDepthFunc(GL_LESS);
-		//glHint(gl_generate_mipmap_hint, GL_NICEST);;
 	}
 
 protected:
 
 	bufferHandler_t<godRaySettings_t> godRay;
 
-	frameBuffer* geometryBuffer;
-	frameBuffer* occlusionBuffer;
+	frameBuffer geometryBuffer;
+	frameBuffer occlusionBuffer;
 
 	//camera* orthoCamera;
 
@@ -126,52 +116,15 @@ protected:
 
 	virtual void Update() override
 	{
-		manager->PollForEvents();
-		if (lockedFrameRate > 0)
-		{
-			clock.UpdateClockFixed(lockedFrameRate);
-		}
-		else
-		{
-			clock.UpdateClockAdaptive();
-		}
-
-		defaultPayload.data.deltaTime = static_cast<float>(clock.GetDeltaTime());
-		defaultPayload.data.totalTime = static_cast<float>(clock.GetTotalTime());
-		defaultPayload.data.framesPerSec = static_cast<float>(1.0 / clock.GetDeltaTime());
-		defaultPayload.data.totalFrames++;
-
+		scene3D::Update();
 		godRay.Update();
-	}
-
-	void UpdateDefaultBuffer()
-	{
-		camera.UpdateProjection();
-		defaultPayload.data.projection = camera.projection;
-		defaultPayload.data.view = camera.view;
-		if (camera.currentProjectionType == camera_t::projection_e::perspective)
-		{
-			defaultPayload.data.translation = testModel.makeTransform();
-		}
-
-		else
-		{
-			defaultPayload.data.translation = camera.translation;
-		}
-		defaultPayload.data.deltaTime = (float)clock.GetDeltaTime();
-		defaultPayload.data.totalTime = (float)clock.GetTotalTime();
-		defaultPayload.data.framesPerSec = (float)(1.0 / clock.GetDeltaTime());
-
-		defaultPayload.Update();
-
-		//defaultVertexBuffer.UpdateBuffer(defaultPayload.data.resolution);
 	}
 
 	void Draw() override
 	{
 		camera.ChangeProjection(camera_t::projection_e::perspective);
 		camera.Update();
-		UpdateDefaultBuffer();
+		UpdateDefaultUniforms(camera, clock);
 
 		//occlusion pass
 		OcclusionPass();
@@ -181,29 +134,17 @@ protected:
 
 		//swap to orthographic
 		camera.ChangeProjection(camera_t::projection_e::orthographic);
-		UpdateDefaultBuffer();	
+		UpdateDefaultUniforms(camera, clock);
 
 		//final pass
 		GodRayPass();
-
-		DrawGUI(window);
-
-		manager->SwapDrawBuffers(window);
-
-		ClearBuffers();
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 
 	virtual void GeometryPass()
 	{
 		GL_PUSH_DEBUG_GROUP();
-		geometryBuffer->Bind();
-
-		GLenum drawbuffers[1] = {
-			geometryBuffer->attachments["color"].FBODesc.attachmentFormat, //color
-		};
-
-		glDrawBuffers(1, drawbuffers);
+		geometryBuffer.Bind();
+		geometryBuffer.attachments["color"].Draw();
 
 		//we just need the first LOd so only do the first 3 meshes
 		for (size_t iter = 0; iter < 1; iter++)
@@ -227,7 +168,7 @@ protected:
 			glDrawElements(GL_TRIANGLES, testModel.meshes[iter].indices.size(), GL_UNSIGNED_INT, nullptr);
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		}
-		geometryBuffer->Unbind();
+		geometryBuffer.Unbind();
 		glPopDebugGroup();
 	}
 
@@ -235,13 +176,9 @@ protected:
 	{
 		GL_PUSH_DEBUG_GROUP();
 		glDisable(GL_BLEND);
-		occlusionBuffer->Bind();
+		occlusionBuffer.Bind();
 
-		GLenum drawbuffers[1] = {
-			occlusionBuffer->attachments["occlusion"].FBODesc.attachmentFormat, //occlusion
-		};
-
-		glDrawBuffers(1, drawbuffers);
+		occlusionBuffer.attachments["occlusion"].Draw();
 
 		//we just need the first LOd so only do the first 3 meshes
 		for (size_t iter = 0; iter < 1; iter++)
@@ -266,21 +203,19 @@ protected:
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		}
 
-		occlusionBuffer->Unbind();
+		occlusionBuffer.Unbind();
 		glPopDebugGroup();
 	}
 
 	virtual void GodRayPass()
 	{
 		GL_PUSH_DEBUG_GROUP();
-		
-		//glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO);
 
 		//just draw to backbuffer. we don't need to compare anything
-		geometryBuffer->attachments["color"].SetActive(0);
-		occlusionBuffer->attachments["occlusion"].SetActive(1);
+		geometryBuffer.attachments["color"].SetActive(0);
+		occlusionBuffer.attachments["occlusion"].SetActive(1);
 
-		glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
+		defaultVertexBuffer.Bind();
 		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 
 		GodRayPostProgram.Use();
@@ -288,13 +223,13 @@ protected:
 		glPopDebugGroup();
 	}
 
-	void FinalPass(texture* tex1, texture* tex2)
+	void FinalPass(texture* tex1, texture* tex2) const
 	{
 		GL_PUSH_DEBUG_GROUP();
 		//draw directly to backbuffer		
 		tex1->SetActive(0);
 
-		glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
+		defaultVertexBuffer.Bind();
 		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 
 		finalProgram.Use();
@@ -317,7 +252,7 @@ protected:
 		if (ImGui::BeginTabItem("framebuffers"))
 		{
 			ImGui::Checkbox("enable Compare", &enableCompare);
-			for (auto iter : geometryBuffer->attachments | std::views::values)
+			for (auto iter : geometryBuffer.attachments | std::views::values)
 			{
 				ImGui::Image((ImTextureID)iter.GetHandle(), ImVec2(512, 288),
 					ImVec2(0, 1), ImVec2(1, 0));
@@ -325,10 +260,10 @@ protected:
 				ImGui::Text("%s\n", iter.GetUniformName().c_str());
 			}
 
-			ImGui::Image((ImTextureID)occlusionBuffer->attachments["occlusion"].GetHandle(), ImVec2(512, 288),
+			ImGui::Image((ImTextureID)occlusionBuffer.attachments["occlusion"].GetHandle(), ImVec2(512, 288),
 				ImVec2(0, 1), ImVec2(1, 0));
 			ImGui::SameLine();
-			ImGui::Text("%s\n", occlusionBuffer->attachments["occlusion"].GetUniformName().c_str());
+			ImGui::Text("%s\n", occlusionBuffer.attachments["occlusion"].GetUniformName().c_str());
 
 			ImGui::EndTabItem();
 		}
@@ -364,26 +299,23 @@ protected:
 		}
 	}
 
-	virtual void ClearBuffers()
+	virtual void ClearBuffers() override
 	{
 		//ok copy the current frame into the previous frame and clear the rest of the buffers
-		constexpr float clearColor1[4] = { 0.25f, 0.25f, 0.25f, 0.25f };
-		constexpr float clearColor2[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 
-		geometryBuffer->Bind();
-		geometryBuffer->ClearTexture(geometryBuffer->attachments["color"], clearColor1);
-		glClear(GL_DEPTH_BUFFER_BIT);
-		//frameBuffer::Unbind();
+		geometryBuffer.Bind();
+		geometryBuffer.ClearTexture(geometryBuffer.attachments["color"], clearColor);
+		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-		occlusionBuffer->Bind();
-		occlusionBuffer->ClearTexture(occlusionBuffer->attachments["occlusion"], clearColor2);
+		occlusionBuffer.Bind();
+		occlusionBuffer.ClearTexture(occlusionBuffer.attachments["occlusion"], clearColor2);
 		frameBuffer::Unbind();
 	}
 
-	virtual void ResizeBuffers(glm::ivec2 resolution)
+	virtual void ResizeBuffers(const glm::ivec2 resolution)
 	{
-		geometryBuffer->Resize(glm::ivec3(resolution, 1));
-		occlusionBuffer->Resize(glm::ivec3(resolution, 1));
+		geometryBuffer.Resize(glm::ivec3(resolution, 1));
+		occlusionBuffer.Resize(glm::ivec3(resolution, 1));
 	}
 
 	virtual void HandleWindowResize(const tWindow* window, const tw::vec2_t<uint16_t>& dimensions) override
@@ -400,16 +332,7 @@ protected:
 
 	virtual void InitializeUniforms() override
 	{
-		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
-
-		defaultPayload.data.resolution = glm::ivec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
-		defaultPayload.data.projection = camera.projection;
-		defaultPayload.data.translation = camera.translation;
-		defaultPayload.data.view = camera.view;
-		
-		defaultVertexBuffer.SetupDefault();
-
-		defaultPayload.Initialize(0);
+		scene3D::InitializeUniforms();
 		godRay.Initialize(1);
 	}
 };

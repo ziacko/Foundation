@@ -82,23 +82,6 @@ void main()
 
 	vec4 col = texture(diffuse, inBlock.uv);
 
-	if(col.a < noise && enableDithering > 0)
-	{
-		// (xchen) disable ToD
-		//discard;
-	}
-
-	if(col.a < 0.5)
-	{
-		discard;
-	}
-
-	else
-	{
-		col.a = 1;
-	}
-
 	outVelocity = vec4(velocity, 0, 1);
-	outColor.xyz = srgb_to_rgb_approx( col.xyz );
-	outColor.w = 1.0f;
+	outColor = col;
 }

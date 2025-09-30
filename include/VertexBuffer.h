@@ -103,4 +103,9 @@ public:
 		glBindBuffer(GL_ARRAY_BUFFER, bufferHandle);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 24, quadVerts, GL_STATIC_DRAW);
 	}
+
+	void Bind() const
+	{
+		glBindVertexArray(vertexArrayHandle);
+	}
 };

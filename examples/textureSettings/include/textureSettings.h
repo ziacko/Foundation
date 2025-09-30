@@ -14,18 +14,16 @@ constexpr std::array<const char*, 6>		minFilterSettings = { "linear", "nearest",
 class textureSettingsScene : public texturedScene
 {
 public:
-	textureSettingsScene(texture defaultTexture = texture("textures/crate_sideup.png"),
-		const char* windowName = "Ziyad Barakat's Portfolio (texture settings)",
-		camera_t textureCamera = camera_t(),
-		const char* shaderConfigPath = SHADER_CONFIG_DIR) :
-		texturedScene(defaultTexture, windowName, textureCamera, shaderConfigPath)
-	{
-
-	}
+	explicit textureSettingsScene(const texture defaultTexture = texture("textures/crate_sideup.png"),
+	                              const char* windowName = "Ziyad Barakat's Portfolio (texture settings)",
+	                              const camera_t textureCamera = camera_t(),
+	                              const char* shaderConfigPath = SHADER_CONFIG_DIR) :
+		texturedScene(defaultTexture, windowName, textureCamera, shaderConfigPath) {}
 
 	virtual void Initialize() override
 	{
-		defaultTexture.texDesc.mipmapLevels = 10;
+		defaultTexture.texDesc.hasMips = true;
+		defaultTexture.texDesc.levels = 10;
 		texturedScene::Initialize();
 	}
 
@@ -45,7 +43,6 @@ public:
 	{
 		texturedScene::BuildGUI(window, io);
 		DrawTextureSettings();
-
 	}
 
 	virtual void DrawTextureSettings()
@@ -97,8 +94,6 @@ protected:
 	wrapSettings_t					wrapSSetting = CLAMP_TO_EDGE;
 	wrapSettings_t					wrapTSetting = CLAMP_TO_EDGE;
 	wrapSettings_t					wrapRSetting = CLAMP_TO_EDGE;
-
-
 
 	//look into making these into std::pairs?
 	int minFilterIndex = 0; //can't be a local variable

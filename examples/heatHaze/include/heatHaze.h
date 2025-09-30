@@ -78,8 +78,7 @@ struct perlinSettings_t//	: public uniformBuffer_t
 class heatHazeScene : public bubbleScene
 {
 public:
-
-	heatHazeScene(
+	explicit heatHazeScene(
 		bufferHandler_t<bubbleSettings_t> bubbleSettings = bufferHandler_t<bubbleSettings_t>(),
 		texture defaultTexture = texture(),
 		const char* windowName = "Ziyad Barakat's Portfolio ( heat haze )",		
@@ -94,7 +93,7 @@ public:
 		enableWireframe = false;
 	}
 
-	~heatHazeScene( void ){}
+	~heatHazeScene( void ) override {}
 
 	virtual void Initialize() override
 	{
@@ -229,14 +228,9 @@ protected:
 	{
 		perlinBuffer->Bind();
 
-		GLenum drawBuffers[1] =
-		{
-			GL_COLOR_ATTACHMENT0
-		};
+		perlinBuffer->attachments["perlin"].Draw();
 
-		glDrawBuffers(1, drawBuffers);
-
-		glUseProgram(defProgram.handle);
+		defProgram.Use();
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
 		perlinBuffer->Unbind();
@@ -247,7 +241,7 @@ protected:
 		defaultTexture.GetUniformLocation(defProgram.handle);
 		defaultTexture.SetActive(0);
 		perlinBuffer->attachments["perlin"].SetActive(1);
-		glUseProgram(heatHazeProgram.handle);
+		heatHazeProgram.Use();
 		if (enableWireframe)
 		{
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -262,31 +256,19 @@ protected:
 	{
 		PerlinPass();
 		HeatHazePass();
-
-		PostDraw();
 	}
 
-	virtual void PostDraw() override
+	virtual void ClearBuffers() override
 	{
-		texturedScene::DrawGUI(window);
-		manager->SwapDrawBuffers(window);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	}
-
-	virtual void ClearBuffers()
-	{
-		//ok copy the current frame into the previous frame and clear the rest of the buffers	
-		float clearColor1[4] = { 0.25f, 0.25f, 0.25f, 0.25f };
-
 		perlinBuffer->Bind();
-		perlinBuffer->ClearTexture(perlinBuffer->attachments["perlin"], clearColor1);
+		perlinBuffer->ClearTexture(perlinBuffer->attachments["perlin"], clearColor);
 		glClear(GL_DEPTH_BUFFER_BIT);
 		perlinBuffer->Unbind();
 
 		camera.ChangeProjection(camera_t::projection_e::perspective);
 	}
 
-	virtual void ResizeBuffers(glm::ivec2 resolution)
+	virtual void ResizeBuffers(const glm::ivec2& resolution)
 	{
 		perlinBuffer->Resize(glm::ivec3(resolution, 1));
 	}

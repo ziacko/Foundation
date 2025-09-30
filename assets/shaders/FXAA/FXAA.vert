@@ -23,7 +23,7 @@ layout(std140, binding = 0) uniform defaultSettings
 	uint		totalFrames;
 };
 
-layout(std140, binding = 5) uniform fxaaSettings
+layout(std140, binding = 1) uniform fxaaSettings
 {
 	float subPixShift;// = 0.25;
     float vxOffset;

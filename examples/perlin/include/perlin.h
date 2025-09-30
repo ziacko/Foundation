@@ -103,15 +103,14 @@ struct perlinSettings_t//	: public uniformBuffer_t
 		uvScale = glm::vec2(1);
 	};
 
-	~perlinSettings_t(){};
+	~perlinSettings_t() = default;
 };
 
 class perlinScene : public scene
 {
 public:
-
-	perlinScene(const char* windowName = "Ziyad Barakat's Portfolio ( Perlin noise )",
-		camera_t perlinCamera = camera_t(), const GLchar* shaderConfigPath = SHADER_CONFIG_DIR)
+	explicit perlinScene(const char* windowName = "Ziyad Barakat's Portfolio ( Perlin noise )",
+	                     const camera_t perlinCamera = camera_t(), const GLchar* shaderConfigPath = SHADER_CONFIG_DIR)
 		: scene(windowName, perlinCamera, shaderConfigPath)
 	{
 		this->perlin.data = perlinSettings_t();
@@ -156,12 +155,6 @@ protected:
 		ImGui::SliderFloat("permutation value", &perlin.data.permuteValue, 0.0f, 100.0f);
 		ImGui::SliderFloat("taylor inverse", &perlin.data.taylorInverse, 0.0f, 10.0f);
 
-		//AddGUISpacer();
-
-		//ImGui::SliderFloat("fade value 1", &perlin.data.fadeValue1, 0.0f, 100.0f);
-		//ImGui::SliderFloat("fade value 2", &perlin.data.fadeValue2, 0.0f, 100.0f);
-		//ImGui::SliderFloat("fade value 3", &perlin.data.fadeValue3, 0.0f, 100.0f);
-
 		AddGUISpacer();
 
 		ImGui::SliderInt("num octaves", &perlin.data.numOctaves, 0, 100);
@@ -186,7 +179,7 @@ protected:
 		ImGui::SliderFloat("pattern value 11", &perlin.data.pattern2Value11, 0.0f, 10.0f);
 	}
 
-	void AddGUISpacer()
+	virtual void AddGUISpacer()
 	{
 		ImGui::Spacing();
 		ImGui::Spacing();
@@ -201,7 +194,7 @@ protected:
 		perlin.Initialize(1);
 	}
 
-	void SetPerlinUniforms()
+	virtual void SetPerlinUniforms()
 	{
 		perlin.SetupUniforms(defProgram.handle, "perlinSettings", 1);
 	}
@@ -212,27 +205,26 @@ protected:
 		perlin.Update();
 	}
 
-	void PerlinPass()
+	virtual void PerlinPass()
 	{
 		perlinBuffer->Bind();
 		perlinBuffer->attachments["perlin"].Draw();
 
-		glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
+		defaultVertexBuffer.Bind();
 		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 
-		glUseProgram(defProgram.handle);
+		defProgram.Use();
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
 
-	void FinalPass()
+	virtual void FinalPass()
 	{
 		frameBuffer::Unbind();
-
-		glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
+		defaultVertexBuffer.Bind();
 		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 
 		perlinBuffer->attachments["perlin"].SetActive(0);
-		glUseProgram(finalProgram.handle);
+		finalProgram.Use();
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
 
@@ -240,11 +232,6 @@ protected:
 	{
 		PerlinPass();
 		FinalPass();
-
-		//glUseProgram(this->programGLID);
-		//glDrawArrays(GL_TRIANGLES, 0, 6);
-
-		PostDraw();
 	}
 };
 #endif

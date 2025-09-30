@@ -24,7 +24,7 @@ public:
 		glm::vec4		emptyColor;
 		float			dimensions; // change to vec2 for more flexibility
 
-		golSettings_t(
+		explicit golSettings_t(
 			float dimensions = 10, glm::vec4 aliveColor = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f), //green
 			glm::vec4 deadColor = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f), //red
 			glm::vec4 emptyColor = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f)) //blue
@@ -36,7 +36,7 @@ public:
 			this->emptyColor = emptyColor;
 		}
 
-		~golSettings_t() {};
+		~golSettings_t() = default;
 	};
 
 	struct cells_t
@@ -58,13 +58,10 @@ public:
 			}
 		}
 
-		~cells_t()
-		{
-
-		}
+		~cells_t() = default;
 	};
 
-	golScene(float dimensions = 100.0f, GLdouble tickDelay = 0.1f, GLuint randomSeed = 666,
+	explicit golScene(float dimensions = 100.0f, GLdouble tickDelay = 0.1f, GLuint randomSeed = 666,
 		GLuint cellProbability = 90, const char* windowName = "Ziyad Barakat's portfolio (game of life)",
 		camera_t golCamera = camera_t(), const char* shaderConfigPath = SHADER_CONFIG_DIR)
 		: scene(windowName, golCamera, shaderConfigPath)
@@ -80,7 +77,7 @@ public:
 		currentTickDelay = 0.0f;
 	}
 
-	~golScene(void) {};
+	~golScene(void) override {};
 
 protected:
 
@@ -115,13 +112,9 @@ protected:
 	}
 
 	void Draw() override
-	{	
-		glUseProgram(defProgram.handle);
+	{
+		defProgram.Use();
 		glDrawArraysInstanced(GL_TRIANGLES, 0, 6, gol.data.dimensions * gol.data.dimensions);
-		
-		DrawGUI(window);
-		manager->SwapDrawBuffers(window);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 
 	void CheckNode(cellState_t CurrentState, unsigned int& neighborCount, unsigned int& deadNeighborCount)

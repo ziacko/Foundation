@@ -4,15 +4,15 @@
 #include "scene3D.h"
 #include "FrameBuffer.h"
 
-class MSAA : public scene3D
+class MSAA final : public scene3D
 {
 public:
 
-	MSAA(
+	explicit MSAA(
 		const char* windowName = "Ziyad Barakat's portfolio (MSAA)",
-		camera_t texModelCamera = camera_t(glm::vec2(1280, 720), 5.0f, camera_t::projection_e::perspective, 0.1f, 2000.f),
+		const camera_t texModelCamera = camera_t(glm::vec2(1280, 720), 5.0f, camera_t::projection_e::perspective, 0.1f, 2000.f),
 		const char* shaderConfigPath = SHADER_CONFIG_DIR,
-		model_t model = model_t("models/fbx_foliage/broadleaf_field/Broadleaf_Desktop_Field.FBX"))
+		const model_t model = model_t("models/fbx_foliage/broadleaf_field/Broadleaf_Desktop_Field.FBX"))
 		: scene3D(windowName, texModelCamera, shaderConfigPath, model)
 	{
 		glDisable(GL_BLEND);
@@ -28,7 +28,7 @@ public:
 		//this->camera.Pitch(glm::radians(180.0f));
 	}
 
-	~MSAA() {};
+	~MSAA() override {};
 
 	virtual void Initialize() override
 	{
@@ -68,70 +68,24 @@ protected:
 
 	bool enableCompare = true;
 
-	virtual void Update() override
-	{
-		manager->PollForEvents();
-		if (lockedFrameRate > 0)
-		{
-			clock.UpdateClockFixed(lockedFrameRate);
-		}
-		else
-		{
-			clock.UpdateClockAdaptive();
-		}
-
-		float dt = (float)clock.GetDeltaTime();
-		defaultPayload.data.deltaTime = dt;
-		defaultPayload.data.totalTime = (float)clock.GetTotalTime();
-		defaultPayload.data.framesPerSec = (dt > 0.0f) ? (1.0f / dt) : 0.0f;
-		defaultPayload.data.totalFrames++;
-		defaultPayload.Update();
-	}
-
-	void UpdateDefaultBuffer()
-	{
-		camera.UpdateProjection();
-		defaultPayload.data.projection = camera.projection;
-		defaultPayload.data.view = camera.view;
-		if (camera.currentProjectionType == camera_t::projection_e::perspective)
-		{
-			defaultPayload.data.translation = testModel.makeTransform();
-		}
-
-		else
-		{
-			defaultPayload.data.translation = camera.translation;
-		}
-		float dt2 = (float)clock.GetDeltaTime();
-		defaultPayload.data.deltaTime = dt2;
-		defaultPayload.data.totalTime = (float)clock.GetTotalTime();
-		defaultPayload.data.framesPerSec = (dt2 > 0.0f) ? (1.0f / dt2) : 0.0f;
-
-		defaultPayload.Update();
-		//defaultVertexBuffer.UpdateBuffer(defaultPayload.data.resolution);
-	}
-
-	virtual void Draw()
+	virtual void Draw() override
 	{
 		camera.ChangeProjection(camera_t::projection_e::perspective);
 		camera.Update();
 
-		UpdateDefaultBuffer();
+		UpdateDefaultUniforms(camera, clock);
 
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		GeometryPass();
+		glDisable(GL_BLEND);
 
 		camera.ChangeProjection(camera_t::projection_e::orthographic);
-		UpdateDefaultBuffer();
+		UpdateDefaultUniforms(camera, clock);
 
 		auto finalTexture = geometryBuffer.attachments["color"];
 
 		FinalPass(&finalTexture);
-		
-		DrawGUI(window);
-
-		manager->SwapDrawBuffers(window);
-		ClearBuffers();
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 
 	virtual void GeometryPass()
@@ -140,11 +94,7 @@ protected:
 		glMinSampleShading(1.0f);
 		geometryBuffer.Bind();
 
-		GLenum drawbuffers[1] = {
-			geometryBuffer.attachments["color"].FBODesc.attachmentFormat, //color
-		};
-
-		glDrawBuffers(1, drawbuffers);
+		geometryBuffer.attachments["color"].Draw();
 
 		for (size_t iter = 0; iter < testModel.meshes.size(); iter++)
 		{
@@ -156,7 +106,7 @@ protected:
 			testModel.meshes[iter].textures[0].SetActive(0);
 
 			glBindVertexArray(testModel.meshes[iter].vertexArrayHandle);
-			glUseProgram(defProgram.handle);
+			defProgram.Use();
 			glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 			glCullFace(GL_BACK);
 
@@ -172,74 +122,35 @@ protected:
 		geometryBuffer.Unbind();
 	}
 
-	void FinalPass(texture* tex1)
+	void FinalPass(texture* tex1) const
 	{
 		//draw directly to backbuffer
 		tex1->SetActive(0);
 		
-		glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
+		defaultVertexBuffer.Bind();
 		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
-		glUseProgram(finalProgram.handle);
+		finalProgram.Use();
 
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
 
-	virtual void BuildGUI(tWindow* window, const ImGuiIO& io) override
+	virtual void ClearBuffers() override
 	{
-		scene3D::BuildGUI(window, io);
-
-		DrawBufferAttachments();
-	}
-
-	virtual void DrawBufferAttachments()
-	{
-		/*ImGui::Begin("framebuffers");
-		for (auto iter : geometryBuffer.attachments)
-		{
-			ImGui::Image((ImTextureID*)iter.second.GetHandle(), ImVec2(512, 288),
-				ImVec2(0, 1), ImVec2(1, 0));
-			ImGui::SameLine();
-			ImGui::Text("%s\n", iter.second.GetUniformName().c_str());
-		}
-
-		ImGui::End();*/
-	}
-
-	virtual void DrawCameraStats() override
-	{
-		//set up the view matrix
-		if (ImGui::BeginTabItem("camera", &isGUIActive))
-		{
-			ImGui::DragFloat("near plane", &camera.nearPlane);
-			ImGui::DragFloat("far plane", &camera.farPlane);
-			ImGui::SliderFloat("Field of view", &camera.fieldOfView, 0, 90, "%.0f");
-
-			ImGui::InputFloat("camera speed", &camera.speed, 0.f);
-			ImGui::InputFloat("x sensitivity", &camera.xSensitivity, 0.f);
-			ImGui::InputFloat("y sensitivity", &camera.ySensitivity, 0.f);
-			ImGui::EndTabItem();
-		}
-	}
-
-	virtual void ClearBuffers()
-	{
-		//ok copy the current frame into the previous frame and clear the rest of the buffers	
-		float clearColor1[4] = { 0.5f, 0.5f, 0.5f, 0.5f };
-
+		//ok copy the current frame into the previous frame and clear the rest of the buffers
 		geometryBuffer.Bind();
-		geometryBuffer.ClearTexture(geometryBuffer.attachments["color"], clearColor1);
+		geometryBuffer.ClearTexture(geometryBuffer.attachments["color"], clearColor);
 		glClear(GL_DEPTH_BUFFER_BIT);
 		geometryBuffer.Unbind();
 
 		camera.ChangeProjection(camera_t::projection_e::perspective);
 	}
 
-	virtual void ResizeBuffers(glm::ivec2 resolution)
+	virtual void ResizeBuffers(const glm::ivec2& resolution)
 	{
 		geometryBuffer.Resize(glm::ivec3(resolution, 1));
 	}
 
-	virtual void HandleWindowResize(const tWindow* window, const TinyWindow::vec2_t<uint16_t>& dimensions) override
+	virtual void HandleWindowResize(const tWindow* window, const tw::vec2_t<uint16_t>& dimensions) override
 	{
 		defaultPayload.data.resolution = glm::ivec2(dimensions.width, dimensions.height);	
 		ResizeBuffers(glm::ivec2(dimensions.x, dimensions.y));
@@ -253,14 +164,7 @@ protected:
 
 	virtual void InitializeUniforms() override
 	{
-		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
-
-		defaultPayload.data.resolution = glm::ivec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
-		defaultPayload.data.projection = camera.projection;
-		defaultPayload.data.translation = camera.translation;
-		defaultPayload.data.view = camera.view;
-
-		defaultPayload.Initialize(0);
+		scene3D::InitializeUniforms();
 		defaultVertexBuffer.SetupDefault();
 	}
 };

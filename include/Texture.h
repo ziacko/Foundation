@@ -7,15 +7,15 @@ struct textureDescriptor
 		const GLenum& format = GL_RGBA, const GLint& internalFormat = GL_RGBA8,
 		const GLenum& minFilterSetting = GL_LINEAR, const GLenum& magFilterSetting = GL_LINEAR,
 		const GLenum& wrapSSetting = GL_REPEAT, const GLenum& wrapTSetting = GL_REPEAT, const GLenum& wrapRSetting = GL_CLAMP_TO_EDGE,
-		const GLenum& access = GL_READ_WRITE)
+		const GLenum& access = GL_READ_WRITE, const bool& hasMips = false)
 	{
 		dimensions = glm::vec3(defaultWindowSize.x, defaultWindowSize.y, 1);
 		this->channels = 4;
 		this->format = format;
 		this->bitsPerPixel = 8;
 
-		this->currentMipmapLevel = 0;
-		this->mipmapLevels = 0;
+		this->currentLevel = 0;
+		this->levels = 0;
 		this->border = 0;
 		this->xOffset = 0;
 		this->yOffset = 0;
@@ -32,6 +32,7 @@ struct textureDescriptor
 
 		this->isImmutable = false;
 		this->access = access;
+		this->hasMips = hasMips;
 	}
 
 	//size and pixel depth density settings
@@ -42,8 +43,8 @@ struct textureDescriptor
 	//texture formats and types
 	GLint			internalFormat;
 	GLenum			target;
-	GLint			currentMipmapLevel;
-	GLint			mipmapLevels;
+	GLint			currentLevel;
+	GLuint			levels;
 	GLint			border;
 	GLenum			dataType;
 	GLint			xOffset;
@@ -59,6 +60,7 @@ struct textureDescriptor
 	GLuint			bitsPerPixel;
 	GLenum			access;
 
+	bool			hasMips;
 	bool			isImmutable;
 };
 
@@ -132,7 +134,7 @@ public:
 
 	void BindAsImage(const GLuint& texUnit, const GLenum& access = GL_WRITE_ONLY, const bool& layered = false, const GLint& layer = 0) const
 	{
-		glBindImageTexture(texUnit, handle, texDesc.currentMipmapLevel, layered, layer, access, texDesc.internalFormat);
+		glBindImageTexture(texUnit, handle, texDesc.currentLevel, layered, layer, access, texDesc.internalFormat);
 	}
 
 	virtual void OverloadTextureUnit(const GLuint& texUnit) const
@@ -276,7 +278,7 @@ public:
 
 		GLfloat* pixels = new GLfloat[bytes];
 
-		glGetTexImage(texDesc.target, texDesc.currentMipmapLevel, texDesc.internalFormat, texDesc.dataType, pixels);
+		glGetTexImage(texDesc.target, texDesc.currentLevel, texDesc.internalFormat, texDesc.dataType, pixels);
 
 		std::vector<float> result;
 		result.assign(pixels, pixels + bytes);
@@ -284,11 +286,20 @@ public:
 		return result;
 	}
 
+	void GenerateMipMaps()
+	{
+		//bind, generate, unbind
+		BindTexture();
+		texDesc.hasMips = true;
+		glGenerateMipmap(texDesc.target);
+		UnbindTexture();
+	}
+
 	//copy another texture into itself. just 2D textures right now
 	void Copy(const texture* otherTexture) const
 	{
-		glCopyImageSubData(otherTexture->handle, otherTexture->texDesc.target, otherTexture->texDesc.currentMipmapLevel, 0, 0, 0,
-			handle, texDesc.target, texDesc.currentMipmapLevel, 0, 0, 0,
+		glCopyImageSubData(otherTexture->handle, otherTexture->texDesc.target, otherTexture->texDesc.currentLevel, 0, 0, 0,
+			handle, texDesc.target, texDesc.currentLevel, 0, 0, 0,
 			texDesc.dimensions.x, texDesc.dimensions.y, texDesc.dimensions.z);
 	}
 
@@ -305,7 +316,6 @@ public:
 		{
 			glMakeTextureHandleNonResidentARB(residentHandle);
 		}
-
 	}
 
 //protected:
@@ -329,8 +339,6 @@ private:
 		image,
 		texture
 	};
-
-
 
 	void stbLoad(const char* data, const bool& reload = false)
 	{
@@ -366,18 +374,18 @@ private:
 
 				if(texDesc.isImmutable)
 				{
-					glTexStorage2D(texDesc.target, texDesc.mipmapLevels, texDesc.internalFormat, texDesc.dimensions.x, texDesc.dimensions.y);
-					glTextureSubImage2D(handle, texDesc.currentMipmapLevel, texDesc.xOffset, texDesc.yOffset, texDesc.dimensions.x, texDesc.dimensions.y, texDesc.format, texDesc.dataType, data);
+					glTexStorage2D(texDesc.target, texDesc.levels, texDesc.internalFormat, texDesc.dimensions.x, texDesc.dimensions.y);
+					glTextureSubImage2D(handle, texDesc.currentLevel, texDesc.xOffset, texDesc.yOffset, texDesc.dimensions.x, texDesc.dimensions.y, texDesc.format, texDesc.dataType, data);
 				}
 
 				else
 				{
-					glTexImage2D(texDesc.target, texDesc.currentMipmapLevel, texDesc.internalFormat, texDesc.dimensions.x, texDesc.dimensions.y, texDesc.border, texDesc.format, texDesc.dataType, data);
+					glTexImage2D(texDesc.target, texDesc.currentLevel, texDesc.internalFormat, texDesc.dimensions.x, texDesc.dimensions.y, texDesc.border, texDesc.format, texDesc.dataType, data);
 				}
 
-				if (texDesc.mipmapLevels > 0)
+				if (texDesc.hasMips == true)
 				{
-					glGenerateMipmap(GL_TEXTURE_2D);
+					glGenerateMipmap(texDesc.target);
 				}
 
 				break;
@@ -405,9 +413,9 @@ private:
 			default: break;
 		}
 
-		if (texDesc.mipmapLevels > 0)
+		if (texDesc.levels > 0)
 		{
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, texDesc.mipmapLevels);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, texDesc.levels);
 			glTexParameteri(texDesc.target, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
 			glTexParameteri(texDesc.target, GL_TEXTURE_MAG_FILTER, GL_NEAREST_MIPMAP_NEAREST);
 		}
@@ -429,8 +437,8 @@ private:
 		gli::gl GL(gli::gl::PROFILE_GL33);
 		gli::gl::format const gliFormat = GL.translate(tex.format(), tex.swizzles());
 		texDesc.target = GL.translate(tex.target());
-		texDesc.mipmapLevels = (GLint)tex.levels();
-		texDesc.currentMipmapLevel = 0;
+		texDesc.levels = (GLint)tex.levels();
+		texDesc.currentLevel = 0;
 		texDesc.internalFormat = gliFormat.Internal;
 		texDesc.format = gliFormat.External;
 		texDesc.dataType = gliFormat.Type;
@@ -468,7 +476,7 @@ private:
 				glm::tvec3<GLsizei> extents(tex.extent(level));
 				if(compressed)
 				{
-					glTexStorage2D(texDesc.target, texDesc.currentMipmapLevel, texDesc.internalFormat, texDesc.dimensions.x, texDesc.dimensions.y);
+					glTexStorage2D(texDesc.target, texDesc.currentLevel, texDesc.internalFormat, texDesc.dimensions.x, texDesc.dimensions.y);
 					glCompressedTexSubImage2D(
 						texDesc.target, static_cast<GLint>(level), 0, 0, extents.x, extents.y,
 						texDesc.internalFormat, static_cast<GLsizei>(tex.size(level)), tex.data(0, 0, level));
@@ -476,8 +484,8 @@ private:
 
 				else
 				{
-					texDesc.currentMipmapLevel = 0;
-					glTexImage2D(texDesc.target, texDesc.currentMipmapLevel, texDesc.internalFormat, texDesc.dimensions.x, texDesc.dimensions.y, texDesc.border, texDesc.format, texDesc.dataType, tex.data(0, 0, level));
+					texDesc.currentLevel = 0;
+					glTexImage2D(texDesc.target, texDesc.currentLevel, texDesc.internalFormat, texDesc.dimensions.x, texDesc.dimensions.y, texDesc.border, texDesc.format, texDesc.dataType, tex.data(0, 0, level));
 				}
 			}
 			break;

@@ -11,8 +11,8 @@ struct sobelSettings_t
 	float		blueModifier;
 	float		cellDistance;
 
-	sobelSettings_t(GLfloat cellDistance = 0.25f, GLfloat redModifier = 1.0f,
-		GLfloat greenModifier = 1.0f, GLfloat blueModifier = 1.0f)
+	explicit sobelSettings_t(const float cellDistance = 0.25f, const float redModifier = 1.0f,
+	                         const float greenModifier = 1.0f, const float blueModifier = 1.0f)
 	{
 		this->redModifier = redModifier;
 		this->greenModifier = greenModifier;
@@ -20,7 +20,7 @@ struct sobelSettings_t
 		this->cellDistance = cellDistance;
 	}
 
-	~sobelSettings_t() {};
+	~sobelSettings_t() = default;
 };
 
 struct laplacianSettings_t
@@ -37,9 +37,9 @@ struct laplacianSettings_t
 
 	float filterLevel = 0.25f;
 
-	laplacianSettings_t(float kernel1 = 0.0f, float kernel2 = 1.0f, float kernel3 = 0.0f,
-		float kernel4 = 1.0f, float kernel5 = -4.0f, float kernel6 = 1.0f,
-		float kernel7 = 0.0f, float kernel8 = 1.0f, float kernel9 = 0.0f)
+	explicit laplacianSettings_t(const float kernel1 = 0.0f, const float kernel2 = 1.0f, const float kernel3 = 0.0f,
+	                             const float kernel4 = 1.0f, const float kernel5 = -4.0f, const float kernel6 = 1.0f,
+	                             const float kernel7 = 0.0f, const float kernel8 = 1.0f, const float kernel9 = 0.0f)
 	{
 		this->kernel1 = kernel1;
 		this->kernel2 = kernel2;
@@ -52,7 +52,7 @@ struct laplacianSettings_t
 		this->kernel9 = kernel9;
 	}
 
-	~laplacianSettings_t() {};
+	~laplacianSettings_t() = default;
 };
 
 struct prewittSettings_t
@@ -80,14 +80,14 @@ struct freiChenSettings_t
 	~freiChenSettings_t() {};
 };
 
-class edgeDetectionScene : public texturedScene
+class edgeDetectionScene final : public texturedScene
 {
 public:
 	//this was never finished so I'm going to leave it for last
-	edgeDetectionScene(edgeFilters_t edgeFilter = SOBEL,
-		texture defaultTexture = texture(),
+	explicit edgeDetectionScene(const edgeFilters_t edgeFilter = SOBEL,
+		const texture defaultTexture = texture(),
 		const char* windowName = "Ziyad Barakat's Portfolio (edge detection)",
-		camera_t edgeCamera = camera_t(),
+		const camera_t edgeCamera = camera_t(),
 		const char* shaderConfigPath = SHADER_CONFIG_DIR)
 		: texturedScene(defaultTexture, windowName, edgeCamera, shaderConfigPath)
 	{
@@ -211,62 +211,61 @@ public:
 		{
 		case SOBEL:
 		{
-			glUseProgram(defProgram.handle);
+			defProgram.Use();
 			sobelBuffer.Update(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW);
 			break;
 		}
 
 		case LAPLACIAN:
 		{
-			glUseProgram(laplacianProgram.handle);
+			laplacianProgram.Use();
 			laplacianBuffer.Update(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW);
 			break;
 		}
 
 		case PREWITT:
 		{
-			glUseProgram(prewittProgram.handle);
+			prewittProgram.Use();
 			prewittBuffer.Update(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW);
 			break;
 		}
 
 		case FREI_CHEN:
 		{
-			glUseProgram(freiChenProgram.handle);
+			freiChenProgram.Use();
 			freiChenBuffer.Update(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW);
 			break;
 		}
+		default: break;
 		}
 	}
 
 	void Draw() override //gotta love C++ :)
 	{
-		manager->SwapDrawBuffers(window);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
+		defaultVertexBuffer.Bind();
 		switch (currentEdgeDetection)
 		{
 		case SOBEL:
 		{
-			glUseProgram(defProgram.handle);
+			defProgram.Use();
 			break;
 		}
 
 		case LAPLACIAN:
 		{
-			glUseProgram(laplacianProgram.handle);
+			laplacianProgram.Use();
 			break;
 		}
 
 		case PREWITT:
 		{
-			glUseProgram(prewittProgram.handle);
+			prewittProgram.Use();
 			break;
 		}
 
 		case FREI_CHEN:
 		{
-			glUseProgram(freiChenProgram.handle);
+			freiChenProgram.Use();
 			break;
 		}
 		default:
@@ -276,7 +275,6 @@ public:
 
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
-		DrawGUI(window);
 	}
 
 protected:

@@ -16,7 +16,7 @@ struct resolutionSettings_t
 	}
 };
 
-class dynamicRes : public scene3D
+class dynamicRes final : public scene3D
 {
 public:
 
@@ -25,7 +25,7 @@ public:
 		const camera_t& texModelCamera = camera_t(glm::vec2(1280, 720), PI * 0.1f, camera_t::projection_e::perspective, 0.1f, 2000.f),
 		const char* shaderConfigPath = SHADER_CONFIG_DIR,
 		const model_t& model = model_t("models/SoulSpear/SoulSpear.fbx"))
-		: scene3D(windowName, texModelCamera, shaderConfigPath, model)
+		: scene3D(windowName, texModelCamera, shaderConfigPath, model), scaledResolution()
 	{
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -37,10 +37,7 @@ public:
 		dynamicBuffer = new frameBuffer();
 
 		resolution = bufferHandler_t<resolutionSettings_t>();
-		this->camera.position.y -= 2.0f;
-		this->camera.position.z = -1.0f;
 	}
-	
 
 	virtual void Initialize() override
 	{
@@ -93,78 +90,35 @@ protected:
 
 	virtual void Update() override
 	{
-		manager->PollForEvents();
-		if (lockedFrameRate > 0)
-		{
-			clock.UpdateClockFixed(lockedFrameRate);
-		}
-		else
-		{
-			clock.UpdateClockAdaptive();
-		}
-
-		defaultPayload.data.deltaTime = (float)clock.GetDeltaTime();
-		defaultPayload.data.totalTime = (float)clock.GetTotalTime();
-		defaultPayload.data.framesPerSec = (float)(1.0 / clock.GetDeltaTime());
-		defaultPayload.data.totalFrames++;
-
+		scene3D::Update();
 		resolution.Update();
 	}
 
-	void UpdateDefaultBuffer()
-	{
-		camera.UpdateProjection();
-		defaultPayload.data.projection = camera.projection;
-		defaultPayload.data.view = camera.view;
-		if (camera.currentProjectionType == camera_t::projection_e::perspective)
-		{
-			defaultPayload.data.translation = testModel.makeTransform();
-		}
-
-		else
-		{
-			defaultPayload.data.translation = camera.translation;
-		}
-		defaultPayload.data.deltaTime = (float)clock.GetDeltaTime();
-		defaultPayload.data.totalTime = (float)clock.GetTotalTime();
-		defaultPayload.data.framesPerSec = (float)(1.0 / clock.GetDeltaTime());
-
-		defaultPayload.Update();
-		//defaultVertexBuffer.UpdateBuffer(defaultPayload.data.resolution);
-	}
 
 	void Draw() override
 	{
+		GL_PUSH_DEBUG_GROUP();
 		camera.ChangeProjection(camera_t::projection_e::perspective);
 		camera.Update();
-		UpdateDefaultBuffer();
+		UpdateDefaultUniforms(camera, clock);
 
 		GeometryPass();
 		DynamicPass();
 
 		camera.ChangeProjection(camera_t::projection_e::orthographic);
 		camera.Update();
-		UpdateDefaultBuffer();
+		UpdateDefaultUniforms(camera, clock);
 
 		FinalPass(&geometryBuffer->attachments["color"], &dynamicBuffer->attachments["color"]);
-		
-		DrawGUI(window);
-		
-		manager->SwapDrawBuffers(window);
-		ClearBuffers();
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glPopDebugGroup();
 	}
 
-	virtual void GeometryPass()
+	virtual void GeometryPass() const
 	{
 		GL_PUSH_DEBUG_GROUP();
 		geometryBuffer->Bind();
 
-		GLenum drawbuffers[1] = {
-			geometryBuffer->attachments["color"].FBODesc.attachmentFormat, // color
-		};
-
-		glDrawBuffers(1, drawbuffers);
+		geometryBuffer->attachments["color"].Draw();
 
 		for (size_t i = 0; i < testModel.meshes.size(); ++i)
 		{
@@ -200,11 +154,7 @@ protected:
 		GL_PUSH_DEBUG_GROUP();
 		dynamicBuffer->Bind();
 
-		GLenum drawbuffers[1] = {
-			dynamicBuffer->attachments["color"].FBODesc.attachmentFormat, // color
-		};
-
-		glDrawBuffers(1, drawbuffers);
+		dynamicBuffer->attachments["color"].Draw();
 
 		for (size_t i = 0; i < testModel.meshes.size(); ++i)
 		{
@@ -235,14 +185,14 @@ protected:
 		glPopDebugGroup();
 	}
 
-	void FinalPass(texture* tex1, texture* tex2)
+	void FinalPass(texture* tex1, texture* tex2) const
 	{
 		GL_PUSH_DEBUG_GROUP();
 		//draw directly to backbuffer
 		tex1->SetActive(0);
 		tex2->SetActive(1);
-		
-		glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
+
+		defaultVertexBuffer.Bind();
 		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 		if (enableCompare == true)
 		{
@@ -310,41 +260,23 @@ protected:
 		}
 	}
 
-	virtual void DrawCameraStats() override
-	{
-		//set up the view matrix
-		if (ImGui::BeginTabItem("camera", &isGUIActive))
-		{
-			ImGui::DragFloat("near plane", &camera.nearPlane);
-			ImGui::DragFloat("far plane", &camera.farPlane);
-			ImGui::SliderFloat("Field of view", &camera.fieldOfView, 0, 90, "%.0f");
-
-			ImGui::InputFloat("camera speed", &camera.speed, 0.f);
-			ImGui::InputFloat("x sensitivity", &camera.xSensitivity, 0.f);
-			ImGui::InputFloat("y sensitivity", &camera.ySensitivity, 0.f);
-			ImGui::EndTabItem();
-		}
-	}
-
-	virtual void ClearBuffers()
+	virtual void ClearBuffers() override
 	{
 		// Clear the FBO color and depth
-		float clearColor1[4] = { 0.25f, 0.25f, 0.25f, 1.0f };
-
 		geometryBuffer->Bind();
-		frameBuffer::ClearTexture(geometryBuffer->attachments["color"], clearColor1);
+		frameBuffer::ClearTexture(geometryBuffer->attachments["color"], clearColor);
 		glClear(GL_DEPTH_BUFFER_BIT);
 		geometryBuffer->Unbind();
 
 		dynamicBuffer->Bind();
-		frameBuffer::ClearTexture(dynamicBuffer->attachments["color"], clearColor1);
+		frameBuffer::ClearTexture(dynamicBuffer->attachments["color"], clearColor);
 		glClear(GL_DEPTH_BUFFER_BIT);
 		dynamicBuffer->Unbind();
 
 		camera.ChangeProjection(camera_t::projection_e::perspective);
 	}
 
-	virtual void ResizeBuffers(glm::ivec2 newSize)
+	virtual void ResizeBuffers(const glm::ivec2& newSize)
 	{
 		auto res = glm::vec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height) * this->resolution.data.resolutionScale;
 		geometryBuffer->Resize(glm::ivec3((int)window->GetSettings().resolution.width, (int)window->GetSettings().resolution.height, 1));

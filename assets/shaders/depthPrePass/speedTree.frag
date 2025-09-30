@@ -51,6 +51,6 @@ void main()
 	}
 
 	// (xchen) gamma to linear sRGB transformation
-	outColor.xyz = srgb_to_rgb_approx( col.xyz );
+	outColor.xyz =  col.xyz;
 	outColor.a = col.a;
 }

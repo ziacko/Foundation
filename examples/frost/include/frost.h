@@ -2,17 +2,16 @@
 #define FROST_H
 #include <heatHaze.h>
 
-class frostScene : public heatHazeScene
+class frostScene final : public heatHazeScene
 {
 public:
-
-	frostScene(
-		bufferHandler_t<bubbleSettings_t> bubbleSettings = bufferHandler_t<bubbleSettings_t>(),
-		texture defaultTexture = texture(),
-		const char* windowName = "Ziyad Barakat's Portfolio ( frost )",		
-		camera_t bubbleCamera = camera_t(),
-		const char* shaderConfigPath = SHADER_CONFIG_DIR, GLfloat attenuation = 1.0f,
-		GLfloat offset = 1.0f) : heatHazeScene(bubbleSettings, defaultTexture, windowName, bubbleCamera, shaderConfigPath)
+	explicit frostScene(
+		const bufferHandler_t<bubbleSettings_t> bubbleSettings = bufferHandler_t<bubbleSettings_t>(),
+		const texture defaultTexture = texture(),
+		const char* windowName = "Ziyad Barakat's Portfolio ( frost )",
+		const camera_t bubbleCamera = camera_t(),
+		const char* shaderConfigPath = SHADER_CONFIG_DIR, const float attenuation = 1.0f,
+		const float offset = 1.0f) : heatHazeScene(bubbleSettings, defaultTexture, windowName, bubbleCamera, shaderConfigPath)
 	{
 		perlinSettings_t perl;
 		perl.numOctaves = 5;
@@ -27,11 +26,7 @@ public:
 		bubble.data.offset = 0.015f;
 	}
 
-	~frostScene( void ){}
-
-
-protected:
-
+	~frostScene() override = default;
 };
 
 #endif

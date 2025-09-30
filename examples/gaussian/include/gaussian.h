@@ -5,11 +5,11 @@
 struct gaussianSettings_t
 {
 	//damn 5 points is so fkn awkward
-	GLint		offset1;
-	GLint		offset2;
-	GLint		offset3;
-	GLint		offset4;
-	GLint		offset5;
+	int		offset1;
+	int		offset2;
+	int		offset3;
+	int		offset4;
+	int		offset5;
 
 	float		weight1;
 	float		weight2;
@@ -17,8 +17,8 @@ struct gaussianSettings_t
 	float		weight4;
 	float		weight5;
 
-	gaussianSettings_t(GLint offset1 = 0, GLint offset2 = 1, GLint offset3 = 2, GLint offset4 = 3, GLint offset5 = 4,
-		GLfloat weight1 = 0.2270270270f, GLfloat weight2 = 0.1945945946, GLfloat weight3 = 0.1216216216, GLfloat weight4 = 0.0540540541, GLfloat weight5 = 0.0162162162)
+	explicit gaussianSettings_t(const int offset1 = 0, const int offset2 = 1, const int offset3 = 2, const int offset4 = 3, const int offset5 = 4,
+	                            const float weight1 = 0.2270270270f, const float weight2 = 0.1945945946, const float weight3 = 0.1216216216, const float weight4 = 0.0540540541, const float weight5 = 0.0162162162)
 	{
 		this->offset1 = offset1;
 		this->offset2 = offset2;
@@ -33,24 +33,23 @@ struct gaussianSettings_t
 		this->weight5 = weight5;
 	}
 
-	~gaussianSettings_t(){};
+	~gaussianSettings_t() = default;
 };
 
-class gaussianScene : public texturedScene
+class gaussianScene final : public texturedScene
 {
 public:
-
-	gaussianScene(bufferHandler_t<gaussianSettings_t> gaussian = bufferHandler_t<gaussianSettings_t>(),
-		texture defaultTexture = texture(),
-		const char* windowName = "Ziyad Barakat's Portfolio (gaussian blurring)",
-		camera_t textureCamera = camera_t(),
-		const char* shaderConfigPath = SHADER_CONFIG_DIR) :
+	explicit gaussianScene(const bufferHandler_t<gaussianSettings_t>& gaussian = bufferHandler_t<gaussianSettings_t>(),
+	                       const texture& defaultTexture = texture(),
+	                       const char* windowName = "Ziyad Barakat's Portfolio (gaussian blurring)",
+	                       const camera_t& textureCamera = camera_t(),
+	                       const char* shaderConfigPath = SHADER_CONFIG_DIR) :
 		texturedScene(defaultTexture, windowName, textureCamera, shaderConfigPath)
 	{
 		this->gaussian = gaussian;
 	}
 
-	~gaussianScene(){};
+	~gaussianScene() override {};
 
 protected:
 
@@ -80,8 +79,6 @@ protected:
 			ImGui::SliderInt("offset5", &gaussian.data.offset5, 0, 100);
 			ImGui::EndTabItem();
 		}
-		
-
 	}
 
 	void InitializeUniforms() override

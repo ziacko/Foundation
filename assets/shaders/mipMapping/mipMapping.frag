@@ -32,5 +32,6 @@ layout(binding = 0) uniform sampler2D defaultTexture;
 void main()
 {
 	//float mipMapLevel = textureQueryLod(defaultTexture, inBlock.uv).x;
+    
 	outColor = textureLod(defaultTexture, inBlock.uv, mipLevel);
 }

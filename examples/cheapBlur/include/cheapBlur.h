@@ -82,8 +82,8 @@ protected:
 
 	void Draw() override
 	{
-		glBindVertexArray(defaultVertexBuffer.vertexArrayHandle);
-		glUseProgram(defProgram.handle);
+		defaultVertexBuffer.Bind();
+		defProgram.Use();
 
 		defaultTexture.SetActive(0);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -91,10 +91,6 @@ protected:
 		glAccum(GL_ACCUM, accum); //adding the current frame to the buffer
 		glAccum(GL_RETURN, accumReturn); //Drawing last frame, saved in buffer
 		glAccum(GL_MULT, accumMult); //make current frame in buffer dim
-
-		DrawGUI(window);
-		manager->SwapDrawBuffers(window);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 
 	void Update() override

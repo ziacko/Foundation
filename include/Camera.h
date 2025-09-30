@@ -205,6 +205,12 @@ public:
 		}
 	}
 
+	void UpdateResolution(const glm::ivec2& newResolution)
+	{
+		resolution = newResolution;
+		UpdateProjection();
+	}
+
 	void UpdateDirections()
 	{
 		right = glm::conjugate(rotation) * globalRight;
