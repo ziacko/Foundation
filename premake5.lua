@@ -39,6 +39,8 @@ function scene_project(name, parents)
             "examples/" .. name .. "/include/**.h",
             "examples/" .. name .. "/source/**.cpp",
             "include/Globals.h",
+            "include/GlobalsPCH.h",
+            "source/thirdparty_impl.cpp",
             "lib/imgui-docking/*.cpp",
             "lib/yyjson/src/yyjson.c",
             "lib/ufbx/ufbx.c",
@@ -78,7 +80,13 @@ function scene_project(name, parents)
             "SHADER_CONFIG_DIR=\"" .. name .. "\"",
             "ASSET_DIR=\"" .. "assets/\"",
             "PROJECT_NAME=\"" .. name .. "\"",
+            "IMGUI_DEFINE_MATH_OPERATORS",
         }
+
+        -- Precompiled header setup (C++ files only). We avoid force-including in C sources.
+        filter { "language:C++" }
+            pchheader "include/GlobalsPCH.h"
+        filter {}
 
         -- Add extra includes
         if parents then
@@ -252,7 +260,7 @@ scene_project("dilation", {"textured"})
 scene_project("edgeDetection", {"textured"})
 scene_project("erosion", {"textured"})
 scene_project("heatHaze", {"textured", "bubble"})
-scene_project("frost", {"textured", "heatHaze"})
+scene_project("frost", {"textured", "bubble", "heatHaze"})
 scene_project("gameOfLife") 
 scene_project("gamma", {"textured"})
 scene_project("gaussian", {"textured"})
@@ -274,7 +282,7 @@ scene_project("scene3D")
 scene_project("depthPrePass", {"scene3D", "texturedScene3D"})
 --scene_project("bspLoader", {"scene3D"})
 scene_project("displacement", {"scene3D", "texturedScene3D"})
-scene_project("heightFog", {"scene3D", "texturedScene3D", "displacement"})
+--scene_project("heightFog", {"scene3D", "texturedScene3D", "displacement"})
 scene_project("stencil", {"scene3D", "texturedScene3D"})
 scene_project("outline", {"scene3D", "texturedScene3D", "stencil"})
 scene_project("godRay", {"scene3D", "texturedScene3D"})

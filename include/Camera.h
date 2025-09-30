@@ -267,11 +267,11 @@ public:
 	}
 };
 
-const glm::vec4 camera_t::globalRight = glm::vec4(1, 0, 0, 1);
-const glm::vec4 camera_t::globalForward = glm::vec4(0, 0, -1, 1);
-const glm::vec4 camera_t::globalUp = glm::vec4(0, 1, 0, 1);
+inline const glm::vec4 camera_t::globalRight = glm::vec4(1, 0, 0, 1);
+inline const glm::vec4 camera_t::globalForward = glm::vec4(0, 0, -1, 1);
+inline const glm::vec4 camera_t::globalUp = glm::vec4(0, 1, 0, 1);
 
-const float	camera_t::defaultOrthoNear = 0.01f;
-const float	camera_t::defaultOrthoFar = 100.0f;
-const float camera_t::defaultPersNear = 0.1f;
-const float camera_t::defaultPersFar = 1000.0f;
+inline const float	camera_t::defaultOrthoNear = 0.01f;
+inline const float	camera_t::defaultOrthoFar = 100.0f;
+inline const float camera_t::defaultPersNear = 0.1f;
+inline const float camera_t::defaultPersFar = 1000.0f;

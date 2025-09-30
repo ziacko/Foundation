@@ -40,7 +40,7 @@ public:
 		FBODescriptor depthDesc;
 		depthDesc.dataType = GL_FLOAT;
 		depthDesc.format = GL_DEPTH_COMPONENT;
-		depthDesc.mipmapLevels = 8;
+		depthDesc.levels = 8;
 		depthDesc.internalFormat = GL_DEPTH_COMPONENT24;
 		depthDesc.attachmentType = FBODescriptor::attachmentType_e::depth;
 		depthDesc.dimensions = glm::ivec3(window->GetSettings().resolution.width, window->GetSettings().resolution.height, 1);
