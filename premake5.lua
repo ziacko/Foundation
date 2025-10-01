@@ -88,6 +88,12 @@ function scene_project(name, parents)
             pchheader "GlobalsPCH.h"
             pchsource "source/GlobalsPCH.cpp"
             forceincludes { "GlobalsPCH.h" }
+
+        -- Added: enable PCH on Linux too
+        filter { "system:linux", "language:C++" }
+            pchheader "GlobalsPCH.h"
+            pchsource "source/GlobalsPCH.cpp"
+            forceincludes { "GlobalsPCH.h" }
         
         -- Disable PCH for any C sources to avoid C/C++ mode conflicts
         filter { "files:**.c" }
