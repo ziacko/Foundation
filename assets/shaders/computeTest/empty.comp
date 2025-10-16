@@ -2,13 +2,15 @@
 
 layout(local_size_x = 4) in;
 
-layout (binding = 0) buffer testBuffer
+layout(std430) buffer testBuffer
 {
-    vec4 data;
+    // Match CPU-side payload of 16 bytes (vec4 == 4 floats)
+    float data[4];
 };
 
 void main(void)
 {
+    uint i = gl_LocalInvocationID.x;
     //basic math operation to test compute shader functionality
-    data[gl_LocalInvocationID.x] += gl_LocalInvocationID.x * 0.1f;    
+    data[i] += float(i) * 0.1;
 }

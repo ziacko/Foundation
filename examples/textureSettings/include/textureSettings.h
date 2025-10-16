@@ -29,14 +29,15 @@ public:
 
 	void InitializeUniforms() override
 	{
-		mip.Initialize(1);
+		mip = &bufferHandler.uniformBlocks["mipSettings"];
+		mip->SetPayload<float>(0.0f);
 		texturedScene::InitializeUniforms();
 	}
 
 	void Update() override
 	{
 		texturedScene::Update();
-		mip.Update();
+		//mip->Update();
 	}
 
 	void BuildGUI(tWindow* window, const ImGuiIO& io) override
@@ -76,14 +77,14 @@ public:
 				defaultTexture->SetWrapR(rWrapIndex);
 			}*/
 
-			ImGui::SliderFloat("mip level", &mip.data, 0, 10);
+			ImGui::SliderFloat("mip level", (float*)mip->payloadTuple.first, 0, 10);
 			ImGui::EndTabItem();
 		}
 	}
 
 protected:
 
-	bufferHandler_t<float>	mip;
+	reflectionBlock_t* mip;
 
 	typedef std::pair<uint32_t, uint32_t> paramEntry;
 	static tsl::robin_map<uint32_t, uint32_t> filterMap;

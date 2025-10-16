@@ -11,7 +11,7 @@ in defaultBlock
 layout(location = 0) out vec4 outColor;
 layout(location = 1) out vec4 outVelocity;
 
-layout(std140, binding = 0) uniform defaultSettings
+layout(std140) uniform defaultSettings
 {
 	mat4		projection;
 	mat4		view;
@@ -24,7 +24,7 @@ layout(std140, binding = 0) uniform defaultSettings
 	uint		totalFrames;
 };
 
-layout(std140, binding = 1) uniform velocitySettings
+layout(std140) uniform reprojectSettings
 {
 	mat4		previousProjection;
 	mat4		previousView;
@@ -33,7 +33,7 @@ layout(std140, binding = 1) uniform velocitySettings
 	mat4 		currentView;
 };
 
-layout(binding = 4) uniform jitterSettings
+uniform jitterSettings
 {
 	vec2 haltonSequence[128];
 	float haltonScale;
@@ -83,5 +83,5 @@ void main()
 	vec4 col = texture(diffuse, inBlock.uv);
 
 	outVelocity = vec4(velocity, 0, 1);
-    outColor = col;
+	outColor = col;
 }

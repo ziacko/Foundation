@@ -21,14 +21,14 @@ in lanczosBlock
 
 out vec4 outColor;
 
-layout(binding = 2) uniform downscaleSettings
+uniform downscaleSettings
 {
     float       txlWidthOffset;
     float       txlHeightOffset;
 	int 		downsampleMode;
 };
 
-layout(std140, binding = 3) uniform lanczosSettings
+layout(std140) uniform lanczosSettings
 {
 	float magicValue1;
 	float magicValue2;

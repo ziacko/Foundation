@@ -39,21 +39,19 @@ struct gaussianSettings_t
 class gaussianScene final : public texturedScene
 {
 public:
-	explicit gaussianScene(const bufferHandler_t<gaussianSettings_t>& gaussian = bufferHandler_t<gaussianSettings_t>(),
-	                       const texture& defaultTexture = texture(),
+	explicit gaussianScene(const texture& defaultTexture = texture(),
 	                       const char* windowName = "Ziyad Barakat's Portfolio (gaussian blurring)",
 	                       const camera_t& textureCamera = camera_t(),
 	                       const char* shaderConfigPath = SHADER_CONFIG_DIR) :
 		texturedScene(defaultTexture, windowName, textureCamera, shaderConfigPath)
 	{
-		this->gaussian = gaussian;
 	}
 
 	~gaussianScene() override {};
 
 protected:
 
-	bufferHandler_t<gaussianSettings_t>		gaussian;
+	gaussianSettings_t*		gaussian = nullptr;
 
 	void BuildGUI(tWindow* window, const ImGuiIO& io) override
 	{
@@ -62,21 +60,21 @@ protected:
 		if (ImGui::BeginTabItem("gaussian settings"))
 		{
 			ImGui::PushItemWidth(100.0f);
-			ImGui::SliderFloat("weight1", &gaussian.data.weight1, 0.0f, 0.25f, "%.10f");
+			ImGui::SliderFloat("weight1", &gaussian->weight1, 0.0f, 0.25f, "%.10f");
 			ImGui::SameLine();
-			ImGui::SliderFloat("weight2", &gaussian.data.weight2, 0.0f, 0.25f, "%.10f");
+			ImGui::SliderFloat("weight2", &gaussian->weight2, 0.0f, 0.25f, "%.10f");
 
-			ImGui::SliderFloat("weight3", &gaussian.data.weight3, 0.0f, 0.25f, "%.10f");
+			ImGui::SliderFloat("weight3", &gaussian->weight3, 0.0f, 0.25f, "%.10f");
 			ImGui::SameLine();
-			ImGui::SliderFloat("weight4", &gaussian.data.weight4, 0.0f, 0.25f, "%.10f");
-			ImGui::SliderFloat("weight5", &gaussian.data.weight5, 0.0f, 0.25f, "%.10f");
+			ImGui::SliderFloat("weight4", &gaussian->weight4, 0.0f, 0.25f, "%.10f");
+			ImGui::SliderFloat("weight5", &gaussian->weight5, 0.0f, 0.25f, "%.10f");
 			ImGui::PopItemWidth();
 
-			ImGui::SliderInt("offset1", &gaussian.data.offset1, 0, 100);
-			ImGui::SliderInt("offset2", &gaussian.data.offset2, 0, 100);
-			ImGui::SliderInt("offset3", &gaussian.data.offset3, 0, 100);
-			ImGui::SliderInt("offset4", &gaussian.data.offset4, 0, 100);
-			ImGui::SliderInt("offset5", &gaussian.data.offset5, 0, 100);
+			ImGui::SliderInt("offset1", &gaussian->offset1, 0, 100);
+			ImGui::SliderInt("offset2", &gaussian->offset2, 0, 100);
+			ImGui::SliderInt("offset3", &gaussian->offset3, 0, 100);
+			ImGui::SliderInt("offset4", &gaussian->offset4, 0, 100);
+			ImGui::SliderInt("offset5", &gaussian->offset5, 0, 100);
 			ImGui::EndTabItem();
 		}
 	}
@@ -84,13 +82,9 @@ protected:
 	void InitializeUniforms() override
 	{
 		scene::InitializeUniforms();
-		gaussian.Initialize(1);
-	}
-
-	void Update() override
-	{
-		scene::Update();
-		gaussian.Update();
+		auto gaussianBlock = &bufferHandler.uniformBlocks["gaussianSettings"];
+		gaussianBlock->SetPayload<gaussianSettings_t>(gaussianSettings_t());
+		gaussian = gaussianBlock->GetPayload<gaussianSettings_t>();
 	}
 };
 

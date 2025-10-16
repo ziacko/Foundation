@@ -24,7 +24,6 @@ class parallaxScene final: public texturedScene
 public:
 
 	explicit parallaxScene(
-		bufferHandler_t<parallax_t> parallaxSettings = bufferHandler_t<parallax_t>(),
 		texture defaultTexture = texture("textures/rocks.jpg", texture::textureType_t::image, "diffuseMap"),
 		texture heightMap = texture("textures/rocks_NM_height.tga", texture::textureType_t::image, "heightMap"),
 		const char* windowName = "Ziyad Barakat's portfolio (parallax mapping)",
@@ -32,7 +31,6 @@ public:
 		const char* shaderConfigPath = SHADER_CONFIG_DIR) :
 		texturedScene(defaultTexture, windowName, parallaxCamera, shaderConfigPath)
 	{
-		this->parallax = parallaxSettings;
 		this->heightMap = heightMap;
 	}
 
@@ -46,9 +44,9 @@ public:
 
 protected:
 
-	bufferHandler_t<parallax_t>		parallax;
-	texture							heightMap;
-	int								heightMapIndex = 0;
+	parallax_t*		parallax = nullptr;
+	texture			heightMap;
+	int				heightMapIndex = 0;
 
 	void BuildGUI(tWindow* window, const ImGuiIO& io) override
 	{
@@ -77,21 +75,17 @@ protected:
 			heightMap.LoadTexture();
 		}
 
-		ImGui::SliderFloat("parallax scale", &parallax.data.scale, 0.f, 10.0f);
-		ImGui::SliderFloat("ray height", &parallax.data.rayHeight, 0.0f, 10.0f);
-		ImGui::SliderInt("num samples", &parallax.data.numSamples, 0, 1000);
+		ImGui::SliderFloat("parallax scale", &parallax->scale, 0.f, 10.0f);
+		ImGui::SliderFloat("ray height", &parallax->rayHeight, 0.0f, 10.0f);
+		ImGui::SliderInt("num samples", &parallax->numSamples, 0, 1000);
 	}
 
 	void InitializeUniforms() override
 	{
 		scene::InitializeUniforms();
-		parallax.Initialize(1);
-	}
-
-	void Update() override
-	{
-		scene::Update();
-		parallax.Update();
+		auto parallaxBlock = &bufferHandler.uniformBlocks["parallaxSettings"];
+		parallaxBlock->SetPayload<parallax_t>(parallax_t());
+		parallax = parallaxBlock->GetPayload<parallax_t>();
 	}
 
 	void Draw() override

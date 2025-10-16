@@ -9,7 +9,7 @@ in defaultBlock
 
 layout(location = 0) out vec4 outColor;
 
-layout(std140, binding = 0) uniform defaultSettings
+layout(std140) uniform defaultSettings
 {
 	mat4		projection;
 	mat4 		view;
@@ -39,6 +39,6 @@ void main()
 {
 	//clamp the alpha down hard. if alpha is less than 0.1, clamp it to 0
 	vec4 col =  texture(diffuse, inBlock.uv);
-	// (xchen) gamma to linear sRGB transformation
+
 	outColor = col;
 }

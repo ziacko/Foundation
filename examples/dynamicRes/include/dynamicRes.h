@@ -35,8 +35,6 @@ public:
 
 		geometryBuffer = new frameBuffer();
 		dynamicBuffer = new frameBuffer();
-
-		resolution = bufferHandler_t<resolutionSettings_t>();
 	}
 
 	virtual void Initialize() override
@@ -86,14 +84,7 @@ protected:
 
 	bool enableCompare = true;
 
-	bufferHandler_t<resolutionSettings_t>		resolution;
-
-	virtual void Update() override
-	{
-		scene3D::Update();
-		resolution.Update();
-	}
-
+	resolutionSettings_t resolution;
 
 	void Draw() override
 	{
@@ -169,7 +160,7 @@ protected:
 			glBindVertexArray(testModel.meshes[i].vertexArrayHandle);
 			defProgram.Use();
 
-			auto res = glm::vec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height) * this->resolution.data.resolutionScale;
+			auto res = glm::vec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height) * this->resolution.resolutionScale;
 			glViewport(0, 0, (GLint)res.x, (GLint)res.y);
 			glCullFace(GL_BACK);
 
@@ -207,13 +198,6 @@ protected:
 		glPopDebugGroup();
 	}
 
-	void InitializeUniforms() override
-	{
-		scene3D::InitializeUniforms();
-		defaultVertexBuffer.SetupDefault();
-		resolution.Initialize(1);
-	}
-
 	void BuildGUI(tWindow* window, const ImGuiIO& io) override
 	{
 		scene3D::BuildGUI(window, io);
@@ -226,11 +210,11 @@ protected:
 	{
 		if (ImGui::BeginTabItem("resolution Settings"))
 		{
-			if (ImGui::SliderFloat("horizontal %", &resolution.data.resolutionScale.x, 0.25f, 2.0f, "%.3f") ||
-				ImGui::SliderFloat("vertical %", &resolution.data.resolutionScale.y, 0.25f, 2.0f, "%.3f"))
+			if (ImGui::SliderFloat("horizontal %", &resolution.resolutionScale.x, 0.25f, 2.0f, "%.3f") ||
+				ImGui::SliderFloat("vertical %", &resolution.resolutionScale.y, 0.25f, 2.0f, "%.3f"))
 			{
 				//camera.resolution = glm::vec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height) * resolution.data.resolutionScale;
-				ResizeBuffers(glm::vec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height) * resolution.data.resolutionScale);
+				ResizeBuffers(glm::vec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height) * resolution.resolutionScale);
 			}
 			ImGui::EndTabItem();
 		}
@@ -278,21 +262,21 @@ protected:
 
 	virtual void ResizeBuffers(const glm::ivec2& newSize)
 	{
-		auto res = glm::vec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height) * this->resolution.data.resolutionScale;
+		auto res = glm::vec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height) * this->resolution.resolutionScale;
 		geometryBuffer->Resize(glm::ivec3((int)window->GetSettings().resolution.width, (int)window->GetSettings().resolution.height, 1));
 		dynamicBuffer->Resize(glm::ivec3((int)res.x, (int)res.y, 1));
 	}
 
 	virtual void HandleWindowResize(const tWindow* window, const tw::vec2_t<uint16_t>& dimensions) override
 	{
-		defaultPayload.data.resolution = glm::ivec2(dimensions.width, dimensions.height);
+		defaultPayload->resolution = glm::ivec2(dimensions.width, dimensions.height);
 		ResizeBuffers(glm::ivec2(dimensions.x, dimensions.y));
 	}
 
 	virtual void HandleMaximize(const tWindow* window) override
 	{
-		defaultPayload.data.resolution = glm::ivec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
-		ResizeBuffers(defaultPayload.data.resolution);
+		defaultPayload->resolution = glm::ivec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
+		ResizeBuffers(defaultPayload->resolution);
 	}
 };
 #endif

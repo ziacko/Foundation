@@ -95,28 +95,6 @@
         ]
     },
     {
-        "name": "sharpen",
-        "outputs": [
-            "outColor"
-        ],
-        "shaders": [
-            {
-                "name": "DefaultVertex",
-                "path": "default.vert",
-                "type": "vertex"
-            },
-            {
-                "name": "SharpenFragment",
-                "path": "sharpen.frag",
-                "type": "fragment"
-            }
-        ],
-        "vertex attributes": [
-            "position",
-            "uv"
-        ]
-    },
-    {
         "name": "compare",
         "outputs": [
             "outColor"

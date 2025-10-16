@@ -22,14 +22,12 @@ class bubbleScene : public texturedScene
 {
 public:
 	explicit bubbleScene(
-		const bufferHandler_t<bubbleSettings_t> bubbleSettings = bufferHandler_t<bubbleSettings_t>(),
 		const texture defaultTexture = texture(),
 		const char* windowName = "Ziyad Barakat's Portfolio ( bubble displacement )",		
 		const camera_t bubbleCamera = camera_t(),
 		const char* shaderConfigPath = SHADER_CONFIG_DIR, GLfloat attenuation = 1.0f,
 		GLfloat offset = 1.0f) : texturedScene(defaultTexture, windowName, bubbleCamera, shaderConfigPath)
 	{
-		this->bubble = bubbleSettings;
 		enableWireframe = true;
 		texturedScene::Initialize();
 	}
@@ -51,36 +49,32 @@ protected:
 		{
 			ImGui::Checkbox("enable wireframe", &enableWireframe);
 
-			ImGui::SliderFloat("Attenuation", &bubble.data.attenuation, 0.0f, 1.0f);
-			ImGui::SliderFloat("grid dimensions", &bubble.data.gridDimensions, 0.0f, 1000.0f, "%.0f");
-			ImGui::SliderFloat("offset", &bubble.data.offset, 0.0f, 1.0f);
+			ImGui::SliderFloat("Attenuation", &bubble->attenuation, 0.0f, 1.0f);
+			ImGui::SliderFloat("grid dimensions", &bubble->gridDimensions, 0.0f, 1000.0f, "%.0f");
+			ImGui::SliderFloat("offset", &bubble->offset, 0.0f, 1.0f);
 			ImGui::EndTabItem();
 		}
 	}
 
-	bufferHandler_t<bubbleSettings_t>			bubble;
-	std::vector<glm::vec4>						gridVerts = {};
-	int											gridDimensions = 0;
-	bool										enableWireframe = false;
+	bubbleSettings_t*			bubble;
+	std::vector<glm::vec4>		gridVerts = {};
+	int							gridDimensions = 0;
+	bool						enableWireframe = false;
 
 	void InitializeUniforms() override
 	{
 		scene::InitializeUniforms();
-		bubble.Initialize(1);
+		const auto bubbleBlock = &bufferHandler.uniformBlocks["bubbleSettings"];
+		bubbleBlock->SetPayload<bubbleSettings_t>(bubbleSettings_t());
+		bubble = bubbleBlock->GetPayload<bubbleSettings_t>();
 	}
 
 	virtual void SetupVertexBuffer()
 	{ 
-		GLfloat cellWidth = defaultPayload.data.resolution.x / bubble.data.gridDimensions;
-		GLfloat cellHeight = defaultPayload.data.resolution.y / bubble.data.gridDimensions;
+		GLfloat cellWidth = defaultPayload->resolution.x / bubble->gridDimensions;
+		GLfloat cellHeight = defaultPayload->resolution.y / bubble->gridDimensions;
 
 		defaultVertexBuffer.SetupCustom(glm::vec2(cellWidth, cellHeight));
-	}
-
-	void Update() override
-	{
-		scene::Update();
-		bubble.Update(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW);
 	}
 
 	void Draw()	override
@@ -94,7 +88,7 @@ protected:
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		}
 
-		glDrawArraysInstanced(GL_TRIANGLES, 0, 6, (GLsizei)(bubble.data.gridDimensions * bubble.data.gridDimensions));
+		glDrawArraysInstanced(GL_TRIANGLES, 0, 6, (GLsizei)(bubble->gridDimensions * bubble->gridDimensions));
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 		glPopDebugGroup();

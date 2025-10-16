@@ -13,7 +13,7 @@ out defaultBlock
 //unsigned int NeighborCount = 0;
 //unsigned int DeadNeighborCount = 0;
 
-layout(std140, binding = 0) uniform defaultSettings 
+layout(std140) uniform defaultSettings
 {
 	mat4		projection;
 	mat4 		view;
@@ -26,7 +26,7 @@ layout(std140, binding = 0) uniform defaultSettings
 	uint		totalFrames;
 };
 //ok use a shader storage buffer to store all tihs cell data
-layout(std140, binding = 1) uniform GOLSettings 
+layout(std140) uniform GOLSettings
 {
 	vec4 AliveColor;
 	vec4 DeadColor;
@@ -34,7 +34,7 @@ layout(std140, binding = 1) uniform GOLSettings
 	float Dimensions;
 };
 
-layout(binding = 0) buffer GOLStatus 
+buffer GOLStatus
 {
 	int Status[];
 };

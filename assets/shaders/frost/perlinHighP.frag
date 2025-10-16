@@ -9,7 +9,7 @@ in defaultBlock
 
 out vec2 outColor;
 
-layout(std140, binding = 0) uniform defaultSettings
+layout(std140) uniform defaultSettings
 {
 	mat4		projection;
 	mat4		view;
@@ -22,7 +22,7 @@ layout(std140, binding = 0) uniform defaultSettings
 	uint		totalFrames;
 };
 
-layout(binding = 1) uniform perlinSettings
+uniform perlinSettings
 {
 	vec2		uvOffset;
 	vec2 		uvScale;

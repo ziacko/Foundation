@@ -21,21 +21,17 @@ class dilationScene final : public texturedScene
 {
 public:
 	explicit dilationScene(
-		bufferHandler_t<dilationSettings_t> dilationSettings = bufferHandler_t<dilationSettings_t>(),
 		const texture defaultTexture = texture(),
 		const char* windowName = "Ziyad Barakat's portfolio (dilation)",
 		const camera_t dilationCamera = camera_t(),
 		const char* shaderConfigPath = SHADER_CONFIG_DIR)
-		: texturedScene(defaultTexture, windowName, dilationCamera, shaderConfigPath)
-	{
-		this->dilation = dilationSettings;
-	}
+		: texturedScene(defaultTexture, windowName, dilationCamera, shaderConfigPath) {}
 
 	~dilationScene() override = default;
 
 protected:
 
-	bufferHandler_t<dilationSettings_t>		dilation;
+	dilationSettings_t*		dilation;
 
 	void BuildGUI(tWindow* window, const ImGuiIO& io) override
 	{
@@ -43,8 +39,8 @@ protected:
 
 		if (ImGui::BeginTabItem("dilation"))
 		{
-			ImGui::SliderFloat("dilation strength X", &dilation.data.strengthX, 0.0f, 10.0f);
-			ImGui::SliderFloat("dilation strength Y", &dilation.data.strengthY, 0.0f, 10.0f);
+			ImGui::SliderFloat("dilation strength X", &dilation->strengthX, 0.0f, 10.0f);
+			ImGui::SliderFloat("dilation strength Y", &dilation->strengthY, 0.0f, 10.0f);
 			ImGui::EndTabItem();
 		}
 	}
@@ -52,13 +48,9 @@ protected:
 	void InitializeUniforms() override
 	{
 		scene::InitializeUniforms();
-		dilation.Initialize(1);
-	}
-
-	void Update() override
-	{
-		scene::Update();
-		dilation.Update(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW);
+		auto dilationBlock = &bufferHandler.uniformBlocks["dilationSettings"];
+		dilationBlock->SetPayload<dilationSettings_t>(dilationSettings_t());
+		dilation = dilationBlock->GetPayload<dilationSettings_t>();
 	}
 };
 

@@ -18,7 +18,7 @@ out tessBlock
 	vec2		uv;
 } outBlock[];
 
-layout(std140, binding = 0) uniform defaultSettings
+layout(std140) uniform defaultSettings
 {
 	mat4		projection;
 	mat4		view;
@@ -31,7 +31,7 @@ layout(std140, binding = 0) uniform defaultSettings
 	uint 		totalFrames;
 };
 
-layout(std140, binding = 1) uniform displacementSettings
+layout(std140) uniform displacementSettings
 {
     float outTessLevel;
     float inTessLevel;

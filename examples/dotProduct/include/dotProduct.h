@@ -22,7 +22,7 @@ public:
 
 protected:
 
-	bufferHandler_t<node_t>		nodes;
+	node_t*		nodes;
 
 	void SetupVertexBuffer()
 	{
@@ -32,13 +32,11 @@ protected:
 	void Draw() override
 	{	
 		//just draw twice. don't over-think it
-		nodes.data.flipper = 0;
-		nodes.Update();
+		nodes->flipper = 0;
 		defProgram.Use();
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
-		nodes.data.flipper = 1;
-		nodes.Update();
+		nodes->flipper = 1;
 		defProgram.Use();
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
@@ -55,47 +53,39 @@ protected:
 			clock.UpdateClockAdaptive();
 		}
 
-		defaultPayload.data.totalFrames++;
-		defaultPayload.data.deltaTime = (float)clock.GetDeltaTime();
-		defaultPayload.data.totalTime = (float)clock.GetTotalTime();
-		defaultPayload.data.framesPerSec = (float)(1.0 / clock.GetDeltaTime());
-		defaultPayload.Update(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW);
+		defaultPayload->totalFrames++;
+		defaultPayload->deltaTime = (float)clock.GetDeltaTime();
+		defaultPayload->totalTime = (float)clock.GetTotalTime();
+		defaultPayload->framesPerSec = (float)(1.0 / clock.GetDeltaTime());
 	}
 
 	void InitializeUniforms() override 
 	{
-		defaultPayload.data = defaultUniformBuffer(this->camera);
-		glm::vec2 resolution = defaultPayload.data.resolution;
-		glViewport(0, 0, resolution.x, resolution.y);
-		defaultPayload.data.resolution = resolution;
-		defaultPayload.data.projection = glm::ortho(0.0f, resolution.x, resolution.y, 0.0f, 0.01f, 10.0f);
-
-		SetupVertexBuffer();
-		SetupBuffer(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW);
-
-		SetupDefaultUniforms();
-		nodes.Initialize(1);
+		scene::InitializeUniforms();
+		auto dotBlock = &bufferHandler.uniformBlocks["dotSettings"];
+		dotBlock->SetPayload<node_t>(node_t());
+		nodes = dotBlock->GetPayload<node_t>();
 	}
 
 	void BuildGUI(tWindow* window, const ImGuiIO& io) override
 	{
 		scene::BuildGUI(window, io);
 
-		glm::vec2 resolution = defaultPayload.data.resolution;
+		glm::vec2 resolution = defaultPayload->resolution;
 		ImDrawList* draw_list = ImGui::GetBackgroundDrawList();
-		draw_list->AddLine(ImVec2(0,0), ImVec2(nodes.data.position1.x, nodes.data.position1.y), ImColor(255, 0, 255));
-		draw_list->AddLine(ImVec2(0, 0), ImVec2(nodes.data.position2.x, nodes.data.position2.y), ImColor(255, 0, 255));
-		draw_list->AddLine(ImVec2(nodes.data.position1.x, nodes.data.position1.y), ImVec2(nodes.data.position2.x, nodes.data.position2.y), ImColor(0, 255, 0));
+		draw_list->AddLine(ImVec2(0,0), ImVec2(nodes->position1.x, nodes->position1.y), ImColor(255, 0, 255));
+		draw_list->AddLine(ImVec2(0, 0), ImVec2(nodes->position2.x, nodes->position2.y), ImColor(255, 0, 255));
+		draw_list->AddLine(ImVec2(nodes->position1.x, nodes->position1.y), ImVec2(nodes->position2.x, nodes->position2.y), ImColor(0, 255, 0));
 
 		ImGui::Separator();
-		ImGui::SliderFloat("node 1 X", &nodes.data.position1.x, 0, resolution.x - (resolution.x / nodes.data.scaler));
-		ImGui::SliderFloat("node 1 Y", &nodes.data.position1.y, 0, resolution.y - (resolution.y / nodes.data.scaler));
-		ImGui::SliderFloat("node 2 X", &nodes.data.position2.x, 0, resolution.x - (resolution.x / nodes.data.scaler));
-		ImGui::SliderFloat("node 2 Y", &nodes.data.position2.y, 0, resolution.y - (resolution.y / nodes.data.scaler));
+		ImGui::SliderFloat("node 1 X", &nodes->position1.x, 0, resolution.x - (resolution.x / nodes->scaler));
+		ImGui::SliderFloat("node 1 Y", &nodes->position1.y, 0, resolution.y - (resolution.y / nodes->scaler));
+		ImGui::SliderFloat("node 2 X", &nodes->position2.x, 0, resolution.x - (resolution.x / nodes->scaler));
+		ImGui::SliderFloat("node 2 Y", &nodes->position2.y, 0, resolution.y - (resolution.y / nodes->scaler));
 		ImGui::Separator();
 
-		glm::vec2 normalizednode1 = glm::normalize(nodes.data.position1);
-		glm::vec2 normalizednode2 = glm::normalize(nodes.data.position2);
+		glm::vec2 normalizednode1 = glm::normalize(nodes->position1);
+		glm::vec2 normalizednode2 = glm::normalize(nodes->position2);
 
 		float normalizedDotProduct = glm::dot(normalizednode1, normalizednode2);
 		float angleRadians = glm::acos(normalizedDotProduct);
@@ -112,20 +102,20 @@ protected:
 		ImGui::TextColored(ImVec4(0, 0.66, 0, 1), "0.5 = 60 degrees away (perfect cone)");
 
 		//make 2 children at the node locations
-		ImGui::SetNextWindowPos(ImVec2(nodes.data.position1.x, nodes.data.position1.y));
-		ImGui::SetNextWindowSize(ImVec2(resolution.x / nodes.data.scaler, resolution.y / nodes.data.scaler));
+		ImGui::SetNextWindowPos(ImVec2(nodes->position1.x, nodes->position1.y));
+		ImGui::SetNextWindowSize(ImVec2(resolution.x / nodes->scaler, resolution.y / nodes->scaler));
 		ImGui::Begin("node 1 stats" , nullptr, ImGuiWindowFlags_NoDecoration);
 		//just show the position and normalized values
-		ImGui::TextColored(ImVec4(0, 0.66, 0.66, 1), "position:%i %i", (int)nodes.data.position1.x, (int)nodes.data.position1.y);
+		ImGui::TextColored(ImVec4(0, 0.66, 0.66, 1), "position:%i %i", (int)nodes->position1.x, (int)nodes->position1.y);
 		ImGui::Separator();
 		ImGui::TextColored(ImVec4(0, 0.66, 0.66, 1), "norm:%.3f %.3f", normalizednode1.x, normalizednode1.y);
 		ImGui::End();
 
-		ImGui::SetNextWindowPos(ImVec2(nodes.data.position2.x, nodes.data.position2.y));
-		ImGui::SetNextWindowSize(ImVec2(resolution.x / nodes.data.scaler, resolution.y / nodes.data.scaler));
+		ImGui::SetNextWindowPos(ImVec2(nodes->position2.x, nodes->position2.y));
+		ImGui::SetNextWindowSize(ImVec2(resolution.x / nodes->scaler, resolution.y / nodes->scaler));
 		ImGui::Begin("node 2 stats", nullptr, ImGuiWindowFlags_NoDecoration);
 		//just show the position and normalized values?
-		ImGui::TextColored(ImVec4(0, 0.66, 0.66, 1), "position:%i %i", (int)nodes.data.position2.x, (int)nodes.data.position2.y);
+		ImGui::TextColored(ImVec4(0, 0.66, 0.66, 1), "position:%i %i", (int)nodes->position2.x, (int)nodes->position2.y);
 		ImGui::Separator();
 		ImGui::TextColored(ImVec4(0, 0.66, 0.66, 1), "norm:%.3f %.3f", normalizednode2.x, normalizednode2.y);
 		ImGui::End();
@@ -135,12 +125,11 @@ protected:
 	{
 		glm::vec2 resolution = glm::vec2(window->GetSettings().resolution.x, window->GetSettings().resolution.y);
 		glViewport(0, 0, resolution.x, resolution.y);
-		defaultPayload.data.resolution = glm::ivec2(resolution.x, resolution.y);
+		defaultPayload->resolution = glm::ivec2(resolution.x, resolution.y);
 		//let's try to set the projection so the 0 is at center
 
-		defaultPayload.data.projection = glm::ortho(0.0f, resolution.x, resolution.y, 0.0f, 0.01f, 10.0f);
+		defaultPayload->projection = glm::ortho(0.0f, resolution.x, resolution.y, 0.0f, 0.01f, 10.0f);
 
-		defaultPayload.Update(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW);
-		defaultVertexBuffer.UpdateBuffer(glm::ivec2(defaultPayload.data.resolution / nodes.data.scaler));
+		defaultVertexBuffer.UpdateBuffer(glm::ivec2(defaultPayload->resolution / nodes->scaler));
 	}
 };

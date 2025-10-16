@@ -7,7 +7,7 @@ in defaultBlock
 	vec2 fullUV;
 } inBlock;
 
-layout(std140, binding = 0) uniform defaultSettings
+layout(std140) uniform defaultSettings
 {
 	mat4		projection;
 	mat4		view;
@@ -20,9 +20,23 @@ layout(std140, binding = 0) uniform defaultSettings
 	uint		totalFrames;
 };
 
+uniform testSettings
+{
+    int blah;
+    float blah2;
+    double blah3;
+};
+
+buffer GOLStatus
+{
+    int Status[100];
+};
+
 out vec4 outColor;
+
+uniform vec3 peepeepoopoo;
 
 void main()
 {
-	outColor = vec4(1.0f, 0.25f, 0.0f, 1.0f);
+	outColor = vec4(deltaTime * 50, 0.0f, 0.0f, 1.0f);
 }

@@ -138,8 +138,8 @@ function scene_project(name, parents)
 
         filter { "toolset:clang"}
             configurations { "Debug", "Release" }
-            buildoptions { "-Wno-missing-template-arg-list-after-template-kw",
-                    "-Wno-deprecated-enum-enum-conversion", "-Wno-macro-redefined"}
+            --buildoptions { "-Wno-missing-template-arg-list-after-template-kw",
+            --        "-Wno-deprecated-enum-enum-conversion", "-Wno-macro-redefined"}
 end
 
 if os.host() == "linux" then
@@ -279,7 +279,7 @@ scene_project("gameOfLife")
 scene_project("gamma", {"textured"})
 scene_project("gaussian", {"textured"})
 scene_project("gaussianMulti" , {"textured"})
-scene_project("GOLCompute", {"gameOfLife"})
+--scene_project("GOLCompute", {"gameOfLife"})
 scene_project("textureSettings", {"textured"})
 scene_project("mipMapping", {"textured", "textureSettings"})
 scene_project("parallax", { "textured"})

@@ -8,7 +8,7 @@ in defaultBlock
 
 out vec4 outColor;
 
-layout(std140, binding = 0) uniform defaultSettings
+layout(std140) uniform defaultSettings
 {
 	mat4		projection;
 	mat4		view;
@@ -21,7 +21,7 @@ layout(std140, binding = 0) uniform defaultSettings
 	uint		totalFrames;
 };
 
-layout(binding = 1) uniform jitterSettings
+uniform jitterSettings
 {
 	vec2 haltonSequence[128];
 	float haltonScale;
@@ -37,7 +37,6 @@ layout(binding = 0) uniform sampler2D defaultTexture;
 
 void main()
 {
-
     float deltaWidth = 1.0 / resolution.x;
 	float deltaHeight = 1.0 / resolution.y;
     OffsetX = float[4](0.25f, 0.75f, 0.5f, 0.0f);

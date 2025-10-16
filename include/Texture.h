@@ -415,7 +415,7 @@ private:
 
 		if (texDesc.levels > 0)
 		{
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, texDesc.levels);
+			glTexParameteri(texDesc.target, GL_TEXTURE_MAX_LEVEL, texDesc.levels);
 			glTexParameteri(texDesc.target, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
 			glTexParameteri(texDesc.target, GL_TEXTURE_MAG_FILTER, GL_NEAREST_MIPMAP_NEAREST);
 		}

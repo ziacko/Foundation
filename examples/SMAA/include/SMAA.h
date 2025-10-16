@@ -140,8 +140,6 @@ public:
 		finalProgram = shaderProgramsMap["final"];
 
 		frameBuffer::Unbind();
-
-
 	}
 
 protected:
@@ -154,7 +152,7 @@ protected:
 	texture						SMAAArea;
 	texture						SMAASearch;
 
-	bufferHandler_t<SMAASettings_t>		SMAASettings;
+	SMAASettings_t*	SMAASettings = nullptr;
 
 	shaderProgram_t geometryProgram;
 	shaderProgram_t edgeDetectionProgram;
@@ -165,12 +163,6 @@ protected:
 
 	int currentTexture = 0;
 	bool enableCompare = true;
-
-	void Update() override
-	{
-		scene3D::Update();
-		SMAASettings.Update();
-	}
 
 	void Draw() override
 	{
@@ -374,25 +366,27 @@ protected:
 		weightsBuffer.GetAttachmentRef("blend").Resize(glm::ivec3(resolution, 1));
 		SMAABuffer.GetAttachmentRef("SMAA").Resize(glm::ivec3(resolution, 1));
 
-		SMAASettings.data.rtMetrics = glm::vec4(1.0f / window->GetSettings().resolution.width, 1.0f /  window->GetSettings().resolution.height, window->GetSettings().resolution.width, window->GetSettings().resolution.height );
+		SMAASettings->rtMetrics = glm::vec4(1.0f / window->GetSettings().resolution.width, 1.0f /  window->GetSettings().resolution.height, window->GetSettings().resolution.width, window->GetSettings().resolution.height );
 	}
 
 	void HandleWindowResize(const tWindow* window, const vec2_t<uint16_t>& dimensions) override
 	{
-		defaultPayload.data.resolution = glm::ivec2(dimensions.width, dimensions.height);
+		defaultPayload->resolution = glm::ivec2(dimensions.width, dimensions.height);
 		ResizeBuffers(glm::ivec2(dimensions.x, dimensions.y));
 	}
 
 	void HandleMaximize(const tWindow* window) override
 	{
-		defaultPayload.data.resolution = glm::ivec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
-		ResizeBuffers(defaultPayload.data.resolution);
+		defaultPayload->resolution = glm::ivec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
+		ResizeBuffers(defaultPayload->resolution);
 	}
 
 	void InitializeUniforms() override
 	{
 		scene::InitializeUniforms();
-		SMAASettings.Initialize(1);
+		auto smaaBlock = &bufferHandler.uniformBlocks["SMAASettings"];
+		smaaBlock->SetPayload(SMAASettings_t());
+		SMAASettings = smaaBlock->GetPayload<SMAASettings_t>();
 	}
 
 	void DrawSMAASettings()
@@ -400,21 +394,21 @@ protected:
 		if (ImGui::BeginTabItem("SMAA Settings"))
 		{
 			ImGui::Checkbox("enable Compare", &enableCompare);
-			ImGui::SliderFloat("threshold", &SMAASettings.data.threshold, 0.001f, 1.0f, "%0.5f");
-			ImGui::SliderFloat("contrast adaption factor", &SMAASettings.data.contrastAdaptationFactor, 0.1f, 5.0f, "0.5f");
-			ImGui::SliderInt("max search steps", &SMAASettings.data.maxSearchSteps, 0, 255);
-			ImGui::SliderInt("max search steps diagonal", &SMAASettings.data.maxSearchStepsDiag, 0, 255);
-			ImGui::SliderInt("corner rounding", &SMAASettings.data.cornerRounding, 0, 255);
+			ImGui::SliderFloat("threshold", &SMAASettings->threshold, 0.001f, 1.0f, "%0.5f");
+			ImGui::SliderFloat("contrast adaption factor", &SMAASettings->contrastAdaptationFactor, 0.1f, 5.0f, "0.5f");
+			ImGui::SliderInt("max search steps", &SMAASettings->maxSearchSteps, 0, 255);
+			ImGui::SliderInt("max search steps diagonal", &SMAASettings->maxSearchStepsDiag, 0, 255);
+			ImGui::SliderInt("corner rounding", &SMAASettings->cornerRounding, 0, 255);
 
 			//set a list box for edge detection modes
-			static int edgeDetectionPick = (int32_t)SMAASettings.data.edgeDetectionMode;
+			static int edgeDetectionPick = (int32_t)SMAASettings->edgeDetectionMode;
 			const std::vector edgeDetectionSettings = { "luma", "color", "depth" };
 			ImGui::ListBox("Edge Detection Mode", &edgeDetectionPick, edgeDetectionSettings.data(), edgeDetectionSettings.size());
 			switch (edgeDetectionPick)
 			{
-				case 0: SMAASettings.data.edgeDetectionMode = (int32_t)EdgeDetectionMode_e::luma; break;
-				case 1: SMAASettings.data.edgeDetectionMode = (int32_t)EdgeDetectionMode_e::color; break;
-				case 2: SMAASettings.data.edgeDetectionMode = (int32_t)EdgeDetectionMode_e::depth; break;
+				case 0: SMAASettings->edgeDetectionMode = (int32_t)EdgeDetectionMode_e::luma; break;
+				case 1: SMAASettings->edgeDetectionMode = (int32_t)EdgeDetectionMode_e::color; break;
+				case 2: SMAASettings->edgeDetectionMode = (int32_t)EdgeDetectionMode_e::depth; break;
 				default: break;
 			}
 			ImGui::EndTabItem();

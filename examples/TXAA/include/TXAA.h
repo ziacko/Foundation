@@ -137,22 +137,11 @@ public:
 		glHint(GL_GENERATE_MIPMAP_HINT, GL_NICEST);
 
 		this->camera.position.y -= 100.0f;
-
-		geometryBuffer = new frameBuffer();
-		unJitteredBuffer = new frameBuffer();
-		FXAABuffer = new frameBuffer();
-		sharpenBuffer = new frameBuffer();		
-
-		velocityUniforms = bufferHandler_t<reprojectSettings_t>();
-		taaUniforms = bufferHandler_t<TAASettings_t>();
-		FXAASettings = bufferHandler_t<FXAASettings_t>();
-		sharpenSettings = bufferHandler_t<sharpenSettings_t>();
-		jitterUniforms = bufferHandler_t<jitterSettings_t>();
-		this->sharpenSettings = bufferHandler_t<sharpenSettings_t>();
+		jitterUniforms = new jitterSettings_t();
 
 		for (int iter = 0; iter < 128; iter++)
 		{
-			jitterUniforms.data.haltonSequence[iter] = glm::vec2(CreateHaltonSequence(iter + 1, 2), CreateHaltonSequence(iter + 1, 3));
+			jitterUniforms->haltonSequence[iter] = glm::vec2(CreateHaltonSequence(iter + 1, 2), CreateHaltonSequence(iter + 1, 3));
 		}
 		//glGenQueries(1, &defaultQuery);
 		//glGenQueries(1, &TAAQuery);
@@ -167,17 +156,17 @@ public:
 		FBODescriptor colorDesc;
 		colorDesc.dimensions = glm::ivec3(window->GetSettings().resolution.width, window->GetSettings().resolution.height, 1);
 
-		geometryBuffer->Initialize();
-		geometryBuffer->Bind();
+		geometryBuffer.Initialize();
+		geometryBuffer.Bind();
 
-		geometryBuffer->AddAttachment(frameBuffer::attachment_t("color", colorDesc));
+		geometryBuffer.AddAttachment(frameBuffer::attachment_t("color", colorDesc));
 
 		FBODescriptor velDesc;
 		velDesc.format = GL_RG;
 		velDesc.internalFormat = GL_RG16_SNORM;
 		velDesc.dimensions = glm::ivec3(window->GetSettings().resolution.width, window->GetSettings().resolution.height, 1);
 
-		geometryBuffer->AddAttachment(frameBuffer::attachment_t("velocity", velDesc));
+		geometryBuffer.AddAttachment(frameBuffer::attachment_t("velocity", velDesc));
 
 		FBODescriptor depthDesc;
 		depthDesc.dataType = GL_FLOAT;
@@ -186,16 +175,16 @@ public:
 		depthDesc.attachmentType = FBODescriptor::attachmentType_e::depth;
 		depthDesc.dimensions = glm::ivec3(window->GetSettings().resolution.width, window->GetSettings().resolution.height, 1);
 
-		geometryBuffer->AddAttachment(frameBuffer::attachment_t("depth", depthDesc));
+		geometryBuffer.AddAttachment(frameBuffer::attachment_t("depth", depthDesc));
 
 		for (unsigned int iter = 0; iter < numPrevFrames; iter++)
 		{
-			frameBuffer* newBuffer = new frameBuffer();
+			frameBuffer newBuffer = frameBuffer();
 
-			newBuffer->Initialize();
-			newBuffer->Bind();
-			newBuffer->AddAttachment(frameBuffer::attachment_t("color", colorDesc));
-			newBuffer->AddAttachment(frameBuffer::attachment_t("depth", depthDesc));
+			newBuffer.Initialize();
+			newBuffer.Bind();
+			newBuffer.AddAttachment(frameBuffer::attachment_t("color", colorDesc));
+			newBuffer.AddAttachment(frameBuffer::attachment_t("depth", depthDesc));
 
 			TAAFrames.push_back(newBuffer);
 		}
@@ -204,18 +193,18 @@ public:
 		sharpenBuffer->AddAttachment(new frameBuffer::attachment_t(frameBuffer::attachment_t::attachmentType_t::color,
 			"sharp", glm::vec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height)));*/
 
-		unJitteredBuffer->Initialize();
-		unJitteredBuffer->Bind();
-		unJitteredBuffer->AddAttachment(frameBuffer::attachment_t("color", colorDesc));
-		unJitteredBuffer->AddAttachment(frameBuffer::attachment_t("depth", depthDesc));
+		unJitteredBuffer.Initialize();
+		unJitteredBuffer.Bind();
+		unJitteredBuffer.AddAttachment(frameBuffer::attachment_t("color", colorDesc));
+		unJitteredBuffer.AddAttachment(frameBuffer::attachment_t("depth", depthDesc));
 
-		sharpenBuffer->Initialize();
-		sharpenBuffer->Bind();
-		sharpenBuffer->AddAttachment(frameBuffer::attachment_t("sharpen", colorDesc));
+		sharpenBuffer.Initialize();
+		sharpenBuffer.Bind();
+		sharpenBuffer.AddAttachment(frameBuffer::attachment_t("sharpen", colorDesc));
 
-		FXAABuffer->Initialize();
-		FXAABuffer->Bind();
-		FXAABuffer->AddAttachment(frameBuffer::attachment_t("FXAA", colorDesc));
+		FXAABuffer.Initialize();
+		FXAABuffer.Bind();
+		FXAABuffer.AddAttachment(frameBuffer::attachment_t("FXAA", colorDesc));
 
 		//geometry automatically gets assigned to 0
 		defProgram = shaderProgramsMap["geometry"];
@@ -231,11 +220,11 @@ public:
 
 protected:
 
-	std::vector<frameBuffer*> TAAFrames;
-	frameBuffer* geometryBuffer;
-	frameBuffer* unJitteredBuffer;
-	frameBuffer* FXAABuffer;
-	frameBuffer* sharpenBuffer;
+	std::vector<frameBuffer> TAAFrames;
+	frameBuffer geometryBuffer;
+	frameBuffer unJitteredBuffer;
+	frameBuffer FXAABuffer;
+	frameBuffer sharpenBuffer;
 
 	shaderProgram_t unjitteredProgram;
 	shaderProgram_t FXAAProgram;
@@ -251,16 +240,14 @@ protected:
 
 	GLuint numPrevFrames = 2; //don't need this right now
 
-	bufferHandler_t<reprojectSettings_t>	velocityUniforms;
-	bufferHandler_t<TAASettings_t>			taaUniforms;
-	bufferHandler_t<FXAASettings_t>			FXAASettings;
+	reprojectSettings_t*	reprojectUniforms = nullptr;
+	TAASettings_t*			taaUniforms = nullptr;
+	FXAASettings_t*			FXAASettings = nullptr;
+	sharpenSettings_t*		sharpenSettings = nullptr;
+	jitterSettings_t*		jitterUniforms = nullptr;
 
 	std::vector<const char*>				TAAResolveSettings = { "SMAA", "Inside", "Inside2", "Custom", "Experimental" };
 	bool enableCompare = true;
-
-	bufferHandler_t<sharpenSettings_t>		sharpenSettings;
-	bufferHandler_t<jitterSettings_t>		jitterUniforms;
-
 	bool currentFrame = 0;
 
 	std::vector<uint64_t> averageGPUTimes;
@@ -277,22 +264,19 @@ protected:
 			clock.UpdateClockAdaptive();
 		}
 
-		defaultPayload.data.deltaTime = (float)clock.GetDeltaTime();
-		defaultPayload.data.totalTime = (float)clock.GetTotalTime();
-		defaultPayload.data.framesPerSec = (float)(1.0 / clock.GetDeltaTime());
-		defaultPayload.data.totalFrames++;
-
-		taaUniforms.Update();
-		sharpenSettings.Update();
-		jitterUniforms.Update();
-		FXAASettings.Update();
+		defaultPayload->deltaTime = (float)clock.GetDeltaTime();
+		defaultPayload->totalTime = (float)clock.GetTotalTime();
+		defaultPayload->framesPerSec = (float)(1.0 / clock.GetDeltaTime());
+		defaultPayload->totalFrames++;
 	
-		currentFrame = ((defaultPayload.data.totalFrames % 2) == 0) ? 0 : 1;//if even frame then write to 1 and read from 0 and vice versa
+		currentFrame = ((defaultPayload->totalFrames % 2) == 0) ? 0 : 1;//if even frame then write to 1 and read from 0 and vice versa
+
+		scene3D::Update();
 	}
 
 	virtual void Draw() override
 	{
-		velocityUniforms.data.currentView = camera.view; //set to the previous view matrix?
+		reprojectUniforms->currentView = camera.view; //set to the previous view matrix?
 		camera.ChangeProjection(camera_t::projection_e::perspective);
 		camera.Update();
 
@@ -317,14 +301,14 @@ protected:
 
 		//SharpenPass();
 
-		FinalPass(&TAAFrames[currentFrame]->attachments["color"], &unJitteredBuffer->attachments["color"]);
+		FinalPass(&TAAFrames[currentFrame].attachments["color"], &unJitteredBuffer.attachments["color"]);
 	}
 
 	virtual void JitterPass()
 	{
 		GL_PUSH_DEBUG_GROUP();
-		geometryBuffer->Bind();
-		geometryBuffer->DrawAll();
+		geometryBuffer.Bind();
+		geometryBuffer.DrawAll();
 
 		//we just need the first LOd so only do the first 3 meshes
 		for (size_t iter = 0; iter < testModel.meshes.size(); iter++)
@@ -350,7 +334,7 @@ protected:
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		}
 
-		geometryBuffer->Unbind();
+		geometryBuffer.Unbind();
 
 		glPopDebugGroup();
 	}
@@ -358,8 +342,8 @@ protected:
 	virtual void UnJitteredPass()
 	{
 		GL_PUSH_DEBUG_GROUP();
-		unJitteredBuffer->Bind();
-		unJitteredBuffer->DrawAll();
+		unJitteredBuffer.Bind();
+		unJitteredBuffer.DrawAll();
 
 		//we just need the first LOd so only do the first 3 meshes
 		for (size_t iter = 0; iter < testModel.meshes.size(); iter++)
@@ -385,61 +369,61 @@ protected:
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		}
 
-		unJitteredBuffer->Unbind();
+		unJitteredBuffer.Unbind();
 		glPopDebugGroup();
 	}
 
 	virtual void TAAPass()
 	{
 		GL_PUSH_DEBUG_GROUP();
-		TAAFrames[currentFrame]->Bind();
-		TAAFrames[currentFrame]->attachments["color"].Draw();
+		TAAFrames[currentFrame].Bind();
+		TAAFrames[currentFrame].attachments["color"].Draw();
 
 		//current frame
-		FXAABuffer->attachments["FXAA"].SetActive(0); // FXAA color (correct attachment name)
-		geometryBuffer->attachments["depth"].SetActive(1); //current depth
+		FXAABuffer.attachments["FXAA"].SetActive(0); // FXAA color (correct attachment name)
+		geometryBuffer.attachments["depth"].SetActive(1); //current depth
 
 		//previous frames
-		TAAFrames[!currentFrame]->attachments["color"].SetActive(2); //previous color
-		TAAFrames[!currentFrame]->attachments["depth"].SetActive(3); //previous depth
+		TAAFrames[!currentFrame].attachments["color"].SetActive(2); //previous color
+		TAAFrames[!currentFrame].attachments["depth"].SetActive(3); //previous depth
 
-		geometryBuffer->attachments["velocity"].SetActive(4); //velocity
+		geometryBuffer.attachments["velocity"].SetActive(4); //velocity
 
 		defaultVertexBuffer.Bind();
 		smoothProgram.Use();
 		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
-		TAAFrames[currentFrame]->Unbind();
+		TAAFrames[currentFrame].Unbind();
 		glPopDebugGroup();
 	}
 
 	virtual void FXAAPass()
 	{
 		GL_PUSH_DEBUG_GROUP();
-		FXAABuffer->Bind();
-		FXAABuffer->attachments["FXAA"].Draw();
+		FXAABuffer.Bind();
+		FXAABuffer.attachments["FXAA"].Draw();
 
 		//current frame
-		geometryBuffer->attachments["color"].SetActive(0); // color
+		geometryBuffer.attachments["color"].SetActive(0); // color
 
 		defaultVertexBuffer.Bind();
 		FXAAProgram.Use();
 		glViewport(0, 0, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
-		FXAABuffer->Unbind();
+		FXAABuffer.Unbind();
 		glPopDebugGroup();
 	}
 
 	virtual void SharpenPass()
 	{
 		GL_PUSH_DEBUG_GROUP();
-		sharpenBuffer->Bind();
-		sharpenBuffer->attachments["sharpen"].Draw();
+		sharpenBuffer.Bind();
+		sharpenBuffer.attachments["sharpen"].Draw();
 
 		//current frame
-		TAAFrames[currentFrame]->attachments["color"].SetActive(0); // color
+		TAAFrames[currentFrame].attachments["color"].SetActive(0); // color
 
 		defaultVertexBuffer.Bind();
 		sharpenProgram.Use();
@@ -479,7 +463,7 @@ protected:
 		DrawBufferAttachments();
 		DrawTAASettings();
 		DrawFXAASettings();
-		DrawSharpenSettings();
+		//DrawSharpenSettings();
 		//DrawJitterSettings();
 	}
 
@@ -488,11 +472,11 @@ protected:
 		if (ImGui::BeginTabItem("FXAA Settings"))
 		{
 			ImGui::Checkbox("enable Compare", &enableCompare);
-			ImGui::SliderFloat("Sub pixel drift", &FXAASettings.data.pixelShift, 0.0f, 1.0f, "%.1f");
-			ImGui::SliderFloat("vertex Offset", &FXAASettings.data.vxOffset, 0.0f, 1.0f, "%.3f");
-			ImGui::SliderFloat("max span", &FXAASettings.data.maxSpan, 0.0f, 10.0f, "%.1f");
-			ImGui::SliderFloat("reduce multiplier", &FXAASettings.data.reduceMul, 0.0f, 1.0f, "%.5f");
-			ImGui::SliderFloat("reduce minimizer", &FXAASettings.data.reduceMin, 0.0f, 1.0f, "%.8f");
+			ImGui::SliderFloat("Sub pixel drift", &FXAASettings->pixelShift, 0.0f, 1.0f, "%.1f");
+			ImGui::SliderFloat("vertex Offset", &FXAASettings->vxOffset, 0.0f, 1.0f, "%.3f");
+			ImGui::SliderFloat("max span", &FXAASettings->maxSpan, 0.0f, 10.0f, "%.1f");
+			ImGui::SliderFloat("reduce multiplier", &FXAASettings->reduceMul, 0.0f, 1.0f, "%.5f");
+			ImGui::SliderFloat("reduce minimizer", &FXAASettings->reduceMin, 0.0f, 1.0f, "%.8f");
 
 			ImGui::EndTabItem();
 		}
@@ -502,8 +486,8 @@ protected:
 	{
 		if (ImGui::BeginTabItem("Sharpen settings"))
 		{
-			ImGui::SliderFloat("kernel 1", &sharpenSettings.data.kernel1, -1.0f, 1.0f);
-			ImGui::SliderFloat("kernel 5", &sharpenSettings.data.kernel2, 0.0f, 10.0f, "%.5f", 1.0f);
+			ImGui::SliderFloat("kernel 1", &sharpenSettings->kernel1, -1.0f, 1.0f);
+			ImGui::SliderFloat("kernel 5", &sharpenSettings->kernel2, 0.0f, 10.0f, "%.5f", 1.0f);
 
 			ImGui::EndTabItem();
 		}
@@ -514,22 +498,22 @@ protected:
 		if (ImGui::BeginTabItem("TAA Settings"))
 		{
 			ImGui::Checkbox("enable Compare", &enableCompare);
-			ImGui::SliderFloat("feedback factor", &taaUniforms.data.feedbackFactor, 0.0f, 1.0f);
-			ImGui::InputFloat("max depth falloff", &taaUniforms.data.maxDepthFalloff, 0.01f);
+			ImGui::SliderFloat("feedback factor", &taaUniforms->feedbackFactor, 0.0f, 1.0f);
+			ImGui::InputFloat("max depth falloff", &taaUniforms->maxDepthFalloff, 0.01f);
 
 			//velocity settings
 			ImGui::Separator();
 			ImGui::SameLine();
 			ImGui::Text("Velocity settings");
-			ImGui::SliderFloat("Velocity scale", &taaUniforms.data.velocityScale, 0.0f, 10.0f);
+			ImGui::SliderFloat("Velocity scale", &taaUniforms->velocityScale, 0.0f, 10.0f);
 
 			//jitter settings
 			ImGui::Separator();
 			//ImGui::SameLine();
-			ImGui::DragFloat("halton scale", &jitterUniforms.data.haltonScale, 0.1f, 0.0f, 15.0f, "%.3f");
-			ImGui::DragInt("halton index",  &jitterUniforms.data.haltonIndex, 1.0f, 0, 128);
-			ImGui::DragInt("enable dithering", &jitterUniforms.data.enableDithering, 1.0f, 0, 1);
-			ImGui::DragFloat("dithering scale", &jitterUniforms.data.ditheringScale, 1.0f, 0.0f, 1000.0f, "%.3f");
+			ImGui::DragFloat("halton scale", &jitterUniforms->haltonScale, 0.1f, 0.0f, 15.0f, "%.3f");
+			ImGui::DragInt("halton index",  &jitterUniforms->haltonIndex, 1.0f, 0, 128);
+			ImGui::DragInt("enable dithering", &jitterUniforms->enableDithering, 1.0f, 0, 1);
+			ImGui::DragFloat("dithering scale", &jitterUniforms->ditheringScale, 1.0f, 0.0f, 1000.0f, "%.3f");
 
 			ImGui::EndTabItem();
 		}
@@ -539,7 +523,7 @@ protected:
 	{
 		if (ImGui::BeginTabItem("framebuffers"))
 		{
-			for (auto iter : geometryBuffer->attachments | std::views::values)
+			for (auto iter : geometryBuffer.attachments | std::views::values)
 			{
 				ImGui::Image((ImTextureID*)iter.GetHandle(), ImVec2(512, 288),
 					ImVec2(0, 1), ImVec2(1, 0));
@@ -547,14 +531,14 @@ protected:
 				ImGui::Text("%s\n", iter.GetUniformName().c_str());
 			}
 
-			ImGui::Image((ImTextureID*)FXAABuffer->attachments["FXAA"].GetHandle(), ImVec2(512, 288),
+			ImGui::Image((ImTextureID*)FXAABuffer.attachments["FXAA"].GetHandle(), ImVec2(512, 288),
 				ImVec2(0, 1), ImVec2(1, 0));
 			ImGui::SameLine();
-			ImGui::Text("%s\n", FXAABuffer->attachments["FXAA"].GetUniformName().c_str());
+			ImGui::Text("%s\n", FXAABuffer.attachments["FXAA"].GetUniformName().c_str());
 
 			for (auto iter : TAAFrames)
 			{
-				for (auto iter2 : iter->attachments | std::views::values)
+				for (auto iter2 : iter.attachments | std::views::values)
 				{
 					ImGui::Image((ImTextureID*)iter2.GetHandle(), ImVec2(512, 288),
 						ImVec2(0, 1), ImVec2(1, 0));
@@ -563,15 +547,15 @@ protected:
 				}
 			}
 
-			ImGui::Image((ImTextureID*)unJitteredBuffer->attachments["color"].GetHandle(), ImVec2(512, 288),
+			ImGui::Image((ImTextureID*)unJitteredBuffer.attachments["color"].GetHandle(), ImVec2(512, 288),
 				ImVec2(0, 1), ImVec2(1, 0));
 			ImGui::SameLine();
-			ImGui::Text("%s\n", unJitteredBuffer->attachments["color"].GetUniformName().c_str());
+			ImGui::Text("%s\n", unJitteredBuffer.attachments["color"].GetUniformName().c_str());
 
-			ImGui::Image((ImTextureID*)sharpenBuffer->attachments["sharpen"].GetHandle(), ImVec2(512, 288),
+			ImGui::Image((ImTextureID*)sharpenBuffer.attachments["sharpen"].GetHandle(), ImVec2(512, 288),
 				ImVec2(0, 1), ImVec2(1, 0));
 			ImGui::SameLine();
-			ImGui::Text("%s\n", sharpenBuffer->attachments["sharpen"].GetUniformName().c_str());
+			ImGui::Text("%s\n", sharpenBuffer.attachments["sharpen"].GetUniformName().c_str());
 
 			ImGui::EndTabItem();
 		}
@@ -579,91 +563,102 @@ protected:
 
 	virtual void ClearBuffers() override
 	{
-
-		TAAFrames[!currentFrame]->Bind(); //clear the previous, the next frame current becomes previous
-
-		TAAFrames[!currentFrame]->ClearTexture(TAAFrames[!currentFrame]->GetAttachmentRef("color"), clearColor);
-		TAAFrames[!currentFrame]->ClearTexture(TAAFrames[!currentFrame]->GetAttachmentRef("depth"), clearColor2);
+		TAAFrames[!currentFrame].Bind(); //clear the previous, the next frame current becomes previous
+		TAAFrames[!currentFrame].ClearTexture(TAAFrames[!currentFrame].GetAttachmentRef("color"), clearColor);
+		TAAFrames[!currentFrame].ClearTexture(TAAFrames[!currentFrame].GetAttachmentRef("depth"), clearColor2);
 		//copy current depth to previous or vice versa?
-		TAAFrames[!currentFrame]->GetAttachmentRef("color").Copy(&geometryBuffer->GetAttachmentRef("color")); //copy color over
-		TAAFrames[!currentFrame]->GetAttachmentRef("depth").Copy(&geometryBuffer->GetAttachmentRef("depth")); //copy depth over
+		TAAFrames[!currentFrame].GetAttachmentRef("color").Copy(&geometryBuffer.GetAttachmentRef("color")); //copy color over
+		TAAFrames[!currentFrame].GetAttachmentRef("depth").Copy(&geometryBuffer.GetAttachmentRef("depth")); //copy depth over
 
 		glClear(GL_DEPTH_BUFFER_BIT);
-		TAAFrames[currentFrame]->Unbind();
+		TAAFrames[currentFrame].Unbind();
 
-		geometryBuffer->Bind();
-		geometryBuffer->ClearTexture(geometryBuffer->GetAttachmentRef("color"), clearColor);
-		geometryBuffer->ClearTexture(geometryBuffer->GetAttachmentRef("velocity"), clearColor2);
-		geometryBuffer->ClearTexture(geometryBuffer->GetAttachmentRef("depth"), clearColor2);
+		geometryBuffer.Bind();
+		geometryBuffer.ClearTexture(geometryBuffer.GetAttachmentRef("color"), clearColor);
+		geometryBuffer.ClearTexture(geometryBuffer.GetAttachmentRef("velocity"), clearColor2);
+		geometryBuffer.ClearTexture(geometryBuffer.GetAttachmentRef("depth"), clearColor2);
 		glClear(GL_DEPTH_BUFFER_BIT);
-		geometryBuffer->Unbind();
+		geometryBuffer.Unbind();
 
-		unJitteredBuffer->Bind();
-		unJitteredBuffer->ClearTexture(unJitteredBuffer->GetAttachmentRef("color"), clearColor);
+		unJitteredBuffer.Bind();
+		unJitteredBuffer.ClearTexture(unJitteredBuffer.GetAttachmentRef("color"), clearColor);
 		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-		unJitteredBuffer->Unbind();
+		unJitteredBuffer.Unbind();
 
-		FXAABuffer->Bind();
-		FXAABuffer->ClearTexture(FXAABuffer->GetAttachmentRef("FXAA"), clearColor);
+		FXAABuffer.Bind();
+		FXAABuffer.ClearTexture(FXAABuffer.GetAttachmentRef("FXAA"), clearColor);
 		glClear(GL_DEPTH_BUFFER_BIT);
-		FXAABuffer->Unbind();
+		FXAABuffer.Unbind();
 
-		sharpenBuffer->Bind();
-		sharpenBuffer->ClearTexture(sharpenBuffer->GetAttachmentRef("sharpen"), clearColor);
+		sharpenBuffer.Bind();
+		sharpenBuffer.ClearTexture(sharpenBuffer.GetAttachmentRef("sharpen"), clearColor);
 		glClear(GL_DEPTH_BUFFER_BIT);
-		sharpenBuffer->Unbind();
+		sharpenBuffer.Unbind();
 
 		camera.ChangeProjection(camera_t::projection_e::perspective);
-		velocityUniforms.data.previousProjection = camera.projection;
-		velocityUniforms.data.previousView = camera.view;
-		velocityUniforms.data.prevTranslation = testModel.makeTransform();
-		velocityUniforms.Update();
+		reprojectUniforms->previousProjection = camera.projection;
+		reprojectUniforms->previousView = camera.view;
+		reprojectUniforms->prevTranslation = testModel.makeTransform();
 	}
 
 	virtual void ResizeBuffers(glm::ivec2 resolution)
 	{
 		for (auto frame : TAAFrames)
 		{
-			for (auto& iter : frame->attachments | std::views::values)
+			for (auto& iter : frame.attachments | std::views::values)
 			{
-				frame->GetAttachmentRef(iter.uniformName).Resize(glm::ivec3(resolution, 1));
+				frame.GetAttachmentRef(iter.uniformName).Resize(glm::ivec3(resolution, 1));
 			}
 		}
 
-		FXAABuffer->attachments["FXAA"].Resize(glm::ivec3(resolution, 1));
+		FXAABuffer.attachments["FXAA"].Resize(glm::ivec3(resolution, 1));
 
-		for (auto& iter : geometryBuffer->attachments | std::views::values)
+		for (auto& iter : geometryBuffer.attachments | std::views::values)
 		{
-			geometryBuffer->GetAttachmentRef(iter.uniformName).Resize(glm::ivec3(resolution, 1));
+			geometryBuffer.GetAttachmentRef(iter.uniformName).Resize(glm::ivec3(resolution, 1));
 		}		
 
 		//sharpenBuffer->attachments[0]->Resize(resolution);
-		unJitteredBuffer->GetAttachmentRef("color").Resize(glm::ivec3(resolution, 1));
-		unJitteredBuffer->GetAttachmentRef("depth").Resize(glm::ivec3(resolution, 1));
+		unJitteredBuffer.attachments["color"].Resize(glm::ivec3(resolution, 1));
+		unJitteredBuffer.attachments["depth"].Resize(glm::ivec3(resolution, 1));
 
-		sharpenBuffer->GetAttachmentRef("sharpen").Resize(glm::ivec3(resolution, 1));
+		sharpenBuffer.attachments["sharpen"].Resize(glm::ivec3(resolution, 1));
 	}
 
 	virtual void HandleWindowResize(const tWindow* window, const tw::vec2_t<uint16_t>& dimensions) override
 	{
-		defaultPayload.data.resolution = glm::ivec2(dimensions.width, dimensions.height);	
+		defaultPayload->resolution = glm::ivec2(dimensions.width, dimensions.height);
 		ResizeBuffers(glm::ivec2(dimensions.x, dimensions.y));
 	}
 
 	virtual void HandleMaximize(const tWindow* window) override
 	{
-		defaultPayload.data.resolution = glm::ivec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
-		ResizeBuffers(defaultPayload.data.resolution);
+		defaultPayload->resolution = glm::ivec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
+		ResizeBuffers(defaultPayload->resolution);
 	}
 
 	virtual void InitializeUniforms() override
 	{
 		scene::InitializeUniforms();
-		velocityUniforms.Initialize(1);
-		taaUniforms.Initialize(2);
-		sharpenSettings.Initialize(3);
-		jitterUniforms.Initialize(4);
-		FXAASettings.Initialize(5);
+		auto taaBlock = &bufferHandler.uniformBlocks["taaSettings"];
+		taaBlock->SetPayload(TAASettings_t());
+		taaUniforms = taaBlock->GetPayload<TAASettings_t>();
+
+		//auto sharpenBlock = &bufferHandler.uniformBlocks["sharpenSettings"];
+		//sharpenBlock->SetPayload<sharpenSettings_t>(sharpenSettings_t());
+		//sharpenSettings = sharpenBlock->GetPayload<sharpenSettings_t>();
+
+		auto jitterBlock = &bufferHandler.uniformBlocks["jitterSettings"];
+		jitterBlock->SetPayload(*jitterUniforms);
+		jitterUniforms = jitterBlock->GetPayload<jitterSettings_t>();
+
+		auto reprojectBlock = &bufferHandler.uniformBlocks["reprojectSettings"];
+		reprojectBlock->SetPayload(reprojectSettings_t());
+		reprojectUniforms = reprojectBlock->GetPayload<reprojectSettings_t>();
+
+		auto FXAABlock = &bufferHandler.uniformBlocks["fxaaSettings"];
+		FXAABlock->SetPayload(FXAASettings_t());
+		FXAASettings = FXAABlock->GetPayload<FXAASettings_t>();
 	}
 };
 

@@ -19,7 +19,7 @@ struct displacementSettings_t
 	~displacementSettings_t() = default;
 };
 
-class displacement : public scene3D
+class displacement final : public scene3D
 {
 public:
 	explicit displacement(
@@ -44,10 +44,8 @@ public:
 	virtual void Initialize() override
 	{
 		scene3D::Initialize();
-		displacementBuffer.Initialize(1);
 
 		renderGrid = new grid(glm::ivec2(10));
-
 		diffuseMap->LoadTexture();
 		displacementMap->LoadTexture();
 	}
@@ -61,12 +59,14 @@ protected:
 	grid* renderGrid;
 	texture* displacementMap;
 	texture* diffuseMap;
-	bufferHandler_t<displacementSettings_t> displacementBuffer;
+	displacementSettings_t* displacementBuffer = nullptr;
 
 	void InitializeUniforms() override
 	{
 		scene3D::InitializeUniforms();
-		displacementBuffer.Initialize(1);
+		auto displacementBlock = &bufferHandler.uniformBlocks["displacementSettings"];
+		displacementBlock->SetPayload(displacementSettings_t());
+		displacementBuffer = displacementBlock->GetPayload<displacementSettings_t>();
 	}
 
 	virtual void BuildGUI(tWindow* window, const ImGuiIO& io) override
@@ -75,21 +75,15 @@ protected:
 		if (ImGui::BeginTabItem("textures"))
 		{
 			//ImGui::ListBox("loaded textures", &currentTexture, textureNames.data(), textureNames.size());
-			ImGui::SliderFloat("outer tessellation", &displacementBuffer.data.outerTessLevel, 1.0f, 100.0f);
-			ImGui::SliderFloat("inner tessellation", &displacementBuffer.data.innerTessLevel, 1.0f, 100.0f);
-			ImGui::SliderFloat("offset strength", &displacementBuffer.data.offsetStrength, 1.0f, 10.0f);
+			ImGui::SliderFloat("outer tessellation", &displacementBuffer->outerTessLevel, 1.0f, 100.0f);
+			ImGui::SliderFloat("inner tessellation", &displacementBuffer->innerTessLevel, 1.0f, 100.0f);
+			ImGui::SliderFloat("offset strength", &displacementBuffer->offsetStrength, 1.0f, 10.0f);
 			ImGui::Image((ImTextureID*)diffuseMap->GetHandle(), ImVec2(512, 288),
 				ImVec2(0, 1), ImVec2(1, 0));
 			ImGui::Image((ImTextureID*)displacementMap->GetHandle(), ImVec2(512, 288),
 				ImVec2(0, 1), ImVec2(1, 0));
 			ImGui::EndTabItem();
 		}
-	}
-
-	virtual void Update() override
-	{
-		scene3D::Update();
-		displacementBuffer.Update();
 	}
 
 	virtual void Draw() override
@@ -109,7 +103,7 @@ protected:
 		}
 
 		//gotta change this to patches for tesselation
-		glDrawElements(GL_PATCHES, renderGrid->indices.size(), GL_UNSIGNED_INT, 0);
+		glDrawElements(GL_PATCHES, renderGrid->indices.size(), GL_UNSIGNED_INT, nullptr);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 		glPopDebugGroup();

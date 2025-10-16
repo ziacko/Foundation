@@ -6,30 +6,28 @@ class gammaScene final : public texturedScene
 {
 public:
 	explicit gammaScene(
-		const glm::vec3 gammaSettings = glm::vec3(0.33f, 0.33f, 0.33f),
 		const texture defaultTexture = texture(),
 		const char* windowName = "Ziyad Barakat's portfolio (gamma)",
 		const camera_t gammaCamera = camera_t(),
 		const char* shaderConfigPath = SHADER_CONFIG_DIR)
 		: texturedScene(defaultTexture, windowName, gammaCamera, shaderConfigPath)
 	{
-		this->gamma = bufferHandler_t(gammaSettings);
 	}
 
 	~gammaScene() override = default;
 
 protected:
 
-	bufferHandler_t<glm::vec3>		gamma;
+	glm::vec3*		gamma = nullptr;
 
 	void BuildGUI(tWindow* window, const ImGuiIO& io) override
 	{
 		texturedScene::BuildGUI(window, io);
 		if (ImGui::BeginTabItem("gamma"))
 		{
-			ImGui::SliderFloat("gamma red", &gamma.data.r, 0.f, 10.0f);
-			ImGui::SliderFloat("gamma green", &gamma.data.g, 0.0f, 10.0f);
-			ImGui::SliderFloat("gamma blue", &gamma.data.b, 0.0f, 10.0f);
+			ImGui::SliderFloat("gamma red", &gamma->r, 0.f, 10.0f);
+			ImGui::SliderFloat("gamma green", &gamma->g, 0.0f, 10.0f);
+			ImGui::SliderFloat("gamma blue", &gamma->b, 0.0f, 10.0f);
 			ImGui::EndTabItem();
 		}
 	}
@@ -37,13 +35,9 @@ protected:
 	void InitializeUniforms() override
 	{
 		scene::InitializeUniforms();
-		gamma.Initialize(1);
-	}
-
-	void Update() override
-	{
-		scene::Update();
-		gamma.Update(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW);
+		const auto gammaBlock = &bufferHandler.uniformBlocks["gammaSettings"];
+		gammaBlock->SetPayload<glm::vec3>(glm::vec3(0.33f, 0.33f, 0.33f));
+		gamma = gammaBlock->GetPayload<glm::vec3>();
 	}
 };
 

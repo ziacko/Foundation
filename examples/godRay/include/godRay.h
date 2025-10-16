@@ -41,8 +41,6 @@ public:
 		geometryBuffer = frameBuffer();
 		occlusionBuffer = frameBuffer();
 
-		godRay = bufferHandler_t<godRaySettings_t>();
-
 		glDisable(GL_BLEND);
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LESS);
@@ -101,24 +99,16 @@ public:
 
 protected:
 
-	bufferHandler_t<godRaySettings_t> godRay;
+	godRaySettings_t* godRay = nullptr;
 
 	frameBuffer geometryBuffer;
 	frameBuffer occlusionBuffer;
-
-	//camera* orthoCamera;
 
 	shaderProgram_t GodRayPostProgram;
 	shaderProgram_t finalProgram;
 	shaderProgram_t occlusionProgram;
 
 	bool enableCompare = true;
-
-	virtual void Update() override
-	{
-		scene3D::Update();
-		godRay.Update();
-	}
 
 	void Draw() override
 	{
@@ -289,11 +279,11 @@ protected:
 	{
 		if (ImGui::BeginTabItem("God rays"))
 		{
-			ImGui::DragFloat("decay", &godRay.data.decay, 0.001f);
+			ImGui::DragFloat("decay", &godRay->decay, 0.001f);
 			//ImGui::DragFloat("density", &godRay.data.density, 0.0001f);
-			ImGui::DragFloat("weight", &godRay.data.weight, 0.001f);
-			ImGui::DragFloat("exposure", &godRay.data.exposure, 0.001f);
-			ImGui::InputInt("samples", &godRay.data.samples);
+			ImGui::DragFloat("weight", &godRay->weight, 0.001f);
+			ImGui::DragFloat("exposure", &godRay->exposure, 0.001f);
+			ImGui::InputInt("samples", &godRay->samples);
 
 			ImGui::EndTabItem();
 		}
@@ -320,19 +310,22 @@ protected:
 
 	virtual void HandleWindowResize(const tWindow* window, const tw::vec2_t<uint16_t>& dimensions) override
 	{
-		defaultPayload.data.resolution = glm::ivec2(dimensions.width, dimensions.height);
+		defaultPayload->resolution = glm::ivec2(dimensions.width, dimensions.height);
 		ResizeBuffers(glm::ivec2(dimensions.x, dimensions.y));
 	}
 
 	virtual void HandleMaximize(const tWindow* window) override
 	{
-		defaultPayload.data.resolution = glm::ivec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
-		ResizeBuffers(defaultPayload.data.resolution);
+		defaultPayload->resolution = glm::ivec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
+		ResizeBuffers(defaultPayload->resolution);
 	}
 
 	virtual void InitializeUniforms() override
 	{
 		scene3D::InitializeUniforms();
-		godRay.Initialize(1);
+
+		auto godrayBlock = &bufferHandler.uniformBlocks["godRaySettings"];
+		godrayBlock->SetPayload(godRaySettings_t());
+		godRay = godrayBlock->GetPayload<godRaySettings_t>();
 	}
 };

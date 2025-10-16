@@ -113,14 +113,12 @@ public:
 	                     const camera_t perlinCamera = camera_t(), const GLchar* shaderConfigPath = SHADER_CONFIG_DIR)
 		: scene(windowName, perlinCamera, shaderConfigPath)
 	{
-		this->perlin.data = perlinSettings_t();
 		perlinBuffer = new frameBuffer();
 	}
 
 	void Initialize() override
 	{
 		scene::Initialize();
-		perlin.Initialize(1);
 		perlinBuffer->Initialize();
 		perlinBuffer->Bind();
 
@@ -140,43 +138,43 @@ public:
 
 protected:
 
-	bufferHandler_t<perlinSettings_t>		perlin;
-	frameBuffer* perlinBuffer;
-	shaderProgram_t finalProgram;
+	perlinSettings_t*	perlin = nullptr;
+	frameBuffer*		perlinBuffer;
+	shaderProgram_t		finalProgram;
 
 	void BuildGUI(tWindow* window, const ImGuiIO& io) override
 	{
 		scene::BuildGUI(window, io); 
 
-		ImGui::SliderFloat2("offset", &perlin.data.uvOffset[0], 0, 10);
-		ImGui::SliderFloat2("scale", &perlin.data.uvScale[0], 0.1, 100);
+		ImGui::SliderFloat2("offset", &perlin->uvOffset[0], 0, 10);
+		ImGui::SliderFloat2("scale", &perlin->uvScale[0], 0.1, 100);
 
-		ImGui::SliderFloat("modifier value", &perlin.data.modValue, 0.0f, 1000.0f);
-		ImGui::SliderFloat("permutation value", &perlin.data.permuteValue, 0.0f, 100.0f);
-		ImGui::SliderFloat("taylor inverse", &perlin.data.taylorInverse, 0.0f, 10.0f);
+		ImGui::SliderFloat("modifier value", &perlin->modValue, 0.0f, 1000.0f);
+		ImGui::SliderFloat("permutation value", &perlin->permuteValue, 0.0f, 100.0f);
+		ImGui::SliderFloat("taylor inverse", &perlin->taylorInverse, 0.0f, 10.0f);
 
 		AddGUISpacer();
 
-		ImGui::SliderInt("num octaves", &perlin.data.numOctaves, 0, 100);
+		ImGui::SliderInt("num octaves", &perlin->numOctaves, 0, 100);
 		
 		AddGUISpacer();
 
-		ImGui::SliderFloat("noise value", &perlin.data.noiseValue, 0, 100);
-		ImGui::SliderFloat("noise value 2", &perlin.data.noiseValue2, 0, 100);
-		ImGui::SliderInt("color bias", &perlin.data.colorBias, 0, 100);
+		ImGui::SliderFloat("noise value", &perlin->noiseValue, 0, 100);
+		ImGui::SliderFloat("noise value 2", &perlin->noiseValue2, 0, 100);
+		ImGui::SliderInt("color bias", &perlin->colorBias, 0, 100);
 
 		AddGUISpacer();
-		ImGui::SliderFloat("pattern value 1", &perlin.data.pattern2Value1, 0.0f, 10.0f);
-		ImGui::SliderFloat("pattern value 2", &perlin.data.pattern2Value2, 0.0f, 10.0f);
-		ImGui::SliderFloat("pattern value 3", &perlin.data.pattern2Value3, 0.0f, 10.0f);
-		ImGui::SliderFloat("pattern value 4", &perlin.data.pattern2Value4, 0.0f, 10.0f);
-		ImGui::SliderFloat("pattern value 5", &perlin.data.pattern2Value5, 0.0f, 10.0f);
-		ImGui::SliderFloat("pattern value 6", &perlin.data.pattern2Value6, 0.0f, 10.0f);
-		ImGui::SliderFloat("pattern value 7", &perlin.data.pattern2Value7, 0.0f, 10.0f);
-		ImGui::SliderFloat("pattern value 8", &perlin.data.pattern2Value8, 0.0f, 10.0f);
-		ImGui::SliderFloat("pattern value 9", &perlin.data.pattern2Value9, 0.0f, 10.0f);
-		ImGui::SliderFloat("pattern value 10", &perlin.data.pattern2Value10, 0.0f, 10.0f);
-		ImGui::SliderFloat("pattern value 11", &perlin.data.pattern2Value11, 0.0f, 10.0f);
+		ImGui::SliderFloat("pattern value 1", &perlin->pattern2Value1, 0.0f, 10.0f);
+		ImGui::SliderFloat("pattern value 2", &perlin->pattern2Value2, 0.0f, 10.0f);
+		ImGui::SliderFloat("pattern value 3", &perlin->pattern2Value3, 0.0f, 10.0f);
+		ImGui::SliderFloat("pattern value 4", &perlin->pattern2Value4, 0.0f, 10.0f);
+		ImGui::SliderFloat("pattern value 5", &perlin->pattern2Value5, 0.0f, 10.0f);
+		ImGui::SliderFloat("pattern value 6", &perlin->pattern2Value6, 0.0f, 10.0f);
+		ImGui::SliderFloat("pattern value 7", &perlin->pattern2Value7, 0.0f, 10.0f);
+		ImGui::SliderFloat("pattern value 8", &perlin->pattern2Value8, 0.0f, 10.0f);
+		ImGui::SliderFloat("pattern value 9", &perlin->pattern2Value9, 0.0f, 10.0f);
+		ImGui::SliderFloat("pattern value 10", &perlin->pattern2Value10, 0.0f, 10.0f);
+		ImGui::SliderFloat("pattern value 11", &perlin->pattern2Value11, 0.0f, 10.0f);
 	}
 
 	virtual void AddGUISpacer()
@@ -191,18 +189,9 @@ protected:
 	void InitializeUniforms() override
 	{
 		scene::InitializeUniforms();
-		perlin.Initialize(1);
-	}
-
-	virtual void SetPerlinUniforms()
-	{
-		perlin.SetupUniforms(defProgram.handle, "perlinSettings", 1);
-	}
-
-	void Update() override
-	{
-		scene::Update();
-		perlin.Update();
+		auto perlinBlock = &bufferHandler.uniformBlocks["perlinSettings"];
+		perlinBlock->SetPayload(perlinSettings_t());
+		perlin = perlinBlock->GetPayload<perlinSettings_t>();
 	}
 
 	virtual void PerlinPass()
@@ -228,7 +217,7 @@ protected:
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
 
-	void Draw()	override
+	void Draw() override
 	{
 		PerlinPass();
 		FinalPass();

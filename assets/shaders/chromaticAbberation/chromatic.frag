@@ -9,7 +9,7 @@ in defaultBlock
 
 out vec4 outColor;
 
-layout(std140, binding = 1) uniform chromaticSettings
+layout(std140) uniform chromaticSettings
 {
 	float redOffset;
 	float greenOffset;

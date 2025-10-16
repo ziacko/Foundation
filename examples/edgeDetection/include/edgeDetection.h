@@ -89,16 +89,7 @@ public:
 		const char* windowName = "Ziyad Barakat's Portfolio (edge detection)",
 		const camera_t edgeCamera = camera_t(),
 		const char* shaderConfigPath = SHADER_CONFIG_DIR)
-		: texturedScene(defaultTexture, windowName, edgeCamera, shaderConfigPath)
-	{
-		this->currentEdgeDetection = edgeFilter;
-
-		//don't bother with the switch. just create them all at once. only 4 types
-		sobelBuffer = bufferHandler_t<sobelSettings_t>();
-		laplacianBuffer = bufferHandler_t<laplacianSettings_t>();
-		prewittBuffer = bufferHandler_t<float>(1.0f);
-		freiChenBuffer = bufferHandler_t<float>(1.0f);
-	}
+		: texturedScene(defaultTexture, windowName, edgeCamera, shaderConfigPath) {}
 
 	void Initialize() override
 	{
@@ -120,7 +111,6 @@ public:
 			{
 			case SOBEL:
 			{
-				//sobelSettingsBuffer = new sobelSettings_t();
 				BuildSobelGUI();
 				break;
 			}
@@ -146,21 +136,18 @@ public:
 			default:
 				break;
 			}
-
-
 			ImGui::EndTabItem();
 		}
-
 	}
 
 	void BuildSobelGUI()
 	{
 		if (ImGui::BeginTabBar("sobel settings"))
 		{
-			ImGui::SliderFloat("red modifier", &sobelBuffer.data.redModifier, -1.0f, 1.0f);
-			ImGui::SliderFloat("green modifier", &sobelBuffer.data.greenModifier, -1.0f, 1.0f);
-			ImGui::SliderFloat("blue modifier", &sobelBuffer.data.blueModifier, -1.0f, 1.0f);
-			ImGui::SliderFloat("cell distance", &sobelBuffer.data.cellDistance, -1.0f, 1.0f);
+			ImGui::SliderFloat("red modifier", &sobelBuffer->redModifier, -1.0f, 1.0f);
+			ImGui::SliderFloat("green modifier", &sobelBuffer->greenModifier, -1.0f, 1.0f);
+			ImGui::SliderFloat("blue modifier", &sobelBuffer->blueModifier, -1.0f, 1.0f);
+			ImGui::SliderFloat("cell distance", &sobelBuffer->cellDistance, -1.0f, 1.0f);
 			ImGui::EndTabBar();
 		}
 	}
@@ -168,76 +155,52 @@ public:
 	void BuildLaplacianGUI()
 	{
 		ImGui::BeginTabBar("laplacian settings");
-		ImGui::SliderFloat("kernel 1", &laplacianBuffer.data.kernel1, -1.0f, 1.0f);
-		ImGui::SliderFloat("kernel 2", &laplacianBuffer.data.kernel2, -1.0f, 1.0f);
-		ImGui::SliderFloat("kernel 3", &laplacianBuffer.data.kernel3, -1.0f, 1.0f);
-		ImGui::SliderFloat("kernel 4", &laplacianBuffer.data.kernel4, -1.0f, 1.0f);
-		ImGui::SliderFloat("kernel 5", &laplacianBuffer.data.kernel5, -10.0f, 10.0f);
-		ImGui::SliderFloat("kernel 6", &laplacianBuffer.data.kernel6, -1.0f, 1.0f);
-		ImGui::SliderFloat("kernel 7", &laplacianBuffer.data.kernel7, -1.0f, 1.0f);
-		ImGui::SliderFloat("kernel 8", &laplacianBuffer.data.kernel8, -1.0f, 1.0f);
-		ImGui::SliderFloat("kernel 9", &laplacianBuffer.data.kernel9, -1.0f, 1.0f);
-		ImGui::SliderFloat("filter level", &laplacianBuffer.data.filterLevel, 0.0f, 1.0f);
+		ImGui::SliderFloat("kernel 1", &laplacianBuffer->kernel1, -1.0f, 1.0f);
+		ImGui::SliderFloat("kernel 2", &laplacianBuffer->kernel2, -1.0f, 1.0f);
+		ImGui::SliderFloat("kernel 3", &laplacianBuffer->kernel3, -1.0f, 1.0f);
+		ImGui::SliderFloat("kernel 4", &laplacianBuffer->kernel4, -1.0f, 1.0f);
+		ImGui::SliderFloat("kernel 5", &laplacianBuffer->kernel5, -10.0f, 10.0f);
+		ImGui::SliderFloat("kernel 6", &laplacianBuffer->kernel6, -1.0f, 1.0f);
+		ImGui::SliderFloat("kernel 7", &laplacianBuffer->kernel7, -1.0f, 1.0f);
+		ImGui::SliderFloat("kernel 8", &laplacianBuffer->kernel8, -1.0f, 1.0f);
+		ImGui::SliderFloat("kernel 9", &laplacianBuffer->kernel9, -1.0f, 1.0f);
+		ImGui::SliderFloat("filter level", &laplacianBuffer->filterLevel, 0.0f, 1.0f);
 		ImGui::EndTabBar();
 	}
 
 	void BuildPrewittGUI()
 	{
 		ImGui::BeginTabBar("prewitt settings");
-		ImGui::SliderFloat("filter level", &prewittBuffer.data, 0.0f, 1.0f);
+		ImGui::SliderFloat("filter level", prewittBuffer, 0.0f, 1.0f);
 		ImGui::EndTabBar();
 	}
 
 	void BuildFreiChen()
 	{
 		ImGui::BeginTabBar("frei-chen settings");
-		ImGui::SliderFloat("filter level", &freiChenBuffer.data, 0.0f, 1.0f);
+		ImGui::SliderFloat("filter level", freiChenBuffer, 0.0f, 1.0f);
 		ImGui::EndTabBar();
 	}
 
 	void InitializeUniforms() override
 	{
 		scene::InitializeUniforms();
-		sobelBuffer.Initialize(1);
-		laplacianBuffer.Initialize(2);
-		prewittBuffer.Initialize(3);
-		freiChenBuffer.Initialize(4);
-	}
 
-	void Update() override
-	{
-		scene::Update();
-		switch (currentEdgeDetection)
-		{
-		case SOBEL:
-		{
-			defProgram.Use();
-			sobelBuffer.Update(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW);
-			break;
-		}
+		auto sobelBlock = &bufferHandler.uniformBlocks["sobelSettings"];
+		sobelBlock->SetPayload<sobelSettings_t>(sobelSettings_t());
+		sobelBuffer = sobelBlock->GetPayload<sobelSettings_t>();
 
-		case LAPLACIAN:
-		{
-			laplacianProgram.Use();
-			laplacianBuffer.Update(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW);
-			break;
-		}
+		auto prewittBlock = &bufferHandler.uniformBlocks["prewittSettings"];
+		prewittBlock->SetPayload<float>(float(0.25f));
+		prewittBuffer = prewittBlock->GetPayload<float>();
 
-		case PREWITT:
-		{
-			prewittProgram.Use();
-			prewittBuffer.Update(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW);
-			break;
-		}
+		auto laplacianBlock = &bufferHandler.uniformBlocks["laplacianSettings"];
+		laplacianBlock->SetPayload<laplacianSettings_t>(laplacianSettings_t());
+		laplacianBuffer = laplacianBlock->GetPayload<laplacianSettings_t>();
 
-		case FREI_CHEN:
-		{
-			freiChenProgram.Use();
-			freiChenBuffer.Update(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW);
-			break;
-		}
-		default: break;
-		}
+		auto freiChenBlock = &bufferHandler.uniformBlocks["freiChenSettings"];
+		freiChenBlock->SetPayload<float>(float(0.25f));
+		freiChenBuffer = freiChenBlock->GetPayload<float>();
 	}
 
 	void Draw() override //gotta love C++ :)
@@ -272,17 +235,15 @@ public:
 			break;
 		}
 		defaultTexture.SetActive(0);
-
 		glDrawArrays(GL_TRIANGLES, 0, 6);
-
 	}
 
 protected:
 
-	bufferHandler_t<sobelSettings_t>		sobelBuffer;
-	bufferHandler_t<laplacianSettings_t>	laplacianBuffer;
-	bufferHandler_t<float>					prewittBuffer;
-	bufferHandler_t<float>					freiChenBuffer;
+	sobelSettings_t*		sobelBuffer;
+	laplacianSettings_t*	laplacianBuffer;
+	float*					prewittBuffer;
+	float*					freiChenBuffer;
 
 	std::vector<const char*>				edgeDetectionSettings = { "sobel", "laplacian", "prewitt", "frei chen" };
 	int										currentEdgeDetection;

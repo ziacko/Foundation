@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include <textured.h>
@@ -16,29 +15,26 @@ class pixelizeScene final : public texturedScene
 {
 public:
 
-	explicit pixelizeScene(bufferHandler_t<pixellize_t> pixelSettings = bufferHandler_t<pixellize_t>(),
+	explicit pixelizeScene(
 		const texture defaultTexture = texture(),
 		const char* windowName = "Ziyad Barakat's portfolio (pixellize)",
 		const camera_t parallaxCamera = camera_t(),
 		const char* shaderConfigPath = SHADER_CONFIG_DIR) :
-		texturedScene(defaultTexture, windowName, parallaxCamera, shaderConfigPath)
-	{
-		this->pixelSettings = pixelSettings;
-	}
+		texturedScene(defaultTexture, windowName, parallaxCamera, shaderConfigPath) {}
 
-	~pixelizeScene() override {}
+	~pixelizeScene() override = default;
 
 protected:
 
-	bufferHandler_t<pixellize_t> pixelSettings;
+	pixellize_t* pixelSettings = nullptr;
 
 	void BuildGUI(tWindow* window, const ImGuiIO& io) override
 	{
 		texturedScene::BuildGUI(window, io);
 		if (ImGui::BeginTabItem("pixellize settings"))
 		{
-			ImGui::SliderFloat("pixel width", &pixelSettings.data.pixelWidth, 0.0f, 100.0f);
-			ImGui::SliderFloat("pixel height", &pixelSettings.data.pixelHeight, 0.0f, 100.0f);
+			ImGui::SliderFloat("pixel width", &pixelSettings->pixelWidth, 0.0f, 100.0f);
+			ImGui::SliderFloat("pixel height", &pixelSettings->pixelHeight, 0.0f, 100.0f);
 			ImGui::EndTabItem();
 		}
 	}
@@ -46,12 +42,8 @@ protected:
 	void InitializeUniforms() override
 	{
 		scene::InitializeUniforms();
-		pixelSettings.Initialize(1);
-	}
-
-	void Update() override
-	{
-		scene::Update();
-		pixelSettings.Update();
+		auto pixelBlock = &bufferHandler.uniformBlocks["pixelize"];
+		pixelBlock->SetPayload<pixellize_t>(pixellize_t());
+		pixelSettings = pixelBlock->GetPayload<pixellize_t>();
 	}
 };

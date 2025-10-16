@@ -9,7 +9,7 @@ class GOLCompute : public golScene
 public:
 	explicit GOLCompute(const char* windowName = "Ziyad Barakat's portfolio (game of life (compute)",
 	                    camera_t golCamera = camera_t(), const char* shaderConfigPath = SHADER_CONFIG_DIR)
-		: golScene(100.0f, 0.3, 666, 90, windowName, golCamera, shaderConfigPath)
+		: golScene(0.3, 666, 90, windowName, golCamera, shaderConfigPath)
 	{
 
 	}
@@ -47,6 +47,6 @@ protected:
 	void InitializeUniforms() override
 	{
 		golScene::InitializeUniforms();
-		cellBuffer.Update(GL_SHADER_STORAGE_BUFFER, GL_DYNAMIC_DRAW, sizeof(int) * cellBuffer.data.cells.size(), cellBuffer.data.cells.data());
+		//cellBuffer->Update(GL_SHADER_STORAGE_BUFFER, GL_DYNAMIC_DRAW, sizeof(int) * cellBuffer->cells.size(), cellBuffer->cells.data());
 	}
 };

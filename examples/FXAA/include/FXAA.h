@@ -45,8 +45,6 @@ public:
 		geometryBuffer = frameBuffer();
 		FXAABuffer = frameBuffer();
 
-		FXAA = bufferHandler_t<FXAASettings_t>();
-
 		this->camera.position.y -= 100.0f;
 	}
 
@@ -97,13 +95,7 @@ protected:
 
 	bool enableCompare = true;
 
-	bufferHandler_t<FXAASettings_t>		FXAA;
-
-	virtual void Update() override
-	{
-		scene3D::Update();
-		FXAA.Update();
-	}
+	FXAASettings_t*		FXAA = nullptr;
 
 	void Draw() override
 	{
@@ -207,11 +199,11 @@ protected:
 		if (ImGui::BeginTabItem("FXAA Settings"))
 		{
 			ImGui::Checkbox("enable Compare", &enableCompare);
-			ImGui::SliderFloat("Sub pixel drift", &FXAA.data.pixelShift, 0.0f, 1.0f, "%.1f");
-			ImGui::SliderFloat("vertex Offset", &FXAA.data.vxOffset, 0.0f, 1.0f, "%.3f");
-			ImGui::SliderFloat("max span", &FXAA.data.maxSpan, 0.0f, 10.0f, "%.1f");
-			ImGui::SliderFloat("reduce multiplier", &FXAA.data.reduceMul, 0.0f, 1.0f, "%.5f");
-			ImGui::SliderFloat("reduce minimizer", &FXAA.data.reduceMin, 0.0f, 1.0f, "%.8f");
+			ImGui::SliderFloat("Sub pixel drift", &FXAA->pixelShift, 0.0f, 1.0f, "%.1f");
+			ImGui::SliderFloat("vertex Offset", &FXAA->vxOffset, 0.0f, 1.0f, "%.3f");
+			ImGui::SliderFloat("max span", &FXAA->maxSpan, 0.0f, 10.0f, "%.1f");
+			ImGui::SliderFloat("reduce multiplier", &FXAA->reduceMul, 0.0f, 1.0f, "%.5f");
+			ImGui::SliderFloat("reduce minimizer", &FXAA->reduceMin, 0.0f, 1.0f, "%.8f");
 
 			ImGui::EndTabItem();
 		}
@@ -267,20 +259,22 @@ protected:
 
 	virtual void HandleWindowResize(const tWindow* window, const TinyWindow::vec2_t<uint16_t>& dimensions) override
 	{
-		defaultPayload.data.resolution = glm::ivec2(dimensions.width, dimensions.height);	
+		defaultPayload->resolution = glm::ivec2(dimensions.width, dimensions.height);
 		ResizeBuffers(glm::ivec2(dimensions.x, dimensions.y));
 	}
 
 	virtual void HandleMaximize(const tWindow* window) override
 	{
-		defaultPayload.data.resolution = glm::ivec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
-		ResizeBuffers(defaultPayload.data.resolution);
+		defaultPayload->resolution = glm::ivec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
+		ResizeBuffers(defaultPayload->resolution);
 	}
 
 	virtual void InitializeUniforms() override
 	{
 		scene3D::InitializeUniforms();
-		FXAA.Initialize(1);
+		auto fxaaBlock = &bufferHandler.uniformBlocks["fxaaSettings"];
+		fxaaBlock->SetPayload(FXAASettings_t());
+		FXAA = fxaaBlock->GetPayload<FXAASettings_t>();
 	}
 };
 #endif

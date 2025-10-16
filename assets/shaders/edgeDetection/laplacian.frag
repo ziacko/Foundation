@@ -9,7 +9,7 @@ in defaultBlock
 
 out vec4 outColor;
 
-layout(std140, binding = 0) uniform defaultSettings
+layout(std140) uniform defaultSettings
 {
 	mat4		projection;
 	mat4 		view;
@@ -22,7 +22,7 @@ layout(std140, binding = 0) uniform defaultSettings
 	uint 		totalFrames;
 };
 
-layout(std140, binding = 2) uniform laplacianSettings
+layout(std140) uniform laplacianSettings
 {
 	float		kernel1;
 	float		kernel2;

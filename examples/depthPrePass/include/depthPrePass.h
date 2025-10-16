@@ -14,8 +14,8 @@ public:
 		const model_t model = model_t("models/SoulSpear/SoulSpear.fbx"))
 		: scene3D(windowName, texModelCamera, shaderConfigPath, model)
 	{
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		// Control blending per pass instead of enabling it globally
+		glDisable(GL_BLEND);
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LEQUAL);
 		glHint(GL_GENERATE_MIPMAP_HINT, GL_NICEST);
@@ -88,21 +88,25 @@ protected:
 
 	virtual void EarlyDepthPass()
 	{
+		GL_PUSH_DEBUG_GROUP();
 		geometryBuffer.Bind();
+
+		// Depth pre-pass: depth-only rendering state
+		glDisable(GL_BLEND);
+		glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+		glDepthMask(GL_TRUE);
+		glDepthFunc(GL_LESS);
 
 		geometryBuffer.attachments["depth"].Draw();
 
-		//we just need the first LOd so only do the first 3 meshes
+		//we just need the first LOD so only do the first 3 meshes
 		for(auto iter : testModel.meshes)
 		{
 			if (iter.isCollision)
 			{
 				continue;
 			}
-			if (iter.textures.size() > 0)
-			{
-				iter.textures[0].SetActive(0);
-			}
+			// No material/texture binding needed for depth-only pass
 			//add the previous depth?
 
 			glBindVertexArray(iter.vertexArrayHandle);
@@ -122,18 +126,25 @@ protected:
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		}
 
-		geometryBuffer.attachments["depth"].SetActive(0);
-		geometryBuffer.attachments["depth"].BindTexture();
-		glGenerateMipmap(geometryBuffer.attachments["depth"].FBODesc.target);
-		geometryBuffer.attachments["depth"].UnbindTexture();
+		// Restore color writes for subsequent passes
+		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 		geometryBuffer.Unbind();
+
+		glPopDebugGroup();
 	}
 
 	virtual void GeometryPass()
 	{
+		GL_PUSH_DEBUG_GROUP();
 		geometryBuffer.Bind();
 
 		geometryBuffer.attachments["color"].Draw();
+
+		// Geometry/color pass: use depth from pre-pass
+		glDisable(GL_BLEND);
+		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+		glDepthMask(GL_FALSE);
+		glDepthFunc(GL_EQUAL);
 
 		//we just need the first LOd so only do the first 3 meshes
 		for (auto iter : testModel.meshes)
@@ -164,11 +175,17 @@ protected:
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		}
 
+		// Restore default depth state for any subsequent passes
+		glDepthMask(GL_TRUE);
+		glDepthFunc(GL_LEQUAL);
+
 		geometryBuffer.Unbind();
+		glPopDebugGroup();
 	}
 
 	void FinalPass(texture& tex1, texture& tex2)
 	{
+		GL_PUSH_DEBUG_GROUP();
 		//draw directly to backbuffer		
 		tex1.SetActive(0);
 
@@ -186,6 +203,7 @@ protected:
 		}
 
 		glDrawArrays(GL_TRIANGLES, 0, 6);
+		glPopDebugGroup();
 	}
 
 	void BuildGUI(tWindow* window, const ImGuiIO& io) override
@@ -228,14 +246,14 @@ protected:
 
 	virtual void HandleWindowResize(const tWindow* window, const TinyWindow::vec2_t<uint16_t>& dimensions) override
 	{
-		defaultPayload.data.resolution = glm::ivec2(dimensions.width, dimensions.height);
+		defaultPayload->resolution = glm::ivec2(dimensions.width, dimensions.height);
 		ResizeBuffers(glm::ivec2(dimensions.x, dimensions.y));
 	}
 
 	virtual void HandleMaximize(const tWindow* window) override
 	{
-		defaultPayload.data.resolution = glm::ivec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
-		ResizeBuffers(defaultPayload.data.resolution);
+		defaultPayload->resolution = glm::ivec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
+		ResizeBuffers(defaultPayload->resolution);
 	}
 };
 

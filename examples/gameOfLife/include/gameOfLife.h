@@ -25,7 +25,7 @@ public:
 		float			dimensions; // change to vec2 for more flexibility
 
 		explicit golSettings_t(
-			float dimensions = 10, glm::vec4 aliveColor = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f), //green
+			float dimensions = 100, glm::vec4 aliveColor = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f), //green
 			glm::vec4 deadColor = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f), //red
 			glm::vec4 emptyColor = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f)) //blue
 		{
@@ -61,7 +61,7 @@ public:
 		~cells_t() = default;
 	};
 
-	explicit golScene(float dimensions = 100.0f, GLdouble tickDelay = 0.1f, GLuint randomSeed = 666,
+	explicit golScene(GLdouble tickDelay = 0.1f, GLuint randomSeed = 666,
 		GLuint cellProbability = 90, const char* windowName = "Ziyad Barakat's portfolio (game of life)",
 		camera_t golCamera = camera_t(), const char* shaderConfigPath = SHADER_CONFIG_DIR)
 		: scene(windowName, golCamera, shaderConfigPath)
@@ -70,9 +70,7 @@ public:
 		this->randomSeed = randomSeed;
 		this->cellProbability = cellProbability;
 
-		//gol = bufferHandler_t<golSettings_t>(dimensions);
-		gol.data.dimensions = dimensions;
-		cellBuffer = bufferHandler_t<cells_t>(cells_t(this, dimensions));
+		//cellBuffer = new cells_t(this, dimensions);
 		cellDimensions = glm::vec2(0);
 		currentTickDelay = 0.0f;
 	}
@@ -81,8 +79,8 @@ public:
 
 protected:
 
-	bufferHandler_t<golSettings_t>		gol;
-	bufferHandler_t<cells_t>			cellBuffer;
+	golSettings_t*		gol;
+	cells_t*			cellBuffer;
 	GLdouble							tickDelay;
 	GLdouble							currentTickDelay;
 	GLuint								randomSeed;
@@ -93,8 +91,7 @@ protected:
 	void Update() override
 	{
 		scene::Update();
-		gol.Update();
-		cellBuffer.Update(GL_SHADER_STORAGE_BUFFER, GL_DYNAMIC_DRAW, sizeof(int) * cellBuffer.data.cells.size(), cellBuffer.data.cells.data());
+		//cellBuffer->Update(GL_SHADER_STORAGE_BUFFER, GL_DYNAMIC_DRAW, sizeof(int) * cellBuffer->cells.size(), cellBuffer->cells.data());
 		//UpdateBuffer(gol, gol->bufferHandle, sizeof(*gol), gl_uniform_buffer, gl_dynamic_draw);
 		//UpdateBuffer(cellBuffer->cells.data(), cellBuffer->bufferHandle, sizeof(int) * cellBuffer->cells.size(), gl_shader_storage_buffer, gl_dynamic_draw);
 		//UpdateDefaultBuffer();
@@ -114,7 +111,7 @@ protected:
 	void Draw() override
 	{
 		defProgram.Use();
-		glDrawArraysInstanced(GL_TRIANGLES, 0, 6, gol.data.dimensions * gol.data.dimensions);
+		glDrawArraysInstanced(GL_TRIANGLES, 0, 6, gol->dimensions * gol->dimensions);
 	}
 
 	void CheckNode(cellState_t CurrentState, unsigned int& neighborCount, unsigned int& deadNeighborCount)
@@ -146,11 +143,11 @@ protected:
 
 	void TickOver()
 	{
-		for (unsigned int cellIndex = 0; cellIndex < gol.data.dimensions * gol.data.dimensions; cellIndex++)
+		for (unsigned int cellIndex = 0; cellIndex < gol->dimensions * gol->dimensions; cellIndex++)
 		{
-			unsigned int column = cellIndex % (unsigned int)gol.data.dimensions;
-			unsigned int row = cellIndex / (unsigned int)gol.data.dimensions;
-			if (cellBuffer.data.cells[cellIndex] == EMPTY)
+			unsigned int column = cellIndex % (unsigned int)gol->dimensions;
+			unsigned int row = cellIndex / (unsigned int)gol->dimensions;
+			if (cellBuffer->cells[cellIndex] == EMPTY)
 			{
 				continue;
 			}
@@ -158,135 +155,135 @@ protected:
 			unsigned int neighborCount = 0;
 			unsigned int deadNeighborCount = 0;
 			//for convenience
-			unsigned int dimensionMinOne = (unsigned int)gol.data.dimensions - 1;
+			unsigned int dimensionMinOne = (unsigned int)gol->dimensions - 1;
 
-			if (cellIndex < gol.data.dimensions)
+			if (cellIndex < gol->dimensions)
 			{
 				//check if the Item is not in the last column
-				if (cellIndex % (unsigned int)gol.data.dimensions == 0)
+				if (cellIndex % (unsigned int)gol->dimensions == 0)
 				{
 					//next row, next column
-					CheckNode(cellBuffer.data.cells[cellIndex + dimensionMinOne + 1], neighborCount, deadNeighborCount);
+					CheckNode(cellBuffer->cells[cellIndex + dimensionMinOne + 1], neighborCount, deadNeighborCount);
 					//next row, this column
-					CheckNode(cellBuffer.data.cells[cellIndex + dimensionMinOne], neighborCount, deadNeighborCount);
+					CheckNode(cellBuffer->cells[cellIndex + dimensionMinOne], neighborCount, deadNeighborCount);
 					//this row, next column
-					CheckNode(cellBuffer.data.cells[cellIndex + 1], neighborCount, deadNeighborCount);
+					CheckNode(cellBuffer->cells[cellIndex + 1], neighborCount, deadNeighborCount);
 				}
 
 				//check if its the last column in the row
 				else if (cellIndex % dimensionMinOne == 0)
 				{
 					//next row, last column
-					CheckNode(cellBuffer.data.cells[(cellIndex + dimensionMinOne) - 1], neighborCount, deadNeighborCount);
+					CheckNode(cellBuffer->cells[(cellIndex + dimensionMinOne) - 1], neighborCount, deadNeighborCount);
 					//next row, this column
-					CheckNode(cellBuffer.data.cells[cellIndex + dimensionMinOne], neighborCount, deadNeighborCount);
+					CheckNode(cellBuffer->cells[cellIndex + dimensionMinOne], neighborCount, deadNeighborCount);
 					//this row, last column
-					CheckNode(cellBuffer.data.cells[cellIndex - 1], neighborCount, deadNeighborCount);
+					CheckNode(cellBuffer->cells[cellIndex - 1], neighborCount, deadNeighborCount);
 				}
 
 				else
 				{
 					//5 neighbors to consider
 					//this row, last column
-					CheckNode(cellBuffer.data.cells[cellIndex - 1], neighborCount, deadNeighborCount);
+					CheckNode(cellBuffer->cells[cellIndex - 1], neighborCount, deadNeighborCount);
 					//this row, next column
-					CheckNode(cellBuffer.data.cells[cellIndex + 1], neighborCount, deadNeighborCount);
+					CheckNode(cellBuffer->cells[cellIndex + 1], neighborCount, deadNeighborCount);
 					//next row, last column
-					CheckNode(cellBuffer.data.cells[(cellIndex + dimensionMinOne) - 1], neighborCount, deadNeighborCount);
+					CheckNode(cellBuffer->cells[(cellIndex + dimensionMinOne) - 1], neighborCount, deadNeighborCount);
 					//next row, this column
-					CheckNode(cellBuffer.data.cells[(cellIndex + dimensionMinOne)], neighborCount, deadNeighborCount);
+					CheckNode(cellBuffer->cells[(cellIndex + dimensionMinOne)], neighborCount, deadNeighborCount);
 					//next row, next column
-					CheckNode(cellBuffer.data.cells[(cellIndex + dimensionMinOne) + 1], neighborCount, deadNeighborCount);
+					CheckNode(cellBuffer->cells[(cellIndex + dimensionMinOne) + 1], neighborCount, deadNeighborCount);
 				}
 			}
 
 			//check if node is in the last row
 			else if (cellIndex >
-				(((gol.data.dimensions * gol.data.dimensions) - gol.data.dimensions) - 1)
-				&& cellIndex < ((gol.data.dimensions * gol.data.dimensions) - 1))
+				(((gol->dimensions * gol->dimensions) - gol->dimensions) - 1)
+				&& cellIndex < ((gol->dimensions * gol->dimensions) - 1))
 			{
 				//check if the column is a multiple of the dimension (the first column)
-				if ((cellIndex % (unsigned int)gol.data.dimensions) == 0)
+				if ((cellIndex % (unsigned int)gol->dimensions) == 0)
 				{
 					//last row, next column
-					CheckNode(cellBuffer.data.cells[(cellIndex - dimensionMinOne) + 1], neighborCount, deadNeighborCount); //lower middle node
+					CheckNode(cellBuffer->cells[(cellIndex - dimensionMinOne) + 1], neighborCount, deadNeighborCount); //lower middle node
 																									//last row, this column
-					CheckNode(cellBuffer.data.cells[cellIndex - dimensionMinOne], neighborCount, deadNeighborCount); //lower middle node
+					CheckNode(cellBuffer->cells[cellIndex - dimensionMinOne], neighborCount, deadNeighborCount); //lower middle node
 																							  //this row, next column
-					CheckNode(cellBuffer.data.cells[cellIndex + 1], neighborCount, deadNeighborCount); //lower middle node
+					CheckNode(cellBuffer->cells[cellIndex + 1], neighborCount, deadNeighborCount); //lower middle node
 				}
 
 				else if ((cellIndex % dimensionMinOne == 0))
 				{
 					//last row, this column
-					CheckNode(cellBuffer.data.cells[(cellIndex - dimensionMinOne)], neighborCount, deadNeighborCount); //lower middle node
+					CheckNode(cellBuffer->cells[(cellIndex - dimensionMinOne)], neighborCount, deadNeighborCount); //lower middle node
 																								//last row, last column
-					CheckNode(cellBuffer.data.cells[(cellIndex - dimensionMinOne) - 1], neighborCount, deadNeighborCount); //lower middle node
+					CheckNode(cellBuffer->cells[(cellIndex - dimensionMinOne) - 1], neighborCount, deadNeighborCount); //lower middle node
 																									//this row, last column
-					CheckNode(cellBuffer.data.cells[cellIndex - 1], neighborCount, deadNeighborCount); //lower middle node
+					CheckNode(cellBuffer->cells[cellIndex - 1], neighborCount, deadNeighborCount); //lower middle node
 				}
 
 				else
 				{
 					//5 neighbors to consider
 					//this row, last column
-					CheckNode(cellBuffer.data.cells[cellIndex - 1], neighborCount, deadNeighborCount);
+					CheckNode(cellBuffer->cells[cellIndex - 1], neighborCount, deadNeighborCount);
 					//this row, next column
-					CheckNode(cellBuffer.data.cells[cellIndex + 1], neighborCount, deadNeighborCount);
+					CheckNode(cellBuffer->cells[cellIndex + 1], neighborCount, deadNeighborCount);
 					//last row, last column
-					CheckNode(cellBuffer.data.cells[(cellIndex - dimensionMinOne) - 1], neighborCount, deadNeighborCount);
+					CheckNode(cellBuffer->cells[(cellIndex - dimensionMinOne) - 1], neighborCount, deadNeighborCount);
 					//last row, this column
-					CheckNode(cellBuffer.data.cells[(cellIndex - dimensionMinOne)], neighborCount, deadNeighborCount);
+					CheckNode(cellBuffer->cells[(cellIndex - dimensionMinOne)], neighborCount, deadNeighborCount);
 					//last row, next column
-					CheckNode(cellBuffer.data.cells[(cellIndex - dimensionMinOne) + 1], neighborCount, deadNeighborCount);
+					CheckNode(cellBuffer->cells[(cellIndex - dimensionMinOne) + 1], neighborCount, deadNeighborCount);
 				}
 			}
 
 			else
 			{
-				if (cellIndex < (gol.data.dimensions * gol.data.dimensions) - 1)
+				if (cellIndex < (gol->dimensions * gol->dimensions) - 1)
 				{
 					//8 neighbors to check
 					//last row, last column
-					CheckNode(cellBuffer.data.cells[(cellIndex - dimensionMinOne) - 1], neighborCount, deadNeighborCount);
+					CheckNode(cellBuffer->cells[(cellIndex - dimensionMinOne) - 1], neighborCount, deadNeighborCount);
 					//last row, this column
-					CheckNode(cellBuffer.data.cells[(cellIndex - dimensionMinOne)], neighborCount, deadNeighborCount);
+					CheckNode(cellBuffer->cells[(cellIndex - dimensionMinOne)], neighborCount, deadNeighborCount);
 					//last row, next column
-					CheckNode(cellBuffer.data.cells[(cellIndex - dimensionMinOne) + 1], neighborCount, deadNeighborCount);
+					CheckNode(cellBuffer->cells[(cellIndex - dimensionMinOne) + 1], neighborCount, deadNeighborCount);
 					//this row, last column
-					CheckNode(cellBuffer.data.cells[cellIndex - 1], neighborCount, deadNeighborCount);
+					CheckNode(cellBuffer->cells[cellIndex - 1], neighborCount, deadNeighborCount);
 					//this row, next column
-					CheckNode(cellBuffer.data.cells[cellIndex + 1], neighborCount, deadNeighborCount);
+					CheckNode(cellBuffer->cells[cellIndex + 1], neighborCount, deadNeighborCount);
 					//next row, last column
-					CheckNode(cellBuffer.data.cells[(cellIndex + dimensionMinOne) - 1], neighborCount, deadNeighborCount);
+					CheckNode(cellBuffer->cells[(cellIndex + dimensionMinOne) - 1], neighborCount, deadNeighborCount);
 					//next row, this column
-					CheckNode(cellBuffer.data.cells[(cellIndex + dimensionMinOne)], neighborCount, deadNeighborCount);
+					CheckNode(cellBuffer->cells[(cellIndex + dimensionMinOne)], neighborCount, deadNeighborCount);
 					//next row, next column
-					CheckNode(cellBuffer.data.cells[(cellIndex + dimensionMinOne) + 1], neighborCount, deadNeighborCount);
+					CheckNode(cellBuffer->cells[(cellIndex + dimensionMinOne) + 1], neighborCount, deadNeighborCount);
 				}
 			}
 
-			if (neighborCount < 2 && cellBuffer.data.cells[cellIndex] == ALIVE)
+			if (neighborCount < 2 && cellBuffer->cells[cellIndex] == ALIVE)
 			{
-				cellBuffer.data.cells[cellIndex] = DEAD;
+				cellBuffer->cells[cellIndex] = DEAD;
 			}
 
-			else if (neighborCount >= 2 && cellBuffer.data.cells[cellIndex] == ALIVE)
+			else if (neighborCount >= 2 && cellBuffer->cells[cellIndex] == ALIVE)
 			{
 				if (neighborCount > 3)
 				{
-					cellBuffer.data.cells[cellIndex] = DEAD;
+					cellBuffer->cells[cellIndex] = DEAD;
 				}
 
 				else
 				{
-					cellBuffer.data.cells[cellIndex] = ALIVE;
+					cellBuffer->cells[cellIndex] = ALIVE;
 				}
 			}
 
-			else if (neighborCount == 3 && cellBuffer.data.cells[cellIndex] == DEAD)
+			else if (neighborCount == 3 && cellBuffer->cells[cellIndex] == DEAD)
 			{
-				cellBuffer.data.cells[cellIndex] = ALIVE;
+				cellBuffer->cells[cellIndex] = ALIVE;
 			}
 		}
 	}
@@ -294,27 +291,30 @@ protected:
 	void InitializeUniforms() override 
 	{
 		scene::InitializeUniforms();
-		gol.Initialize(1);
-		cellBuffer.Initialize(0, GL_SHADER_STORAGE_BUFFER);
-		//SetupBuffer(gol, gol->bufferHandle, sizeof(*gol), 1, gl_uniform_buffer, gl_dynamic_draw);
-		//SetupBuffer(cellBuffer, cellBuffer->bufferHandle, GLuint(sizeof(int) * cellBuffer->cells.size()), 0, gl_shader_storage_buffer, gl_dynamic_draw);
-		cellDimensions = glm::vec2(defaultPayload.data.resolution.x / gol.data.dimensions, defaultPayload.data.resolution.y / gol.data.dimensions);
+		auto golBlock = &bufferHandler.uniformBlocks["GOLSettings"];
+		golBlock->SetPayload<golSettings_t>(golSettings_t());
+		gol = golBlock->GetPayload<golSettings_t>();
 
+		auto cellBlock = &bufferHandler.shaderStorageBlocks["GOLStatus"];
+		auto cells = cells_t(this, gol->dimensions);
+		cellBlock->SetPayloadCustom<cells_t>(cells, GLuint(sizeof(int) * cells.cells.size()));
+		cellBuffer = cellBlock->GetPayload<cells_t>();
+
+		cellDimensions = glm::vec2(defaultPayload->resolution.x / gol->dimensions, defaultPayload->resolution.y / gol->dimensions);
 		defaultVertexBuffer.SetupCustom((cellDimensions));
 	}
 
 	virtual void Resize(const tWindow* window, glm::ivec2 dimensions = glm::ivec2(0)) override
 	{
 		glViewport(0, 0, window->GetSettings().resolution.x, window->GetSettings().resolution.y);
-		defaultPayload.data.resolution = glm::ivec2(window->GetSettings().resolution.x, window->GetSettings().resolution.y);
-		defaultPayload.data.projection = glm::ortho(0.0f, (GLfloat)window->GetSettings().resolution.x, (GLfloat)window->GetSettings().resolution.y, 0.0f, 0.01f, 10.0f);
-		cellDimensions = glm::ivec2(defaultPayload.data.resolution.x / gol.data.dimensions, defaultPayload.data.resolution.y / gol.data.dimensions);
+		defaultPayload->resolution = glm::ivec2(window->GetSettings().resolution.x, window->GetSettings().resolution.y);
+		defaultPayload->projection = glm::ortho(0.0f, (GLfloat)window->GetSettings().resolution.x, (GLfloat)window->GetSettings().resolution.y, 0.0f, 0.01f, 10.0f);
+		cellDimensions = glm::ivec2(defaultPayload->resolution.x / gol->dimensions, defaultPayload->resolution.y / gol->dimensions);
 
-		defaultPayload.Update(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW);
 		//UpdateBuffer(defaultUniform, defaultUniform->bufferHandle, sizeof(*defaultUniform), gl_uniform_buffer, gl_dynamic_draw);
 		if (dimensions == glm::ivec2(0))
 		{
-			defaultVertexBuffer.UpdateBuffer(defaultPayload.data.resolution);
+			defaultVertexBuffer.UpdateBuffer(defaultPayload->resolution);
 		}
 
 		else

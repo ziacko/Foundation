@@ -7,7 +7,7 @@ in defaultBlock
 	vec2 fullUV;
 } inBlock;
 
-layout(std140, binding = 0) uniform defaultSettings
+layout(std140) uniform defaultSettings
 {
 	mat4		projection;
 	mat4		view;
@@ -20,7 +20,7 @@ layout(std140, binding = 0) uniform defaultSettings
 	uint		totalFrames;
 };
 
-layout(std140, binding = 1) uniform pixelizeSettings
+layout(std140) uniform pixelize
 {
 	float		pixelWidth;
 	float		pixelHeight;
@@ -28,7 +28,7 @@ layout(std140, binding = 1) uniform pixelizeSettings
 
 out vec4 outColor;
 
-uniform sampler2D defaultTexture;
+layout(binding = 0) uniform sampler2D defaultTexture;
 
 void main()
 {

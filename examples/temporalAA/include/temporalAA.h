@@ -116,22 +116,13 @@ public:
 
 		this->camera.position.y -= 100.0f;
 
-		//soulspear is loaded at an awkward angle so let's hack this
-		//this->camera.Roll(glm::radians(270.0f));
-		//this->camera.Pitch(glm::radians(180.0f));
-
 		geometryBuffer = new frameBuffer();
 		unJitteredBuffer = new frameBuffer();
-		//sharpenBuffer = new frameBuffer();
 
-		velocityUniforms = bufferHandler_t<reprojectSettings_t>();
-		taaUniforms = bufferHandler_t<TAASettings_t>();
-		sharpenSettings = bufferHandler_t<sharpenSettings_t>();
-		jitterUniforms = bufferHandler_t<jitterSettings_t>();
-
+		jitterUniforms = new jitterSettings_t();
 		for (int iter = 0; iter < 128; iter++)
 		{
-			jitterUniforms.data.haltonSequence[iter] = glm::vec2(CreateHaltonSequence(iter + 1, 2), CreateHaltonSequence(iter + 1, 3));
+			jitterUniforms->haltonSequence[iter] = glm::vec2(CreateHaltonSequence(iter + 1, 2), CreateHaltonSequence(iter + 1, 3));
 		}
 		//glGenQueries(1, &defaultQuery);
 		//glGenQueries(1, &TAAQuery);
@@ -225,17 +216,16 @@ protected:
 
 	GLuint numPrevFrames = 2; //don't need this right now
 
-	bufferHandler_t<reprojectSettings_t>	velocityUniforms;
-
-	bufferHandler_t<TAASettings_t>			taaUniforms;
+	reprojectSettings_t*	reprojectUniforms;
+	TAASettings_t*			taaUniforms;
 
 	std::vector<const char*>				TAAResolveSettings = { "SMAA", "Inside", "Inside2", "Custom", "Experimental" };
 	bool enableCompare = true;
 
-	bufferHandler_t<sharpenSettings_t>		sharpenSettings;
+	sharpenSettings_t*		sharpenSettings;
 	bool enableSharpen = false;
 
-	bufferHandler_t<jitterSettings_t>		jitterUniforms;
+	jitterSettings_t*		jitterUniforms;
 
 	bool currentFrame = 0;
 
@@ -245,16 +235,12 @@ protected:
 	{
 		scene::Update();
 
-		taaUniforms.Update();
-		sharpenSettings.Update();
-		jitterUniforms.Update();
-
-		currentFrame = ((defaultPayload.data.totalFrames % 2) == 0) ? 0 : 1;//if even frame then write to 1 and read from 0 and vice versa
+		currentFrame = ((defaultPayload->totalFrames % 2) == 0) ? 0 : 1;//if even frame then write to 1 and read from 0 and vice versa
 	}
 
 	virtual void Draw() override
 	{
-		velocityUniforms.data.currentView = camera.view; //need to update the current view matrix
+		reprojectUniforms->currentView = camera.view; //need to update the current view matrix
 		camera.ChangeProjection(camera_t::projection_e::perspective);
 		camera.Update();
 
@@ -423,8 +409,8 @@ protected:
 		{
 			ImGui::Checkbox("enable sharpen", &enableSharpen);
 
-			ImGui::SliderFloat("kernel 1", &sharpenSettings.data.kernel1, -1.0f, 1.0f);
-			ImGui::SliderFloat("kernel 5", &sharpenSettings.data.kernel2, 0.0f, 10.0f, "%.5f", 1.0f);
+			ImGui::SliderFloat("kernel 1", &sharpenSettings->kernel1, -1.0f, 1.0f);
+			ImGui::SliderFloat("kernel 5", &sharpenSettings->kernel2, 0.0f, 10.0f, "%.5f", 1.0f);
 
 			ImGui::EndTabItem();
 		}
@@ -436,22 +422,22 @@ protected:
 		{
 			//ImGui::Text("performance | %f", defaultTimer->GetTimeMilliseconds());
 			ImGui::Checkbox("enable Compare", &enableCompare);
-			ImGui::SliderFloat("feedback factor", &taaUniforms.data.feedbackFactor, 0.0f, 1.0f);
-			ImGui::InputFloat("max depth falloff", &taaUniforms.data.maxDepthFalloff, 0.01f);
+			ImGui::SliderFloat("feedback factor", &taaUniforms->feedbackFactor, 0.0f, 1.0f);
+			ImGui::InputFloat("max depth falloff", &taaUniforms->maxDepthFalloff, 0.01f);
 
 			//velocity settings
 			ImGui::Separator();
 			ImGui::SameLine();
 			ImGui::Text("Velocity settings");
-			ImGui::SliderFloat("Velocity scale", &taaUniforms.data.velocityScale, 0.0f, 10.0f);
+			ImGui::SliderFloat("Velocity scale", &taaUniforms->velocityScale, 0.0f, 10.0f);
 
 			//jitter settings
 			ImGui::Separator();
 			//ImGui::SameLine();
-			ImGui::DragFloat("halton scale", &jitterUniforms.data.haltonScale, 0.1f, 0.0f, 15.0f, "%.3f");
-			ImGui::DragInt("halton index",  &jitterUniforms.data.haltonIndex, 1.0f, 0, 128);
-			ImGui::DragInt("enable dithering", &jitterUniforms.data.enableDithering, 1.0f, 0, 1);
-			ImGui::DragFloat("dithering scale", &jitterUniforms.data.ditheringScale, 1.0f, 0.0f, 1000.0f, "%.3f");
+			ImGui::DragFloat("halton scale", &jitterUniforms->haltonScale, 0.1f, 0.0f, 15.0f, "%.3f");
+			ImGui::DragInt("halton index",  &jitterUniforms->haltonIndex, 1.0f, 0, 128);
+			ImGui::DragInt("enable dithering", &jitterUniforms->enableDithering, 1.0f, 0, 1);
+			ImGui::DragFloat("dithering scale", &jitterUniforms->ditheringScale, 1.0f, 0.0f, 1000.0f, "%.3f");
 
 			ImGui::EndTabItem();
 		}
@@ -515,10 +501,9 @@ protected:
 		unJitteredBuffer->Unbind();
 
 		camera.ChangeProjection(camera_t::projection_e::perspective);
-		velocityUniforms.data.previousProjection = camera.projection;
-		velocityUniforms.data.previousView = camera.view;
-		velocityUniforms.data.prevTranslation = testModel.makeTransform(); //could be jittering the camera instead of the geometry?
-		velocityUniforms.Update();
+		reprojectUniforms->previousProjection = camera.projection;
+		reprojectUniforms->previousView = camera.view;
+		reprojectUniforms->prevTranslation = testModel.makeTransform(); //could be jittering the camera instead of the geometry?
 
 		glPopDebugGroup();
 	}
@@ -548,23 +533,35 @@ protected:
 
 	virtual void HandleWindowResize(const tWindow* window, const tw::vec2_t<uint16_t>& dimensions) override
 	{
-		defaultPayload.data.resolution = glm::ivec2(dimensions.width, dimensions.height);	
+		defaultPayload->resolution = glm::ivec2(dimensions.width, dimensions.height);
 		ResizeBuffers(glm::ivec2(dimensions.x, dimensions.y));
 	}
 
 	virtual void HandleMaximize(const tWindow* window) override
 	{
-		defaultPayload.data.resolution = glm::ivec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
-		ResizeBuffers(defaultPayload.data.resolution);
+		defaultPayload->resolution = glm::ivec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
+		ResizeBuffers(defaultPayload->resolution);
 	}
 
 	virtual void InitializeUniforms() override
 	{
 		scene3D::InitializeUniforms();
-		velocityUniforms.Initialize(1);
-		taaUniforms.Initialize(2);
-		sharpenSettings.Initialize(3);
-		jitterUniforms.Initialize(4);
+
+		auto taaBlock = &bufferHandler.uniformBlocks["taaSettings"];
+		taaBlock->SetPayload(TAASettings_t());
+		taaUniforms = taaBlock->GetPayload<TAASettings_t>();
+
+		//auto sharpenBlock = &bufferHandler.uniformBlocks["sharpenSettings"];
+		//sharpenBlock->SetPayload<sharpenSettings_t>(sharpenSettings_t());
+		//sharpenSettings = sharpenBlock->GetPayload<sharpenSettings_t>();
+
+		auto jitterBlock = &bufferHandler.uniformBlocks["jitterSettings"];
+		jitterBlock->SetPayload(*jitterUniforms);
+		jitterUniforms = jitterBlock->GetPayload<jitterSettings_t>();
+
+		auto reprojectBlock = &bufferHandler.uniformBlocks["reprojectSettings"];
+		reprojectBlock->SetPayload(reprojectSettings_t());
+		reprojectUniforms = reprojectBlock->GetPayload<reprojectSettings_t>();
 	}
 };
 

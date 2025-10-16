@@ -32,16 +32,16 @@ struct perlinSettings_t//	: public uniformBuffer_t
 	float			patternValue11;//4.0
 
 
-	perlinSettings_t(GLfloat modValue = 289.0f, GLfloat permuteValue = 29.33f,
-		GLfloat taylorInverse = 1.79284291400159f, GLfloat fadeValue1 = 6.0f, GLfloat fadeValue2 = 15.0f,
-		GLfloat fadeValue3 = 10.0f, GLuint numOctaves = 4,
-		GLuint colorBias = 2,
-		GLfloat noiseValue = 79.66f, GLfloat noiseValue2 = 5.6f,
+	explicit perlinSettings_t(GLfloat modValue = 289.0f, GLfloat permuteValue = 29.33f,
+	                          GLfloat taylorInverse = 1.79284291400159f, GLfloat fadeValue1 = 6.0f, GLfloat fadeValue2 = 15.0f,
+	                          GLfloat fadeValue3 = 10.0f, GLuint numOctaves = 4,
+	                          GLuint colorBias = 2,
+	                          GLfloat noiseValue = 79.66f, GLfloat noiseValue2 = 5.6f,
 
-		GLfloat patternValue1 = 2.5f, GLfloat patternValue2 = 0.4f, GLfloat patternValue3 = 5.2f,
-		GLfloat patternValue4 = 1.3f, GLfloat patternValue5 = 4.0f, GLfloat patternValue6 = 1.7f,
-		GLfloat patternValue7 = 9.2f, GLfloat patternValue8 = 4.0f, GLfloat patternValue9 = 8.3f,
-		GLfloat patternValue10 = 2.8f, GLfloat	patternValue11 = 2.02f)
+	                          GLfloat patternValue1 = 2.5f, GLfloat patternValue2 = 0.4f, GLfloat patternValue3 = 5.2f,
+	                          GLfloat patternValue4 = 1.3f, GLfloat patternValue5 = 4.0f, GLfloat patternValue6 = 1.7f,
+	                          GLfloat patternValue7 = 9.2f, GLfloat patternValue8 = 4.0f, GLfloat patternValue9 = 8.3f,
+	                          GLfloat patternValue10 = 2.8f, GLfloat	patternValue11 = 2.02f)
 	{
 		this->modValue = modValue;
 		this->permuteValue = permuteValue;
@@ -79,12 +79,11 @@ class heatHazeScene : public bubbleScene
 {
 public:
 	explicit heatHazeScene(
-		bufferHandler_t<bubbleSettings_t> bubbleSettings = bufferHandler_t<bubbleSettings_t>(),
 		texture defaultTexture = texture(),
 		const char* windowName = "Ziyad Barakat's Portfolio ( heat haze )",		
 		camera_t bubbleCamera = camera_t(),
 		const char* shaderConfigPath = SHADER_CONFIG_DIR, GLfloat attenuation = 1.0f,
-		GLfloat offset = 1.0f) : bubbleScene(bubbleSettings, defaultTexture, windowName, bubbleCamera, shaderConfigPath)
+		GLfloat offset = 1.0f) : bubbleScene(defaultTexture, windowName, bubbleCamera, shaderConfigPath)
 	{
 
 		//this->bubble = bubbleSettings;
@@ -114,12 +113,7 @@ public:
 		defProgram = shaderProgramsMap["perlin"];
 		heatHazeProgram = shaderProgramsMap["heat"];
 
-		scene::InitializeUniforms();
-		bubble.Initialize(2);
-		perlin.Initialize(1);
-
-
-		
+		InitializeUniforms();
 		SetupVertexBuffer();
 	}
 
@@ -142,44 +136,44 @@ protected:
 		{
 			ImGui::Checkbox("enable wireframe", &enableWireframe);
 
-			ImGui::SliderFloat("Attenuation", &bubble.data.attenuation, 0.0f, 1.0f);
-			ImGui::SliderFloat("grid dimensions", &bubble.data.gridDimensions, 0.0f, 1000.0f, "%.0f");
-			ImGui::SliderFloat("offset", &bubble.data.offset, 0.0f, 1.0f);
+			ImGui::SliderFloat("Attenuation", &bubble->attenuation, 0.0f, 1.0f);
+			ImGui::SliderFloat("grid dimensions", &bubble->gridDimensions, 0.0f, 1000.0f, "%.0f");
+			ImGui::SliderFloat("offset", &bubble->offset, 0.0f, 1.0f);
 
 			AddGUISpacer();
 
-			ImGui::SliderFloat2("UV offset", &perlin.data.uvOffset[0], 0.0f, 10.0f);
-			ImGui::SliderFloat2("UV scale", &perlin.data.uvScale[0], 100.0f, 1.0f);
-			ImGui::SliderFloat("modifier value", &perlin.data.modValue, 0.0f, 1000.0f);
-			ImGui::SliderFloat("permutation value", &perlin.data.permuteValue, 0.0f, 100.0f);
-			ImGui::SliderFloat("taylor inverse", &perlin.data.taylorInverse, 0.0f, 10.0f);
+			ImGui::SliderFloat2("UV offset", &perlin->uvOffset[0], 0.0f, 10.0f);
+			ImGui::SliderFloat2("UV scale", &perlin->uvScale[0], 100.0f, 1.0f);
+			ImGui::SliderFloat("modifier value", &perlin->modValue, 0.0f, 1000.0f);
+			ImGui::SliderFloat("permutation value", &perlin->permuteValue, 0.0f, 100.0f);
+			ImGui::SliderFloat("taylor inverse", &perlin->taylorInverse, 0.0f, 10.0f);
 
 			AddGUISpacer();
 
-			ImGui::SliderFloat("fade value 1", &perlin.data.fadeValue1, 0.0f, 100.0f);
-			ImGui::SliderFloat("fade value 2", &perlin.data.fadeValue2, 0.0f, 100.0f);
-			ImGui::SliderFloat("fade value 3", &perlin.data.fadeValue3, 0.0f, 100.0f);
+			ImGui::SliderFloat("fade value 1", &perlin->fadeValue1, 0.0f, 100.0f);
+			ImGui::SliderFloat("fade value 2", &perlin->fadeValue2, 0.0f, 100.0f);
+			ImGui::SliderFloat("fade value 3", &perlin->fadeValue3, 0.0f, 100.0f);
 
 			AddGUISpacer();
 
-			ImGui::SliderInt("num octaves", &perlin.data.numOctaves, 0, 100);
+			ImGui::SliderInt("num octaves", &perlin->numOctaves, 0, 100);
 
 			AddGUISpacer();
 
-			ImGui::SliderInt("color bias", &perlin.data.colorBias, 0, 100);
+			ImGui::SliderInt("color bias", &perlin->colorBias, 0, 100);
 
 			AddGUISpacer();
-			ImGui::SliderFloat("pattern value 1", &perlin.data.patternValue1, 0.0f, 10.0f);
-			ImGui::SliderFloat("pattern value 2", &perlin.data.patternValue2, 0.0f, 10.0f);
-			ImGui::SliderFloat("pattern value 3", &perlin.data.patternValue3, 0.0f, 10.0f);
-			ImGui::SliderFloat("pattern value 4", &perlin.data.patternValue4, 0.0f, 10.0f);
-			ImGui::SliderFloat("pattern value 5", &perlin.data.patternValue5, 0.0f, 10.0f);
-			ImGui::SliderFloat("pattern value 6", &perlin.data.patternValue6, 0.0f, 10.0f);
-			ImGui::SliderFloat("pattern value 7", &perlin.data.patternValue7, 0.0f, 10.0f);
-			ImGui::SliderFloat("pattern value 8", &perlin.data.patternValue8, 0.0f, 10.0f);
-			ImGui::SliderFloat("pattern value 9", &perlin.data.patternValue9, 0.0f, 10.0f);
-			ImGui::SliderFloat("pattern value 10", &perlin.data.patternValue10, 0.0f, 10.0f);
-			ImGui::SliderFloat("pattern value 11", &perlin.data.patternValue11, 0.0f, 10.0f);
+			ImGui::SliderFloat("pattern value 1", &perlin->patternValue1, 0.0f, 10.0f);
+			ImGui::SliderFloat("pattern value 2", &perlin->patternValue2, 0.0f, 10.0f);
+			ImGui::SliderFloat("pattern value 3", &perlin->patternValue3, 0.0f, 10.0f);
+			ImGui::SliderFloat("pattern value 4", &perlin->patternValue4, 0.0f, 10.0f);
+			ImGui::SliderFloat("pattern value 5", &perlin->patternValue5, 0.0f, 10.0f);
+			ImGui::SliderFloat("pattern value 6", &perlin->patternValue6, 0.0f, 10.0f);
+			ImGui::SliderFloat("pattern value 7", &perlin->patternValue7, 0.0f, 10.0f);
+			ImGui::SliderFloat("pattern value 8", &perlin->patternValue8, 0.0f, 10.0f);
+			ImGui::SliderFloat("pattern value 9", &perlin->patternValue9, 0.0f, 10.0f);
+			ImGui::SliderFloat("pattern value 10", &perlin->patternValue10, 0.0f, 10.0f);
+			ImGui::SliderFloat("pattern value 11", &perlin->patternValue11, 0.0f, 10.0f);
 			ImGui::EndTabItem();
 		}
 
@@ -192,47 +186,32 @@ protected:
 
 	}
 
-	frameBuffer* perlinBuffer;
-	bufferHandler_t<perlinSettings_t>			perlin;
-	shaderProgram_t								heatHazeProgram;
-	vertexBuffer_t								perlinVBuffer;
+	frameBuffer*		perlinBuffer;
+	perlinSettings_t*	perlin = nullptr;
+	shaderProgram_t		heatHazeProgram;
+	vertexBuffer_t		perlinVBuffer;
 
 	void InitializeUniforms() override
 	{
-		scene::InitializeUniforms();
-		bubble.Initialize(1);
-		perlin.Initialize(2);
+		bubbleScene::InitializeUniforms();
+
+		auto perlinBlock = &bufferHandler.uniformBlocks["perlinSettings"];
+		perlinBlock->SetPayload<perlinSettings_t>(perlinSettings_t());
+		perlin = perlinBlock->GetPayload<perlinSettings_t>();
 	}
 
-	void SetupVertexBuffer()
+	void SetupVertexBuffer() override
 	{
-
 		defaultVertexBuffer.SetupDefault();
 		perlinVBuffer.SetupDefault();
-		/*GLfloat cellWidth = defaultPayload.data.resolution.x / bubble.data.gridDimensions;
-		GLfloat cellHeight = defaultPayload.data.resolution.y / bubble.data.gridDimensions;
-
-		defaultVertexBuffer.SetupCustom(glm::vec2(cellWidth, cellHeight));
-
-		perlinVBuffer.SetupCustom(defaultPayload.data.resolution);*/
 	}
 
-	virtual void Update() override
-	{
-		scene::Update();
-		bubble.Update();
-		perlin.Update();
-	}
-
-	void PerlinPass()
+	void PerlinPass() const
 	{
 		perlinBuffer->Bind();
-
 		perlinBuffer->attachments["perlin"].Draw();
-
 		defProgram.Use();
 		glDrawArrays(GL_TRIANGLES, 0, 6);
-
 		perlinBuffer->Unbind();
 	}
 
@@ -275,16 +254,16 @@ protected:
 
 	virtual void HandleWindowResize(const tWindow* window, const TinyWindow::vec2_t<uint16_t>& dimensions) override
 	{
-		defaultPayload.data.resolution = glm::ivec2(dimensions.width, dimensions.height);
+		defaultPayload->resolution = glm::ivec2(dimensions.width, dimensions.height);
 		ResizeBuffers(glm::ivec2(dimensions.x, dimensions.y));
 		Resize(window, glm::ivec2(dimensions.x, dimensions.y));
 	}
 
 	virtual void HandleMaximize(const tWindow* window) override
 	{
-		defaultPayload.data.resolution = glm::ivec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
-		ResizeBuffers(defaultPayload.data.resolution);
-		Resize(window, defaultPayload.data.resolution);
+		defaultPayload->resolution = glm::ivec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
+		ResizeBuffers(defaultPayload->resolution);
+		Resize(window, defaultPayload->resolution);
 	}
 
 	virtual void Resize(const tWindow* window, glm::ivec2 dimensions = glm::ivec2(0)) override

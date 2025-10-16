@@ -10,8 +10,8 @@ struct radialBlur_t
 	GLfloat		weight;
 	int			samples;
 
-	radialBlur_t(GLfloat exposure = 0.01f, GLfloat decay = 0.975f, GLfloat density = 0.00005f,
-		GLfloat weight = 1.0f, GLuint samples = 100)
+	explicit radialBlur_t(const GLfloat exposure = 0.01f, const GLfloat decay = 0.975f, const GLfloat density = 0.0005f,
+	                      const GLfloat weight = 1.0f, const GLuint samples = 100)
 	{
 		this->exposure = exposure;
 		this->decay = decay;
@@ -20,49 +20,48 @@ struct radialBlur_t
 		this->samples = samples;
 	}
 
-	~radialBlur_t( void ){};
+	~radialBlur_t() = default;
 };
 
-class radialScene : public texturedScene
+class radialScene final : public texturedScene
 {
 public:
-
-	radialScene(bufferHandler_t<radialBlur_t> radial = bufferHandler_t<radialBlur_t>(),
-		texture defaultTexture = texture(),
-		const char* windowName = "Ziyad Barakat's Portfolio (radial blur)",
-		camera_t radialCamera = camera_t(),
-		const char* shaderConfigPath = SHADER_CONFIG_DIR) :
+	explicit radialScene(const texture defaultTexture = texture(),
+						 const char* windowName = "Ziyad Barakat's Portfolio (radial blur)",
+						 const camera_t radialCamera = camera_t(),
+						 const char* shaderConfigPath = SHADER_CONFIG_DIR) :
 		texturedScene(defaultTexture, windowName, radialCamera, shaderConfigPath)
 	{
-		this->radialBlur = radial;
 	}
 
-	~radialScene(){};
+	~radialScene() override {};
 
 protected:
 
-	bufferHandler_t<radialBlur_t>		radialBlur;
+	radialBlur_t*		radialBlur = nullptr;
 
 	void BuildGUI(tWindow* window, const ImGuiIO& io) override
 	{
 		texturedScene::BuildGUI(window, io);
-		//ImGui::SliderFloat("exposure", &radialBlur.data.exposure, 0.0f, 1.0f);
-		//ImGui::SliderFloat("decay", &radialBlur.data.decay, 0.0f, 1.0f);
-		//ImGui::SliderFloat("density", &radialBlur.data.density, 0.0f, 0.01f, "%.10f", 100.0f);
-		//ImGui::SliderFloat("weight", &radialBlur.data.weight, 0.0f, 10.0f);
-		//ImGui::SliderInt("samples", &radialBlur.data.samples, 0, 1000);
+		if (ImGui::BeginTabItem("radial blur settings"))
+		{
+			ImGui::SliderFloat("exposure", &radialBlur->exposure, 0.0f, 1.0f);
+			ImGui::SliderFloat("decay", &radialBlur->decay, 0.0f, 1.0f);
+			//ImGui::SliderFloat("density", &radialBlur->density, 0.0f, 1.0f, "%.5f", 100.0f);
+			ImGui::SliderFloat("weight", &radialBlur->weight, 0.0f, 10.0f);
+			ImGui::SliderInt("samples", &radialBlur->samples, 0, 1000);
+
+			ImGui::EndTabItem();
+		}
 	}
 
 	void InitializeUniforms() override
 	{
 		scene::InitializeUniforms();
-		radialBlur.Initialize(1);
+		const auto radialBlock = &bufferHandler.uniformBlocks["radialSettings"];
+		radialBlock->SetPayload<radialBlur_t>(radialBlur_t());
+		radialBlur = radialBlock->GetPayload<radialBlur_t>();
 	}
 
-	void Update() override
-	{
-		scene::Update();
-		radialBlur.Update();
-	}
 };
 #endif

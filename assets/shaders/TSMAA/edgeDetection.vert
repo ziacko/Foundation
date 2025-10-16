@@ -37,7 +37,7 @@ out edgeBlock
     noperspective vec4 offset[3];
 } outEdge;
 
-layout(std140, binding = 0) uniform defaultSettings
+layout(std140) uniform defaultSettings
 {
 	mat4		projection;
 	mat4		view;
@@ -50,7 +50,7 @@ layout(std140, binding = 0) uniform defaultSettings
 	uint		totalFrames;
 };
 
-layout(std140, binding = 1) uniform SMAASettings
+layout(std140) uniform SMAASettings
 {
 	vec4 		rtMetrics;
 	float		inThreshold;

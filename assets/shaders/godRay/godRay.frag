@@ -8,7 +8,7 @@ in defaultBlock
 
 layout(location = 0) out vec4 outColor;
 
-layout(std140, binding = 0) uniform defaultSettings
+layout(std140) uniform defaultSettings
 {
 	mat4		projection;
 	mat4		view;
@@ -21,7 +21,7 @@ layout(std140, binding = 0) uniform defaultSettings
 	uint		totalFrames;
 };
 
-layout(binding = 1) uniform godRaySettings
+uniform godRaySettings
 {
     vec4 lightPosition;
     float decay;

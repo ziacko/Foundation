@@ -17,7 +17,6 @@ public:
 	                         const char* shaderConfigPath = SHADER_CONFIG_DIR)
 		: textureSettingsScene(defaultTexture, windowName, edgeCamera, shaderConfigPath)
 	{
-		mip = bufferHandler_t<mipSettings_t>();
 	}
 
 	void Initialize() override
@@ -34,22 +33,18 @@ public:
 
 		//mip.data.level = 10.0f;
 
-		ImGui::SliderFloat("mip level", &mip.data.level, 0, 10);
+		ImGui::SliderFloat("mip level", &mip->level, 0, 10);
 	}
 
 	void InitializeUniforms() override
 	{
 		scene::InitializeUniforms();
-		mip.Initialize(1);
-	}
-
-	void Update() override
-	{
-		scene::Update();
-		mip.Update();
+		auto mipBlock = &bufferHandler.uniformBlocks["mipSettings"];
+		mipBlock->SetPayload<mipSettings_t>(mipSettings_t());
+		mip = mipBlock->GetPayload<mipSettings_t>();
 	}
 
 protected:
-	bufferHandler_t<mipSettings_t> mip;
+	mipSettings_t* mip = nullptr;
 };
 #endif

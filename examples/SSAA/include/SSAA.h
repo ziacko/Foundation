@@ -48,7 +48,8 @@ public:
 		camera_t texModelCamera = camera_t(glm::vec2(1280, 720), 5.0f, camera_t::projection_e::perspective, 0.1f, 2000.f),
 		const char* shaderConfigPath = SHADER_CONFIG_DIR,
 		model_t model = model_t("models/fbx_foliage/broadleaf_field/Broadleaf_Desktop_Field.FBX"))
-		: scene3D(windowName, texModelCamera, shaderConfigPath, model)
+		: scene3D(windowName, texModelCamera, shaderConfigPath, model), downscaleUniforms(nullptr),
+		  lanzcosUniforms(nullptr)
 	{
 		glDisable(GL_BLEND);
 		glEnable(GL_DEPTH_TEST);
@@ -58,9 +59,6 @@ public:
 		downscaledBuffer = new frameBuffer();
 		geometryBuffer = new frameBuffer();
 		unJitteredBuffer = new frameBuffer();
-
-		downscaleUniforms = bufferHandler_t<downscaleSettings_t>();
-		lanzcosUniforms = bufferHandler_t<lanzcosSettings_t>();
 
 		this->camera.position.y -= 100.0f;
 	}
@@ -124,17 +122,10 @@ protected:
 	shaderProgram_t finalProgram;
 
 	bool enableCompare = true;
-	bufferHandler_t<downscaleSettings_t>	downscaleUniforms;
-	bufferHandler_t<lanzcosSettings_t>		lanzcosUniforms;
+	downscaleSettings_t*	downscaleUniforms = nullptr;
+	lanzcosSettings_t*		lanzcosUniforms = nullptr;
 
 	std::vector<const char*>		downsampleSettings = { "none", "lanczos" };
-
-	virtual void Update() override
-	{
-		scene3D::Update();
-		downscaleUniforms.Update();
-		lanzcosUniforms.Update();
-	}
 
 	virtual void Draw() override
 	{
@@ -285,10 +276,10 @@ protected:
 	{
 		if (ImGui::BeginTabItem("Lanczos settings"))
 		{
-			ImGui::ListBox("downsample types", &downscaleUniforms.data.downsampleMode, downsampleSettings.data(), downsampleSettings.size());
-			ImGui::DragFloat("texel width", &downscaleUniforms.data.texelWidthOffset, 0.1f, 0.0f, 10.0f, "%.5f");
-			ImGui::DragFloat("texel height", &downscaleUniforms.data.texelHeightOffset, 0.1f, 0.0f, 10.0f, "%.5f");
-			switch(downscaleUniforms.data.downsampleMode)
+			ImGui::ListBox("downsample types", &downscaleUniforms->downsampleMode, downsampleSettings.data(), downsampleSettings.size());
+			ImGui::DragFloat("texel width", &downscaleUniforms->texelWidthOffset, 0.1f, 0.0f, 10.0f, "%.5f");
+			ImGui::DragFloat("texel height", &downscaleUniforms->texelHeightOffset, 0.1f, 0.0f, 10.0f, "%.5f");
+			switch(downscaleUniforms->downsampleMode)
 			{
 			case none:
 				{
@@ -297,11 +288,11 @@ protected:
 
 			case lanczos:
 				{
-					ImGui::DragFloat("value 1", &lanzcosUniforms.data.magicValue1, 0.01f, 0.0f, 1.0f, "%.3f");
-					ImGui::DragFloat("value 2", &lanzcosUniforms.data.magicValue2, 0.01f, 0.0f, 1.0f, "%.3f");
-					ImGui::DragFloat("value 3", &lanzcosUniforms.data.magicValue3, 0.01f, 0.0f, 1.0f, "%.3f");
-					ImGui::DragFloat("value 4", &lanzcosUniforms.data.magicValue4, 0.01f, 0.0f, 1.0f, "%.3f");
-					ImGui::DragFloat("value 5", &lanzcosUniforms.data.magicValue5, 0.01f, 0.0f, 1.0f, "%.3f");
+					ImGui::DragFloat("value 1", &lanzcosUniforms->magicValue1, 0.01f, 0.0f, 1.0f, "%.3f");
+					ImGui::DragFloat("value 2", &lanzcosUniforms->magicValue2, 0.01f, 0.0f, 1.0f, "%.3f");
+					ImGui::DragFloat("value 3", &lanzcosUniforms->magicValue3, 0.01f, 0.0f, 1.0f, "%.3f");
+					ImGui::DragFloat("value 4", &lanzcosUniforms->magicValue4, 0.01f, 0.0f, 1.0f, "%.3f");
+					ImGui::DragFloat("value 5", &lanzcosUniforms->magicValue5, 0.01f, 0.0f, 1.0f, "%.3f");
 					break;
 				}
 
@@ -358,7 +349,7 @@ protected:
 		}
 	}
 
-	virtual void ClearBuffers()
+	virtual void ClearBuffers() override
 	{
 		downscaledBuffer->Bind(); //clear the previous, the next frame current becomes previous
 		downscaledBuffer->ClearTexture(downscaledBuffer->attachments["downscaled"], clearColor);
@@ -392,21 +383,27 @@ protected:
 
 	virtual void HandleWindowResize(const tWindow* window, const tw::vec2_t<uint16_t>& dimensions) override
 	{
-		defaultPayload.data.resolution = glm::ivec2(dimensions.width, dimensions.height);	
+		defaultPayload->resolution = glm::ivec2(dimensions.width, dimensions.height);
 		ResizeBuffers(glm::ivec2(dimensions.x, dimensions.y));
 	}
 
 	virtual void HandleMaximize(const tWindow* window) override
 	{
-		defaultPayload.data.resolution = glm::ivec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
-		ResizeBuffers(defaultPayload.data.resolution);
+		defaultPayload->resolution = glm::ivec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
+		ResizeBuffers(defaultPayload->resolution);
 	}
 
 	virtual void InitializeUniforms() override
 	{
 		scene3D::InitializeUniforms();
-		downscaleUniforms.Initialize(2);
-		lanzcosUniforms.Initialize(3);
+
+		auto downscaleBlock = &bufferHandler.uniformBlocks["downscaleSettings"];
+		downscaleBlock->SetPayload<downscaleSettings_t>(downscaleSettings_t());
+		downscaleUniforms = downscaleBlock->GetPayload<downscaleSettings_t>();
+
+		auto lanzcosBlock = &bufferHandler.uniformBlocks["lanczosSettings"];
+		lanzcosBlock->SetPayload<lanzcosSettings_t>(lanzcosSettings_t());
+		lanzcosUniforms = lanzcosBlock->GetPayload<lanzcosSettings_t>();
 	}
 
 };

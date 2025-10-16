@@ -37,8 +37,6 @@ public:
 		const char* shaderConfigPath = SHADER_CONFIG_DIR) :
 		texturedScene(defaultTexture, windowName, textureCamera, shaderConfigPath)
 	{
-		gaussianHorz.data = gaussianSettings_t();
-		gaussianVert.data = gaussianSettings_t();
 		gaussBuffer = new frameBuffer();
 		compareBuffer = new frameBuffer();
 	}
@@ -150,8 +148,8 @@ public:
 
 protected:
 
-	bufferHandler_t<gaussianSettings_t>		gaussianHorz;
-	bufferHandler_t<gaussianSettings_t>		gaussianVert;
+	gaussianSettings_t*		gaussianHorz = nullptr;
+	gaussianSettings_t*		gaussianVert = nullptr;
 	
 	frameBuffer* gaussBuffer;
 	frameBuffer* compareBuffer;
@@ -173,14 +171,14 @@ protected:
 				{
 					std::string num = std::to_string(iter);
 					ImGui::DragInt(std::string("offset# " + num).c_str(),
-						&gaussianHorz.data.offsets[iter], 1.0f, 0.0f, 10.0f);
+						&gaussianHorz->offsets[iter], 1.0f, 0.0f, 10.0f);
 				}
 				ImGui::Separator();
 				for (size_t iter = 0; iter < 5; iter++)
 				{
 					std::string num = std::to_string(iter);
 					ImGui::DragFloat(std::string("weight# " + num).c_str(),
-						&gaussianHorz.data.weights[iter], 0.001f, 0.0f, 1.0f);
+						&gaussianHorz->weights[iter], 0.001f, 0.0f, 1.0f);
 				}
 				//ImGui::EndTabBar();
 				ImGui::EndTabItem();
@@ -192,14 +190,14 @@ protected:
 				{
 					std::string num = std::to_string(iter);
 					ImGui::DragInt(std::string("offset# " + num).c_str(),
-						&gaussianVert.data.offsets[iter], 1.0f, 0.0f, 10.0f);
+						&gaussianVert->offsets[iter], 1.0f, 0.0f, 10.0f);
 				}
 				ImGui::Separator();
 				for (size_t iter = 0; iter < 5; iter++)
 				{
 					std::string num = std::to_string(iter);
 					ImGui::DragFloat(std::string("weight# " + num).c_str(),
-						&gaussianVert.data.weights[iter], 0.001f, 0.0f, 1.0f);
+						&gaussianVert->weights[iter], 0.001f, 0.0f, 1.0f);
 				}
 
 				ImGui::EndTabItem();
@@ -211,15 +209,14 @@ protected:
 	void InitializeUniforms() override
 	{
 		scene::InitializeUniforms();
-		gaussianHorz.Initialize(2);
-		gaussianVert.Initialize(1);
-	}
 
-	void Update() override
-	{
-		scene::Update();
-		gaussianHorz.Update();
-		gaussianVert.Update();
+		auto gaussianHorzBlock = &bufferHandler.uniformBlocks["horzSettings"];
+		gaussianHorzBlock->SetPayload<gaussianSettings_t>(gaussianSettings_t());
+		gaussianHorz = gaussianHorzBlock->GetPayload<gaussianSettings_t>();
+
+		auto gaussianVertBlock = &bufferHandler.uniformBlocks["vertSettings"];
+		gaussianVertBlock->SetPayload<gaussianSettings_t>(gaussianSettings_t());
+		gaussianVert = gaussianVertBlock->GetPayload<gaussianSettings_t>();
 	}
 
 	void ClearBuffers() const
@@ -233,16 +230,16 @@ protected:
 
 	virtual void HandleWindowResize(const tWindow* window, const tw::vec2_t<uint16_t>& dimensions) override
 	{
-		defaultPayload.data.resolution = glm::ivec2(dimensions.width, dimensions.height);
+		defaultPayload->resolution = glm::ivec2(dimensions.width, dimensions.height);
 		ResizeBuffers(glm::ivec2(dimensions.x, dimensions.y));
 		Resize(window, glm::ivec2(dimensions.x, dimensions.y));
 	}
 
 	virtual void HandleMaximize(const tWindow* window) override
 	{
-		defaultPayload.data.resolution = glm::ivec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
-		ResizeBuffers(defaultPayload.data.resolution);
-		Resize(window, defaultPayload.data.resolution);
+		defaultPayload->resolution = glm::ivec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
+		ResizeBuffers(defaultPayload->resolution);
+		Resize(window, defaultPayload->resolution);
 	}
 
 	virtual void ResizeBuffers(const glm::ivec2 resolution) const
@@ -255,7 +252,6 @@ protected:
 	{
 		scene::Resize(window, dimensions);
 		ResizeBuffers(dimensions);
-
 	}
 };
 

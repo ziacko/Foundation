@@ -8,7 +8,7 @@ in defaultBlock
 
 out vec4 outColor;
 
-layout(std140, binding = 0) uniform defaultSettings
+layout(std140) uniform defaultSettings
 {
 	mat4		projection;
 	mat4		view;
@@ -21,7 +21,7 @@ layout(std140, binding = 0) uniform defaultSettings
 	uint		totalFrames;
 };
 
-layout(std140, binding = 3) uniform velocitySettings
+layout(std140) uniform velocitySettings
 {
 	mat4		previousProjection;
 	mat4		previousView;
@@ -30,7 +30,7 @@ layout(std140, binding = 3) uniform velocitySettings
 	mat4 		currentView;
 };
 
-layout(std140, binding = 4) uniform taaSettings
+layout(std140) uniform taaSettings
 {
 	//velocity
 	float		velocityScale;
@@ -38,7 +38,7 @@ layout(std140, binding = 4) uniform taaSettings
 	float 		maxDepthFalloff;
 };
 
-layout(binding = 2) uniform jitterSettings
+uniform jitterSettings
 {
 	vec2 		haltonSequence[128];
 	float 		haltonScale;

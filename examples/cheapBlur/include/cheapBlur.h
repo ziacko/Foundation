@@ -18,25 +18,24 @@ struct jitterSettings_t
 		ditheringScale = 0.66f;
 	}
 
-	~jitterSettings_t() {};
+	~jitterSettings_t() = default;
 };
 
 class cheapBlurScene : public texturedScene
 {
 public:
 
-	cheapBlurScene(bufferHandler_t<jitterSettings_t> jitterSet = bufferHandler_t<jitterSettings_t>(),
+	cheapBlurScene(
 		texture defaultTexture = texture(),
 		const char* windowName = "Ziyad Barakat's Portfolio (Cheap blur)",
 		camera_t textureCamera = camera_t(),
 		const char* shaderConfigPath = SHADER_CONFIG_DIR) :
 		texturedScene(defaultTexture, windowName, textureCamera, shaderConfigPath)
 	{
-		this->jitterSettings = jitterSet;
-
+		jitterSettings = new jitterSettings_t();
 		for (int iter = 0; iter < 128; iter++)
 		{
-			jitterSettings.data.haltonSequence[iter] = glm::vec2(CreateHaltonSequence(iter + 1, 2), CreateHaltonSequence(iter + 1, 3));
+			jitterSettings->haltonSequence[iter] = glm::vec2(CreateHaltonSequence(iter + 1, 2), CreateHaltonSequence(iter + 1, 3));
 		}
 
 		accum = 0.0f;
@@ -44,7 +43,7 @@ public:
 		accumMult = 0.0f;
 	}
 
-	~cheapBlurScene(){};
+	~cheapBlurScene() = default;
 
 	void Initialize() override
 	{
@@ -53,7 +52,7 @@ public:
 
 protected:
 
-	bufferHandler_t<jitterSettings_t>		jitterSettings;
+	jitterSettings_t*		jitterSettings = nullptr;
 
 	float accum;
 	float accumReturn;
@@ -64,11 +63,11 @@ protected:
 		texturedScene::BuildGUI(window, io);
 		if (ImGui::BeginTabItem("cheap blur"))
 		{
-			ImGui::SliderFloat("blur strength", &jitterSettings.data.haltonScale, 0.0f, 50.0f);
+			ImGui::SliderFloat("blur strength", &jitterSettings->haltonScale, 0.0f, 50.0f);
 			ImGui::SliderFloat("accum strength", &accum, -1.0f, 1.0f);
 			ImGui::SliderFloat("accum return strength", &accumReturn, -1.0f, 1.0f);
 			ImGui::SliderFloat("accum mult strength", &accumMult, -1.0f, 1.0f);
-			ImGui::SliderFloat("dither scale", &jitterSettings.data.ditheringScale, 0.0f, 1.0f);
+			ImGui::SliderFloat("dither scale", &jitterSettings->ditheringScale, 0.0f, 1.0f);
 			ImGui::EndTabItem();
 		}
 
@@ -77,7 +76,9 @@ protected:
 	void InitializeUniforms() override
 	{
 		scene::InitializeUniforms();
-		jitterSettings.Initialize(1);
+		auto jitterBlock = &bufferHandler.uniformBlocks["jitterSettings"];
+		jitterBlock->SetPayload<jitterSettings_t>(*jitterSettings);
+		jitterSettings = jitterBlock->GetPayload<jitterSettings_t>();
 	}
 
 	void Draw() override
@@ -91,12 +92,6 @@ protected:
 		glAccum(GL_ACCUM, accum); //adding the current frame to the buffer
 		glAccum(GL_RETURN, accumReturn); //Drawing last frame, saved in buffer
 		glAccum(GL_MULT, accumMult); //make current frame in buffer dim
-	}
-
-	void Update() override
-	{
-		scene::Update();
-		jitterSettings.Update(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW);
 	}
 };
 

@@ -25,16 +25,13 @@ public:
 		const char* windowName = "Ziyad Barakat's portfolio (erosion)",
 		const camera_t erosionCamera = camera_t(),
 		const char* shaderConfigPath = SHADER_CONFIG_DIR)
-		: texturedScene(defaultTexture, windowName, erosionCamera, shaderConfigPath)
-	{
-		this->erosion = erosionSettings;
-	}
+		: texturedScene(defaultTexture, windowName, erosionCamera, shaderConfigPath) {}
 
 	~erosionScene() override = default;
 
 protected:
 
-	bufferHandler_t<erosionSettings_t>	erosion;
+	erosionSettings_t*	erosion = nullptr;
 
 	void BuildGUI(tWindow* window, const ImGuiIO& io) override
 	{
@@ -42,8 +39,8 @@ protected:
 
 		if (ImGui::BeginTabItem("erosion"))
 		{
-			ImGui::SliderFloat("erosion strength X", &erosion.data.strengthX, 0.0f, 10.0f);
-			ImGui::SliderFloat("erosion strength Y", &erosion.data.strengthY, 0.0f, 10.0f);
+			ImGui::SliderFloat("erosion strength X", &erosion->strengthX, 0.0f, 10.0f);
+			ImGui::SliderFloat("erosion strength Y", &erosion->strengthY, 0.0f, 10.0f);
 			ImGui::EndTabItem();
 		}
 	}
@@ -51,13 +48,10 @@ protected:
 	void InitializeUniforms() override
 	{
 		scene::InitializeUniforms();
-		erosion.Initialize(1);
-	}
 
-	void Update() override
-	{
-		scene::Update();
-		erosion.Update(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW);
+		auto erosionBlock = &bufferHandler.uniformBlocks["erosionSettings"];
+		erosionBlock->SetPayload<erosionSettings_t>(erosionSettings_t());
+		erosion = erosionBlock->GetPayload<erosionSettings_t>();
 	}
 };
 

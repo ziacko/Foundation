@@ -87,7 +87,7 @@ struct resolutionSettings_t
 {
     glm::vec2 resolutionScale{defaultResScale};
 
-    resolutionSettings_t(const glm::vec2& res = defaultResScale)
+    explicit resolutionSettings_t(const glm::vec2& res = defaultResScale)
     {
         resolutionScale = res;
     }
@@ -102,17 +102,14 @@ public:
         const char* shaderConfigPath = "SMAA",
         const model_t& model = model_t("models/fbx_foliage/broadleaf_field/Broadleaf_Desktop_Field.FBX")) : SMAAScene(windowName, camera, shaderConfigPath, model)
     {
-
-        velocityUniforms = bufferHandler_t<reprojectSettings_t>();
-        taaUniforms = bufferHandler_t<TAASettings_t>();
-        jitterUniforms = bufferHandler_t<jitterSettings_t>();
-        jitter2Uniforms = bufferHandler_t<jitter2Settings_t>();
-
+        jitterUniforms = new jitterSettings_t();
         for (int iter = 0; iter < 128; iter++)
         {
-            jitterUniforms.data.haltonSequence[iter] = glm::vec2(CreateHaltonSequence(iter + 1, 2), CreateHaltonSequence(iter + 1, 3));
+            jitterUniforms->haltonSequence[iter] = glm::vec2(CreateHaltonSequence(iter + 1, 2), CreateHaltonSequence(iter + 1, 3));
         }
     }
+
+    ~OAUpsamplerScene() override { delete jitterUniforms; };
 
     void Initialize() override
     {
@@ -175,6 +172,7 @@ public:
             newBuffer->AddAttachment(frameBuffer::attachment_t("depth", depthDesc));
 
             historyFrames.push_back(newBuffer);
+           // delete newBuffer;
         }
 
         unscaledBuffer.Initialize();
@@ -205,12 +203,12 @@ protected:
     bool currentFrame = false;
 
     glm::ivec2 scaledResolution;
-    bufferHandler_t<resolutionSettings_t> resolutionSettings;
 
-    bufferHandler_t<reprojectSettings_t> velocityUniforms;
-    bufferHandler_t<TAASettings_t> taaUniforms;
-    bufferHandler_t<jitterSettings_t> jitterUniforms;
-    bufferHandler_t<jitter2Settings_t> jitter2Uniforms;
+    resolutionSettings_t   resolutionSettings;
+    reprojectSettings_t*    reprojectUniforms;
+    TAASettings_t*          taaUniforms;
+    jitterSettings_t*       jitterUniforms;
+    jitter2Settings_t*      jitter2Uniforms;
 
     //unscaled geometry buffer
     frameBuffer unscaledBuffer;
@@ -222,12 +220,8 @@ protected:
     {
         SMAAScene::Update();
 
-        jitterUniforms.Update();
-        taaUniforms.Update();
-        //jitter2Uniforms.Update();
-
         //if even frame then write to 1 and read from 0 and vice versa
-        currentFrame = ((defaultPayload.data.totalFrames % 2) == 0) ? false : true;
+        currentFrame = ((defaultPayload->totalFrames % 2) == 0) ? false : true;
 
         //resolutionSettings.Update(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW);
     }
@@ -379,7 +373,7 @@ protected:
 
     void Draw() override
     {
-        velocityUniforms.data.currentView =camera.view;
+        reprojectUniforms->currentView = camera.view;
         camera.ChangeProjection(camera_t::projection_e::perspective);
         camera.Update();
 
@@ -447,10 +441,9 @@ protected:
 
         // Keep camera in a known projection for the start of next frame but DO NOT update velocity uniforms here.
         camera.ChangeProjection(camera_t::projection_e::perspective);
-        velocityUniforms.data.previousProjection =camera.projection;
-        velocityUniforms.data.previousView =camera.view;
-        velocityUniforms.data.prevTranslation = testModel.makeTransform(); //could be jittering the camera instead of the geometry?
-        velocityUniforms.Update();
+        reprojectUniforms->previousProjection =camera.projection;
+        reprojectUniforms->previousView =camera.view;
+        reprojectUniforms->prevTranslation = testModel.makeTransform(); //could be jittering the camera instead of the geometry?
         glPopDebugGroup();
     }
 
@@ -458,10 +451,21 @@ protected:
     {
         SMAAScene::InitializeUniforms();
 
-        jitterUniforms.Initialize(2);
-        velocityUniforms.Initialize(3);
-        taaUniforms.Initialize(4);
-        resolutionSettings.Initialize(5);
+        auto taaBlock = &bufferHandler.uniformBlocks["taaSettings"];
+        taaBlock->SetPayload(TAASettings_t());
+        taaUniforms = taaBlock->GetPayload<TAASettings_t>();
+
+        //auto sharpenBlock = &bufferHandler.uniformBlocks["sharpenSettings"];
+        //sharpenBlock->SetPayload<sharpenSettings_t>(sharpenSettings_t());
+        //sharpenSettings = sharpenBlock->GetPayload<sharpenSettings_t>();
+
+        auto jitterBlock = &bufferHandler.uniformBlocks["jitterSettings"];
+        jitterBlock->SetPayload(*jitterUniforms);
+        jitterUniforms = jitterBlock->GetPayload<jitterSettings_t>();
+
+        auto reprojectBlock = &bufferHandler.uniformBlocks["reprojectSettings"];
+        reprojectBlock->SetPayload(reprojectSettings_t());
+        reprojectUniforms = reprojectBlock->GetPayload<reprojectSettings_t>();
     }
 
     void ResizeBuffers(const glm::ivec2 resolution) override
@@ -501,15 +505,15 @@ protected:
 
     void HandleWindowResize(const tWindow* window, const vec2_t<uint16_t>& dimensions) override
     {
-        scaledResolution = glm::ivec2(window->GetSettings().resolution.width * resolutionSettings.data.resolutionScale.x,
-            window->GetSettings().resolution.height * resolutionSettings.data.resolutionScale.y);
+        scaledResolution = glm::ivec2(window->GetSettings().resolution.width * resolutionSettings.resolutionScale.x,
+            window->GetSettings().resolution.height * resolutionSettings.resolutionScale.y);
         ResizeBuffers(glm::ivec2(scaledResolution));
     }
 
     void HandleMaximize(const tWindow* window) override
     {
-        scaledResolution = glm::ivec2(window->GetSettings().resolution.width * resolutionSettings.data.resolutionScale.x,
-            window->GetSettings().resolution.height * resolutionSettings.data.resolutionScale.y);
+        scaledResolution = glm::ivec2(window->GetSettings().resolution.width * resolutionSettings.resolutionScale.x,
+            window->GetSettings().resolution.height * resolutionSettings.resolutionScale.y);
         ResizeBuffers(glm::ivec2(scaledResolution));
     }
 
@@ -517,13 +521,39 @@ protected:
     {
         if (ImGui::BeginTabItem("resolution scale"))
         {
-            if (ImGui::DragFloat("scaleX", &resolutionSettings.data.resolutionScale.x, 0.01f, 0.1f, 2.0f) ||
-                ImGui::DragFloat("scaleY", &resolutionSettings.data.resolutionScale.y, 0.01f, 0.1f, 2.0f))
+            if (ImGui::DragFloat("scaleX", &resolutionSettings.resolutionScale.x, 0.01f, 0.1f, 2.0f) ||
+                ImGui::DragFloat("scaleY", &resolutionSettings.resolutionScale.y, 0.01f, 0.1f, 2.0f))
             {
-                scaledResolution = glm::ivec2(window->GetSettings().resolution.width * resolutionSettings.data.resolutionScale.x,
-                    window->GetSettings().resolution.height * resolutionSettings.data.resolutionScale.y);
+                scaledResolution = glm::ivec2(window->GetSettings().resolution.width * resolutionSettings.resolutionScale.x,
+                    window->GetSettings().resolution.height * resolutionSettings.resolutionScale.y);
                 ResizeBuffers(scaledResolution);
             }
+            ImGui::EndTabItem();
+        }
+    }
+
+    virtual void DrawTAASettings()
+    {
+        if(ImGui::BeginTabItem("TAA Settings"))
+        {
+            ImGui::Checkbox("enable Compare", &enableCompare);
+            ImGui::SliderFloat("feedback factor", &taaUniforms->feedbackFactor, 0.0f, 1.0f);
+            ImGui::InputFloat("max depth falloff", &taaUniforms->maxDepthFalloff, 0.01f);
+
+            //velocity settings
+            ImGui::Separator();
+            //ImGui::SameLine();
+            ImGui::Text("Velocity settings");
+            ImGui::SliderFloat("Velocity scale", &taaUniforms->velocityScale, 0.0f, 10.0f);
+
+            //jitter settings
+            ImGui::Separator();
+            //ImGui::SameLine();
+            ImGui::DragFloat("halton scale", &jitterUniforms->haltonScale, 0.1f, 0.0f, 15.0f, "%.3f");
+            ImGui::DragInt("halton index", &jitterUniforms->haltonIndex, 1.0f, 0, 128);
+            ImGui::DragInt("enable dithering", &jitterUniforms->enableDithering, 1.0f, 0, 1);
+            ImGui::DragFloat("dithering scale", &jitterUniforms->ditheringScale, 1.0f, 0.0f, 1000.0f, "%.3f");
+
             ImGui::EndTabItem();
         }
     }
@@ -532,6 +562,7 @@ protected:
     {
         SMAAScene::BuildGUI(window, io);
         DrawResolutionSettings();
+        DrawTAASettings();
     }
 
     float CreateHaltonSequence(unsigned int index, int base)

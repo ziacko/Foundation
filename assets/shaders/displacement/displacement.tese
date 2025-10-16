@@ -16,7 +16,7 @@ out defaultBlock
 	vec2		uv;
 } outBlock;
 
-layout(std140, binding = 1) uniform displacementSettings
+layout(std140) uniform displacementSettings
 {
     float outTessLevel;
     float inTessLevel;

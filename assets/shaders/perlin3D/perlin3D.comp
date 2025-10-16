@@ -4,7 +4,7 @@ layout(local_size_x = 10, local_size_y = 10, local_size_z = 10) in;
 
 layout(binding = 0, r16f) writeonly uniform image3D outputImage;
 
-layout(std140, binding = 0) uniform defaultSettings
+layout(std140) uniform defaultSettings
 {
 	mat4		projection;
 	mat4		view;
@@ -17,7 +17,7 @@ layout(std140, binding = 0) uniform defaultSettings
 	uint		totalFrames;
 };
 
-layout(binding = 1) uniform perlin3DSettings
+uniform perlin3DSettings
 {
     vec3  uvwScale;
     int   layer;

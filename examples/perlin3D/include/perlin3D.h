@@ -23,11 +23,7 @@ public:
 	explicit perlinScene3D(const char* windowName = "Ziyad Barakat's Portfolio ( Perlin3D noise )",
 	                       const camera_t perlinCamera = camera_t(),
 	                       const GLchar* shaderConfigPath = SHADER_CONFIG_DIR)
-		: perlinScene(windowName, perlinCamera, shaderConfigPath), perlinTex(nullptr)
-	{
-		perlin.data = perlinSettings_t();
-		perlin3D.data = perlinSettings3D_t();
-	}
+		: perlinScene(windowName, perlinCamera, shaderConfigPath), perlinTex(nullptr) {}
 
 	void Initialize() override
 	{
@@ -47,40 +43,28 @@ public:
 		defProgram = shaderProgramsMap["final"];
 
 		scene::InitializeUniforms();
-		perlin3D.Initialize(1);
 	}
 
 protected:
 
 	shaderProgram_t							perlinProgram;
 	frameBuffer::attachment_t*				perlinTex;
-	bufferHandler_t<perlinSettings3D_t>		perlin3D;
+	perlinSettings3D_t*						perlin3D;
 
 	void BuildGUI(tWindow* window, const ImGuiIO& io) override
 	{
 		scene::BuildGUI(window, io); 
-		ImGui::SliderFloat3("uvw Scale", &perlin3D.data.uvwScale[0], 0.01f, 100);
-		ImGui::SliderInt("layer", &perlin3D.data.layer, 0, 50);
+		ImGui::SliderFloat3("uvw Scale", &perlin3D->uvwScale[0], 0.01f, 100);
+		ImGui::SliderInt("layer", &perlin3D->layer, 0, 50);
 	}
 
 	void InitializeUniforms() override
 	{
 		scene::InitializeUniforms();
-		perlin3D.Initialize(1);
-		perlin.Initialize(2);
-	}
 
-	void SetPerlinUniforms() override
-	{
-		perlin3D.SetupUniforms(defProgram.handle, "perlin3DSettings", 1);
-		perlin3D.SetupUniforms(defProgram.handle, "perlinSettings", 2);
-	}
-
-	void Update() override
-	{
-		scene::Update();
-		perlin3D.Update();
-		perlin.Update();
+		auto perlin3DBlock = &bufferHandler.uniformBlocks["perlin3DSettings"];
+		perlin3DBlock->SetPayload<perlinSettings3D_t>(perlinSettings3D_t());
+		perlin3D = perlin3DBlock->GetPayload<perlinSettings3D_t>();
 	}
 
 	void PerlinCalc() const

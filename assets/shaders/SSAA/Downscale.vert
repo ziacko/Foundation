@@ -22,7 +22,7 @@ out lanczosBlock
     vec2 RStep4UV;
 } lancBlock;
 
-layout(std140, binding = 0) uniform defaultSettings
+layout(std140) uniform defaultSettings
 {
 	mat4		projection;
 	mat4		view;
@@ -35,7 +35,7 @@ layout(std140, binding = 0) uniform defaultSettings
 	uint		totalFrames;
 };
 
-layout(binding = 2) uniform downscaleSettings
+uniform downscaleSettings
 {
     float       txlWidthOffset;
     float       txlHeightOffset;

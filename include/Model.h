@@ -582,7 +582,6 @@ public:
 
 	std::vector<glm::mat4>					rawTransforms;
 	std::map<std::string, unsigned int>		boneLookup;
-	bufferHandler_t<boneTransforms_t>		boneBuffer;
 	glm::mat4								globalInverse;
 
 	bool									ignoreCollision;

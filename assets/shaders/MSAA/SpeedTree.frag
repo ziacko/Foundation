@@ -9,7 +9,7 @@ in defaultBlock
 
 layout(location = 0) out vec4 outColor;
 
-layout(std140, binding = 0) uniform defaultSettings
+layout(std140) uniform defaultSettings
 {
 	mat4		projection;
 	mat4 		view;

@@ -7,7 +7,7 @@ in defaultBlock
 	vec2 fullUV;
 } inBlock;
 
-layout(std140, binding = 0) uniform defaultSettings
+layout(std140) uniform defaultSettings
 {
 	mat4		projection;
 	mat4 		view;
@@ -20,7 +20,7 @@ layout(std140, binding = 0) uniform defaultSettings
 	uint		totalFrames;
 };
 
-layout(std140, binding = 1) uniform sepiaSettings
+layout(std140) uniform sepiaSettings
 {
 	float		factor;
 	float		redModifier1;

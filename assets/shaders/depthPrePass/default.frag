@@ -7,7 +7,7 @@ in defaultBlock
 	vec2 fullUV;
 } inBlock;
 
-layout(std140, binding = 0) uniform defaultSettings
+layout(std140) uniform defaultSettings
 {
 	mat4		projection;
 	mat4		view;

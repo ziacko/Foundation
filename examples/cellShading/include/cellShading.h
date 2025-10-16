@@ -24,16 +24,12 @@ struct cellShadeSettings_t
 class cellShadingScene final : public texturedScene
 {
 public:
-
-	cellShadingScene(bufferHandler_t<cellShadeSettings_t> cellShade = bufferHandler_t<cellShadeSettings_t>(),
-		texture defaultTexture = texture(),
+	explicit cellShadingScene(
+		const texture defaultTexture = texture(),
 		const char* windowName = "Ziyad Barakat's Portfolio (Cell Shading)",
-		camera_t textureCamera = camera_t(),
+		const camera_t textureCamera = camera_t(),
 		const char* shaderConfigPath = SHADER_CONFIG_DIR) :
-		texturedScene(defaultTexture, windowName, textureCamera, shaderConfigPath)
-	{
-		this->cellBuffer = cellShade;
-	}
+		texturedScene(defaultTexture, windowName, textureCamera, shaderConfigPath) {}
 
 	void Initialize() override
 	{
@@ -44,17 +40,17 @@ public:
 
 protected:
 
-	bufferHandler_t<cellShadeSettings_t>		cellBuffer;
+	cellShadeSettings_t*		cellBuffer = nullptr;
 
 	void BuildGUI(tWindow* window, const ImGuiIO& io) override
 	{
 		texturedScene::BuildGUI(window, io);
 		if (ImGui::BeginTabItem("cell shading"))
 		{
-			ImGui::SliderFloat("red modifier", &cellBuffer.data.redModifier, 0.0f, 1.0f);
-			ImGui::SliderFloat("green modifier", &cellBuffer.data.greenModifier, 0.0f, 1.0f);
-			ImGui::SliderFloat("blue modifier", &cellBuffer.data.blueModifier, 0.0f, 1.0f);
-			ImGui::SliderFloat("cell distance", &cellBuffer.data.cellDistance, 0.0f, 1.0f);
+			ImGui::SliderFloat("red modifier", &cellBuffer->redModifier, 0.0f, 1.0f);
+			ImGui::SliderFloat("green modifier", &cellBuffer->greenModifier, 0.0f, 1.0f);
+			ImGui::SliderFloat("blue modifier", &cellBuffer->blueModifier, 0.0f, 1.0f);
+			ImGui::SliderFloat("cell distance", &cellBuffer->cellDistance, 0.0f, 1.0f);
 			ImGui::EndTabItem();
 		}
 	}
@@ -62,13 +58,9 @@ protected:
 	void InitializeUniforms() override
 	{
 		scene::InitializeUniforms();
-		cellBuffer.Initialize(1);
-	}
-
-	void Update() override
-	{
-		scene::Update();
-		cellBuffer.Update(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW);
+		const auto cellBlock = &bufferHandler.uniformBlocks["cellSettings"];
+		cellBlock->SetPayload<cellShadeSettings_t>(cellShadeSettings_t());
+		cellBuffer = cellBlock->GetPayload<cellShadeSettings_t>();
 	}
 };
 

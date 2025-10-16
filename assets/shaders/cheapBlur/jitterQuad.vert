@@ -9,7 +9,7 @@ out defaultBlock
 	vec2 uv;
 } outBlock;
 
-layout(std140, binding = 0) uniform defaultSettings
+layout(std140) uniform defaultSettings
 {
 	mat4		projection;
 	mat4		view;
@@ -22,7 +22,7 @@ layout(std140, binding = 0) uniform defaultSettings
 	uint		totalFrames;
 };
 
-layout(binding = 1) uniform jitterSettings
+uniform jitterSettings
 {
 	vec2 haltonSequence[128];
 	float haltonScale;

@@ -7,6 +7,58 @@
 
 using frameRates_t = enum {UNCAPPED = 0, THIRTY = 30, SIXTY = 60, NINETY = 90, ONETWENTY = 120, ONEFOURTYFOUR = 144};
 
+
+class defaultUniformBuffer// : public uniformBuffer_t
+{
+public:
+
+	glm::mat4			projection;
+	glm::mat4			view;
+	glm::mat4			translation;
+	glm::vec2			resolution;
+	glm::vec2			mousePosition;
+	GLfloat				deltaTime;
+	GLfloat				totalTime;
+	GLfloat				framesPerSec;
+	GLuint				totalFrames;
+
+	defaultUniformBuffer(const glm::mat4& projection, const glm::mat4& view,
+			const glm::mat4& translation = glm::mat4( 1 ), const glm::ivec2 resolution = defaultWindowSize ):
+		mousePosition(),
+		deltaTime(0),
+		totalTime(0),
+		framesPerSec(0)
+	//: uniformBuffer_t()
+	{
+		//BuildBuffer();
+		//uniformBuffer_t();
+		this->projection = projection;
+		this->view = view;
+		this->translation = translation;
+		this->resolution = resolution;
+		totalFrames = 1;
+	}
+
+	explicit defaultUniformBuffer(const camera_t& defaultCamera)// : uniformBuffer_t()
+		: mousePosition(), deltaTime(0), totalTime(0), framesPerSec(0)
+	{
+		//uniformBuffer_t();
+		//BuildBuffer();
+		this->projection = defaultCamera.projection;
+		this->view = defaultCamera.view;
+		this->translation = defaultCamera.translation;
+		this->resolution = defaultCamera.resolution;
+		totalFrames = 1;
+	}
+
+	defaultUniformBuffer(): projection(), view(), translation(), resolution(), mousePosition(), deltaTime(0),
+							totalTime(0),
+							framesPerSec(0),
+							totalFrames(0)
+	{
+	}
+};
+
 class scene
 {
 public:
@@ -76,7 +128,11 @@ public:
 		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 		glDebugMessageCallback(&OpenGLDebugCallback, nullptr);
 
-		LoadShaderProgramsFromConfigFile(&shaderProgramsMap);
+		LoadShaderProgramsFromConfigFile(&shaderProgramsMap, &bufferHandler);
+
+		auto defaultBlock = &bufferHandler.uniformBlocks["defaultSettings"];
+		defaultBlock->SetPayload<defaultUniformBuffer>(defaultUniformBuffer(this->camera));
+		defaultPayload = defaultBlock->GetPayload<defaultUniformBuffer>();
 
 		defProgram = shaderProgramsMap[PROJECT_NAME]; //need a better way to automate this. maybe a callback?
 
@@ -134,7 +190,8 @@ protected:
 	tinyClock_t										clock;
 	vertexBuffer_t									defaultVertexBuffer;
 
-	bufferHandler_t<defaultUniformBuffer>			defaultPayload;
+	defaultUniformBuffer*		defaultPayload;
+	bufferHandler_t				bufferHandler;
 
 	camera_t					camera;
 	const char*					windowName;
@@ -193,9 +250,21 @@ protected:
 		else
 		{
 			clock.UpdateClockAdaptive();
-		}		
-		defaultPayload.data.totalFrames++;
+		}
+
+		defaultPayload->totalFrames++;
 		UpdateDefaultUniforms(camera, clock);
+
+
+		for (auto iter : bufferHandler.uniformBlocks | std::views::values)
+		{
+			iter.Update();
+		}
+
+		for (auto iter : bufferHandler.shaderStorageBlocks | std::views::values)
+		{
+			iter.Update();
+		}
 	}
 
 	virtual void Draw()
@@ -337,9 +406,6 @@ protected:
 
 		}
 		ImGui::End();
-
-		defaultPayload.Update(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW);
-		//UpdateBuffer(d, defaultUniform->bufferHandle, sizeof(defaultUniform), gl_uniform_buffer, gl_dynamic_draw);
 	}
 
 	virtual void BeginGUI(tWindow* inWindow)
@@ -348,7 +414,6 @@ protected:
 
 		ImGui::DockSpace(ImGui::GetID(defaultDockName.c_str()), ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_NoResize);
 		ImGuiID dockspace_id = ImGui::GetID(defaultDockName.c_str());
-		//ImGui::DockBuilderRemoveNode(dockspace_id, dockspace_id | ImGuiDockNodeFlags_DockSpace);
 		ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace);
 		ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Left, 0.2f, &left_node, &central_node);
 		ImGui::DockBuilderFinish(dockspace_id);
@@ -379,62 +444,46 @@ protected:
 		glPopDebugGroup();
 	}
 
-	void SetupBuffer(const GLenum target, const GLenum usage)
-	{
-		defaultPayload.Initialize(0, target, usage);
-	}
-
-	void UpdateBuffer(const GLenum target, const GLenum usage)
-	{
-		defaultPayload.Update(target, usage);
-	}
-
 	virtual void InitializeUniforms()
 	{
-		defaultPayload.data = defaultUniformBuffer(this->camera);
+		// Do not allocate a new buffer here; keep defaultPayload pointing to the block's payload
+		//*defaultPayload = defaultUniformBuffer(this->camera);
 		glViewport(defaultViewportOrigin.x, defaultViewportOrigin.y, window->GetSettings().resolution.width, window->GetSettings().resolution.height);
-		defaultPayload.data.resolution = glm::vec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
-		defaultPayload.data.projection = glm::ortho(0.0f, (GLfloat)window->GetSettings().resolution.width, (GLfloat)window->GetSettings().resolution.height, 0.0f, 0.01f, 10.0f);
+		defaultPayload->resolution = glm::vec2(window->GetSettings().resolution.width, window->GetSettings().resolution.height);
+		defaultPayload->projection = glm::ortho(0.0f, (GLfloat)window->GetSettings().resolution.width, (GLfloat)window->GetSettings().resolution.height, 0.0f, 0.01f, 10.0f);
 
 		defaultVertexBuffer.SetupDefault();
-		SetupBuffer(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW);
-
-		SetupDefaultUniforms();
-	}
-
-	void SetupDefaultUniforms()
-	{
-		defaultPayload.SetupUniforms(defProgram.handle, "defaultSettings", 0);
+		// Ensure initial values are uploaded to the GPU
 	}
 
 	//update default buffer
 	virtual void UpdateDefaultUniforms(const camera_t& inCamera, const tinyClock_t& inClock, const model_t* inModel = nullptr)
 	{
 		//defaultPayload.data.totalFrames++;
-		defaultPayload.data.deltaTime = (float)inClock.GetDeltaTime();
-		defaultPayload.data.totalTime = (float)inClock.GetTotalTime();
-		defaultPayload.data.framesPerSec = (float)(1.0 / inClock.GetDeltaTime());
+		defaultPayload->deltaTime = (float)inClock.GetDeltaTime();
+		defaultPayload->totalTime = (float)inClock.GetTotalTime();
+		defaultPayload->framesPerSec = (float)(1.0 / inClock.GetDeltaTime());
 
 		camera.UpdateProjection();
-		defaultPayload.data.projection = inCamera.projection;
-		defaultPayload.data.view = inCamera.view;
+		defaultPayload->projection = inCamera.projection;
+		defaultPayload->view = inCamera.view;
 
-		defaultPayload.data.resolution = inCamera.resolution;
+		defaultPayload->resolution = inCamera.resolution;
 
 		if (inModel != nullptr)
 		{
 			if (camera.currentProjectionType == camera_t::projection_e::perspective)
 			{
-				defaultPayload.data.translation = inModel->makeTransform();
+				defaultPayload->translation = inModel->makeTransform();
 			}
 		}
 
 		else
 		{
-			defaultPayload.data.translation = camera.translation;
+			defaultPayload->translation = camera.translation;
 		}
 
-		defaultPayload.Update();
+
 	}
 
 	virtual void ClearBuffers()
@@ -450,10 +499,9 @@ protected:
 		}
 		glViewport(defaultViewportOrigin.x, defaultViewportOrigin.y, dimensions.x, dimensions.y);
 		
-		defaultPayload.data.resolution = glm::ivec2(dimensions.x, dimensions.y);
-		defaultPayload.data.projection = glm::ortho(0.0f, (GLfloat)dimensions.x, (GLfloat)dimensions.y, 0.0f, defaultNearPlane, defaultFarPlane);
+		defaultPayload->resolution = glm::ivec2(dimensions.x, dimensions.y);
+		defaultPayload->projection = glm::ortho(0.0f, (GLfloat)dimensions.x, (GLfloat)dimensions.y, 0.0f, defaultNearPlane, defaultFarPlane);
 
-		UpdateBuffer(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW);
 	}
 
 	virtual void HandleMouseClick(const tWindow* inWindow, const mouseButton_e button, const buttonState_e state)
@@ -482,8 +530,7 @@ protected:
 
 	virtual void HandleMouseMotion(const tWindow* inWindow, const vec2_t<int16_t>& windowPosition, const vec2_t<int16_t>& screenPosition)
 	{
-		defaultPayload.data.mousePosition = glm::vec2(windowPosition.x, windowPosition.y);
-		UpdateBuffer(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW);
+		defaultPayload->mousePosition = glm::vec2(windowPosition.x, windowPosition.y);
 		ImGuiIO& io = ImGui::GetIO();
 		io.MousePos = ImVec2((float)windowPosition.x, (float)windowPosition.y); //why screen co-ordinates?
 	}

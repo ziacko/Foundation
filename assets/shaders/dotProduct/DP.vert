@@ -10,7 +10,7 @@ out defaultBlock
 	vec4 color;
 } outBlock;
 
-layout(std140, binding = 0) uniform defaultSettings 
+layout(std140) uniform defaultSettings
 {
 	mat4		projection;
 	mat4 		view;
@@ -23,7 +23,7 @@ layout(std140, binding = 0) uniform defaultSettings
 	uint		totalFrames;
 };
 
-layout(std140, binding = 1) uniform DotNodes 
+layout(std140) uniform DotNodes
 {
 	vec2 position1;
 	vec2 position2;

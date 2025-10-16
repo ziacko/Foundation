@@ -10,7 +10,7 @@ out defaultBlock
 	vec2 fullUV;
 } outBlock;
 
-layout(std140, binding = 0) uniform defaultSettings
+layout(std140) uniform defaultSettings
 {
 	mat4		projection;
 	mat4		view;
@@ -26,6 +26,6 @@ layout(std140, binding = 0) uniform defaultSettings
 void main()
 {
 	outBlock.position = position;
-	outBlock.uv = outBlock.position.xy;// * 0.5f + 0.5f;
+	outBlock.uv = outBlock.position.xy * deltaTime;// * 0.5f + 0.5f;
 	gl_Position = outBlock.position;
 }

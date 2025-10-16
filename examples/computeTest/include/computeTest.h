@@ -22,22 +22,16 @@ public:
 		const char* shaderConfigPath = SHADER_CONFIG_DIR)
 		: scene(windowName, camera, shaderConfigPath)
 	{
-		disp = bufferHandler_t<dispatchStruct>();
 		loadFromBuffer = false;
 	}
 	
 
 	shaderProgram_t computeProgram;
 
-	bufferHandler_t<dispatchStruct> disp;
+	dispatchStruct* disp = nullptr;
 
 	bool loadFromBuffer;
 	std::string inputBuffer;
-
-	virtual void Initialize() override
-	{
-		scene::Initialize();
-	}
 
 protected:
 
@@ -45,21 +39,29 @@ protected:
 	{
 		defProgram = shaderProgramsMap["scene"];
 		computeProgram = shaderProgramsMap[PROJECT_NAME];
-		scene::InitializeUniforms();
-		disp.Initialize(0, GL_SHADER_STORAGE_BUFFER);
+		//scene::InitializeUniforms();
+		auto dispBlock = &bufferHandler.shaderStorageBlocks["testBuffer"];
+		// Set initial payload and ensure the SSBO is created and bound to binding=0 as in the shader
+		dispBlock->SetPayload<dispatchStruct>(dispatchStruct());
+		dispBlock->Initialize(GL_DYNAMIC_DRAW);
+		//dispBlock->BindToSlot(0);
+		disp = dispBlock->GetPayload<dispatchStruct>();
+	}
+
+	void Draw() override
+	{
+		//keep this empty
 	}
 
 	void Update() override
 	{
 		scene::Update();
-
+		bufferHandler.shaderStorageBlocks["testBuffer"].Read(&disp->dispatchArray, sizeof(dispatchStruct));
 		if(loadFromBuffer)
 		{
-			glBindBuffer(GL_SHADER_STORAGE_BUFFER, disp.bufferHandle);
-			glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0,  sizeof(disp.data.dispatchArray), &disp.data.dispatchArray);
 			for(size_t iter = 0; iter < 4; iter++)
 			{
-				inputBuffer.append(std::to_string(disp.data.dispatchArray[iter]));
+				inputBuffer.append(std::to_string(disp->dispatchArray[iter]));
 				inputBuffer.append(" ");
 			}			
 			loadFromBuffer = false;
@@ -76,7 +78,9 @@ protected:
 			if (ImGui::Button("dispatch"))
 			{
 				computeProgram.Use();
-				glDispatchCompute(4, 1, 1);
+				// Ensure SSBO is bound to the expected slot in case other passes changed it
+				bufferHandler.shaderStorageBlocks["testBuffer"].BindToSlot(0);
+				glDispatchCompute(1, 1, 1);
 				loadFromBuffer = true;
 			}
 

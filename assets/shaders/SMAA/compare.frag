@@ -7,7 +7,7 @@ in defaultBlock
 	vec2 fullUV;
 } inBlock;
 
-layout(std140, binding = 0) uniform defaultSettings
+layout(std140) uniform defaultSettings
 {
 	mat4		projection;
 	mat4		view;
@@ -20,7 +20,7 @@ layout(std140, binding = 0) uniform defaultSettings
 	uint		totalFrames;
 };
 
-layout(std140, binding = 4) uniform upcsaleSettings
+layout(std140) uniform upcsaleSettings
 {
     vec4 metrics; //Z and W are output resolution, xy = rcp(zw). calculate rcp on c++ side
     vec2 resolutionScale;
